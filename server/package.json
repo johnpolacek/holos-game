@@ -1,0 +1,16 @@
+{
+  "name": "@holos/server",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "partykit dev",
+    "deploy": "partykit deploy",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "partykit": "^0.0.115",
+    "typescript": "^5.7.2"
+  }
+}
