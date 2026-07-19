@@ -11,5 +11,8 @@
     "dev:client": "npm run dev --workspace client",
     "typecheck": "npm run typecheck --workspaces",
     "build": "npm run build --workspaces"
+  },
+  "devDependencies": {
+    "wrangler": "^4.112.0"
   }
 }

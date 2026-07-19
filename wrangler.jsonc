@@ -5,9 +5,11 @@
   "compatibility_date": "2025-01-01",
   // One Worker serves the whole game: the partyserver Durable Object room
   // (game traffic under /parties/*) plus the built client as static assets.
-  "main": "../server/src/index.ts",
+  // This config lives at the repo root (Workers Builds Path "/") so the
+  // install step covers every npm workspace the bundle imports from.
+  "main": "server/src/index.ts",
   "assets": {
-    "directory": "./dist",
+    "directory": "client/dist",
     "binding": "ASSETS",
     // Serve index.html for unknown non-game paths so refreshes keep working.
     "not_found_handling": "single-page-application"
