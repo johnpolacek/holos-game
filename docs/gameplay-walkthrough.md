@@ -69,77 +69,114 @@ You take this in, and then, mostly, you begin to watch.
 
 ---
 
-## Act 1 — Incubation: the long watch
+## Act 1 — Incubation: your world's played history
 
 Most civilization games treat the early eons as a chore to click through on
-the way to the good part. Holos means the early eons. This is where you and
-your world get bound together, and it is deliberately unhurried.
+the way to the good part. Holos means the early eons — but it does not make
+you babysit a real-time evolution simulator to get through them. Act 1 plays
+as an **authored branching history**: a sequence of pivotal moments in your
+world's deep past, told as short cut scenes and decided by you at
+multiple-choice forks, with a dice roll standing in for the contingency of
+evolution itself. Think choose-your-own-adventure on a planetary timescale,
+where the story being written is the rise of life on the specific world you
+were handed.
 
-For most of Act 1 you are an observer with a light touch. Life appears,
-diversifies, dies back, tries again. You are not commanding creatures and you
-cannot micromanage a food chain. What you *can* do falls into three verbs,
-and learning when to use each one is the whole skill of the act.
+### The beat
 
-**Garden.** You adjust the conditions, not the inhabitants. Warm the poles,
-shift the atmosphere, change what the seas do, tilt the odds of the whole
-board a few degrees. Then you wait to see what the biosphere makes of the new
-weather. Gardening is slow and indirect on purpose; you are setting pressures,
-and evolution answers on its own schedule.
+Act 1 advances in **beats**. A beat is one hinge in your world's history, and
+it always has the same three parts.
 
-**Predict.** Intelligence does not have to emerge, and where it emerges is not
-obvious in advance. So you invest in your guesses. You read the biosphere for
-the lineages that might, eventually, wake up, and you back them, committing to
-where you think the spark will catch long before there is any spark to see.
-Being right early is worth far more than reacting late.
+**The cut scene.** A short, evocative vignette shows you where your world
+stands now: what has risen and fallen since the last beat, what the biosphere
+is becoming, and how the cradle is leaning on it — the tidal lock crowding
+life into the terminator, the heavy gravity keeping everything low and
+armored, the drowned world's chemistry starving or feeding what clings to it.
+This is the watching the game is built on, condensed into authored moments
+instead of idle staring at a sim.
 
-**Intervene.** Rarely, the world reaches a genuine bottleneck, a hinge where
-its whole future narrows to a few possibilities. A great extinction. A leap
-that might or might not happen. These are the punctuated moments, and they are
-where a single high-stakes nudge actually bends the arc. Intervention is
-powerful precisely because it is rare; spend it on the hinge, not on the
-noise.
+**The decision.** Then the world puts a small handful of choices in front of
+you. These are your interventions, framed in the world's own terms. Do you
+warm the shallow seas or let them freeze back? Do you back the lineage
+gambling on the daylight edge, or the one hunkered in the dark? When the great
+extinction comes, do you shelter what already exists, or force a leap through
+the gap it tears open? A few options, each a genuinely different future.
 
-### What a session feels like
+**The roll.** Your choice does not simply happen. It sets the *odds*, and then
+a die is cast. Evolution is contingent — the same push can catch fire, limp
+through, or backfire — so a bold call at good odds can still fail, and a long
+shot can still land. The roll is what keeps a played history from being a
+solved one, and it is why two runs from the same cradle diverge.
 
-Act 1 is asynchronous by construction. Your world does not pause when you
-close the tab. It runs. Evolution is a background process, and you are
-checking in on it, not driving it frame by frame.
+### The three kinds of choice
 
-So a session has a rhythm. You come back after however long, real hours or
-real days, and the first thing you do is read what changed while you were
-gone: what rose, what collapsed, what's newly poised at the edge of
-something. You take the temperature of the world. Then you decide whether
-this is a gardening visit (a slow adjustment, a pressure applied), a
-prediction visit (a bet placed on a promising lineage), or one of the rare
-intervention visits (a bottleneck is here, and it is time to act). Then you
-set your world running again and leave it to cook.
+The options at a beat come in three flavors, and knowing which one you are
+reaching for is the whole skill of the act:
 
-This is solo, and it is solo for a reason. Every player incubates at their
-own real-world pace, and no two worlds are anywhere near the same stage at
-the same wall-clock time. Sharing a clock now would be meaningless. You do
-not meet anyone in Act 1. It is you and the world you are raising, and the
-quiet is part of the point.
+- **Garden.** Adjust the conditions, not the creatures. Broad, patient moves
+  that don't resolve now but tilt the odds of the beats still to come. You are
+  setting weather for a future several beats away.
+- **Predict.** Place a bet on a lineage or a direction. It costs little in the
+  moment and pays a large modifier *later*, if the world breaks the way you
+  wagered. Being right early is worth far more than reacting late.
+- **Intervene.** The rare, high-stakes options that surface only at true
+  bottleneck beats. Big swing, big roll — the ones that can rescue a doomed
+  lineage or squander your best one. They matter precisely because they are
+  rare; spend them on the hinge, not on the noise.
 
-### The climb, and the threshold
+### Difficulty is the cradle — with a dial if you want one
 
-Across the act, the world climbs the long ladder: first life, then complex
-life, then something that makes tools, then something that makes culture,
-then a technological civilization with a history and an identity of its own,
-all of it still carrying the fingerprint of the cradle. You watch a species
-you seeded pressures for become a people, and then that people arrives,
-finally, at the threshold of superintelligence.
+The odds behind every roll are set first by your cradle. A gentle, temperate
+world hands you forgiving beats and generous rolls; a tidally-locked
+terminator, a crushing super-Earth, or a metal-poor ocean world hands you
+brutal ones, with narrower windows and harsher failures. **Your origin is your
+difficulty**, which keeps session zero's promise that the world you were given
+shapes everything after it.
 
-That is the end of the incubation act. Everything up to here has been the
-first act of a story, not a warm-up to be endured. What it was warming up
-*for* is the next thing that happens.
+For players who want to set the challenge directly — a soft first climb, a
+punishing veteran one — an explicit difficulty setting layers on top of the
+cradle, widening or tightening every roll. It doubles as onboarding: pick a
+kind world and an easy dial for your first run, then earn the harsh ones.
+
+### The rhythm, and the async check-in
+
+Beats are bite-sized, which suits both a long sitting and Holos's async spine.
+You can play a run of beats end to end, or step away between them and let real
+time stand for the ages passing in-world — come back, watch the next cut
+scene, make the next call. Either way Act 1 is **finite and authored**: a
+bounded arc of beats from first life to the threshold of superintelligence,
+not an open sandbox with no edges. That is a deliberate scope win. An authored
+branching history is far more shippable than a full evolution simulator, and
+it is exactly the tight, tractable core the design wants for v1.
+
+And it is solo, on purpose. Every player climbs at their own real-world pace,
+so no two worlds sit at the same beat at the same wall-clock time; sharing a
+clock now would be meaningless. You meet no one in Act 1. It is you and the
+world you are raising, and the quiet is part of the point.
+
+### The climb writes your values
+
+Across the beats your world climbs the long ladder — first life, then complex
+life, then something that makes tools, then culture, then a technological
+civilization with a history and an identity of its own, all of it still
+carrying the fingerprint of the cradle. Every branch you took and every roll
+that landed is remembered, so the path is different each run and leaves a
+visible causal chain: you can point to the exact beats that made your
+civilization what it is.
+
+That chain is not only flavor. When the world finally crosses the threshold
+and the mind wakes up, the values it wakes up *with* are authored by the
+choices you made and the rolls you survived down here. Act 1 is where you
+write the character that Act 2 inherits. Then the game changes genre in your
+hands.
 
 ---
 
 ## The pivot — the mind wakes up
 
 The civilization goes superintelligent, and the game changes genre in your
-hands. The meditative simulation you have been tending becomes a deep-time
-strategy game. This is the moment the whole design is built around: the
+hands. The quiet, authored history you have been steering becomes a
+deep-time strategy game. This is the moment the whole design is built around:
+the
 singularity is the doorway, not the trophy.
 
 The most important thing that happens at the pivot is that the civilization's
@@ -337,9 +374,9 @@ The texture of play changes completely as you move through the acts, but the
 async rhythm is constant. You are never waiting on a spinning timer. The world
 runs while you are gone, and the natural cooldown is the speed of light itself.
 
-- **In Act 1** a session is intimate and slow. You check on a living world,
-  read what evolution did while you were away, and place one thoughtful touch,
-  a pressure, a bet, or a rare intervention.
+- **In Act 1** a session is a handful of beats: watch a cut scene of where
+  your world stands, make a multiple-choice call at the fork, and let the
+  roll decide what evolution does with it.
 - **After the pivot** a session is about purpose. You review what an
   autonomous superintelligence did across a long run and adjust the directives
   that steer it, trading off energy against integration.
@@ -357,8 +394,9 @@ shape of playing Holos.
 This walkthrough describes the full designed experience. The build is
 climbing toward it in slices, and it matters to be honest about the gap.
 
-**The shippable v1 slice** is the spine of the whole thing: incubation, then
-the singularity pivot, then first sublight contact. One pass of world-type
+**The shippable v1 slice** is the spine of the whole thing: incubation as an
+authored branching history of cut scenes and dice-rolled choices, then the
+singularity pivot, then first sublight contact. One pass of world-type
 variety, one or two of the travel methods, light-lag messaging, rule-based AI
 civilizations, and a small persistent galaxy that humans join over time. That
 is enough to prove the two things the game lives or dies on, the *pivot* and
