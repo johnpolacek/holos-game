@@ -29,8 +29,14 @@ async function main(): Promise<void> {
   });
   container.appendChild(app.canvas);
 
+  // In production the game server is this same Worker, so connect to our
+  // own origin. In dev, Vite (5173) and `wrangler dev` (8787) are separate
+  // processes; VITE_PARTYKIT_HOST overrides for LAN/phone testing.
   const socket = new PartySocket({
-    host: import.meta.env.VITE_PARTYKIT_HOST ?? "localhost:1999",
+    host:
+      import.meta.env.VITE_PARTYKIT_HOST ??
+      (import.meta.env.DEV ? "localhost:8787" : window.location.host),
+    party: "room",
     room: "main",
   });
 
