@@ -45,6 +45,11 @@ async function main(): Promise<void> {
 
   function addDot(state: PlayerState): void {
     const gfx = new Graphics().circle(0, 0, DOT_RADIUS).fill(state.color);
+    // Your own dot gets a white ring. Self only ever arrives via "sync",
+    // so selfId is always set before this can match.
+    if (state.id === selfId) {
+      gfx.stroke({ width: 3, color: 0xffffff });
+    }
     gfx.position.set(state.x * app.screen.width, state.y * app.screen.height);
     app.stage.addChild(gfx);
     dots.set(state.id, { state, gfx });
