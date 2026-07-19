@@ -19,7 +19,7 @@ targets, not tuning commitments.
 **Working decisions.** Three forks were open when this was written and are
 resolved here as working decisions — sound, but cheaper to revisit now than
 after implementation: the **transferable seat** (see The seat), **time
-compression at ~1 real hour ≈ 1 game year** (see The clocks), and
+compression at ~5 real minutes ≈ 1 game year** (see The clocks), and
 **conflict designed in full but deferred from v1** (see Conflict and
 deterrence).
 
@@ -266,19 +266,19 @@ signature move, now playable.
 
 **Working decision: telescoping time.** The solo acts compress freely
 (Act 1: eons per beat; Act 2: millennia per real day). The shared clock
-exists only in Act 3, targeted at **1 real hour ≈ 1 game year** — the more
-godlike the civilization, the more the universe's real pace binds it.
+exists only in Act 3, targeted at **5 real minutes ≈ 1 game year** — the
+more godlike the civilization, the more the universe's real pace binds it.
 
 | Separation | One-way message | Round trip |
 |---|---|---|
-| 5 ly | ~5 hours | ~10 hours |
-| 20 ly | ~20 hours | ~2 days |
-| 100 ly | ~4 days | ~8 days |
-| 400 ly | ~2.5 weeks | ~5 weeks |
+| 5 ly | ~25 min | ~50 min |
+| 20 ly | ~1.7 hours | ~3.3 hours |
+| 100 ly | ~8 hours | ~17 hours |
+| 400 ly | ~1.4 days | ~2.8 days |
 
-Cohort neighbors converse on a daily rhythm; distant contact is a real
-commitment — exactly the vision's "conversational near, committed far."
-The ratio is a tuning target, not scripture.
+Cohort neighbors converse within a sitting; distant contact is a multi-day
+commitment per exchange — exactly the vision's "conversational near,
+committed far." The ratio is a tuning target, not scripture.
 
 **The cosmic clock** (accelerating expansion; galaxies crossing the
 horizon) is narrative in v1 — beats, not systems — and becomes the

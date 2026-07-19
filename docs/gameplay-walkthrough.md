@@ -484,10 +484,10 @@ watching. And then, if you spoke: **correspondence**.
 
 Correspondence is a slow exchange of stale letters between minds that may
 have diverged past recognition by the time each reply arrives. It runs on
-real clocks: a neighbor five light-years out is a conversation with hours
-between letters, a correspondent across four hundred light-years is a
-commitment of real weeks per exchange, and every message is composed for a
-reader years downstream of the one you know. Nothing agreed across that gap
+real clocks: a neighbor five light-years out trades letters within the hour,
+a correspondent across four hundred light-years is a commitment of days per
+exchange, and every message is composed for a reader years downstream of the
+one you know. Nothing agreed across that gap
 is enforceable — a treaty is a promise held up by nothing but two minds'
 natures, and a betrayal is already in flight before you could ever learn of
 it. Deception is native, because nobody ever sees *you*; they see your
