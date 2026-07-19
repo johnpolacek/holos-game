@@ -41,9 +41,9 @@ npm run build
 ## Deployment
 
 `main` auto-deploys via a Cloudflare Workers Builds project (**Path
-`/client`**, build `npm run build`, deploy `npx wrangler deploy`). One
+`/`**, build `npm run build`, deploy `npx wrangler deploy`). One
 Worker serves everything: game traffic under `/parties/*` goes to the
 Durable Object room, everything else is the built client
-(`client/wrangler.jsonc`). No deploy secrets needed.
+(root `wrangler.jsonc`). No deploy secrets needed.
 
 See [CLAUDE.md](CLAUDE.md) / [AGENTS.md](AGENTS.md) for conventions.

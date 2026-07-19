@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev --config ../client/wrangler.jsonc",
+    "dev": "wrangler dev --config ../wrangler.jsonc",
     "typecheck": "tsc --noEmit",
     "build": "tsc"
   },

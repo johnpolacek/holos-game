@@ -14,7 +14,7 @@ workflows, and conventions for anyone (human or agent) working in this repo.
   - `client/` — Vite + Pixi.js. Mobile-friendly: touch/pointer input,
     responsive full-screen canvas. Connects to the Room over WebSocket via
     `partysocket` at `/parties/room/:roomName`.
-- **One Worker ships both**: `client/wrangler.jsonc` points `main` at the
+- **One Worker ships both**: the root `wrangler.jsonc` points `main` at the
   server entry and serves the built client from `dist/` as static assets.
   In production the client connects to its own origin — no cross-origin
   config, no host env var.
@@ -53,10 +53,10 @@ merge.
 ## Deployment
 
 `main` auto-deploys through a single pipeline: a Cloudflare **Workers
-Builds** project connected to this repo with **Path `/client`**, build
+Builds** project connected to this repo with **Path `/`**, build
 command `npm run build`, and deploy command `npx wrangler deploy`. That
-deploys the one Worker (game server + client assets, config:
-`client/wrangler.jsonc`, including Durable Object migrations). No GitHub
+deploys the one Worker (game server + client assets, config: root
+`wrangler.jsonc`, including Durable Object migrations). No GitHub
 secrets are involved. The custom domain (holosgame.com) attaches to this
 Worker in the Cloudflare dashboard once its DNS zone is on the account —
 see the commented `routes` block in `wrangler.jsonc`.
