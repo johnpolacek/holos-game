@@ -6,14 +6,18 @@ workflows, and conventions for anyone (human or agent) working in this repo.
 ## Stack
 
 - **TypeScript everywhere**, npm workspaces monorepo with two packages:
-  - `server/` — [PartyKit](https://www.partykit.io/) (Cloudflare Durable
-    Objects) with a single `Room` class in `server/src/server.ts`. The Room
-    holds **authoritative game state**: each connected player is a colored
-    dot; the server validates/clamps move intents and broadcasts positions
-    to all clients.
+  - `server/` — [partyserver](https://github.com/cloudflare/partykit)
+    (PartyKit's library form) running as a **Cloudflare Durable Object**.
+    A single `Room` class in `server/src/index.ts` holds **authoritative
+    game state**: each connected player is a colored dot; the server
+    validates/clamps move intents and broadcasts positions to all clients.
   - `client/` — Vite + Pixi.js. Mobile-friendly: touch/pointer input,
-    responsive full-screen canvas. Connects to the PartyKit room over
-    WebSocket via `partysocket`.
+    responsive full-screen canvas. Connects to the Room over WebSocket via
+    `partysocket` at `/parties/room/:roomName`.
+- **One Worker ships both**: `client/wrangler.jsonc` points `main` at the
+  server entry and serves the built client from `dist/` as static assets.
+  In production the client connects to its own origin — no cross-origin
+  config, no host env var.
 - Wire protocol types live in `server/src/protocol.ts` and are imported by
   the client through the `@holos/protocol` alias (defined in
   `client/tsconfig.json` and `client/vite.config.ts`). Change the protocol
@@ -25,14 +29,14 @@ Run both processes (two terminals), from the repo root:
 
 ```sh
 npm install
-npm run dev:server   # PartyKit dev server on localhost:1999
+npm run dev:server   # wrangler dev (Worker + Durable Object) on localhost:8787
 npm run dev:client   # Vite dev server on localhost:5173
 ```
 
-Open http://localhost:5173 in multiple tabs (or phones on the same LAN —
-Vite listens on all interfaces) to see multiplayer in action. The client
-reads `VITE_PARTYKIT_HOST` to find the server (defaults to
-`localhost:1999`).
+Open http://localhost:5173 in multiple tabs to see multiplayer in action.
+The dev client connects to `localhost:8787`; set `VITE_PARTYKIT_HOST` in
+`client/.env.local` (e.g. `<lan-ip>:8787`, with
+`wrangler dev --ip 0.0.0.0`) to test from phones on the same LAN.
 
 ## Tests / checks
 
@@ -48,18 +52,14 @@ merge.
 
 ## Deployment
 
-`main` auto-deploys; the two workspaces ship on separate pipelines:
-
-- **Client** — Cloudflare Workers static assets. A Workers Builds project
-  is connected with **Path `client`** and deploy command
-  `npx wrangler deploy` (config: `client/wrangler.jsonc`, an assets-only
-  Worker serving `dist/`). The build-time env var `VITE_PARTYKIT_HOST`
-  points the client at the deployed PartyKit host.
-- **Server** — PartyKit, via the `Deploy server` workflow
-  (`.github/workflows/deploy-server.yml`) on push to `main`. It runs
-  `partykit deploy` and needs the `PARTYKIT_LOGIN` / `PARTYKIT_TOKEN` repo
-  secrets. Note: PartyKit deploys to PartyKit's platform, **not** to your
-  Cloudflare account via `wrangler` — the two deploys are independent.
+`main` auto-deploys through a single pipeline: a Cloudflare **Workers
+Builds** project connected to this repo with **Path `/client`**, build
+command `npm run build`, and deploy command `npx wrangler deploy`. That
+deploys the one Worker (game server + client assets, config:
+`client/wrangler.jsonc`, including Durable Object migrations). No GitHub
+secrets are involved. The custom domain (holosgame.com) attaches to this
+Worker in the Cloudflare dashboard once its DNS zone is on the account —
+see the commented `routes` block in `wrangler.jsonc`.
 
 ## Code conventions
 

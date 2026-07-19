@@ -1,13 +1,36 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  // Must match the Worker name in your Cloudflare dashboard.
+  // Must match the Worker name in the Cloudflare dashboard.
   "name": "holos-game",
   "compatibility_date": "2025-01-01",
-  // Static-assets-only Worker (no `main`): serves the Vite build in ./dist.
-  // `single-page-application` serves index.html for unknown paths so client
-  // routing keeps working on refresh.
+  // One Worker serves the whole game: the partyserver Durable Object room
+  // (game traffic under /parties/*) plus the built client as static assets.
+  "main": "../server/src/index.ts",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
+    // Serve index.html for unknown non-game paths so refreshes keep working.
     "not_found_handling": "single-page-application"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        // Binding name is kebab-cased into the URL: /parties/room/:roomName.
+        "name": "Room",
+        "class_name": "Room"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["Room"]
+    }
+  ],
+  "dev": {
+    "port": 8787
   }
+  // Once the holosgame.com DNS zone is added to the Cloudflare account,
+  // uncomment to serve the game there (Worker custom domain):
+  // "routes": [{ "pattern": "holosgame.com", "custom_domain": true }]
 }
