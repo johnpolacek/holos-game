@@ -36,4 +36,21 @@ npm run typecheck
 npm run build
 ```
 
+## Deployment
+
+`main` auto-deploys. The two halves ship independently:
+
+- **Client** → Cloudflare Workers (static assets). A Cloudflare Workers
+  Builds project is connected to this repo with **Path `client`**, build
+  command `npm run build`, and deploy command `npx wrangler deploy`
+  (config in `client/wrangler.jsonc`). Set the build-time env var
+  `VITE_PARTYKIT_HOST` to the deployed PartyKit host (e.g.
+  `holos.<your-username>.partykit.dev`) so the client connects to the live
+  server.
+- **Server** → PartyKit, via the `Deploy server` GitHub Action
+  (`.github/workflows/deploy-server.yml`) on every push to `main`. It
+  needs two repo secrets: `PARTYKIT_LOGIN` (your GitHub username) and
+  `PARTYKIT_TOKEN` (from `npx partykit token generate` after
+  `npx partykit login`).
+
 See [CLAUDE.md](CLAUDE.md) / [AGENTS.md](AGENTS.md) for conventions.
