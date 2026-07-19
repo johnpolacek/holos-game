@@ -107,17 +107,15 @@ through, or backfire — so a bold call at good odds can still fail, and a long
 shot can still land. The roll is what keeps a played history from being a
 solved one, and it is why two runs from the same cradle diverge.
 
-### The three kinds of choice
+### The two kinds of choice
 
-The options at a beat come in three flavors, and knowing which one you are
+The options at a beat come in two flavors, and knowing which one you are
 reaching for is the whole skill of the act:
 
 - **Garden.** Adjust the conditions, not the creatures. Broad, patient moves
   that don't resolve now but tilt the odds of the beats still to come. You are
-  setting weather for a future several beats away.
-- **Predict.** Place a bet on a lineage or a direction. It costs little in the
-  moment and pays a large modifier *later*, if the world breaks the way you
-  wagered. Being right early is worth far more than reacting late.
+  setting weather for a future several beats away, shaping *which* lineages
+  the world favors long before any of them matters.
 - **Intervene.** The rare, high-stakes options that surface only at true
   bottleneck beats. Big swing, big roll — the ones that can rescue a doomed
   lineage or squander your best one. They matter precisely because they are
