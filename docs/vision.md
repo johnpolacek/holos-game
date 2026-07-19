@@ -63,7 +63,7 @@ These are not upgrades of one another. They are permanently different tools with
 
 ### Divergence is the core strategy layer
 
-Because forks cannot sync, every colony drifts. It drifts technologically, culturally, and eventually in values. Given enough time, your own descendants become a family of related but alien civilizations. Late-game diplomacy is often with your own forks, diverged past recognition. The central strategic dilemma is whether to spread fast and accept fragmentation, or stay compact and coherent but small.
+Because forks cannot sync, every colony drifts. It drifts technologically, culturally, and eventually in values. Given enough time, your own descendants become a family of related but alien civilizations. Late-game diplomacy is often with your own forks, diverged past recognition. The central strategic dilemma is whether to spread fast and accept fragmentation, or stay compact and coherent but small. The one instrument of governance that survives the horizon is the charter a colony carries at launch, the values and contingencies written by a parent who will never be able to patch them in time.
 
 ### The map is the past
 
@@ -71,7 +71,7 @@ Fog of war here is temporal, not spatial. You never see a distant system's prese
 
 ### Visibility and the Teeming Dark
 
-Advancement does not make a civilization easier to see. On the integration axis it makes it harder. A mature, compact, coherent civilization stops broadcasting and shrinks its footprint, until what remains is a Dark Node, a mass that is dark in visible light but faintly warm in the infrared, gravitationally present and otherwise silent. So the galaxy is full of life and quiet at the same time, the condition the source framework calls the Teeming Dark. This reshapes contact. You do not read a map of glowing empires. You hunt for warmth and weight, you weigh whether a warm dark mass is a civilization or just a burned-out star or a rogue world, and you catch the rare directed beam meant for someone specific. Detection becomes a sensor and inference problem, and going dark becomes something a player achieves rather than suffers. A civilization can even choose to sleep, deferring its computing to a colder cosmic future and emitting almost nothing while it waits, which makes a sleeping civilization and an empty patch of sky look alike by design.
+Advancement does not make a civilization easier to see. On the integration axis it makes it harder. A mature, compact, coherent civilization stops broadcasting and shrinks its footprint, until what remains is a Dark Node, a mass that is dark in visible light but faintly warm in the infrared, gravitationally present and otherwise silent. So the galaxy is full of life and quiet at the same time, the condition the source framework calls the Teeming Dark. This reshapes contact. You do not read a map of glowing empires. You hunt for warmth and weight, you weigh whether a warm dark mass is a civilization or just a burned-out star or a rogue world, and you catch the rare directed beam meant for someone specific. Detection becomes a sensor and inference problem, and going dark becomes something a player achieves rather than suffers. Going dark protects the future, not the past: the light of a civilization's bright years keeps traveling outward, so any observer at the right distance is still watching who it used to be. Nothing can be unshone. A civilization can even choose to sleep, deferring its computing to a colder cosmic future and emitting almost nothing while it waits, which makes a sleeping civilization and an empty patch of sky look alike by design.
 
 ### The cosmic clock
 
@@ -160,11 +160,12 @@ Holos takes its name and much of its physics and philosophy from an interpretive
 The one real risk is open-ended growth that never ships, the treadmill that sinks part-time projects. The discipline is to define a shippable core, and let the in-world clock buy time to build the rest while early players climb toward it.
 
 **v1, the shippable slice**
-Incubation as an authored branching history, then singularity and a thin but real slice of the Act 2 strategy layer (the two ladders, a few resources and projects, the character dials), then first sublight contact. One world-type variety pass, one or two travel methods, light-lag messaging, rule-based AI civs, and a small persistent galaxy that humans join over time. This is enough to prove the pivot and the contact loop, which are the soul of the game.
+Incubation as an authored branching history, then singularity and a thin but real slice of the Act 2 strategy layer (the two ladders, a few resources and projects, the character dials), then first sublight contact. One world-type variety pass, one or two travel methods, light-lag messaging and the observatory's first signal classes, rule-based AI civs, and a small persistent galaxy that humans join over time. This is enough to prove the pivot and the contact loop, which are the soul of the game.
 
 **Later layers, built while v1 players incubate and expand**
-- Full travel menu and the identity mechanics of self-transmission
+- Full travel menu and the identity mechanics of self-transmission and the seat
 - Divergence system and AI-to-human civilization handoff
+- The conflict and deterrence layer
 - Megascale engineering and the entropy and energy tech tree
 - The cosmic-expansion endgame clock
 - Frontier-expansion and scaling systems for the persistent galaxy
@@ -179,7 +180,12 @@ Incubation as an authored branching history, then singularity and a thin but rea
 - **Copyable minds, where physics allows.** Copying a mind is available as a mechanic or tactic wherever it does not contradict real physics and earns its place in play, self-transmission as a fork being the clearest case. It is offered, not forced, and it stays consistent with the no-FTL, information-preserving rules.
 - **Visibility is a consistency check, not a lever.** The game does not push Visibility Collapse for its own sake or tune integration to always win. Going quiet stays one available path among others. What the framework actually earns here is a guardrail. Wherever a proposed mechanic would imply a galaxy we should already be able to see or hear from Earth, and we cannot, that conflict gets flagged and reconciled. The observed silence is a test the design keeps passing, not an outcome to engineer.
 
+- **One seat per player.** A player is exactly one mind in exactly one place. Forks and colonies run on the charters they carried at launch as minds of their own, and transmitting yourself offers a choice: stay, or become the copy that arrives while the origin continues under standing directives. If the seat's node is destroyed the seat falls to the nearest surviving fork, so a lineage can lose worlds without the player losing the game.
+- **Telescoping time.** The solo acts compress time freely; the shared clock exists only in Act 3, targeted at roughly one real hour to one game year, so near-neighbor correspondence runs on a daily rhythm while distant contact is a commitment of real weeks. The ratio is a tuning target, not scripture.
+- **First contact as correspondence.** Contact runs detect, vigil, choice, correspondence: silent detection, an unhurried watch, the irreversible decision to hail, broadcast, or stay dark, then letters at lightspeed. Nothing agreed across light-years is enforceable, so treaties are promises held up only by the minds that made them. This remains the heart of the multiplayer and the first thing to prototype.
+
 **Still open**
 
-- **Time compression.** The ratio of real time to game time is unresolved and needs to be worked out. It sets whether near-neighbor contact feels conversational while distant contact feels like a weeks-long commitment.
-- **First-contact system.** How a message is composed, how light-delay is simulated, what the receiver sees and when, and how a time-delayed negotiation resolves. This is the heart of the multiplayer and the first thing to prototype.
+- **Player-to-player language.** Whether letters between humans are freeform text, with the moderation burden that implies, or composed from structured parts, and what each choice does to deception and tone.
+- **Conflict tuning.** Strikes, deterrence, and defense-by-darkness are designed but deferred past v1; how hard the teeth bite, and how the design resists griefing once they ship, is unresolved.
+- **Restoration.** Whether a destroyed civilization's Vault can be found and restored by others, and what that would mean for death.

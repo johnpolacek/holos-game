@@ -333,6 +333,11 @@ about it falls out of a single, unbending fact: **there is no faster-than-
 light anything.** No warp, no jump, no cheat over the speed of light. The
 galaxy is real-physics huge, and that hugeness is the antagonist.
 
+Everything you built arrives with you. The strategy layer continues — the
+same dials, the same ladders, the same loop of report, turn, beats, and
+release — but what changes is the report itself. From here on, the report
+is the sky.
+
 ### Distance is the enemy, and light-lag is the unit
 
 The moment you have more than one star, you are not one civilization anymore.
@@ -366,7 +371,12 @@ each charging a different price in identity and control:
 
 Choosing among these is one of the defining decisions of the late game,
 because each one hands a different thing to the future: a divided self, a
-displaced self, or a descendant that is no longer quite you.
+displaced self, or a descendant that is no longer quite you. And
+transmission carries a hidden social layer: it needs a receiver already
+standing at the far end, so the receiver network is literally a map of
+trust. Building a receiver for another civilization is inviting it into
+your house, and building one at home is announcing that you are willing to
+be arrived at.
 
 ### The map is the past
 
@@ -376,7 +386,33 @@ decision you make about another star is made on stale data, and the system you
 are carefully watching may already be dead, transformed, or turned hostile.
 You are always acting on ghosts, and waiting for the light to catch up.
 
-### Divergence, and diplomacy with your own children
+So a session opens with the sky. New light arrived while you were away: an
+event that happened four centuries ago has just become visible, a letter
+composed years back has finally been delivered, a colony's report — already
+decades stale — has come in, a probe has checked in from the void. Reading
+your sky is reading the game state, and the game state is always the past.
+
+And the sky must be *interpreted*, not just read. The observatory is where
+Act 3 earns its detective gameplay: a faint infrared excess with no visible
+source — is it a Dark Node, a brown dwarf, a rogue world? A transit shadow
+too regular to be natural — a swarm under construction, seen as it was four
+hundred years ago? Instruments sharpen your guesses, but certainty never
+comes. Progress here is knowledge. Correctly naming one warm mass can
+reorder every priority you have while changing no number at all.
+
+### You cannot un-shine
+
+Your signature — the number that quietly accumulated all through Act 2 — is
+not a stat anymore. It is a wavefront. Every year you spent bright, that
+light is still traveling outward, and it cannot be recalled. Go dark today
+and you have protected your future, not your past: an observer at the right
+distance is watching your bright years *right now*, and will not see your
+silence for decades or centuries. Every civilization's history is written on
+the sky in an expanding shell of light, readable by anyone patient enough
+and close enough. Your choices propagate at lightspeed, forever — and that
+is the physics that keeps every posture decision honest.
+
+### Charters, forks, and the seat
 
 Because forks cannot sync, every colony drifts, first technologically, then
 culturally, then in its actual values. Give it enough time and your own
@@ -385,6 +421,27 @@ diplomacy is frequently with your *own forks*, diverged so far past
 recognition that a returning line of your lineage can arrive as a genuine
 rival. The central dilemma of the whole act lives here: spread fast and accept
 that you fragment, or stay compact and coherent and small.
+
+Physics allows you exactly one instrument of governance across that divide:
+the **charter**. At launch, every colony and every transmitted fork is
+written a constitution — the values it starts from, the directives it
+follows, the contingencies you thought to anticipate — and after launch you
+can never patch it in time. You are a value function writing a value
+function, betting that your judgment survives translation into a child. The
+Ledger tracks your whole lineage — every fork, its last-known state, how far
+its dials have walked from yours — and everything in it is stale by exactly
+its distance.
+
+And one rule sits underneath it all: **you are exactly one mind in exactly
+one place.** The seat — the node you actually inhabit — never divides. When
+you transmit yourself, you choose: stay, and the copy that arrives lives out
+its charter as its own mind; or *go*, waking up in the new system as the
+arriving fork while your origin continues under your standing directives, a
+mind you used to be. Neither choice is safe and neither is wrong, and your
+One Mind or Chorus nature has loud opinions about both. It also means the
+death of a world is not the death of you: if the seat's node is ever lost,
+the seat falls to the nearest surviving fork. A lineage can lose almost
+everything and still be you, somewhere, continuing.
 
 ### The Teeming Dark
 
@@ -397,28 +454,64 @@ otherwise silent. So the galaxy is full of life and quiet at the same time.
 That is the **Teeming Dark**.
 
 It completely reshapes what "exploring" means. You are not reading a map of
-glowing empires. You are hunting for warmth and weight. You catch a faint
-infrared source and you have to *infer*: is that a civilization, a burned-out
-star, or a rogue world? You catch a rare directed beam clearly meant for
-someone specific, and you have to decide what it means. Detection becomes a
-sensor-and-inference problem, and going dark stops being something that
-happens to you and becomes something you *achieve*. A civilization can even
+glowing empires. You are hunting for warmth and weight — this is what the
+observatory's inference game exists *for* — and the rare directed beam meant
+for someone specific is the loudest thing in the sky. Going dark stops being
+something that happens to you and becomes something you *achieve*. A civilization can even
 choose to sleep, deferring its computation to a colder, cheaper cosmic future
 and emitting almost nothing while it waits, so that a sleeping civilization
 and an empty patch of sky are designed to look exactly alike.
 
+Sleep is playable, and it is built for the shape of your real life. Dim the
+civilization to embers, set the tripwires — *wake me if anything warm moves
+within fifty light-years, wake me if a directed beam touches us, wake me in
+a thousand years regardless* — and close the tab. The galaxy runs on. When a
+tripwire trips, the game reaches out to you, and you sit up inside a
+civilization that has been holding its breath for exactly as long as you
+have been gone.
+
 ### First contact
 
 Contact, when it comes, is rare, enormous, and irreversible. It is not a
-diplomacy screen. It is a slow exchange of stale letters between minds that
-may have diverged past recognition by the time each reply arrives. You compose
-a message knowing the recipient will read it centuries after you sent it, and
-that whatever you learn about them is already centuries out of date. The faint
-warm mass in the distance, or the silence where you expected one, might be an
-ancient superintelligence, or a peer, or a young pre-singularity world still
-in its own incubation act, or another human being whose intentions you cannot
-read across the delay. You cannot always tell which. You are not meant to be
-able to. That uncertainty is the game.
+diplomacy screen. It is a protocol with human weight at every step.
+**Detect**: the observatory flags something it cannot explain away — and
+the flagged thing may never know. **Vigil**: you watch, in silence, maybe
+for real-world weeks, refining your guesses; they may be doing the same to
+you. **The choice**, none of it reversible: hail with a directed beam,
+revealing yourself to them alone; broadcast, revealing yourself to everyone
+inside the expanding shell of your voice, forever; or stay dark and keep
+watching. And then, if you spoke: **correspondence**.
+
+Correspondence is a slow exchange of stale letters between minds that may
+have diverged past recognition by the time each reply arrives. It runs on
+real clocks: a neighbor five light-years out is a conversation with hours
+between letters, a correspondent across four hundred light-years is a
+commitment of real weeks per exchange, and every message is composed for a
+reader years downstream of the one you know. Nothing agreed across that gap
+is enforceable — a treaty is a promise held up by nothing but two minds'
+natures, and a betrayal is already in flight before you could ever learn of
+it. Deception is native, because nobody ever sees *you*; they see your
+emissions, and you choose what to emit. A civilization can perform a
+character it does not have, for centuries.
+
+The faint warm mass in the distance, or the silence where you expected one,
+might be an ancient superintelligence, or a peer, or a young pre-singularity
+world still in its own incubation act, or another human being whose
+intentions you cannot read across the delay. You cannot always tell which.
+You are not meant to be able to. That uncertainty is the game.
+
+### The forest has teeth
+
+Rarely — and the design keeps it rare — the calculus turns existential. A
+relativistic strike is the dark forest's last argument: catastrophically
+expensive, launched on stale data at a target that may no longer deserve
+it, arriving barely behind the light that announces it, and utterly beyond
+recall. War here is a letter you cannot unsend, written to someone you knew
+centuries ago. Defense is everything the integration ladder was building
+toward — dispersal, darkness, the Vault — and deterrence is something you
+perform across the sky for observers you will never meet. Most
+civilizations never fire. All of them decide what they would do if the
+warmth they are watching starts to move.
 
 ### Who else is out there
 
@@ -442,6 +535,17 @@ children can come back as rivals run by strangers. New players seed further
 out, where light-lag insulates them from everyone already in play, so the
 world can expand forever without disrupting anyone in it.
 
+And the recursion reaches all the way down. Some of the quiet worlds in
+your sky are not hiding — they are *young*, pre-singularity, still in their
+own first act. AI-run young worlds are yours to watch, uplift, exploit, or
+leave alone, which makes the observer you were in Act 1 something players
+eventually do to each other. Incubating humans are protected by the
+geometry itself — seeded at the frontier, beyond anyone's practical reach,
+their solo climb inviolable. But biosignatures shine like anything else,
+and on the day you finally step into the galaxy, your new observatory may
+teach you something quietly enormous: someone's light has been falling on
+your world for a very long time. Someone watched you grow up.
+
 ### The clock at the top of everything
 
 Beneath the immortal premise that time is free sits a real, unforgiving
@@ -452,6 +556,10 @@ spend deliberating, some part of it falls over the edge forever. There is no
 scripted doomsday and no artificial villain. Cosmology itself is the
 use-it-or-lose-it timer, and it is the reason the deep-time strategy has
 stakes.
+
+*(The mechanics beneath this act — the sky and observatory, charters and
+the seat, the contact protocol, conflict, sleep, and the clocks — are
+specified in the [Act 3 design doc](./act3-design.md).)*
 
 ---
 
@@ -468,9 +576,10 @@ runs while you are gone, and the natural cooldown is the speed of light itself.
   it did while you were away, you adjust the dials and the deep-time
   projects, and the dilemmas your choices set in motion fire as beats —
   energy against integration, your directives against the mind's nature.
-- **In Act 3** a session is punctuated. Long solo stretches of building and
-  watching stale light, broken by seismic first-contact events that were
-  millennia in the making and that you cannot take back.
+- **In Act 3** a session opens with the sky: what new light arrived, what
+  the observatory cannot explain, which letters were finally delivered.
+  Long stretches of building and inference, broken by seismic first-contact
+  events that were years in the making and that you cannot take back.
 
 Short bursts and enormous consequences, all on your own clock. That is the
 shape of playing Holos.
@@ -487,16 +596,18 @@ authored branching history of cut scenes and dice-rolled choices, then the
 singularity pivot and a thin but real slice of Act 2's strategy layer — the
 two ladders, a few resources and projects, the character dials — then first
 sublight contact. One pass of world-type
-variety, one or two of the travel methods, light-lag messaging, rule-based AI
-civilizations, and a small persistent galaxy that humans join over time. That
+variety, one or two of the travel methods, light-lag messaging and the
+observatory's first signal classes, rule-based AI civilizations, and a small
+persistent galaxy that humans join over time. That
 is enough to prove the two things the game lives or dies on, the *pivot* and
 the *contact loop*.
 
 **Later layers**, built while the first players are still incubating and
 expanding, fill in the rest: the full travel menu and the identity mechanics
-of self-transmission, the divergence system and AI-to-human handoff,
-megascale engineering and the entropy tech tree, the cosmic-expansion endgame
-clock, and the systems that let the persistent galaxy scale at its frontier.
+of self-transmission and the seat, the divergence system and AI-to-human
+handoff, the conflict and deterrence layer, megascale engineering and the
+entropy tech tree, the cosmic-expansion endgame clock, and the systems that
+let the persistent galaxy scale at its frontier.
 
 **Today**, ahead of even the v1 slice, the repository is an early multiplayer
 foundation: a shared real-time room that proves the networking spine the rest
