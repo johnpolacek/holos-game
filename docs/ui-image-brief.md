@@ -2,17 +2,17 @@
 ### UI image-generation brief — mobile-first concept screens
 
 *A copy-paste handoff for an image generator (Midjourney, DALL·E, Flux,
-Ideogram, etc.): a reusable style block, an avoid block, and one
-self-contained prompt per key screen from [ui-design.md](./ui-design.md).
-These produce concept mockups for art-direction exploration — not
-production UI, not pixel specs.*
+Ideogram, etc.): a single reusable brief and one self-contained prompt
+per key screen from [ui-design.md](./ui-design.md). These produce concept
+mockups for art-direction exploration — not production UI, not pixel
+specs.*
 
 ---
 
 ## How to use
 
 1. **One screen per image.** Compose each generation as
-   `STYLE BLOCK + one SCREEN PROMPT + AVOID BLOCK`.
+   `THE BRIEF + one SCREEN PROMPT`.
 2. **Portrait phone framing.** Use a tall aspect ratio — `9:16` (or
    `9:19.5` if supported; Midjourney: `--ar 9:16`). Every prompt below
    already asks for a full-bleed phone screen, no device bezel.
@@ -25,39 +25,29 @@ production UI, not pixel specs.*
    rhythm*, not spelling. Ideogram/Flux handle short labels best if
    exact words matter.
 5. The palette and type here are the **working art-direction proposal**
-   (flagged in ui-design.md's open questions) — iterate on the style
-   block freely; the screen prompts' *content* comes from ui-design.md
-   and should stay stable.
+   (flagged in ui-design.md's open questions) — iterate on the brief
+   freely; the screen prompts' *content* comes from ui-design.md and
+   should stay stable.
 
 ---
 
-## THE STYLE BLOCK (prefix every prompt with this)
+## THE BRIEF (paste before every screen prompt)
 
-> Mobile game UI concept, full-bleed portrait smartphone screen, no
-> device frame, no hands. Dark astronomical interface: near-black
-> blue-charcoal background (#070B12) with subtle astrophotography grain,
-> matte surfaces, hairline 1px dividers, enormous quiet black space. The
-> aesthetic of a beautifully typeset book crossed with a scientific
-> instrument — editorial, restrained, contemplative; closer to a poetry
-> app than a sci-fi HUD. Typography-led: an elegant editorial serif for
-> prose in warm off-white (#E8E4DA), a clean geometric grotesque in
-> muted slate (#8A93A6) for small data labels and chips, tabular
-> numerals for clocks; large type, very few words, generous line
-> spacing. Color is information and appears sparingly: soft ember-amber
-> glow (#D08A4A) for anything warm or alive in the sky, pale moonlight
-> cyan (#9FC4CC) for the player's own civilization, everything else
-> monochrome. Soft radial glows, no gloss, no glassmorphism, no
-> gradients-for-decoration. Single column, one-thumb layout, decisions
-> rise as bottom sheets. Calm, precise, museum-grade graphic design.
-> Flat vector-crisp UI over softly rendered astronomical imagery.
-
-## THE AVOID BLOCK (append to every prompt)
-
-> Avoid: sci-fi HUD clutter, neon cyberpunk, glowing blue holograms,
-> hexagon motifs, circuit patterns, lens flare, chrome or glass panels,
-> busy dashboards, progress-bar spam, red notification badges, cartoon
-> style, photorealistic 3D render look, spaceships, aliens, robots,
-> human figures, device bezel, watermarks.
+> Mobile game UI concept, full-bleed portrait phone screen, no device
+> frame. Dark astronomical interface: near-black #070B12, faint
+> starfield grain, vast quiet black space — a beautifully typeset book
+> crossed with a scientific instrument, calm and editorial, never a
+> sci-fi HUD. Typography-led: editorial serif in warm off-white #E8E4DA
+> for prose, geometric grotesque in slate #8A93A6 for small labels,
+> tabular numerals for clocks; large type, few words, generous spacing.
+> Color is information, used sparingly — ember-amber #D08A4A for
+> anything warm or alive, moonlight cyan #9FC4CC for the player's own
+> civilization, else monochrome. Single column, one-thumb, decisions as
+> bottom sheets; hairline dividers, soft glows, flat crisp UI over
+> softly rendered real starfields. No HUD clutter, neon, holograms,
+> hexagons, circuitry, lens flare, glass or chrome, busy dashboards, red
+> badges, cartoon or 3D-render look, spaceships, aliens, robots, people,
+> device bezels, or watermarks.
 
 ---
 
