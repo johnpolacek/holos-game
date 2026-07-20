@@ -12,14 +12,16 @@ specs.*
 ## How to use
 
 1. **One screen per image.** Compose each generation as
-   `THE BRIEF + one SCREEN PROMPT`.
+   `THE BRIEF + one SCREEN PROMPT` — or, with the adopted style tile as
+   a reference, `SHORT BRIEF + sref + one SCREEN PROMPT` (see *Using a
+   style reference* below).
 2. **Portrait phone framing.** Use a tall aspect ratio — `9:16` (or
    `9:19.5` if supported; Midjourney: `--ar 9:16`). Every prompt below
    already asks for a full-bleed phone screen, no device bezel.
-3. **Consistency.** Generate the **style tile** (screen 0) first; if the
-   tool supports style reference / seed reuse (Midjourney `--sref`,
-   locked seeds), reference it in all later screens so the set reads as
-   one product.
+3. **Consistency.** An adopted style tile lives at
+   [`styletile.png`](./styletile.png); feed it as a style reference (see
+   *Using a style reference*) so the whole set reads as one product.
+   Screen 0 below regenerates one from scratch if you'd rather.
 4. **Text will be wrong.** Image models mangle words; treat all rendered
    text as greeked placeholder and judge type *scale, weight, and
    rhythm*, not spelling. Ideogram/Flux handle short labels best if
@@ -31,7 +33,44 @@ specs.*
 
 ---
 
-## THE BRIEF (paste before every screen prompt)
+## Using a style reference
+
+The adopted style tile lives at [`styletile.png`](./styletile.png) — the
+render chosen as the art-direction anchor:
+
+![The adopted style tile — the sref anchor for the set](./styletile.png)
+
+Feed this image to the generator as a **style reference** (Midjourney
+`--sref <url>`, or the equivalent image-style input in other tools) and
+the whole set inherits its look — palette, grain, matte lighting, mood —
+without describing them each time.
+
+A style reference carries **look, not content or rules**. It will not
+reliably enforce the layout, which typeface does prose vs. labels, the
+color-as-information mapping, or the content bans (the model's stubborn
+habit of drawing a galaxy where a single star belongs). So when you use
+the sref, paste the **short brief** in place of the full one below:
+
+> Mobile game UI, full-bleed portrait phone, no device frame. Single
+> column, one-thumb, decisions as bottom sheets. Typography-led:
+> editorial serif for prose, slate grotesque small-caps for labels,
+> tabular numerals for clocks; few words, generous spacing. Color is
+> information: amber = anything warm or alive in the sky, cyan = the
+> player's own civilization, else monochrome. No sci-fi HUD,
+> galaxies-as-stars, spaceships, aliens, robots, people, device bezels,
+> or watermarks.
+
+- **`--sw` (style weight, default 100):** raise it (150–250) if a
+  screen's *look* drifts off the tile; lower it (50–70) if the tile
+  forces its *composition* onto a screen that needs a different layout
+  (the Model pull-back, letters-in-flight), letting the short brief pull
+  structure back.
+- **No style reference?** Use the full **THE BRIEF** below instead — it
+  carries the same look in words.
+
+---
+
+## THE BRIEF (paste before every screen prompt, when not using a sref)
 
 > Mobile game UI concept, full-bleed portrait phone screen, no device
 > frame. Dark astronomical interface: near-black #070B12, faint
@@ -53,7 +92,7 @@ specs.*
 
 ## Screen prompts
 
-### 0 — Style tile (generate first, use as style reference)
+### 0 — Style tile (an adopted tile already lives at `styletile.png`; this regenerates one)
 
 > Design-system sample sheet for this interface on one phone screen: a
 > column of specimen components floating on the dark background — a
