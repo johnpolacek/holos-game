@@ -19,9 +19,11 @@ specs.*
    `9:19.5` if supported; Midjourney: `--ar 9:16`). Every prompt below
    already asks for a full-bleed phone screen, no device bezel.
 3. **Consistency.** An adopted style tile lives at
-   [`styletile.png`](./styletile.png); feed it as a style reference (see
-   *Using a style reference*) so the whole set reads as one product.
-   Screen 0 below regenerates one from scratch if you'd rather.
+   [`concepts/00-style-tile.png`](./concepts/00-style-tile.png); feed it
+   as a style reference (see *Using a style reference*) so the whole set
+   reads as one product. Screen 0 below regenerates one from scratch if
+   you'd rather. All concept renders live in
+   [`concepts/`](./concepts/README.md).
 4. **Text will be wrong.** Image models mangle words; treat all rendered
    text as greeked placeholder and judge type *scale, weight, and
    rhythm*, not spelling. Ideogram/Flux handle short labels best if
@@ -35,10 +37,11 @@ specs.*
 
 ## Using a style reference
 
-The adopted style tile lives at [`styletile.png`](./styletile.png) — the
-render chosen as the art-direction anchor:
+The adopted style tile lives at
+[`concepts/00-style-tile.png`](./concepts/00-style-tile.png) — the render
+chosen as the art-direction anchor:
 
-![The adopted style tile — the sref anchor for the set](./styletile.png)
+![The adopted style tile — the sref anchor for the set](./concepts/00-style-tile.png)
 
 Feed this image to the generator as a **style reference** (Midjourney
 `--sref <url>`, or the equivalent image-style input in other tools) and
@@ -92,7 +95,7 @@ the sref, paste the **short brief** in place of the full one below:
 
 ## Screen prompts
 
-### 0 — Style tile (an adopted tile already lives at `styletile.png`; this regenerates one)
+### 0 — Style tile (an adopted tile already lives at `concepts/00-style-tile.png`; this regenerates one)
 
 > Design-system sample sheet for this interface on one phone screen: a
 > column of specimen components floating on the dark background — a
