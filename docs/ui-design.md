@@ -218,9 +218,14 @@ allowed to be this theatrical.
 
 ### Act 3 — the sky and its desk
 
-- **The Sky** (Stage, zoomed out): the home system recedes to a mote;
-  sources render as what they optically are — smudges, warmths, shadows
-  — not as gameplay icons. Selecting one opens its **source card**:
+- **The Sky / the Model** (Stage, zoomed out): the act's centerpiece
+  and wow factor — a fully 3D volumetric star chart, specified in
+  [act3-map.md](./act3-map.md). The home system recedes to a mote, the
+  sky acquires depth off-axis, and the map renders *belief*, never
+  truth: light-age ghosting, uncertainty as literal fuzz, the player's
+  own light echo as an orbitable expanding shell. Sources render as what
+  they optically are — smudges, warmths, shadows — not as gameplay
+  icons. Selecting one opens its **source card**:
   designation, your name for it, light-age chip, classification beliefs
   with confidence, and its **light archive** — a scrubbable history of
   everything your instruments have ever received from it. Scrubbing a
@@ -298,7 +303,9 @@ report.
 Matching the design docs' v1 scope: the beat frame with roll; the world
 reveal; the History spine; the reveal sequence; report, system map with
 both transformations, dial sheet, ladder/project columns with clock
-pairs; the Sky with source cards and the five signal classes; the
+pairs; the Sky as the 3D Model in its v1 form (continuous camera, pull-back
+beat, point-cloud backdrop, the player's own echo shell — act3-map.md
+§ Scope) with source cards and the five signal classes; the
 observatory in its basic form (beliefs and confidence, without the full
 case-board vigil UI); the choice ceremony; letter threads with flight
 rendering; the Ledger with basic drift ghosts; sleep, tripwires, wake

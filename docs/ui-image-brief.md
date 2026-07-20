@@ -207,13 +207,51 @@ production UI, not pixel specs.*
 > visibly returning: top of screen fully lit, bottom still ember-dim, a
 > gradient of waking. Urgent but never alarmed; no red anywhere.
 
+### 13 — the Model: the pull-back (Act 3's opening wow)
+
+> A 3D volumetric star map on a phone screen, mid-camera-move: the view
+> has just pulled back and off-axis from a night sky, so a field of
+> stars is parting into visible depth — thousands of tiny points of
+> starlight in true astronomical colors (warm oranges, whites, rare
+> blues) with strong parallax layering, sparse and mostly empty, black
+> dominating. Near the center-bottom, one minuscule pale-cyan mote with
+> a hairline ring marks "HOME". A subtle depth-of-field softens the
+> nearest and farthest stars. One small slate label floats low: "THE
+> MODEL — WHAT WE BELIEVE". The overwhelming feeling: the sky just
+> became a place. Vast, precise, vertiginous, silent.
+
+### 14 — the Model: your own light, seen from outside
+
+> The poster image. A 3D star map viewed from outside the player's home
+> star: around the tiny cyan home mote, a vast translucent spherical
+> shell rendered in layers — an outer layer glowing warm ember (the
+> civilization's bright years, still traveling), and inside it a much
+> dimmer, darker inner shell (the silence that followed, never able to
+> catch up). Sparse background stars pierce the shells; the few stars
+> currently inside the warm layer are faintly haloed, as if lit by old
+> light reaching them now. Caption chip in slate: "YOUR LIGHT · 84 Y
+> DEEP". Elegiac, astronomical, breathtaking restraint — a civilization
+> orbiting its own past.
+
+### 15 — the Model: things in flight
+
+> A 3D star chart with knowledge rendered as depth: near stars crisp,
+> distant stars progressively ghosted and antiqued, two faint concentric
+> guide shells labeled "50 Y" and "100 Y" in tiny slate type. Between
+> stars, three hairline arcs each carry a slow bright point — a letter
+> in flight, a seedship mid-decade, and one incoming line rendered
+> hotter than everything else. One unresolved source is a soft amber
+> fuzz-cloud just beginning to condense toward a point. Mostly black,
+> few words, immense scale.
+
 ---
 
 ## Notes for the set
 
-- Screens **6, 7, and 8** carry the product's thesis (advancement as
-  quieting, the empty sky, irreversibility as ceremony) — iterate those
-  hardest, and judge every candidate by whether the screen feels *quiet*.
+- Screens **6, 7, 8, and 14** carry the product's thesis (advancement
+  as quieting, the empty sky, irreversibility as ceremony, the
+  inescapable light echo) — iterate those hardest, and judge every
+  candidate by whether the screen feels *quiet*.
 - If a generation drifts toward busy sci-fi, strengthen the avoid block
   before touching the screen prompt — clutter is a style failure, not a
   content failure.
