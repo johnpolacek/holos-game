@@ -318,6 +318,68 @@ A dim red sun makes this pay, and a strange, gentle intelligence can grow from i
 
 ---
 
+## Master table
+
+Every archetype at a glance — the same fields the per-entry sections carry,
+consolidated for scanning and for the eventual typed `Lineage` record. **Dial
+lean** lists only the ends the body pre-loads; parenthesized ends are faint
+leans, and the full seed lives in each entry above.
+
+| # | Species | Medium | Cognition | Signal channel | Technogenesis | Dial lean |
+|---|---|---|---|---|---|---|
+| S1 | Tentacled cephalopodan | Aquatic | Distributed | Chromatophore / visual | Severe | Chorus · Depth |
+| S2 | Song-culture pelagic | Aquatic | Unitary (culture-bound) | Acoustic / song | Near-impossible* | Voice · Custodian · (Chorus) |
+| S3 | Clawed benthic exoskeletal | Aquatic–amphibious | Unitary | Gesture / sound-tap / chemical | Hard | Instrumental · (Reach) |
+| S4 | Electro-sensing abyssal | Aquatic (dark/sealed) | Unitary | Bioelectric / chemical | Severe | Silence · Depth · (Instrumental) |
+| S5 | Colonial reef superorganism | Aquatic (sessile) | Emergent colonial | Chemical / electrical | Near-impossible | One Mind · Depth · Custodian |
+| S6 | Erect generalist | Terrestrial | Unitary | Acoustic / vocal | Straightforward | near-balanced · (Voice) |
+| S7 | Heavy-world multiped | Terrestrial | Unitary | Seismic / vocal | Straightforward → Hard (orbit) | Depth · One Mind · (Custodian) |
+| S8 | Twilight-band migratory | Terrestrial | Unitary | Thermal / vocal / gestural | Hard | One Mind · Voice · (Instrumental) |
+| S9 | Winged grasping flyer | Aerial–terrestrial | Unitary | Acoustic / song | Hard | Reach · Voice |
+| S10 | Buoyant aerial drifter | Aerial (buoyant) | Distributed / collective | Chemical / acoustic | Near-impossible | Depth · Silence · (Chorus) |
+| S11 | Eusocial hive superorganism | Terrestrial | Collective | Chemical (pheromone) | Hard | One Mind · Instrumental |
+| S12 | Networked substrate mind | Terrestrial | Networked | Chemical / electrical | Near-impossible* | One Mind · Curator · Depth |
+| S13 | Aggregative modular organism | Terrestrial / aquatic | On-demand aggregate | Chemical / tactile | Severe | Chorus · Shedder |
+| S14 | Obligate symbiotic composite | Varies (paired) | Composite | Dual-channel (e.g. song + gesture) | Hard | Chorus · Custodian |
+| S15 | Blind seismic-thermal burrower | Subsurface | Unitary | Seismic (drum) / chemical | Hard | Silence · Depth |
+| S16 | Chemo-lithic vent grazer | Aquatic / subsurface (vents) | Unitary, place-bound | Chemical / thermal | Severe | Depth · Silence · (Instrumental) |
+| S17 | Cryogenic slow-mind | Cryogenic | Sparse unitary | Chemical / acoustic (slow) | Severe | Depth · Curator · (Silence) |
+| S18 | Radiation-hardened extremophile | Terrestrial (surface) | Unitary | Chemical / UV-shifted visual | Hard | Silence · Shedder · (Reach) |
+| S19 | High-temperature mineral life | Subsurface (hot crust) | Alien mineral substrate | Thermal / seismic | Near-impossible | Depth · Silence |
+| S20 | Photovore | Terrestrial / aquatic | Collective-leaning | Visual / chemical (slow) | Severe | Depth · One Mind · (Custodian) |
+
+\* *S2 and S12 are* Near-impossible *alone but have a real door: S2 through the
+symbiotic composite (S14), S12 through the deep time its ancient cradle affords.*
+
+**Coverage check.** The catalog is meant to span the whole axes-of-variation
+space, and the table confirms it does:
+
+- **Medium** — all five are populated: aquatic (S1–S5, plus vent-dwelling S16),
+  terrestrial (S6–S8, S11–S13, S15, S18, S20), aerial/buoyant (S9, S10),
+  subsurface/sealed (S15, S16, S19), and cryogenic (S17). The pool skews aquatic
+  and terrestrial exactly as habitable worlds do.
+- **Cognition model** — every fork appears: unitary (the plurality — S2–S4, S6–
+  S9, S15–S18), distributed (S1, S10), collective (S11, and collective-leaning
+  S20), networked (S12), composite (S14), emergent-colonial (S5), and
+  on-demand-aggregate (S13). The One Mind ↔ Chorus dial is therefore pre-loaded
+  from *both* ends by biology, as *How this feeds Act 1* and the open questions
+  note.
+- **Technogenesis** — Straightforward ×2 (S6, S7 on its surface) · Hard ×7 (S3,
+  S8, S9, S11, S14, S15, S18) · Severe ×6 (S1, S4, S13, S16, S17, S20) ·
+  Near-impossible ×5 (S2, S5, S10, S12, S19). The distribution mirrors the
+  cradle tiers in act1-cradles.md: most roads to technology are genuinely hard,
+  a handful are near-barred, and the easy climb is deliberately rare — the same
+  shape as the difficulty pool.
+- **Dial ends** — all ten leaning ends are seeded by at least one body: **Reach**
+  (S9, lean S3/S18), **Depth** (S1, S4, S5, S7, S10, S12, S15–S17, S19, S20),
+  **Voice** (S2, S8, S9, faint S6), **Silence** (S4, S10, S15–S19), **Custodian**
+  (S2, S5, S14, lean S7/S20), **Instrumental** (S3, S11, lean S4/S8/S16),
+  **One Mind** (S5, S7, S8, S11, S12, S20), **Chorus** (S1, S13, S14, lean
+  S2/S10), **Curator** (S12, S17), and **Shedder** (S13, S18). No dial end is
+  left without a biological source before Act 1's branches move the point.
+
+---
+
 ## How this feeds Act 1
 
 This catalog is not just worldbuilding — it is the raw material of the Act 1
