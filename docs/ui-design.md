@@ -275,15 +275,21 @@ once, used everywhere:
 | **Source card** | designation + local name + age + beliefs + light archive scrubber |
 | **The strip** | scale, cooking clocks, ambient Signature halo; the only persistent chrome |
 
-## Phone and desktop
+## Mobile first
 
-The phone session (5–20 min) is the Voice: read the report, resolve
-beats, answer letters, tap a vigil's new light. Everything decision-shaped
-is one-thumb, bottom-sheet, portrait. The desktop session (30–60 min) adds
-the Stage as a place to *dwell* — survey the sky, scrub light archives,
-read the Ledger wide. Nothing is desktop-only or phone-only; the split is
-cadence, not capability. Notifications are OS-level push, tripwire-
-authored only, and each deep-links to its wake report.
+**The portrait phone is the canonical device.** Every screen in this
+document is designed at phone width first — one column, one thumb,
+bottom-sheet decisions, the Voice as the primary surface — and must be
+complete there: no decision, reading, or ceremony may require a larger
+screen. The typical session (5–20 min: read the report, resolve beats,
+answer letters, tap a vigil's new light) is a phone session by default.
+
+Desktop is the same surfaces given room, not a different design: the
+Stage becomes a place to *dwell* — survey the sky, scrub light archives,
+read the Ledger wide — with the Voice and Desk docked beside it. Nothing
+is desktop-only; the split is cadence, not capability. Notifications are
+OS-level push, tripwire-authored only, and each deep-links to its wake
+report.
 
 ---
 
@@ -301,10 +307,13 @@ strike ceremonies, seat-transfer UI, the intelligence-brokering desk.
 
 ## Open questions
 
-- **Art direction** is entirely unset — this doc specifies structure and
-  rules, not look. The one commitment implied by the design: the sky
-  must read as *dark and mostly empty*, because the Teeming Dark only
-  lands if the screen itself is quiet.
+- **Art direction** — this doc specifies structure and rules, not look.
+  A working proposal (dark astronomical matte, ember-warmth accents,
+  editorial type) now lives in [ui-image-brief.md](./ui-image-brief.md)
+  as the concept-image brief; it is a candidate, not a decision. The one
+  commitment implied by the design either way: the sky must read as
+  *dark and mostly empty*, because the Teeming Dark only lands if the
+  screen itself is quiet.
 - **How much scene is rendered vs written?** Beat vignettes could be
   full Pixi scenes, styled stills, or prose-forward cards. Cost scales
   brutally with the first option; v1 likely ships prose-forward with a
