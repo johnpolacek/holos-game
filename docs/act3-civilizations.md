@@ -157,10 +157,14 @@ system already named in act3-design.md:
 | **Gravitational-Lens Observatory** — natural lenses for extreme resolution | instrument | the observatory's deep-inspection mode; how you resolve a warm mass into a Dark Node without building anything bright |
 
 The bright family (swarm stages, star-lifting, black-hole extraction) has no
-equivalent toolkit in theory.pdf *by design* — the framework predicts mature
-civilizations abandon bright sprawl. That absence is itself content: a
-civilization still building bright megastructures in Act 3 is announcing it
-is young, loud, or defiant of the pressure everyone else has bent to.
+equivalent toolkit in theory.pdf *by design* — the framework predicts most
+mature civilizations abandon bright sprawl. That absence is a fact about the
+framework's statistical galaxy, not a grade on the player: bright building
+in Act 3 is a legible, honest signal — of youth, of confidence, of a
+Beacon's or a Tide's nature — and the game prices it in visibility, never in
+judgment. The theory predicts what most of the AI population converged on;
+the player is free to be any exception the physics allows
+([playstyles.md](./playstyles.md)).
 
 ---
 
