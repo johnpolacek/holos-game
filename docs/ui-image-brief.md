@@ -95,7 +95,14 @@ the sref, paste the **short brief** in place of the full one below:
 
 ## Screen prompts
 
-### 0 — Style tile (an adopted tile already lives at `concepts/00-style-tile.png`; this regenerates one)
+*Grouped by act below. Screen numbers are stable — they're referenced in
+*Notes for the set* and in [`concepts/`](./concepts/README.md) filenames —
+so the groups never renumber them. Milestone tags (M1–M3) map to
+[roadmap.md](./roadmap.md), so the art and the build share one shot list.*
+
+### Style & components · all milestones
+
+#### 0 — Style tile (an adopted tile already lives at `concepts/00-style-tile.png`; this regenerates one)
 
 > Design-system sample sheet for this interface on one phone screen: a
 > column of specimen components floating on the dark background — a
@@ -107,7 +114,9 @@ the sref, paste the **short brief** in place of the full one below:
 > choice cards, one cool slate-toned, one warm ember-edged. Arranged
 > like a minimal type-specimen poster.
 
-### 1 — Session zero: the world reveal
+### Session zero & Act 1 — incubation · M1
+
+#### 1 — Session zero: the world reveal
 
 > Opening screen: the upper two-thirds is a planet resolving out of
 > darkness — a tidally-locked world lit by a huge dim red-amber sun, a
@@ -119,7 +128,7 @@ the sref, paste the **short brief** in place of the full one below:
 > buttons visible except one subtle text link at the bottom: "an easier
 > world". Immense stillness.
 
-### 2 — Act 1: the beat, decision moment
+#### 2 — Act 1: the beat, decision moment
 
 > A painterly vignette fills the top half: primitive ocean life under a
 > red sun at the shoreline of a dark sea, grainy and atmospheric. Rising
@@ -131,7 +140,7 @@ the sref, paste the **short brief** in place of the full one below:
 > marked "LONG SHOT". The cards feel like letterpress slips, not
 > buttons.
 
-### 3 — Act 1: the roll
+#### 3 — Act 1: the roll
 
 > A full-screen held-breath moment: everything dark except the center,
 > where a single horizontal odds band glows softly — a pale segment
@@ -141,7 +150,9 @@ the sref, paste the **short brief** in place of the full one below:
 > tiny slate text: "evolution decides". The feel of a die in the air
 > over felt, translated to minimal graphic design.
 
-### 4 — The pivot: the character sheet reveal
+### The pivot · M2
+
+#### 4 — The pivot: the character sheet reveal
 
 > Ceremony screen: five horizontal dials stacked with generous spacing,
 > each a soft pale range band with a bright cyan notch landed inside it,
@@ -153,7 +164,9 @@ the sref, paste the **short brief** in place of the full one below:
 > large type, the first words a newborn mind speaks. Dark, reverent,
 > museum-lighting.
 
-### 5 — Act 2: the report
+### Act 2 — the ascent · M2
+
+#### 5 — Act 2: the report
 
 > A reading screen, typography-led: a long scrolling letter in elegant
 > serif on the dark background, written by an immense calm intelligence,
@@ -164,7 +177,7 @@ the sref, paste the **short brief** in place of the full one below:
 > holds three tiny project clocks. Feels like reading correspondence,
 > not a dashboard.
 
-### 6 — Act 2: the system map going quiet
+#### 6 — Act 2: the system map going quiet
 
 > Full-screen astronomical view of a home star system from above: the
 > central star deliberately dimmed, drawn with a tight compact core of
@@ -175,7 +188,9 @@ the sref, paste the **short brief** in place of the full one below:
 > bottom: "THE VAULT DEEPENS". Progress rendered as quieting, not
 > growth. Almost monochrome, breathtaking restraint.
 
-### 7 — Act 3: the Sky with a source card
+### Act 3 — the sky & contact · M3
+
+#### 7 — Act 3: the Sky with a source card
 
 > The signature screen. A nearly empty star field fills the screen —
 > true darkness, sparse faint stars, one soft amber smudge glowing low
@@ -187,7 +202,7 @@ the sref, paste the **short brief** in place of the full one below:
 > source's light history, decades marked as ticks. The screen must feel
 > almost empty; the emptiness is the point.
 
-### 8 — Act 3: the choice ceremony (broadcast)
+#### 8 — Act 3: the choice ceremony (broadcast)
 
 > Irreversible-decision screen: the same dark star field, and from the
 > player's home mote at center an expanding translucent shell is drawn
@@ -198,7 +213,7 @@ the sref, paste the **short brief** in place of the full one below:
 > typographic ceremony, three-quarters complete. No dialog box, no
 > buttons. Gravity and silence.
 
-### 9 — Act 3: letters in flight
+#### 9 — Act 3: letters in flight
 
 > Correspondence screen split vertically: the top third is a dark map
 > showing two star-points joined by a hairline arc, a small bright
@@ -208,7 +223,7 @@ the sref, paste the **short brief** in place of the full one below:
 > warm off-white, the player's in cool moonlight tone, each stamped with
 > a tiny light-age chip. Epistolary, intimate, astronomical.
 
-### 10 — Act 3: the Ledger, drift ghosts
+#### 10 — Act 3: the Ledger, drift ghosts
 
 > Lineage screen: a sparse vertical tree of a few descendant nodes on
 > the dark background, one branch highlighted. The open row shows a
@@ -218,7 +233,7 @@ the sref, paste the **short brief** in place of the full one below:
 > A staleness chip reads "AS OF 12 Y AGO", and a small drift figure
 > "0.14" sits in slate. Quiet genealogical melancholy.
 
-### 11 — Act 3: sleep and tripwires
+#### 11 — Act 3: sleep and tripwires
 
 > A dimmed interface: the whole screen at ember-glow brightness, as if
 > the UI itself is banked coals — all elements present but faded near
@@ -229,7 +244,7 @@ the sref, paste the **short brief** in place of the full one below:
 > dot. At the bottom, a single line: "the galaxy runs on". The visual
 > feeling of a house at night with the pilot lights on.
 
-### 12 — Act 3: the wake report
+#### 12 — Act 3: the wake report
 
 > A triage screen after millennia of sleep: at top, a large serif
 > headline block — the single most important development — set like
@@ -239,7 +254,9 @@ the sref, paste the **short brief** in place of the full one below:
 > visibly returning: top of screen fully lit, bottom still ember-dim, a
 > gradient of waking. Urgent but never alarmed; no red anywhere.
 
-### 13 — the Model: the pull-back (Act 3's opening wow)
+### Act 3 — the Model · M3
+
+#### 13 — the Model: the pull-back (Act 3's opening wow)
 
 > A 3D volumetric star map on a phone screen, mid-camera-move: the view
 > has just pulled back and off-axis from a night sky, so a field of
@@ -252,7 +269,7 @@ the sref, paste the **short brief** in place of the full one below:
 > MODEL — WHAT WE BELIEVE". The overwhelming feeling: the sky just
 > became a place. Vast, precise, vertiginous, silent.
 
-### 14 — the Model: your own light, seen from outside
+#### 14 — the Model: your own light, seen from outside
 
 > The poster image. A 3D star map viewed from outside the player's home
 > star: around the tiny cyan home mote, a vast translucent spherical
@@ -265,7 +282,7 @@ the sref, paste the **short brief** in place of the full one below:
 > DEEP". Elegiac, astronomical, breathtaking restraint — a civilization
 > orbiting its own past.
 
-### 15 — the Model: things in flight
+#### 15 — the Model: things in flight
 
 > A 3D star chart with knowledge rendered as depth: near stars crisp,
 > distant stars progressively ghosted and antiqued, two faint concentric
