@@ -1,15 +1,15 @@
 # The waking minds — the Act 2 character catalog
 
 *What each lineage becomes when it crosses the threshold. This is the tier
-above [lifeforms.md](./lifeforms.md): the post-singularity character a species
+above [act1-lifeforms.md](./act1-lifeforms.md): the post-singularity character a species
 wakes into at the pivot, expressed as the Act 2 dial sheet and the archetype
 it lands nearest. It is the third map in the chain* worlds → species → minds *,
 and it feeds directly into the strategy layer of Act 2.*
 
 > Related design: [act2-design.md](./act2-design.md) (the dials, archetypes,
 > ladders, and Signature this catalog instantiates — the source of truth where
-> it and this doc disagree), [lifeforms.md](./lifeforms.md) (the species and
-> their dial seeds), [cradles.md](./cradles.md) (the worlds and their ranges),
+> it and this doc disagree), [act1-lifeforms.md](./act1-lifeforms.md) (the species and
+> their dial seeds), [act1-cradles.md](./act1-cradles.md) (the worlds and their ranges),
 > [vision.md](./vision.md).
 
 ---
@@ -22,8 +22,8 @@ At the singularity the mind wakes with a **character sheet** — five dials,
 lineage tends to wake into**: given a species' biology and the world that
 raised it, where do its dials sit, and which archetype does it land nearest?
 
-It exists because the pivot needs a target. cradles.md sets each dial's
-**range** (harsh worlds narrow it); lifeforms.md sets each dial's **base lean**
+It exists because the pivot needs a target. act1-cradles.md sets each dial's
+**range** (harsh worlds narrow it); act1-lifeforms.md sets each dial's **base lean**
 (the body pre-loads it, especially One Mind ↔ Chorus); Act 1's branches set the
 **exact point** inside the range. This catalog is where those three inputs
 resolve into a legible identity — the thing the player sees on the character
@@ -38,8 +38,8 @@ act2-design.md, now traced all the way from the world:
 
 | Input | Set by | What it controls | Source doc |
 |---|---|---|---|
-| **Range** (min–max) | the cradle's harshness | how far the dial can move; how fixed the character is | cradles.md |
-| **Base lean** | the species' body & cognition | where inside the range the dial starts | lifeforms.md |
+| **Range** (min–max) | the cradle's harshness | how far the dial can move; how fixed the character is | act1-cradles.md |
+| **Base lean** | the species' body & cognition | where inside the range the dial starts | act1-lifeforms.md |
 | **Point** | Act 1's branches & rolls | the final position the player earns | Act 1 history |
 
 So a hive on a cold-edge desert (narrow ranges, One-Mind/Instrumental body)
@@ -144,7 +144,7 @@ new v1 obligations). Every lineage below resolves to one of these ten.
 
 ## Species → waking mind
 
-Each lineage from lifeforms.md and the character it tends to wake into. **Primary**
+Each lineage from act1-lifeforms.md and the character it tends to wake into. **Primary**
 is the nearest archetype; **drifts →** is where Act 1 choices most easily push
 it; the dial line names the leaning ends. Remember the *generalist* is the
 open canvas — its row is a center of gravity, not a verdict.
@@ -251,11 +251,11 @@ starting roster.
   players to discover is unresolved, and the neighbors especially could stay
   nameless emergent regions.
 - **Exotic minds inherit their flags.** S19 (high-temperature mineral life) and
-  the other speculative lineages carry lifeforms.md's speculation flag up here
+  the other speculative lineages carry act1-lifeforms.md's speculation flag up here
   too — legible as archetypes, leaned on lightly.
 - **Data shape (for when this leaves Markdown).** Each lineage now has a default
   dial vector, a primary+drift archetype, a ladder lean, and a posture. With the
-  cradle ranges (cradles.md) and species seeds (lifeforms.md), this closes the
+  cradle ranges (act1-cradles.md) and species seeds (act1-lifeforms.md), this closes the
   loop act2-design.md flagged as open — *"the exact mapping tables from Act 1
   cradles, branches, and rolls to dial positions and ranges"* — at the
   cradle-and-body level, leaving only the per-branch deltas to author.

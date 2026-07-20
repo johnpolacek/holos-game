@@ -2,10 +2,10 @@
 
 *The space of biological intelligences that can climb out of the cradles.
 This is the Act 1 tier: the technological, tool-using species a world raises
-before the singularity. It is the bridge between [cradles.md](./cradles.md)
+before the singularity. It is the bridge between [act1-cradles.md](./act1-cradles.md)
 (the worlds) and the post-singularity minds of Acts 2–3.*
 
-> Related design: [cradles.md](./cradles.md) (the 40 worlds these species
+> Related design: [act1-cradles.md](./act1-cradles.md) (the 40 worlds these species
 > evolve on), [vision.md](./vision.md) (§ Act 1 — the cradle's fingerprint),
 > [gameplay-walkthrough.md](./gameplay-walkthrough.md) (§ Act 1 — the climb),
 > [act2-design.md](./act2-design.md) (the dials these species seed).
@@ -31,12 +31,12 @@ Three things to hold onto:
   compared to the road from a clever animal to a spacefaring civilization. That
   road needs four things at once (the *technogenesis filter*, below), and some
   cradles make one or more of them nearly impossible. That difficulty is the
-  same difficulty cradles.md already prices in.
+  same difficulty act1-cradles.md already prices in.
 - **The body writes the character.** A distributed octopus-mind, a hive, a
   song-culture of tool-less swimmers, and a heavy-world tool-user do not merely
   *look* different — they arrive at the singularity *wanting* different things.
   Each entry ends with a **dial seed**, consistent with the cradle logic in
-  cradles.md, that carries into the Act 2 character sheet.
+  act1-cradles.md, that carries into the Act 2 character sheet.
 
 ---
 
@@ -334,7 +334,7 @@ branching history and the seed of the Act 2 dials.
   species you become is partly defined by the ones you didn't.
 - **The body pre-loads the dials.** Each dial seed above is the *base* the
   biology sets before a single branch is taken — the same role the cradle plays
-  in cradles.md. A hive starts near One-Mind/Instrumental; a song-culture near
+  in act1-cradles.md. A hive starts near One-Mind/Instrumental; a song-culture near
   Voice/Custodian; a burrower near Silence/Depth. Act 1's branches then move the
   point inside the range the cradle's harshness allows.
 - **The technogenesis filter is the difficulty.** A *Near-impossible* lineage on
@@ -346,7 +346,7 @@ branching history and the seed of the Act 2 dials.
 
 ## Cradle → candidate lineages
 
-Every cradle from cradles.md and the lineages it can plausibly raise, likeliest
+Every cradle from act1-cradles.md and the lineages it can plausibly raise, likeliest
 first. (Species IDs are S1–S20 above.)
 
 | # | Cradle | Candidate lineages |
@@ -414,13 +414,13 @@ first. (Species IDs are S1–S20 above.)
   *intervene* beats meaningful — the drama of a magnificent mind that needs
   hands. Keep them.
 - **Speculation is flagged, not hidden.** The exotic-chemistry minds (S17–S19)
-  sit at the edge of plausibility. Like the disputed cradles in cradles.md, they
+  sit at the edge of plausibility. Like the disputed cradles in act1-cradles.md, they
   earn a place as *archetypes* while the game should lean on the well-grounded
   lineages and treat the exotic ones as rare, strange encounters.
 - **Data shape (for when this leaves Markdown).** Each species already carries
   the fields a generator needs: medium, body plan, energy base, sensory suite,
   signal channel, cognition model, a technogenesis rating, and a per-dial seed.
-  Together with the cradle records in cradles.md, this is the seed for a typed
+  Together with the cradle records in act1-cradles.md, this is the seed for a typed
   `Lineage` record and a cradle→lineage weighting table when Act 1 is built.
 - **Next tier.** This is the *species* level. The tiers above it — the
   post-singularity mind each lineage wakes into (Act 2), and the diverged
