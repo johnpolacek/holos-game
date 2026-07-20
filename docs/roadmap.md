@@ -118,11 +118,12 @@ Three pieces:
 - **Done when:** opening the URL draws a weighted cradle (Tier I–II on a
   first run), the reveal renders *that cradle's* real fields, and naming it
   advances into an (empty, for now) Act 1.
-- **Art it needs:** commit the existing world-reveal render as
-  `docs/concepts/01-world-reveal.png`, plus **2–3 variants across
-  contrasting cradle types** (a drowned ocean world, a crushing super-Earth,
-  a starless rogue) to prove one card template holds across the catalog —
-  see ui-image-brief.md § *Session zero & Act 1* (screens 1–3).
+- **Art it needs:** the M1 renders are in —
+  `docs/concepts/01-01-world-reveal.png` (and `01-02-decision-moment`,
+  `01-03-the-roll` for M1.2). Still wanted: **2–3 world-reveal variants
+  across contrasting cradle types** (a drowned ocean world, a crushing
+  super-Earth, a starless rogue) to prove one card template holds across the
+  catalog — see ui-image-brief.md § *Session zero & Act 1*.
 - **Open decision — how the planet is drawn** (see *Open build decisions*).
 
 #### M1.2 — The beat frame + first beats

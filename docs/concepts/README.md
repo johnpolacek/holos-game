@@ -17,30 +17,40 @@ renders) live under `client/`, never here.*
   ~1–2 MB each and git keeps every version forever, so the exploration
   firehose belongs outside the repo (a drive / Figma / Notion board); a
   handful of blessed frames belong here.
-- **Naming:** `NN-screen-name.png`, where `NN` is the screen number in
-  ui-image-brief.md (`00` = style tile, `01` = world reveal, …). This
-  keeps each image next to the prompt that made it.
+- **Naming:** `GG-NN-screen-name.png` — `GG` groups by act (`00` = style &
+  components, `01` = Act 1, `02` = the pivot / Act 2, `03` = Act 3), `NN`
+  orders within the group and maps to the screen in ui-image-brief.md's act
+  sections. (The style tile is the lone group-00 asset, `00-style-tile.png`.)
+  Grouping mirrors the brief's own act split, so each image sits next to the
+  prompt that made it.
 - **The status table below is the decision log** — *which* render we
   picked and *why*, including the fidelity notes from the design review.
   Keep it current; it is the point of this folder.
 
 ## Status
 
-| # | Screen | File | Status | Notes |
-|---|---|---|---|---|
-| 00 | Style tile | `00-style-tile.png` | **Adopted** — sref anchor | Best realization of the brief; palette/type dead-on; the two choice cards read as stay-dark vs act, with the *act* card ember (spending visibility) — color doing meaning. Use as the `--sref` for the rest of the set. |
-| 01 | Session zero — world reveal | *(pending add)* | **Adopted (image not yet in repo)** | Tidally-locked terminator world rendered correctly — the grounding pillar as an image. Caveat logged in ui-design.md: session-zero data fields must be generated from the cradle's real profile, not placeholder numbers (the mock's "1.37 AU" contradicts a red-dwarf tidal lock), and should lead with fingerprint facts (gravity, the fixed sun) over orbital elements. |
-| 02 | First sky / contact | *(not kept)* | **Superseded — reference only** | Beautiful but off-model: a K-type star drawn as a spiral galaxy (breaks the grounding pillar + "no galaxies-as-stars"), a 2D diagram rather than the 3D Model, missing light-age/belief epistemics, and v1-illegal choices ("Strengthen Defenses"; hail-vs-broadcast collapsed into "Send a Greeting"). Kept as a lesson, not a candidate. |
-| 03–15 | remaining screens | — | Not yet generated | See ui-image-brief.md prompts 2–15 (the Model pull-back, the light-echo shell, letters in flight, etc.). |
+| Screen | File | Status | Notes |
+|---|---|---|---|
+| Style tile | `00-style-tile.png` | **Adopted** — sref anchor | Best realization of the brief; palette/type dead-on; the two choice cards read as stay-dark vs act, with the *act* card ember (spending visibility) — color doing meaning. Use as the `--sref` for the rest of the set. |
+| Session zero — world reveal | `01-01-world-reveal.png` | **Adopted** — in repo | Tidally-locked terminator world rendered correctly — the grounding pillar as an image. Caveat (logged in ui-design.md): session-zero fields must be generated from the cradle's real profile, not placeholder numbers (the mock's "1.37 AU" contradicts a red-dwarf tidal lock), and should lead with fingerprint facts (gravity, the fixed sun) over orbital elements. This mock is a *layout* target, not a data source. |
+| Act 1 — beat, decision moment | `01-02-decision-moment.png` | **Adopted** — in repo | The beat frame's decision movement (brief screen 2): garden cards cool, the intervention card ember. Feeds M1.2. |
+| Act 1 — the roll | `01-03-the-roll.png` | **Adopted** — in repo | The roll movement (brief screen 3) — the Act-1-only signature interaction. Feeds M1.2. |
+| First sky / contact | *(not in repo)* | **Superseded** — reference only | Beautiful but off-model: a K-type star drawn as a spiral galaxy (breaks the grounding pillar + "no galaxies-as-stars"), a 2D diagram rather than the 3D Model, missing light-age/belief epistemics, and v1-illegal choices ("Strengthen Defenses"; hail-vs-broadcast collapsed into "Send a Greeting"). Kept as a lesson, not a candidate. |
+| The pivot · Act 2 · Act 3 · the Model | — | Not yet generated | See ui-image-brief.md, screens 4–15. Skip until their milestones (M2/M3) approach; generating them now decorates rooms the build won't enter for months. |
+
+**Still wanted for M1:** 2–3 **world-reveal variants across contrasting
+cradle types** (a drowned ocean world, a crushing super-Earth, a starless
+rogue) to prove one card template holds across the whole catalog — the real
+question the session-zero build hits.
 
 ## Adding an image
 
 ```sh
-# name it by its screen number, then log it in the table above
-cp <render>.png docs/concepts/01-world-reveal.png
-git add docs/concepts/01-world-reveal.png
+# name it {group}-{seq}-name, then log it in the table above
+cp <render>.png docs/concepts/01-04-world-reveal-oceanworld.png
+git add docs/concepts/01-04-world-reveal-oceanworld.png
 ```
 
-Then update the row's **File** and **Status**, and add one line on why it
+Then update the table's **File** and **Status**, and add one line on why it
 won (or what's still wrong). An image without a table row is noise; a row
 without a rationale is just a filename.
