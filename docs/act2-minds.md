@@ -39,7 +39,7 @@ act2-design.md, now traced all the way from the world:
 | Input | Set by | What it controls | Source doc |
 |---|---|---|---|
 | **Range** (min–max) | the cradle's harshness | how far the dial can move; how fixed the character is | act1-cradles.md |
-| **Base lean** | the species' body & cognition | where inside the range the dial starts | act1-lifeforms.md |
+| **Base lean** | the cradle's environment **and** the species' body | where inside the range the dial starts | act1-cradles.md · act1-lifeforms.md |
 | **Point** | Act 1's branches & rolls | the final position the player earns | Act 1 history |
 
 So a hive on a cold-edge desert (narrow ranges, One-Mind/Instrumental body)
@@ -48,6 +48,38 @@ generalist on the temperate twin (wide ranges, balanced body) wakes as **an
 open canvas** whose archetype is almost entirely the player's Act 1 doing. The
 harsher the cradle and the more specialized the body, the more the mind is
 *already decided* when it opens its eyes.
+
+### Where the base lean comes from
+
+The base lean has two compounding sources — the world, and the body it raised.
+
+**The cradle's environment** tilts each dial before anything on it is even
+intelligent (this logic used to live in act1-cradles.md; it belongs here):
+
+- **Reach ↔ Depth** — room and resources push *Reach* (bright stars, wide
+  systems, easy launch); confinement and scarcity push *Depth* (deep gravity
+  wells, cramped habitable bands, drowned or buried biospheres).
+- **Voice ↔ Silence** — a hostile sky pushes *Silence* (flare stars,
+  bombardment, worlds where being noticed meant being hurt); a calm, legible
+  sky pushes *Voice*.
+- **Custodian ↔ Instrumental** — abundance pushes *Custodian* (a lush,
+  forgiving biosphere); scarcity pushes *Instrumental* (a world where survival
+  meant using everything).
+- **One Mind ↔ Chorus** — a connected, uniform environment pushes *One Mind* (a
+  global ocean, a single terminator ring); a fragmented one pushes *Chorus*
+  (islands, isolated seas, patchy refuges).
+- **Curator ↔ Shedder** — deep, stable, continuous history pushes *Curator*
+  (ancient quiet worlds); repeated catastrophe pushes *Shedder* (volatile
+  worlds where survival meant leaping the gap).
+
+**The body** then compounds on top, and on **One Mind ↔ Chorus** it usually
+dominates: a hive or a networked substrate wakes *One Mind* almost regardless of
+world, a distributed or composite mind *Chorus* (act1-lifeforms.md). Where the
+two disagree, the body's cognition model wins that dial; elsewhere they add.
+
+This is act2-design.md's *"the cradle sets base positions and range widths"*
+made explicit: the environment sets a base position, the body adjusts it,
+difficulty sets the range around it, and Act 1's branches place the final point.
 
 ---
 
