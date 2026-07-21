@@ -57,18 +57,28 @@ v1 still exists to prove two things — now in this order:
 
 ## Where the build is today
 
-The multiplayer spine: an authoritative `Room` Durable Object, wire
-protocol with guarded parsing, real-time Pixi client
-(`server/src/index.ts`, `client/src/main.ts`) — plus the first catalog as
-typed data (`server/src/cradles.ts`).
+**A0 is merged and deployed** (PR #8). The server now has the whole truth
+engine: the catalog chain as typed data (`cradles.ts`, `lineages.ts`,
+`minds.ts`, with the dial vocabulary + pinned in-world labels in
+`dials.ts`), a deterministic seeded RNG (`rng.ts`), a real-statistics star
+field and civ placement (`galaxy.ts`, ~0.004 stars/ly³, default 25 ly
+radius), the shared clock at 5 real min ≈ 1 game year (`clock.ts`,
+`lightDelayYears`), `CivSeed` + the seed generator (`civseed.ts`), the
+light-delay knowledge layer (`knowledge.ts` — `observeCiv`/`observeSky`,
+with `ObservedCiv` as the *only* shape about another civ that may ever
+cross the wire), and a `Cohort` Durable Object (`cohort.ts`) owning truth,
+clock, and an alarm-driven event queue, exposed through **local-dev-only
+endpoints**. `protocol.ts` is deliberately untouched — the first real wire
+messages land with A1.
 
-**→ Next to build: [A0 — the world under the sky](#a0--foundations-the-world-under-the-sky),
-then [A1 — the Sky itself](#a1--the-sky).**
+**→ Next to build: [A1 — the Sky](#a1--the-sky)** — the first
+player-facing Act 3 slice: inherit a civilization, see the past.
 
 Each slice gets a just-in-time **launch brief** — a thin `build-*.md` wrapper
 (read-list, task, done-when, guardrails) that points back here for spec. The
-current one is [build-a0.md](./build-a0.md); the next is written when its
-slice starts, shaped by what the last one taught.
+current one is [build-a1.md](./build-a1.md) (build-a0.md is done and kept
+as record); the next is written when its slice starts, shaped by what the
+last one taught.
 
 ---
 
@@ -93,6 +103,15 @@ as a typed record and never cares where it came from:
 One producer swapped for another; Act 3 never changes. This is also why
 the content-track catalogs (`Lineage`, waking-mind vectors) move **up** the
 priority list: the seed generator consumes them in A0, not M2.
+
+**Shipped (A0):** `server/src/civseed.ts` realizes the record, with fields
+the sketch didn't have: `ageBand` (young/peer/elder), `ascensionYear`, a
+`chronicle` (the legible history, one line per link of the chain), a
+`charter` epigraph from the archetype, and `emissionHistory` as epochs
+that **may be future-dated** — a pre-authored dark turn simply becomes
+true when the clock reaches it, and can never leak early because the
+knowledge layer only serves departed light. That last trick is how A0's
+"static emitters" already have living postures.
 
 ## Two tracks
 
@@ -264,7 +283,16 @@ Resolve each before the slice that needs it; record the call here.
   vision's open moderation/deception question; must be decided when
   correspondence ships.
 - **Sky data budget (A1):** how much star field streams to a phone first
-  render (act3-map.md § Under the hood).
+  render (act3-map.md § Under the hood). Note A0's real cohort field is
+  small (~260 stars at 25 ly) — the 50–150k-star *cosmetic* backdrop can
+  arrive later; A1 can ship on the real field alone.
+- **Model renderer (A1):** three.js beside Pixi, or a purpose-built WebGL
+  point-sprite pass? Decide at A1 start, before the pull-back is built.
+- **Player identity (A1, thin):** how a browser session maps to its civ in
+  the cohort (a per-run token in DO storage is enough for v1).
+- **Player placement (A1):** A0's `generateGalaxy` pre-places one player
+  civ at seed time; the inheritance flow replaces this — candidates are
+  offered on join and the chosen civ is placed then. Reconcile in A1.
 - **Inheritance count (A1):** how many candidate civs a joining player
   chooses among (2–3 feels right; 1 removes agency, many becomes a menu —
   anti-pattern per act2's "revealed, not chosen").
