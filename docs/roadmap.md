@@ -65,6 +65,11 @@ typed data (`server/src/cradles.ts`).
 **→ Next to build: [A0 — the world under the sky](#a0--foundations-the-world-under-the-sky),
 then [A1 — the Sky itself](#a1--the-sky).**
 
+Each slice gets a just-in-time **launch brief** — a thin `build-*.md` wrapper
+(read-list, task, done-when, guardrails) that points back here for spec. The
+current one is [build-a0.md](./build-a0.md); the next is written when its
+slice starts, shaped by what the last one taught.
+
 ---
 
 ## The handoff seam: `CivSeed`
