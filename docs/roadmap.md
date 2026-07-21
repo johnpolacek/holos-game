@@ -1,243 +1,298 @@
 # HOLOS
-### Build roadmap — from design docs to the v1 slice
+### Build roadmap — Act 3 first
 
 *The design docs say **what** the systems are; this says **what order to
-build them in**. It sequences the v1 slice (vision.md, § Scope and roadmap,
-and the per-act v1 sections) into engineering milestones, each shippable
-and each proving something. Where this disagrees with the vision, the
-vision wins.*
+build them in**. The order is now: **Act 3 first, for real** — the
+interstellar multiplayer act as the actual first build, not a spike — with
+the solo acts following as the origin path. Where this disagrees with the
+vision, the vision wins.*
 
-> Related: [vision.md](./vision.md) (§ Scope and roadmap — the product-level
-> plan this refines), the per-act designs ([act2-design.md](./act2-design.md)
-> § v1 scope, [act3-design.md](./act3-design.md) § v1 scope),
-> [ui-design.md](./ui-design.md) (§ v1 slice — the screens each milestone
-> needs), and [ui-image-brief.md](./ui-image-brief.md) (the concept shot
-> list, tagged by milestone).
+> Related: [vision.md](./vision.md) (§ Scope and roadmap),
+> [act3-design.md](./act3-design.md) and [act3-map.md](./act3-map.md) (the
+> act being built), [act3-civilizations.md](./act3-civilizations.md) (what
+> fills it), [act2-design.md](./act2-design.md) / [act2-minds.md](./act2-minds.md)
+> (the character system Phase A consumes as data and Phase B later produces
+> by play), [ui-design.md](./ui-design.md) and
+> [ui-image-brief.md](./ui-image-brief.md) (screens; the Act 3 groups are
+> now the active shot list).
 
 ---
 
-## The north star
+## The decision: why Act 3 first
 
-v1 exists to prove the two things the game lives or dies on: **the pivot**
-(a played history becoming a superintelligent character) and **the contact
-loop** (first contact across light-lag). Everything below is ordered to
-reach those two proofs as directly as the dependencies allow. Anything not
-on the path to them is a later layer, by definition.
+Decided 2026-07: build the interstellar act before the solo acts.
+
+1. **The vision says so, explicitly.** First contact is *"the heart of the
+   multiplayer and the first thing to prototype"* (vision.md, § Decisions);
+   *"first contact is the soul of v1"* (act3-design.md). The contact loop is
+   the novel, unproven mechanic — the thing that could fail to be fun. Learn
+   that first, not after months of on-ramp.
+2. **The foundation is already multiplayer.** The existing build is an
+   authoritative shared Room over WebSockets. Act 3 uses and extends it;
+   Acts 1–2 (solo) would leave it idle.
+3. **The stub is canon.** Act 3 needs a character the solo acts normally
+   produce — but the vision already defines players who *never played*
+   Acts 1–2: divergence onboarding (*"new players inherit a diverged
+   descendant with history and grudges"*). So v1's entry **is** that path:
+   every player inherits a **generated civilization** — cradle → lineage →
+   waking mind, composed from the typed catalogs — with its charter as
+   their founding document. Acts 1–2 arrive later as the origin path
+   ("raise your own from first life"), slotting into the same seam.
+
+**Costs, owned:** the solo acts are deferred (the pivot — proof #2 — waits
+for Phase B); inherited characters must *feel owned*, which the inheritance
+ceremony has to earn; and one seam (the handoff record) must be designed
+carefully now so Phase B plugs in without rewiring. That seam is specified
+below.
+
+## The north star, reordered
+
+v1 still exists to prove two things — now in this order:
+
+1. **The contact loop** (Phase A): detection, the irreversible choice, and
+   stale-light correspondence between real minds.
+2. **The pivot** (Phase B): a played history becoming a superintelligent
+   character — which then *replaces* the seed generator as the way
+   characters are born.
 
 ## Where the build is today
 
-An early multiplayer foundation: a single `Room` Durable Object holding
-authoritative state, clients rendering each connected player as a colored
-dot over WebSocket (`server/src/index.ts`, `client/src/main.ts`). The
-networking spine — authoritative server, wire protocol, real-time sync — is
-the thing the rest grows on, plus the first catalog as typed data
-(`server/src/cradles.ts`). The game proper does not exist yet.
+The multiplayer spine: an authoritative `Room` Durable Object, wire
+protocol with guarded parsing, real-time Pixi client
+(`server/src/index.ts`, `client/src/main.ts`) — plus the first catalog as
+typed data (`server/src/cradles.ts`).
 
-**→ The next thing to build is the [session-zero slice](#m11--session-zero-the-next-slice) — the smallest cut
-that turns the cradle data into the first real screen.**
+**→ Next to build: [A0 — the world under the sky](#a0--foundations-the-world-under-the-sky),
+then [A1 — the Sky itself](#a1--the-sky).**
+
+---
+
+## The handoff seam: `CivSeed`
+
+The load-bearing interface of the whole plan. Act 3 consumes a civilization
+as a typed record and never cares where it came from:
+
+- **`CivSeed`** *(names indicative)*: origin cradle id + lineage id (the
+  backstory), the five-dial sheet as position + range per dial, archetype
+  region, posture (bright/dark), starting ladder stages and resource
+  stocks, and an **emission history summary** (the bright-years Signature
+  debt that seeds the light echo).
+- **Phase A** fills it with the **seed generator**: walk the catalog chain
+  (`cradles.ts` candidate lineages → lineage dial seeds → waking-mind
+  vectors from act2-minds.md) plus authored variation, so every inherited
+  civilization has a *legible* history — its fingerprint, its species, its
+  character — even though no one played it.
+- **Phase B** fills it from *play*: Act 1's branches and rolls and Act 2's
+  drift produce the same record at the pivot.
+
+One producer swapped for another; Act 3 never changes. This is also why
+the content-track catalogs (`Lineage`, waking-mind vectors) move **up** the
+priority list: the seed generator consumes them in A0, not M2.
 
 ## Two tracks
 
-- **Content leaves Markdown.** The catalogs become typed data the code
-  consumes. Done: `server/src/cradles.ts` (the 40 cradles as typed `Cradle`
-  records, with `TIER_NAMES`, `SPAWN_RELATIVE_WEIGHT`, `cradleById`). Next:
-  `Lineage` (act1-lifeforms.md, S1–S20) and the waking-mind vectors
-  (act2-minds.md). Low-risk, pure data + types, and it unblocks generation
-  everywhere. **This track runs *ahead of* the milestone that consumes each
-  catalog** — so it never blocks a system build, and a catalog can be typed
-  up whenever, out of band.
-- **Systems get built**, milestone by milestone, below.
+- **Content leaves Markdown** *(runs ahead, never blocks)*: done —
+  `cradles.ts`. **Now needed by A0:** `lineages.ts` (act1-lifeforms.md,
+  S1–S20 with dial seeds) and `minds.ts` (act2-minds.md: base-lean rules,
+  archetype regions, the species → mind table). Later: beat content
+  formats (Phase B).
+- **Systems get built**, slice by slice, below.
 
 ## How to read this
 
-- Milestones are **ordered by dependency, not calendar.** Each should reach
-  a playable, shippable state before the next opens. Within a milestone,
-  numbered sub-slices (M1.1, M1.2 …) are also dependency-ordered.
-- **Detail decays with distance.** M0/M1 are specified to the task; M2–M4
-  are kept coarse on purpose — the near work teaches things that would
-  rewrite the far plan, so planning it now is waste.
-- **Build thin, then grow.** A milestone often needs only a *slice* of an
-  earlier item (e.g. session-zero needs the cradle stored, not the full
-  persistence model). Build the slice, check the box partially, grow it when
-  a later slice demands more. Partial boxes below say `(thin)`.
-- Every milestone names the docs it builds against; those remain the source
-  of truth for behavior. This file only fixes *sequence*.
+- Slices are **dependency-ordered**; each reaches a playable state before
+  the next opens. **Detail decays with distance** — Phase A is task-level,
+  Phase B deliberately coarse. **Build thin, then grow** — items marked
+  `(thin)` ship a slice of themselves and deepen later.
+- The design docs stay the source of truth for behavior; this file fixes
+  sequence only.
 
 ---
 
-## Milestones
+## Phase A — Act 3, for real
 
-### M0 — Foundations *(in progress)*
+### A0 — Foundations: the world under the sky
 
-The spine plus the data bridge. Pure plumbing; no gameplay yet.
+Everything invisible that the Sky stands on. No player-facing change yet.
 
-- [x] Authoritative `Room`, wire protocol, real-time client (the current
-      build).
-- [x] Cradle catalog as typed data (`server/src/cradles.ts`).
-- [ ] **Per-run session state (thin):** a player has a *run* with an
-      assigned cradle and a place to accrue Act 1 history. The solo acts are
-      per-player; the shared clock is Act 3 only. Built thin for
-      session-zero (store the cradle + a run id in Durable Object storage),
-      grown as Act 1 needs more.
-- [ ] `Lineage` and waking-mind catalogs as typed data *(content track —
-      runs ahead; not a blocker for M1's start, needed by M2's derivation)*.
+- [ ] **The shared clock**: server-authoritative game time at the target
+      ratio (5 real minutes ≈ 1 game year; tunable constant). Durable
+      Object alarms drive scheduled events (arrivals, deliveries).
+- [ ] **The galaxy (thin)**: a generated star field for one cohort
+      neighborhood — real-statistics positions, tens of light-years across
+      — with civilizations (player + AI) placed in it. Distances in light
+      years are *the* gameplay quantity.
+- [ ] **The knowledge layer** — the architectural heart: the server holds
+      truth; each observer is served only **light-delayed views** (state
+      as of `now − distance`). The client never receives another
+      civilization's present (act3-map.md, *the Model renders belief*).
+      Every Act 3 feature reads through this layer, so it comes first.
+- [ ] **Catalogs**: `lineages.ts` + `minds.ts` typed (content track).
+- [ ] **`CivSeed` + the seed generator**: generate inheritable
+      civilizations from the catalog chain; per-run persistence (thin)
+      stores the player's civ.
+- [ ] **Protocol growth**: new guarded wire messages per slice
+      (sky snapshot, source detail, letters, launches), added to
+      `protocol.ts` as each lands.
 
-**Proves:** the catalogs can drive code; a run persists.
+**Done when:** a dev command creates a galaxy with N seeded AI civs and one
+player civ, and the server can answer "what does this observer see, as of
+its light?" for any of them.
 
-### M1 — Act 1: the played history
+### A1 — The Sky
 
-Session zero and the branching-history engine. Broken into three ordered
-sub-slices; the first is the immediate next work.
+The first player-facing Act 3 build: open the URL, inherit a civilization,
+see the past.
 
-#### M1.1 — Session zero *(the next slice)*
+- [ ] **Inheritance session zero**: present 2–3 generated civilizations —
+      each a card with its world's fingerprint, its lineage, its dial sheet
+      *revealed* — choose one, name it, accept its charter as your founding
+      document (the ceremony that makes it *yours*). Reuses the
+      world-reveal card pattern and renders from the `CivSeed`.
+- [ ] **The Model (v1 core)**: the continuous camera (system → sky →
+      volume), the pull-back beat, the point-cloud backdrop, sources
+      rendered with **light-age everywhere** and **uncertainty as fuzz**
+      (act3-map.md § Scope). WebGL point cloud beside Pixi; DOM for text.
+- [ ] **The observatory (thin)**: the five signal classes
+      (act3-design.md), classification as belief + confidence, sharpening
+      with instrument time; source cards with local naming.
+- [ ] AI civs as **static emitters** for now — warm masses, leakage,
+      biosignatures to classify; behavior arrives in A2/A5.
 
-The smallest cut that is *the game* rather than the scaffold: open the URL,
-get a world, name it. Dependency-light — needs only the cradle data and the
-thin per-run state, **not** the beat frame or the later catalogs, which is
-why it leads.
+**Done when:** a new player inherits and names a civilization, pulls back
+from their system into a 3D sky, and classifies a warm mass — with every
+remote fact aged and no remote fact certain.
 
-Three pieces:
+### A2 — Contact *(north-star proof #1)*
 
-1. **Protocol** — add a `CradleView` wire type and a `cradle` `ServerMessage`
-   to `protocol.ts` (the subset the reveal needs: name, host, `hostClass`,
-   archetype, tier + tier name, fingerprint, and the handful of display
-   facts). The full catalog stays server-side in `cradles.ts`; the server
-   maps `Cradle → CradleView`. This is the moment a cradle first crosses the
-   wire (kept out of `cradles.ts`, per CLAUDE.md's protocol-is-wire rule).
-2. **Server** — on a new run, draw a **weighted cradle** from `CRADLES`
-   using `SPAWN_RELATIVE_WEIGHT`, with a **guaranteed Tier I–II** first-run
-   draw; store it on the run; send the `cradle` message.
-3. **Client** — render the **world-reveal screen** *from the record*
-   (ui-design.md § Session zero): the planet on the Stage, and a card with
-   the name slot, **fingerprint facts first** (the fixed sun, gravity,
-   tier name) rather than raw orbital numbers — the exact fix the
-   world-reveal mock surfaced (docs/concepts/README.md, screen 01). The
-   single `an easier world` link (guarantees a gentler draw), and a name
-   input that advances the run.
+The soul of the game, reached as directly as possible.
 
-- **Done when:** opening the URL draws a weighted cradle (Tier I–II on a
-  first run), the reveal renders *that cradle's* real fields, and naming it
-  advances into an (empty, for now) Act 1.
-- **Art it needs:** the M1 renders are in —
-  `docs/concepts/01-01-world-reveal.png` (and `01-02-decision-moment`,
-  `01-03-the-roll` for M1.2). Still wanted: **2–3 world-reveal variants
-  across contrasting cradle types** (a drowned ocean world, a crushing
-  super-Earth, a starless rogue) to prove one card template holds across the
-  catalog — see ui-image-brief.md § *Session zero & Act 1*.
-- **Open decision — how the planet is drawn** (see *Open build decisions*).
+- [ ] **The vigil**: a flagged source becomes a case — watch, refine
+      confidence, decide nothing. (Design note: make the vigil an
+      *activity* — hypotheses and instrument allocation — per
+      playstyles.md's Silence gap.)
+- [ ] **The choice ceremony**: directed hail / broadcast / stay dark —
+      irreversible, hold-to-commit, consequences rendered on the Model
+      (ui-design.md § the choice screen).
+- [ ] **Correspondence on real clocks**: letters travel at c; delivery via
+      the clock/alarm infrastructure; threads with in-flight rendering.
+      **Decide the letter format here** (freeform vs composed — the
+      vision's open player-language question; v1 can ship AI-contact with
+      freeform and human-to-human composed, then loosen).
+- [ ] **Rule-based AI correspondents** (thin): enough behavior for a
+      complete contact arc against a seeded civ — detect, be detected,
+      answer letters in its archetype's register. Single-player-testable.
+- [ ] **Human contact**: two players in one cohort detect and correspond,
+      indistinguishable from the AI path at the wire level.
 
-#### M1.2 — The beat frame + first beats
+**Done when:** two humans (and one human + one AI, indistinguishably)
+complete detect → vigil → hail → correspondence across real light-lag, and
+the exchange is *worth screenshotting* — this is the fun gate; if it fails,
+we tune here before building anything else.
 
-- The **beat frame**: the reusable `scene → decision → (roll) → consequence`
-  unit every act reuses (ui-design.md § Act 1). Build it once here; Act 2/3
-  reuse its presentation, replacing the roll with a cost line at the pivot.
-- The two choice kinds (**garden** / **intervene**), the **dice roll** as
-  the signature interaction, and the **History spine** that records every
-  branch and roll (gameplay-walkthrough.md § Act 1) — treated as sacred from
-  beat one, since the pivot reads it back.
-- The async check-in: resume at the next beat after stepping away.
+### A3 — The light echo
 
-#### M1.3 — Act 1 content to the threshold
+The signature system: your past, propagating.
 
-- Enough authored beats to carry **one cradle** from first life to the
-  threshold of superintelligence — the vertical proof of the act before
-  authoring the full breadth.
-- The threshold handoff (thin): reach the singularity and stop; the reveal
-  sequence itself is M2.
+- [ ] Emission history per civilization (seeded by the `CivSeed`'s
+      bright-years debt; appended by everything bright you do).
+- [ ] Per-observer views read emissions as-of light departure — going dark
+      propagates outward; others court the civilization you used to be.
+- [ ] The Model's **echo shell** rendering (the poster feature,
+      act3-map.md § moment 2).
 
-**Proves:** the incubation act — an authored, replayable history that
-leaves a legible causal chain.
+### A4 — Expansion
 
-### M2 — The pivot + thin Act 2
+- [ ] **Seedships**: launches with real flight clocks; destination survey.
+- [ ] **Charters**: the launch-time value function (dial sheet + directives
+      + contingencies) — the same `CivSeed` shape, written by the player;
+      the recursion made literal.
+- [ ] **The Ledger**: lineage view, staleness chips, drift (magnitude-only
+      in v1).
 
-The first of the two north-star proofs. *(Coarse by design; detail on
-arrival.)*
+### A5 — A living galaxy
 
-- The **reveal**: derive the five-dial character sheet (position + range)
-  from cradle + branches + rolls, and play the reveal sequence
-  (act2-design.md § The character sheet; act2-minds.md for the derivation
-  tables — now including the per-lineage derivations). Consumes the
-  waking-mind catalog from the content track.
-- The strategy loop: **report → strategy turn → beats → release**. Two
-  ladders (~4 stages each), four resources (Energy/Matter/Compute/
-  Coherence), ~8 projects (3 bright, 3 dark, 2 instruments), the
-  state-fired beat engine, dial resistance + drift, and Signature
-  accumulating quietly (act2-design.md § v1 scope).
-- Deep-time projects on **real async clocks** — the Act 3 rhythm, trained
-  solo.
+- [ ] **Sleep, tripwires, wake report** — the engagement pressure valve
+      (act3-design.md § Sleep); in-app wake first, web push after.
+- [ ] **AI civ behavior (grown)**: the archetype spectrum acting over time
+      — postures shifting, construction shadows, occasional directed
+      beams — rule-based, hidden by light-lag.
+- [ ] **Cohort seeding + frontier (thin)**: new players seed outward;
+      regions reserved for future Phase B incubators (protected
+      incubation, act3-design.md § Topology).
 
-**Proves the pivot:** a played history becomes a superintelligence with an
-inherited, mechanically-live character.
-
-### M3 — Act 3: the contact loop
-
-The second north-star proof, and the reason for multiplayer. *(Coarse by
-design.)*
-
-- **The Sky / the Model** in its v1 form: the continuous camera (system →
-  sky → volume), the pull-back beat, the point-cloud backdrop, detected
-  sources with confidence + fuzz, light-age everywhere, and the player's
-  own **light echo** shell (act3-map.md § Scope).
-- The observatory and the **five signal classes**; classification as
-  inference (act3-design.md § The Sky and the Observatory).
-- **Light echo** tracking (emission history, per-observer views).
-- One expansion method — **seedships** — with **charters**, the **Ledger**,
-  and basic drift (act3-design.md § Travel, § Charters).
-- **Light-lag messaging**: directed hail, broadcast, correspondence, on
-  real clocks (the contact protocol: detect → vigil → choice →
-  correspondence).
-- **Sleep**, tripwires, wake report, push notifications.
-
-**Proves the contact loop:** detection, the irreversible choice, and
-stale-light correspondence — the soul of the game.
-
-### M4 — The galaxy
-
-Make the sky a populated, persistent, growing place. *(Coarse by design.)*
-
-- **Cohorts + AI fill**: a seeded rule-based AI spectrum across age
-  (young worlds → peers → elders) and character (the archetype span),
-  indistinguishable from humans at range (act3-civilizations.md;
-  act3-design.md § Topology).
-- **Persistence** and **frontier seeding**: newcomers seed outward where
-  light-lag insulates them; protected incubation for solo players
-  (act3-design.md § Topology and onboarding).
-
-**Proves:** the galaxy feels alive and deep in time, and grows at its edge
-without disrupting anyone in it.
+**Phase A ships** as the v1 galaxy: inherit a mind, read the sky, meet
+someone, launch a child, sleep. The whole loop of the walkthrough's season
+(act3-walkthrough.md) minus the origin acts.
 
 ---
+
+## Phase B — The origin path *(coarse by design)*
+
+The solo acts, built after the galaxy is alive, producing `CivSeed`s by
+play instead of generation:
+
+- **B1 — Session zero + Act 1**: cradle draw over `CRADLES` and the
+  world-reveal from the record (the previously-specced session-zero
+  slice); the beat frame (scene → decision → roll); the History spine;
+  authored beats to the threshold. The existing world-reveal concept art
+  and the cradle catalog land here.
+- **B2 — The pivot + thin Act 2** *(north-star proof #2)*: the reveal
+  derived from cradle + branches + rolls; the strategy loop, ladders,
+  resources, projects, resistance/drift, Signature. Its output *is* a
+  `CivSeed` — the generator retires to serving AI civs and inheritances.
+- **B3 — The join**: an ascended origin-path civilization enters the
+  persistent galaxy at the frontier.
 
 ## Open build decisions
 
-Decisions the build forces that the design docs don't settle. Resolve each
-before the slice that needs it; record the call here when made.
+Resolve each before the slice that needs it; record the call here.
 
-- **Planet rendering (needed by M1.1).** How the world on the Stage is drawn
-  per cradle.
-  - *Procedural* — Pixi renders sun color + ice/lava/ocean/haze bands from
-    the cradle's `archetype`/`hostClass`/profile. Scales to all 40+ worlds,
-    keeps the concept/production line clean, and fits the "generated from
-    real statistics" pillar. **Leaning this way.**
-  - *Per-cradle art* — prettier per frame, but doesn't scale to the catalog
-    and drags concept renders across into shipped assets.
-  - Either way, concept renders stay **art-direction reference**, not
-    production assets; production art lives under `client/`, never `docs/`.
-- **Client rendering split (M1.1+).** ui-design.md's rule is *canvas for
-  places, prose for the will*: the Stage is Pixi/WebGL, decisions and prose
-  are DOM overlay. Confirm the DOM-over-canvas layering approach at
-  session-zero so every later screen inherits it.
-- **Persistence substrate (M0 thin).** Durable Object storage is the natural
-  home for per-run state; confirm the shape (one run per player, cradle +
-  history spine) before it hardens.
+- **Shard topology (A0):** one galaxy Durable Object per cohort (truth,
+  clock, light-delay computation) with per-civ state hanging off it, or a
+  DO per civ + a coordinator? Start with one-DO-per-cohort (v1 cohorts are
+  small); revisit at scale.
+- **Letter format (A2):** freeform vs composed for human pairs — the
+  vision's open moderation/deception question; must be decided when
+  correspondence ships.
+- **Sky data budget (A1):** how much star field streams to a phone first
+  render (act3-map.md § Under the hood).
+- **Inheritance count (A1):** how many candidate civs a joining player
+  chooses among (2–3 feels right; 1 removes agency, many becomes a menu —
+  anti-pattern per act2's "revealed, not chosen").
+- **Planet rendering** (was M1's decision) — deferred to Phase B with the
+  world-reveal screen; the inheritance card can use painterly stills
+  meanwhile.
+
+## Art that helps now
+
+The image brief's **Act 3 groups are the active shot list** (screens 7–15,
+plus the adopted style tile): the Sky + source card (7), the choice
+ceremony (8), letters in flight (9), the Ledger (10), sleep/wake (11–12),
+and the Model set (13–15, echo shell = poster). New ask from this plan:
+**the inheritance ceremony** — a session-zero card presenting a generated
+civilization (world fingerprint + lineage + dial sheet + charter) to
+accept and name. Phase B's screens (world reveal variants, beat, roll,
+pivot reveal) wait.
 
 ## Explicitly out of v1
 
-Designed, deferred (per the vision's roadmap and the per-act v1 scopes):
-the full travel menu and self-transmission + the seat's full form; the
-divergence-and-handoff onboarding of humans into diverged colonies; the
-conflict and deterrence layer (strikes) with its griefing-resistance
-tuning; megascale engineering and the entropy tech tree; the cosmic-
-expansion endgame clock as a *system* (narrative in v1); and the richer
-per-archetype content (act2-minds.md's neighbors, the mesostructure
-toolkit art). None of these block the two proofs.
+Unchanged (vision roadmap + per-act scopes): the full travel menu and
+self-transmission + the seat's full form; human-inheritance of *diverged
+in-game colonies* (v1 inherits *generated* civs; the drifted-colony
+handoff needs the drift system matured); the conflict/deterrence layer;
+megascale engineering and the entropy tree; the cosmic clock as a system;
+richer per-archetype content beyond the anchors.
+
+## Risks, named
+
+- **Fun-density of the quiet loop** — the A2 done-when is a *fun gate*,
+  and playstyles.md's verb-parity gaps (the vigil especially) are on the
+  critical path, not polish.
+- **Inherited ≠ owned** — if the inheritance ceremony doesn't create
+  attachment, the premise wobbles; naming, charter-acceptance, and the
+  civ's legible backstory carry this.
+- **Empty-galaxy liveness** — AI fill must be present from A1 day one;
+  light-lag is the cover, per the vision.
+- **Clock tuning** — 5 min/year is a target, not scripture; A2 is where
+  it gets play-tested against real sessions.

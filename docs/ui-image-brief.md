@@ -97,8 +97,13 @@ the sref, paste the **short brief** in place of the full one below:
 
 *Grouped by act below. Screen numbers are stable — they're referenced in
 *Notes for the set* and in [`concepts/`](./concepts/README.md) filenames —
-so the groups never renumber them. Milestone tags (M1–M3) map to
-[roadmap.md](./roadmap.md), so the art and the build share one shot list.*
+so the groups never renumber them. Build-order note: the roadmap now runs
+**Act 3 first** ([roadmap.md](./roadmap.md), Phase A), so the **Act 3
+groups (screens 7–15) are the active shot list**, plus one new ask — the
+**inheritance ceremony** (session zero for Act-3-first: a card presenting
+a generated civilization's world, lineage, dial sheet, and charter to
+accept and name). The Act 1 / pivot / Act 2 groups belong to Phase B and
+can wait.*
 
 ### Style & components · all milestones
 

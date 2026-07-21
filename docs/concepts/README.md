@@ -36,12 +36,8 @@ renders) live under `client/`, never here.*
 | Act 1 — beat, decision moment | `01-02-decision-moment.png` | **Adopted** — in repo | The beat frame's decision movement (brief screen 2): garden cards cool, the intervention card ember. Feeds M1.2. |
 | Act 1 — the roll | `01-03-the-roll.png` | **Adopted** — in repo | The roll movement (brief screen 3) — the Act-1-only signature interaction. Feeds M1.2. |
 | First sky / contact | *(not in repo)* | **Superseded** — reference only | Beautiful but off-model: a K-type star drawn as a spiral galaxy (breaks the grounding pillar + "no galaxies-as-stars"), a 2D diagram rather than the 3D Model, missing light-age/belief epistemics, and v1-illegal choices ("Strengthen Defenses"; hail-vs-broadcast collapsed into "Send a Greeting"). Kept as a lesson, not a candidate. |
-| The pivot · Act 2 · Act 3 · the Model | — | Not yet generated | See ui-image-brief.md, screens 4–15. Skip until their milestones (M2/M3) approach; generating them now decorates rooms the build won't enter for months. |
-
-**Still wanted for M1:** 2–3 **world-reveal variants across contrasting
-cradle types** (a drowned ocean world, a crushing super-Earth, a starless
-rogue) to prove one card template holds across the whole catalog — the real
-question the session-zero build hits.
+| Act 3 · the Model | — | **Wanted now** | The roadmap now builds **Act 3 first** (roadmap.md, Phase A), so ui-image-brief.md screens 7–15 are the active shot list — priority: the Sky + source card (7), the choice ceremony (8), the Model pull-back (13), and the echo shell (14, the poster). Plus one new screen with no prompt yet: the **inheritance ceremony** (choose + name a generated civilization). |
+| The pivot · Act 2 | — | Phase B — wait | Screens 4–6, plus the world-reveal variants across contrasting cradle types, belong to the origin path (Phase B). The three adopted Act 1 renders above stay adopted; their build slice just moved later. |
 
 ## Adding an image
 
