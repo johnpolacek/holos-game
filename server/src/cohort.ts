@@ -28,9 +28,9 @@ import {
 } from "./clock";
 import {
   DEFAULT_GALAXY_CONFIG,
+  distanceLy,
   generateGalaxy,
   starById,
-  civDistanceLy,
   type Galaxy,
   type GalaxyConfig,
   type PlacedCiv,
@@ -198,7 +198,7 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   private civOverview(galaxy: Galaxy, nowYear: number): unknown[] {
-    const player = galaxy.civs.find((c) => c.controller === "player");
+    const origin = { x: 0, y: 0, z: 0 };
     return galaxy.civs.map((c) => ({
       id: c.seed.id,
       name: c.seed.name,
@@ -209,10 +209,8 @@ export class Cohort extends Server<CohortEnv> {
       lineage: c.seed.lineageId,
       cradle: c.seed.cradleId,
       star: starById(galaxy.stars, c.starId).designation,
-      distanceFromPlayerLy:
-        player === undefined
-          ? null
-          : Math.round(civDistanceLy(galaxy, player.seed.id, c.seed.id) * 100) / 100,
+      distanceFromCenterLy:
+        Math.round(distanceLy(starById(galaxy.stars, c.starId).position, origin) * 100) / 100,
       emissionNow: emissionAt(c.seed.emissionHistory, nowYear),
       ascensionYear: c.seed.ascensionYear,
       emissionHistory: c.seed.emissionHistory,

@@ -161,40 +161,22 @@ function drawAgeBand(rng: Rng): "young" | "peer" | "elder" {
 
 /**
  * Generate a full cohort neighborhood at game year `nowYear` (normally 0):
- * the star field, N seeded AI civilizations across the age spectrum, and
- * one player civilization (recently ascended — Act 3 opens now) at the
- * star nearest the cohort center.
+ * the star field and N seeded AI civilizations across the age spectrum.
+ * No player civilization is placed at seed time (A1) — that placement
+ * happens only when a real browser inherits, via `pickPlayerHome`.
  */
 export function generateGalaxy(
   rng: Rng,
   seedKey: string,
   config: GalaxyConfig,
   nowYear: number,
-  playerCivId: CivId = "civ-player",
 ): Galaxy {
   const stars = generateStarField(rng.fork("stars"), config);
-  const homes = pickHomeStars(rng.fork("placement"), stars, config.aiCivCount + 1);
-  const origin: Vec3Ly = { x: 0, y: 0, z: 0 };
-  homes.sort(
-    (a, b) => distanceLy(a.position, origin) - distanceLy(b.position, origin),
-  );
-  const playerHome = homes[0];
-  if (playerHome === undefined) throw new Error("no home star for player");
+  const homes = pickHomeStars(rng.fork("placement"), stars, config.aiCivCount);
 
-  const civs: PlacedCiv[] = [
-    {
-      seed: generateCivSeed(rng.fork("civ/player"), {
-        id: playerCivId,
-        ageBand: "peer",
-        nowYear,
-        recentlyAscended: true,
-      }),
-      starId: playerHome.id,
-      controller: "player",
-    },
-  ];
+  const civs: PlacedCiv[] = [];
   for (let i = 0; i < config.aiCivCount; i++) {
-    const home = homes[i + 1];
+    const home = homes[i];
     if (home === undefined) throw new Error("home star count mismatch");
     const civRng = rng.fork(`civ/ai-${i}`);
     civs.push({
@@ -208,6 +190,39 @@ export function generateGalaxy(
     });
   }
   return { seedKey, config, stars, civs };
+}
+
+/**
+ * The star a real player's civilization would be placed at, were one to
+ * inherit right now — nearest the cohort center among stars that are not
+ * an existing civ's home and keep `MIN_CIV_SEPARATION_LY` from every one.
+ * Placement itself (creating the PlacedCiv) is a later slice's job; this
+ * is the helper it calls. Returns null if the neighborhood is full.
+ */
+export function pickPlayerHome(galaxy: Galaxy): Star | null {
+  const origin: Vec3Ly = { x: 0, y: 0, z: 0 };
+  const homeStars = galaxy.civs.map((c) => starById(galaxy.stars, c.starId));
+
+  const eligible = galaxy.stars.filter((star) => {
+    if (homeStars.some((h) => h.id === star.id)) return false;
+    return homeStars.every(
+      (h) => distanceLy(h.position, star.position) >= MIN_CIV_SEPARATION_LY,
+    );
+  });
+
+  let best: Star | null = null;
+  let bestDistance = Infinity;
+  for (const star of eligible) {
+    const d = distanceLy(star.position, origin);
+    if (
+      d < bestDistance ||
+      (d === bestDistance && best !== null && star.id < best.id)
+    ) {
+      best = star;
+      bestDistance = d;
+    }
+  }
+  return best;
 }
 
 export function civById(galaxy: Galaxy, id: CivId): PlacedCiv {

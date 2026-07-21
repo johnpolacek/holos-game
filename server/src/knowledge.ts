@@ -169,3 +169,18 @@ export function observeSky(
     .filter((c) => c.seed.id !== observerId)
     .map((c) => observeCiv(galaxy, observerId, c.seed.id, nowYear));
 }
+
+/**
+ * The undetected-civ-is-simply-absent policy, enforced here in the
+ * knowledge layer rather than by callers: only civilizations with a
+ * signal (something has actually reached the observer) appear.
+ */
+export function visibleSky(
+  galaxy: Galaxy,
+  observerId: CivId,
+  nowYear: number,
+): (ObservedCiv & { signal: ObservedSignal })[] {
+  return observeSky(galaxy, observerId, nowYear).filter(
+    (o): o is ObservedCiv & { signal: ObservedSignal } => o.signal !== null,
+  );
+}
