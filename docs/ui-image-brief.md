@@ -323,6 +323,25 @@ can wait.*
 > fuzz-cloud just beginning to condense toward a point. Mostly black,
 > few words, immense scale.
 
+#### 17 — the Model: the home system (the present tense)
+
+> The zoomed-in start of the map: the player's own home star system — the
+> only thing in the universe rendered in the present, and the one screen
+> where nothing is blurred, aged, or uncertain. A modest warm-white star
+> at center, small and razor-crisp (a point of light, not a giant orb),
+> ringed by thin hairline orbit lines with a few planets as tiny sharp
+> points. Close around the star, a delicate lattice of pale moonlight-cyan
+> structure — the civilization's young works, precise filigree geometry,
+> nothing megastructural. A very faint warm amber halo rings the whole
+> system, barely brighter than the black — its visibility to distant eyes.
+> At the screen's far edges, the wider star field is dim, soft, and slightly
+> out of focus: the past, waiting outside. One serif label by the system —
+> a civilization name like "EMBERWARDENS" — with a small slate line
+> beneath: "THE PRESENT — EVERYTHING ELSE IS LIGHT". In a bottom corner, a
+> subtle outward affordance: faint receding concentric arcs suggesting
+> pinch-out to the sky. Crisp against soft; certainty at home, belief
+> beyond; immense quiet.
+
 ---
 
 ## Notes for the set
