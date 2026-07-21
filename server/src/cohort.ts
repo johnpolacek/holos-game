@@ -134,6 +134,11 @@ async function parseBody(request: Request): Promise<Record<string, unknown>> {
 export class Cohort extends Server<CohortEnv> {
   private clock: ClockState | null = null;
   private galaxy: Galaxy | null = null;
+  // In-memory only, rebuilt by each connection's `hello`. This relies on
+  // partyserver's default `hibernate: false`: a DO restart closes live
+  // sockets, the client reconnects and re-hellos, and the map self-heals.
+  // If hibernation is ever enabled, every non-hello handler must instead
+  // recover the token from the connection attachment.
   private readonly conns = new Map<string, ConnState>();
 
   async onStart(): Promise<void> {
@@ -208,14 +213,29 @@ export class Cohort extends Server<CohortEnv> {
       clock: this.toClockWire(),
       catalog: galaxy.stars,
     });
-    this.sendMsg(conn, { type: "offer", candidates: this.makeCandidates(token) });
+    const offerYear = await this.getOfferYear(token);
+    this.sendMsg(conn, { type: "offer", candidates: this.makeCandidates(token, offerYear) });
+  }
+
+  /**
+   * The game year a token's candidates are anchored to, frozen at first
+   * offer and persisted. Without this, nowYear drifts between offer and
+   * become (5 real min = 1 game year), shifting the candidates' dated
+   * fields (ascensionYear, emission epochs) — the player must become
+   * exactly the civ whose card they read.
+   */
+  private async getOfferYear(token: string): Promise<number> {
+    const stored = await this.ctx.storage.get<number>(`offerYear:${token}`);
+    if (stored !== undefined) return stored;
+    const year = gameYearAt(this.requireClock(), Date.now());
+    await this.ctx.storage.put(`offerYear:${token}`, year);
+    return year;
   }
 
   /** become: commit an inheritance candidate into a placed player civ. */
   private async onBecome(conn: Connection, candidateId: string, name: string): Promise<void> {
     const state = this.conns.get(conn.id);
     if (state === undefined) return; // must hello first
-    const galaxy = this.requireGalaxy();
     const token = state.token;
 
     // Idempotency: already placed (this conn or a stored run) → re-send sky.
@@ -235,7 +255,10 @@ export class Cohort extends Server<CohortEnv> {
       this.sendMsg(conn, { type: "error", code: "bad-name", message: "name is invalid" });
       return;
     }
-    const chosen = this.makeCandidates(token).find((c) => c.candidateId === candidateId);
+    const offerYear = await this.getOfferYear(token);
+    const chosen = this.makeCandidates(token, offerYear).find(
+      (c) => c.candidateId === candidateId,
+    );
     if (chosen === undefined) {
       this.sendMsg(conn, {
         type: "error",
@@ -244,13 +267,26 @@ export class Cohort extends Server<CohortEnv> {
       });
       return;
     }
+
+    // Capture the galaxy AFTER the last await: storage reads yield, and a
+    // concurrent become on another connection may have placed a civ in the
+    // meantime — a stale capture here would lose that civ (and could hand
+    // out its star) when we spread `civs` below.
+    const galaxy = this.requireGalaxy();
+    const civId = `civ-p-${token.slice(0, 12)}`;
+    // Same-token race (two tabs committing at once): if this token's civ
+    // landed while we awaited above, treat this as the idempotent path.
+    const already = galaxy.civs.find((c) => c.seed.id === civId);
+    if (already !== undefined) {
+      state.civId = civId;
+      await this.sendSky(conn, token, civId);
+      return;
+    }
     const star = pickPlayerHome(galaxy);
     if (star === null) {
       this.sendMsg(conn, { type: "error", code: "cohort-full", message: "cohort is full" });
       return;
     }
-
-    const civId = `civ-p-${token.slice(0, 12)}`;
     const placedSeed: CivSeed = { ...chosen.seed, id: civId, name: clean };
     const placed: PlacedCiv = { seed: placedSeed, starId: star.id, controller: "player" };
     this.galaxy = { ...galaxy, civs: [...galaxy.civs, placed] };
@@ -281,6 +317,14 @@ export class Cohort extends Server<CohortEnv> {
     const run = await this.ctx.storage.get<RunRecord>(`run:${state.token}`);
     if (run === undefined) {
       this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    // Only real catalog stars may be named: bounds the run record (a
+    // hostile client could otherwise grow it without limit / oversize a
+    // stored value with an arbitrary starId).
+    const galaxy = this.requireGalaxy();
+    if (!galaxy.stars.some((s) => s.id === starId)) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "unknown star" });
       return;
     }
     const localNames: Record<string, string> = { ...run.localNames };
@@ -365,10 +409,9 @@ export class Cohort extends Server<CohortEnv> {
    * Draws a pool of recently-ascended peers, then greedily prefers distinct
    * archetypes for legibility, topping up in pool order.
    */
-  private makeCandidates(token: string): CivCard[] {
+  private makeCandidates(token: string, offerYear: number): CivCard[] {
     const galaxy = this.requireGalaxy();
-    const clock = this.requireClock();
-    const nowYear = gameYearAt(clock, Date.now());
+    const nowYear = offerYear;
     const poolRng = createRng(`${galaxy.seedKey}/join/${token}`);
     const POOL = 6;
     const WANT = 3;

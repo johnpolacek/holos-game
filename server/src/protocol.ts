@@ -160,11 +160,21 @@ export const MAX_NAME_LEN = 24;
 export function validateName(raw: string): string | null {
   const collapsed = raw.replace(/\s+/g, " ").trim();
   if (collapsed.length < 1 || collapsed.length > MAX_NAME_LEN) return null;
-  // reject C0/C1 control characters
+  // Reject C0/C1 controls and invisible/bidi format characters (zero-width
+  // spaces, direction overrides, word joiners, BOM) — names must be what
+  // they look like.
   for (const ch of collapsed) {
     const code = ch.codePointAt(0);
     if (code === undefined) continue;
     if (code < 0x20 || (code >= 0x7f && code <= 0x9f)) return null;
+    if (
+      (code >= 0x200b && code <= 0x200f) ||
+      (code >= 0x202a && code <= 0x202e) ||
+      (code >= 0x2060 && code <= 0x206f) ||
+      code === 0xfeff
+    ) {
+      return null;
+    }
   }
   return collapsed;
 }
