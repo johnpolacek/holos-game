@@ -369,6 +369,14 @@ export function renderCeremony(
         state.el.classList.add("committing");
         state.glyph.classList.add("committing");
         setRingProgress(state, 1);
+        // Re-send the become: it is idempotent per token server-side (an
+        // already-placed run just gets its sky again), so a commit lost to
+        // a flaky network retries instead of freezing this card forever.
+        socket.send({
+          type: "become",
+          candidateId: pending.candidateId,
+          name: pending.name,
+        });
       }
     }
   }

@@ -80,7 +80,9 @@ const COLOR_HOME = 0x5fe0e6; // cyan — you, the present tense
 const COLOR_SOURCE = 0xdf9b52; // amber — belief / other
 const COLOR_SELECT = 0xb79b63; // gold hairline for a selected source
 const COLOR_ORRERY = 0xb79b63;
-const COLOR_ORRERY_STAR = 0xf6d98f;
+// Pale cyan, not warm: the home system is you, the one present-tense place
+// (cyan = own civ), and the orrery star hands off to the cyan HOME mote.
+const COLOR_ORRERY_STAR = 0x9fe8ec;
 
 /** Callback fired on tap: the selected source, or null when tapping empty sky. */
 export type SelectSourceCallback = (source: DetectedSource | null) => void;
