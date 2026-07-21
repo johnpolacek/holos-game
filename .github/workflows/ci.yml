@@ -25,3 +25,14 @@ jobs:
 
       - name: Build (client + server)
         run: npm run build
+
+      # Deploy validation, run on every PR and push to main. `--dry-run`
+      # bundles the Worker and validates wrangler.jsonc + every binding
+      # WITHOUT contacting Cloudflare, so it needs no account secrets. It
+      # fails the check if the config breaks, the bundle won't build, or a
+      # Durable Object binding references a class the migrations don't
+      # create — catching deploy breakage at PR time, in our own CI,
+      # independent of Cloudflare's preview build (which red-flags DO
+      # migrations for reasons unrelated to correctness; see CLAUDE.md).
+      - name: Validate deploy (wrangler dry-run)
+        run: npx wrangler deploy --dry-run --outdir /tmp/deploy-dryrun
