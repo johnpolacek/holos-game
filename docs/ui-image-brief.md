@@ -207,7 +207,7 @@ can wait.*
 > a compact five-dial sheet, each dial a soft pale range band with a bright
 > cyan notch already settled inside it, the five ends labelled in tiny caps
 > exactly these five in-world labels ("REACH — DEPTH", "VOICE — SILENCE",
-> "GARDEN — FORGE", "SOLO — CHORUS", "MEMORY — RENEWAL"); an archetype line
+> "GARDEN — FORGE", "MONOLITH — CHORUS", "MEMORY — RENEWAL"); an archetype line
 > in editorial serif (one of: THE BEACON, THE MONUMENT, THE TIDE, THE
 > CLOISTER, THE HERALD, THE SHEPHERD, THE SOWING, THE ENGINE, THE CONGRESS,
 > THE PHOENIX — here THE HERALD); and one italic serif fragment of the charter it carries — the

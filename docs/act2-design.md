@@ -253,7 +253,7 @@ differs.
 | Reach ↔ Depth | **Reach ↔ Depth** | *(unchanged)* outward or inward |
 | Voice ↔ Silence | **Voice ↔ Silence** | *(unchanged)* heard or hidden |
 | Custodian ↔ Instrumental | **Garden ↔ Forge** | other life is a garden to keep, or ore for the forge |
-| One Mind ↔ Chorus | **Solo ↔ Chorus** | one voice, or many |
+| One Mind ↔ Chorus | **Monolith ↔ Chorus** | one indivisible self, or many voices |
 | Curator ↔ Shedder | **Memory ↔ Renewal** | keep the past, or shed it to remake the self |
 
 **Archetype names stay as they are** (Beacon, Monument, Herald, …) — they
