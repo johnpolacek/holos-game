@@ -119,7 +119,7 @@ can wait.*
 > choice cards, one cool slate-toned, one warm ember-edged. Arranged
 > like a minimal type-specimen poster.
 
-### Session zero & Act 1 — incubation · M1
+### Session zero & Act 1 — incubation · Phase B
 
 #### 1 — Session zero: the world reveal
 
@@ -155,7 +155,7 @@ can wait.*
 > tiny slate text: "evolution decides". The feel of a die in the air
 > over felt, translated to minimal graphic design.
 
-### The pivot · M2
+### The pivot · Phase B
 
 #### 4 — The pivot: the character sheet reveal
 
@@ -169,7 +169,7 @@ can wait.*
 > large type, the first words a newborn mind speaks. Dark, reverent,
 > museum-lighting.
 
-### Act 2 — the ascent · M2
+### Act 2 — the ascent · Phase B
 
 #### 5 — Act 2: the report
 
@@ -193,7 +193,27 @@ can wait.*
 > bottom: "THE VAULT DEEPENS". Progress rendered as quieting, not
 > growth. Almost monochrome, breathtaking restraint.
 
-### Act 3 — the sky & contact · M3
+### Session zero — inheritance · Phase A (A1) · the new game entry
+
+#### 16 — Session zero (Act 3 first): the inheritance
+
+> Succession screen — the player is choosing which already-lived
+> civilization to *become*, not building a blank one. A vertical carousel
+> of three civilization cards on deep black, the middle one focused and
+> enlarged, the other two dimmed above and below. The focused card, top to
+> bottom: a small painterly planet — a specific world, a drowned ocean
+> world under a dim red sun — with a one-line caption in slate small-caps
+> naming its species and world ("SONG-CULTURE PELAGIC · A DROWNED WORLD");
+> a compact five-dial sheet, each dial a soft pale range band with a bright
+> cyan notch already settled inside it, ends labelled in tiny caps ("REACH
+> — DEPTH", "VOICE — SILENCE"); an archetype line in editorial serif ("THE
+> HERALD"); and one italic serif fragment of the charter it carries — the
+> founding words of a mind with a history. At the very bottom, an empty
+> name field with a thin underline cursor and a single word: "BECOME".
+> Solemn, elegiac, weighty; immense stillness; the feeling of inheriting a
+> life, not starting one.
+
+### Act 3 — the sky & contact · Phase A (A1–A2)
 
 #### 7 — Act 3: the Sky with a source card
 
@@ -259,7 +279,7 @@ can wait.*
 > visibly returning: top of screen fully lit, bottom still ember-dim, a
 > gradient of waking. Urgent but never alarmed; no red anywhere.
 
-### Act 3 — the Model · M3
+### Act 3 — the Model · Phase A (A1; echo shell A3)
 
 #### 13 — the Model: the pull-back (Act 3's opening wow)
 
