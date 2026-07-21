@@ -339,6 +339,12 @@ export class Model {
     this.selectCb = cb;
   }
 
+  /** Deselect without a tap (e.g. the source card's own backdrop/swipe-down
+   * dismiss). Does not fire onSelectSource — the closer already knows. */
+  clearSelection(): void {
+    this.selectedStarId = null;
+  }
+
   resize(): void {
     if (this.ready) this.app.resize();
   }
@@ -385,12 +391,14 @@ export class Model {
       this.sources.push({ sprite, source, pos: star.position });
     }
 
-    // Drop a selection that no longer corresponds to a live source.
+    // Drop a selection that no longer corresponds to a live source (and tell
+    // whoever opened a card off it that there is nothing left to show).
     if (
       this.selectedStarId !== null &&
       !this.sources.some((s) => s.source.starId === this.selectedStarId)
     ) {
       this.selectedStarId = null;
+      this.selectCb?.(null);
     }
   }
 

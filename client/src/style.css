@@ -101,6 +101,209 @@ body {
   transition: opacity 320ms ease;
 }
 
+/* ── Source card (the thin observatory, Act 3 A1) ────────────────────── */
+.source-card-root {
+  position: absolute;
+  inset: 0;
+  z-index: 2; /* above .model-overlay */
+  pointer-events: none;
+}
+
+.source-card-backdrop {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.source-card-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 42vh;
+  max-height: 42dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.35rem 1.1rem max(1rem, env(safe-area-inset-bottom));
+  background: var(--holos-bg-raised);
+  border-top: 1px solid var(--holos-gold-dim);
+  border-radius: 1rem 1rem 0 0;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.55);
+  transform: translateY(100%);
+  transition: transform 320ms cubic-bezier(0.22, 0.9, 0.32, 1);
+}
+
+.source-card-root.open {
+  pointer-events: auto;
+}
+
+.source-card-root.open .source-card-backdrop {
+  opacity: 1;
+}
+
+.source-card-root.open .source-card-sheet {
+  transform: translateY(0);
+}
+
+.source-card-grabber {
+  align-self: center;
+  width: 2.4rem;
+  height: 0.28rem;
+  border-radius: 999px;
+  background: var(--holos-gold-dim);
+  touch-action: none;
+  cursor: grab;
+}
+
+.source-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.source-card-idline {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.source-card-designation {
+  color: var(--holos-ink-dim);
+  white-space: nowrap;
+}
+
+.source-card-idsep {
+  color: var(--holos-gold-dim);
+}
+
+.source-card-name-area {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.source-card-name {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--holos-ink);
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-align: left;
+}
+
+.source-card-name-affordance {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--holos-font-display);
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--holos-ink-faint);
+  cursor: pointer;
+  text-align: left;
+}
+
+.source-card-name-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--holos-cyan-dim);
+  color: var(--holos-ink);
+  font-family: var(--holos-font-body);
+  font-size: 0.95rem;
+  padding: 0.1rem 0;
+  min-width: 8rem;
+  max-width: 12rem;
+}
+
+.source-card-name-input:focus {
+  outline: none;
+  border-bottom-color: var(--holos-cyan);
+}
+
+.source-card-name-hint {
+  font-size: 0.62rem;
+  color: var(--holos-error);
+  visibility: hidden;
+}
+
+.source-card-name-hint.visible {
+  visibility: visible;
+}
+
+.source-card-age {
+  flex-shrink: 0;
+  padding: 0.28rem 0.55rem;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  color: var(--holos-ink-dim);
+  white-space: nowrap;
+}
+
+.source-card-hairline {
+  margin: 0;
+}
+
+.source-card-belief-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.source-card-thumb {
+  flex-shrink: 0;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+}
+
+.source-card-belief {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+.source-card-class {
+  color: var(--holos-ink-dim);
+}
+
+.source-card-belief-sep {
+  color: var(--holos-gold-dim);
+  margin: 0 0.35rem;
+}
+
+.source-card-confidence {
+  color: var(--holos-amber);
+  font-weight: 600;
+}
+
+.source-card-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.source-card-canvas {
+  display: block;
+  width: 100%;
+}
+
+.source-card-axis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+  color: var(--holos-ink-faint);
+}
+
 /* ── Ceremony carousel ───────────────────────────────────────────────── */
 .ceremony {
   position: relative;

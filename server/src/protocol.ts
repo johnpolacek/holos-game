@@ -76,7 +76,7 @@ import type { Star, Vec3Ly } from "./galaxy";
 // and dials.ts imports nothing and carries no truth.
 export { DIAL_AXES } from "./dials";
 export type { DialAxisId, DialSetting, DialSheet, DialAxis } from "./dials";
-export type { CivSeed } from "./civseed";
+export type { CivSeed, EmissionEpoch } from "./civseed";
 export type { ObservedSignal, SignalClass } from "./knowledge";
 export type { Star, SpectralClass, Vec3Ly } from "./galaxy";
 
