@@ -11,6 +11,7 @@
 // ~0.004 stars/ly^3 (~0.12 pc^-3) and a class mix dominated by M dwarfs,
 // which also matches the cradle catalog's skew.
 
+import { generateCivSeed, type CivId, type CivSeed } from "./civseed";
 import type { Rng } from "./rng";
 
 export type StarId = string;
@@ -93,4 +94,131 @@ export function starById(stars: readonly Star[], id: StarId): Star {
   const star = stars.find((s) => s.id === id);
   if (star === undefined) throw new Error(`unknown star: ${id}`);
   return star;
+}
+
+// ---------------------------------------------------------------------------
+// Civilizations in the field
+// ---------------------------------------------------------------------------
+
+/**
+ * A civilization placed in the neighborhood. Placement lives here — NOT
+ * on CivSeed — so the handoff seam stays galaxy-free (Phase B produces a
+ * CivSeed with no galaxy attached).
+ */
+export interface PlacedCiv {
+  readonly seed: CivSeed;
+  readonly starId: StarId;
+  readonly controller: "player" | "ai";
+}
+
+export interface GalaxyConfig extends StarFieldConfig {
+  readonly aiCivCount: number;
+}
+
+export const DEFAULT_GALAXY_CONFIG: GalaxyConfig = {
+  ...DEFAULT_STAR_FIELD,
+  aiCivCount: 8,
+};
+
+/** The truth record one Cohort Durable Object holds. Never serialized to clients. */
+export interface Galaxy {
+  readonly seedKey: string;
+  readonly config: GalaxyConfig;
+  readonly stars: readonly Star[];
+  readonly civs: readonly PlacedCiv[];
+}
+
+/** Minimum separation between civilization home stars, in light-years. */
+const MIN_CIV_SEPARATION_LY = 3;
+
+function pickHomeStars(rng: Rng, stars: readonly Star[], count: number): Star[] {
+  const homes: Star[] = [];
+  let attempts = 0;
+  while (homes.length < count && attempts < count * 200) {
+    attempts++;
+    const candidate = rng.pick(stars);
+    if (homes.some((h) => h.id === candidate.id)) continue;
+    const tooClose = homes.some(
+      (h) => distanceLy(h.position, candidate.position) < MIN_CIV_SEPARATION_LY,
+    );
+    if (!tooClose) homes.push(candidate);
+  }
+  if (homes.length < count) {
+    throw new Error(
+      `could not place ${count} civs with ${MIN_CIV_SEPARATION_LY} ly separation in ${stars.length} stars`,
+    );
+  }
+  return homes;
+}
+
+/** The galaxy's age mix for seeded AI civs (vision.md: seed the whole spectrum). */
+function drawAgeBand(rng: Rng): "young" | "peer" | "elder" {
+  const roll = rng.next();
+  if (roll < 0.2) return "elder";
+  if (roll < 0.45) return "young";
+  return "peer";
+}
+
+/**
+ * Generate a full cohort neighborhood at game year `nowYear` (normally 0):
+ * the star field, N seeded AI civilizations across the age spectrum, and
+ * one player civilization (recently ascended — Act 3 opens now) at the
+ * star nearest the cohort center.
+ */
+export function generateGalaxy(
+  rng: Rng,
+  seedKey: string,
+  config: GalaxyConfig,
+  nowYear: number,
+  playerCivId: CivId = "civ-player",
+): Galaxy {
+  const stars = generateStarField(rng.fork("stars"), config);
+  const homes = pickHomeStars(rng.fork("placement"), stars, config.aiCivCount + 1);
+  const origin: Vec3Ly = { x: 0, y: 0, z: 0 };
+  homes.sort(
+    (a, b) => distanceLy(a.position, origin) - distanceLy(b.position, origin),
+  );
+  const playerHome = homes[0];
+  if (playerHome === undefined) throw new Error("no home star for player");
+
+  const civs: PlacedCiv[] = [
+    {
+      seed: generateCivSeed(rng.fork("civ/player"), {
+        id: playerCivId,
+        ageBand: "peer",
+        nowYear,
+        recentlyAscended: true,
+      }),
+      starId: playerHome.id,
+      controller: "player",
+    },
+  ];
+  for (let i = 0; i < config.aiCivCount; i++) {
+    const home = homes[i + 1];
+    if (home === undefined) throw new Error("home star count mismatch");
+    const civRng = rng.fork(`civ/ai-${i}`);
+    civs.push({
+      seed: generateCivSeed(civRng, {
+        id: `civ-ai-${i}`,
+        ageBand: drawAgeBand(civRng),
+        nowYear,
+      }),
+      starId: home.id,
+      controller: "ai",
+    });
+  }
+  return { seedKey, config, stars, civs };
+}
+
+export function civById(galaxy: Galaxy, id: CivId): PlacedCiv {
+  const civ = galaxy.civs.find((c) => c.seed.id === id);
+  if (civ === undefined) throw new Error(`unknown civ: ${id}`);
+  return civ;
+}
+
+/** Distance between two civilizations' home stars — the gameplay quantity. */
+export function civDistanceLy(galaxy: Galaxy, a: CivId, b: CivId): number {
+  const starA = starById(galaxy.stars, civById(galaxy, a).starId);
+  const starB = starById(galaxy.stars, civById(galaxy, b).starId);
+  return distanceLy(starA.position, starB.position);
 }
