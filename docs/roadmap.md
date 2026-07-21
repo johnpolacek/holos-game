@@ -120,20 +120,20 @@ priority list: the seed generator consumes them in A0, not M2.
 
 Everything invisible that the Sky stands on. No player-facing change yet.
 
-- [ ] **The shared clock**: server-authoritative game time at the target
+- [x] **The shared clock**: server-authoritative game time at the target
       ratio (5 real minutes ≈ 1 game year; tunable constant). Durable
       Object alarms drive scheduled events (arrivals, deliveries).
-- [ ] **The galaxy (thin)**: a generated star field for one cohort
+- [x] **The galaxy (thin)**: a generated star field for one cohort
       neighborhood — real-statistics positions, tens of light-years across
       — with civilizations (player + AI) placed in it. Distances in light
       years are *the* gameplay quantity.
-- [ ] **The knowledge layer** — the architectural heart: the server holds
+- [x] **The knowledge layer** — the architectural heart: the server holds
       truth; each observer is served only **light-delayed views** (state
       as of `now − distance`). The client never receives another
       civilization's present (act3-map.md, *the Model renders belief*).
       Every Act 3 feature reads through this layer, so it comes first.
-- [ ] **Catalogs**: `lineages.ts` + `minds.ts` typed (content track).
-- [ ] **`CivSeed` + the seed generator**: generate inheritable
+- [x] **Catalogs**: `lineages.ts` + `minds.ts` typed (content track).
+- [x] **`CivSeed` + the seed generator**: generate inheritable
       civilizations from the catalog chain; per-run persistence (thin)
       stores the player's civ.
 - [ ] **Protocol growth**: new guarded wire messages per slice
@@ -257,6 +257,9 @@ Resolve each before the slice that needs it; record the call here.
   clock, light-delay computation) with per-civ state hanging off it, or a
   DO per civ + a coordinator? Start with one-DO-per-cohort (v1 cohorts are
   small); revisit at scale.
+  **Decided (A0, 2026-07):** one `Cohort` Durable Object per cohort holds
+  truth + clock + light-delay computation (`server/src/cohort.ts`); all
+  observer reads go through the knowledge layer.
 - **Letter format (A2):** freeform vs composed for human pairs — the
   vision's open moderation/deception question; must be decided when
   correspondence ships.

@@ -61,6 +61,18 @@ secrets are involved. The custom domain (holosgame.com) attaches to this
 Worker in the Cloudflare dashboard once its DNS zone is on the account —
 see the commented `routes` block in `wrangler.jsonc`.
 
+**Adding a Durable Object fails the *preview* build, not production.** A
+new DO adds a `migrations` entry to `wrangler.jsonc`. On `main` the
+deploy runs `wrangler deploy`, which applies migrations atomically, so
+production deploys fine on merge. But Workers Builds' non-production
+(PR-branch) builds deploy with `wrangler versions upload`, which **cannot
+apply Durable Object migrations** — it fails with Cloudflare error 10211
+(*"migrations must be fully applied via a non-versioned deployment"*). So
+a PR that introduces a Durable Object shows a red Workers Builds check
+even when the code is correct; the migration lands when it reaches
+`main`. (If you want those preview checks green, disable non-production
+branch builds in the Workers Builds project settings.)
+
 ## Code conventions
 
 - **Strict TypeScript, no `any`** (explicit or implicit). `strict` and

@@ -23,8 +23,11 @@ function encode(msg: ServerMessage): string {
   return JSON.stringify(msg);
 }
 
+export { Cohort } from "./cohort";
+
 interface Env {
   Room: DurableObjectNamespace;
+  Cohort: DurableObjectNamespace;
   ASSETS: Fetcher;
 }
 

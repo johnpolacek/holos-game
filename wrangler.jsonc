@@ -20,6 +20,12 @@
         // Binding name is kebab-cased into the URL: /parties/room/:roomName.
         "name": "Room",
         "class_name": "Room"
+      },
+      {
+        // The Act 3 truth shard: one DO per cohort holds the galaxy, the
+        // shared clock, and the light-delay computation (A0).
+        "name": "Cohort",
+        "class_name": "Cohort"
       }
     ]
   },
@@ -27,6 +33,10 @@
     {
       "tag": "v1",
       "new_sqlite_classes": ["Room"]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["Cohort"]
     }
   ],
   "dev": {
