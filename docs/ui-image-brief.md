@@ -227,8 +227,10 @@ can wait.*
 > it, a chip reading "AS OF 7.3 Y AGO", and a belief line — "DARK NODE ·
 > 71%" — set next to a small blurred thumbnail that is slightly sharper
 > than the smudge above. Beneath, a thin horizontal scrubber of the
-> source's light history, decades marked as ticks. The screen must feel
-> almost empty; the emptiness is the point.
+> source's light history running back into the *past* — the right end is
+> "now", ticks receding leftward into earlier decades, no future side (you
+> only hold light that has already arrived). The screen must feel almost
+> empty; the emptiness is the point.
 
 #### 8 — Act 3: the choice ceremony (broadcast)
 
