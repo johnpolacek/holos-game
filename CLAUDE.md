@@ -54,12 +54,26 @@ merge.
 
 `main` auto-deploys through a single pipeline: a Cloudflare **Workers
 Builds** project connected to this repo with **Path `/`**, build
-command `npm run build`, and deploy command `npx wrangler deploy`. That
-deploys the one Worker (game server + client assets, config: root
-`wrangler.jsonc`, including Durable Object migrations). No GitHub
-secrets are involved. The custom domain (holosgame.com) attaches to this
-Worker in the Cloudflare dashboard once its DNS zone is on the account —
-see the commented `routes` block in `wrangler.jsonc`.
+command `npm run build`, and deploy command **`npm run ship`** (which
+runs `npx wrangler deploy`). That deploys the one Worker (game server +
+client assets, config: root `wrangler.jsonc`, including Durable Object
+migrations). No GitHub secrets are involved. The custom domain
+(holosgame.com) attaches to this Worker in the Cloudflare dashboard once
+its DNS zone is on the account — see the commented `routes` block in
+`wrangler.jsonc`.
+
+**The deploy command must be `wrangler deploy` (via `npm run ship`), not
+`wrangler versions upload`.** New Durable Objects carry migrations (each
+gets a `migrations` entry in `wrangler.jsonc`), and `versions upload`
+**cannot apply Durable Object migrations** — it fails with Cloudflare
+error 10211 (*"migrations must be fully applied via a non-versioned
+deployment"*). `wrangler deploy` applies them atomically. Keep the
+Workers Builds deploy command pointed at `npm run ship`; the tradeoff is
+no gradual/versioned rollouts, which this project does not use. When a
+change adds a new Durable Object, the migration must reach production via
+a `wrangler deploy` — the auto-deploy handles this on merge, but a
+brand-new DO can also be applied out-of-band with `npm run ship` from a
+machine authenticated to the Cloudflare account.
 
 ## Code conventions
 
