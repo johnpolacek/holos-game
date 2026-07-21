@@ -9,6 +9,17 @@ kept as record — A0 is merged and deployed.*
 
 ---
 
+## Orchestration
+
+Per [CLAUDE.md § Build orchestration](../CLAUDE.md): run this slice with
+**Fable as the orchestrator** and delegate implementation to **Opus
+subagents** (Agent tool, `model: "opus"`) — worktree isolation when they
+edit in parallel. Fable plans, decomposes, integrates, reviews, keeps
+`typecheck`/`build` green, and commits; Opus writes each module/screen/wire
+set. Fable, not the subagents, holds the invariants below (the `ObservedCiv`
+no-leak rule, the cyan/amber color rule, the A2/A3 scope line) and checks
+them in every subagent's output.
+
 ## Orientation
 
 Holos is a hard-SF civilization game, building **Act 3 first**
@@ -149,4 +160,6 @@ view for the same observer/target pair must agree.
 
 Read the code and docs above, then **propose before building: the wire
 message set, the Model renderer choice, and the join/inheritance flow**
-(including how player placement replaces A0's pre-placed civ).
+(including how player placement replaces A0's pre-placed civ). After the go,
+decompose into Opus-subagent tasks (see *Orchestration*), and integrate +
+verify the invariants yourself before each commit.

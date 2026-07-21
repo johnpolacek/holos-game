@@ -78,7 +78,8 @@ Each slice gets a just-in-time **launch brief** — a thin `build-*.md` wrapper
 (read-list, task, done-when, guardrails) that points back here for spec. The
 current one is [build-a1.md](./build-a1.md) (build-a0.md is done and kept
 as record); the next is written when its slice starts, shaped by what the
-last one taught.
+last one taught. Slices are built with **Fable orchestrating Opus subagents**
+(CLAUDE.md § Build orchestration).
 
 ---
 

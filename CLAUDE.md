@@ -84,6 +84,32 @@ branch builds in the Workers Builds project settings.)
 - Keep dependencies minimal; prefer the platform (pointer events, etc.)
   over libraries.
 
+## Build orchestration
+
+Implementation slices — each `docs/build-*.md` brief — use a two-model
+topology:
+
+- **Fable orchestrates.** Run the build session on Fable
+  (`/model claude-fable-5`). The orchestrator reads the brief, proposes the
+  plan and waits for the go, decomposes the work, delegates implementation,
+  integrates and reviews the results, keeps `typecheck` + `build` green, and
+  makes the commits.
+- **Opus implements.** Delegate each substantial implementation task to an
+  **Opus subagent** (the Agent tool with `model: "opus"`) — a module, a
+  screen, a wire-message set. Use `isolation: "worktree"` when subagents edit
+  files in parallel; otherwise run them sequentially on the shared tree.
+
+The orchestrator owns the **invariants** and must verify them in every
+subagent's output, because a subagent sees only its own task — the
+cross-cutting rules and guardrails named in the slice's brief (for A1: the
+`ObservedCiv` no-leak discipline, the `cyan = you / amber = other` color
+rule, and the no-A2/A3-verbs scope). The orchestrator — not the subagents —
+commits, after integrating and confirming green, in small single-purpose
+commits.
+
+This applies to *building*. Doc-only work, planning, and trivial glue don't
+need it.
+
 ## PR conventions
 
 - PRs are **small and single-purpose**.
