@@ -86,26 +86,33 @@ branch builds in the Workers Builds project settings.)
 
 ## Build orchestration
 
-Implementation slices — each `docs/build-*.md` brief — use a two-model
-topology:
+Implementation slices — each `docs/build-*.md` brief — use a three-tier
+model topology. Run the build session on Fable (`/model claude-fable-5`):
+**you (Fable) are the orchestrator — plan, decompose, synthesize.** Delegate
+rather than doing the work yourself, and keep your own context lean.
 
-- **Fable orchestrates.** Run the build session on Fable
-  (`/model claude-fable-5`). The orchestrator reads the brief, proposes the
-  plan and waits for the go, decomposes the work, delegates implementation,
-  integrates and reviews the results, keeps `typecheck` + `build` green, and
-  makes the commits.
-- **Opus implements.** Delegate each substantial implementation task to an
-  **Opus subagent** (the Agent tool with `model: "opus"`) — a module, a
-  screen, a wire-message set. Use `isolation: "worktree"` when subagents edit
-  files in parallel; otherwise run them sequentially on the shared tree.
+- **Reasoning-heavy work → Opus** (the deep-reasoner; Agent tool
+  `model: "opus"`): architecture, the wire-protocol and knowledge-layer
+  design, tricky derivations — anything where getting the *shape* right is
+  what matters.
+- **Mechanical work → Sonnet** (the fast-worker; Agent tool
+  `model: "sonnet"`): boilerplate modules, wiring, repetitive edits,
+  scaffolding a screen from a settled spec.
+- **High-stakes decisions:** run the deep-reasoner (Opus) **twice with
+  slightly different framings** and synthesize the best of both. For A1 those
+  are the wire-message design (the `ObservedCiv` no-leak boundary), the Model
+  renderer choice, and the join/placement flow.
 
-The orchestrator owns the **invariants** and must verify them in every
+Use `isolation: "worktree"` when subagents edit files in parallel; otherwise
+run them sequentially on the shared tree.
+
+The orchestrator owns the **invariants** and verifies them in every
 subagent's output, because a subagent sees only its own task — the
 cross-cutting rules and guardrails named in the slice's brief (for A1: the
 `ObservedCiv` no-leak discipline, the `cyan = you / amber = other` color
 rule, and the no-A2/A3-verbs scope). The orchestrator — not the subagents —
-commits, after integrating and confirming green, in small single-purpose
-commits.
+commits, after integrating and confirming `typecheck` + `build` green, in
+small single-purpose commits.
 
 This applies to *building*. Doc-only work, planning, and trivial glue don't
 need it.

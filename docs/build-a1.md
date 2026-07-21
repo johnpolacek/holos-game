@@ -12,13 +12,16 @@ kept as record — A0 is merged and deployed.*
 ## Orchestration
 
 Per [CLAUDE.md § Build orchestration](../CLAUDE.md): run this slice with
-**Fable as the orchestrator** and delegate implementation to **Opus
-subagents** (Agent tool, `model: "opus"`) — worktree isolation when they
-edit in parallel. Fable plans, decomposes, integrates, reviews, keeps
-`typecheck`/`build` green, and commits; Opus writes each module/screen/wire
-set. Fable, not the subagents, holds the invariants below (the `ObservedCiv`
-no-leak rule, the cyan/amber color rule, the A2/A3 scope line) and checks
-them in every subagent's output.
+**Fable as orchestrator** — plan, decompose, synthesize, keep context lean.
+Send **reasoning-heavy work to Opus** (deep-reasoner: the wire-protocol
+design, the Model renderer choice, the join/placement flow) and **mechanical
+work to Sonnet** (fast-worker: boilerplate modules, wiring, scaffolding a
+screen from a settled spec). For the **high-stakes calls** — the
+`ObservedCiv` wire boundary, the renderer, player placement — run Opus twice
+with slightly different framings and synthesize. Fable — not the subagents —
+holds the invariants below (the `ObservedCiv` no-leak rule, the cyan/amber
+color rule, the A2/A3 scope line), verifies them in every subagent's output,
+keeps `typecheck`/`build` green, and commits.
 
 ## Orientation
 
