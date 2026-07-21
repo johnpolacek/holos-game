@@ -19,7 +19,7 @@
 //   POST /dev/event    {inYears, note}                 schedule an alarm-driven event
 //   GET  /dev/events                                   pending + fired events
 
-import { Server } from "partyserver";
+import { Server, type Connection, type WSMessage } from "partyserver";
 import {
   gameYearAt,
   newClock,
@@ -27,17 +27,31 @@ import {
   type ClockState,
 } from "./clock";
 import {
+  civById,
   DEFAULT_GALAXY_CONFIG,
   distanceLy,
   generateGalaxy,
+  pickPlayerHome,
   starById,
   type Galaxy,
   type GalaxyConfig,
   type PlacedCiv,
   type Star,
 } from "./galaxy";
-import { emissionAt, observeCiv, observeSky } from "./knowledge";
+import { emissionAt, observeCiv, observeSky, visibleSky } from "./knowledge";
 import { createRng } from "./rng";
+import { generateCivSeed, type CivSeed } from "./civseed";
+import { archetypeById } from "./minds";
+import {
+  parseCohortClientMessage,
+  toWireSource,
+  validateName,
+  type CivCard,
+  type ClockWire,
+  type CohortServerMessage,
+  type DetectedSource,
+  type SelfView,
+} from "./protocol";
 
 /**
  * A clock-scheduled event, driven by the Durable Object alarm. A0 proves
@@ -62,6 +76,25 @@ interface GalaxyMeta {
 
 interface CohortEnv {
   Cohort: DurableObjectNamespace;
+}
+
+/**
+ * A placed player's per-run record. `localNames` are the owner's private
+ * labels for sky sources — echoed only back to this owner, never attached
+ * to any DetectedSource and never broadcast.
+ */
+interface RunRecord {
+  readonly token: string;
+  readonly civId: string;
+  readonly starId: string;
+  readonly localNames: Record<string, string>;
+}
+
+/** Live connection tracking: the socket, its token, and (once placed) civ. */
+interface ConnState {
+  readonly conn: Connection;
+  readonly token: string;
+  civId: string | null;
 }
 
 function json(data: unknown, status = 200): Response {
@@ -101,6 +134,7 @@ async function parseBody(request: Request): Promise<Record<string, unknown>> {
 export class Cohort extends Server<CohortEnv> {
   private clock: ClockState | null = null;
   private galaxy: Galaxy | null = null;
+  private readonly conns = new Map<string, ConnState>();
 
   async onStart(): Promise<void> {
     const clock = await this.ctx.storage.get<ClockState>("clock");
@@ -112,6 +146,283 @@ export class Cohort extends Server<CohortEnv> {
       meta !== undefined && stars !== undefined && civs !== undefined
         ? { seedKey: meta.seedKey, config: meta.config, stars, civs }
         : null;
+  }
+
+  // ── Act 3 WebSocket surface (A1) ──────────────────────────────────────
+  // The client drives with `hello`; the server never sends unprompted. The
+  // ONLY other-civ data on the wire is toWireSource(visibleSky(...)).
+
+  onConnect(): void {
+    // Intentionally empty: the client opens by sending `hello`.
+  }
+
+  async onMessage(conn: Connection, message: WSMessage): Promise<void> {
+    if (typeof message !== "string") return;
+    const msg = parseCohortClientMessage(message);
+    if (msg === null) return; // ignore malformed, like Room
+    switch (msg.type) {
+      case "hello":
+        await this.onHello(conn, msg.token);
+        return;
+      case "become":
+        await this.onBecome(conn, msg.candidateId, msg.name);
+        return;
+      case "nameSource":
+        await this.onNameSource(conn, msg.starId, msg.name);
+        return;
+      case "requestSky":
+        await this.onRequestSky(conn);
+        return;
+    }
+  }
+
+  onClose(conn: Connection): void {
+    this.conns.delete(conn.id);
+  }
+
+  /** hello: resolve/mint a token, register, and send welcome + first payload. */
+  private async onHello(conn: Connection, tokenIn: string | null): Promise<void> {
+    await this.ensureSeeded();
+    const galaxy = this.requireGalaxy();
+    // Mint only when the client had no token; a non-null unknown token is a
+    // choosing-phase / storage-evicted token and is reused as-is.
+    const token = tokenIn ?? crypto.randomUUID();
+    const run = await this.ctx.storage.get<RunRecord>(`run:${token}`);
+    if (run !== undefined) {
+      this.conns.set(conn.id, { conn, token, civId: run.civId });
+      this.sendMsg(conn, {
+        type: "welcome",
+        token,
+        phase: "placed",
+        clock: this.toClockWire(),
+        catalog: galaxy.stars,
+      });
+      await this.sendSky(conn, token, run.civId);
+      return;
+    }
+    this.conns.set(conn.id, { conn, token, civId: null });
+    this.sendMsg(conn, {
+      type: "welcome",
+      token,
+      phase: "choosing",
+      clock: this.toClockWire(),
+      catalog: galaxy.stars,
+    });
+    this.sendMsg(conn, { type: "offer", candidates: this.makeCandidates(token) });
+  }
+
+  /** become: commit an inheritance candidate into a placed player civ. */
+  private async onBecome(conn: Connection, candidateId: string, name: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined) return; // must hello first
+    const galaxy = this.requireGalaxy();
+    const token = state.token;
+
+    // Idempotency: already placed (this conn or a stored run) → re-send sky.
+    if (state.civId !== null) {
+      await this.sendSky(conn, token, state.civId);
+      return;
+    }
+    const existing = await this.ctx.storage.get<RunRecord>(`run:${token}`);
+    if (existing !== undefined) {
+      state.civId = existing.civId;
+      await this.sendSky(conn, token, existing.civId);
+      return;
+    }
+
+    const clean = validateName(name);
+    if (clean === null) {
+      this.sendMsg(conn, { type: "error", code: "bad-name", message: "name is invalid" });
+      return;
+    }
+    const chosen = this.makeCandidates(token).find((c) => c.candidateId === candidateId);
+    if (chosen === undefined) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "unknown-candidate",
+        message: "no such candidate",
+      });
+      return;
+    }
+    const star = pickPlayerHome(galaxy);
+    if (star === null) {
+      this.sendMsg(conn, { type: "error", code: "cohort-full", message: "cohort is full" });
+      return;
+    }
+
+    const civId = `civ-p-${token.slice(0, 12)}`;
+    const placedSeed: CivSeed = { ...chosen.seed, id: civId, name: clean };
+    const placed: PlacedCiv = { seed: placedSeed, starId: star.id, controller: "player" };
+    this.galaxy = { ...galaxy, civs: [...galaxy.civs, placed] };
+    await this.ctx.storage.put("galaxy:civs", this.galaxy.civs);
+
+    const run: RunRecord = { token, civId, starId: star.id, localNames: {} };
+    await this.ctx.storage.put(`run:${token}`, run);
+    state.civId = civId;
+
+    // This connection sees its own sky; every other placed connection gets a
+    // fresh observer-relative sky (membership changed — a new warm source
+    // entered their field).
+    await this.sendSky(conn, token, civId);
+    for (const [id, other] of this.conns) {
+      if (id === conn.id) continue;
+      if (other.civId === null) continue;
+      await this.sendSky(other.conn, other.token, other.civId);
+    }
+  }
+
+  /** nameSource: set/clear the owner's private label for a sky source. */
+  private async onNameSource(conn: Connection, starId: string, name: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    const run = await this.ctx.storage.get<RunRecord>(`run:${state.token}`);
+    if (run === undefined) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    const localNames: Record<string, string> = { ...run.localNames };
+    let echo: string;
+    if (name === "") {
+      delete localNames[starId];
+      echo = "";
+    } else {
+      const clean = validateName(name);
+      if (clean === null) {
+        this.sendMsg(conn, { type: "error", code: "bad-name", message: "name is invalid" });
+        return;
+      }
+      localNames[starId] = clean;
+      echo = clean;
+    }
+    const updated: RunRecord = { ...run, localNames };
+    await this.ctx.storage.put(`run:${state.token}`, updated);
+    // Owner-only echo; never broadcast, never attached to a DetectedSource.
+    this.sendMsg(conn, { type: "sourceNamed", starId, name: echo });
+  }
+
+  /** requestSky: a placed connection asks for a fresh sky. */
+  private async onRequestSky(conn: Connection): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) return;
+    await this.sendSky(conn, state.token, state.civId);
+  }
+
+  /**
+   * Seed a fresh production cohort on first contact. Idempotent (returns if
+   * already seeded); the DO is single-threaded so no lock is needed. Mirrors
+   * devSeed with no request body.
+   */
+  private async ensureSeeded(): Promise<void> {
+    if (this.galaxy !== null) return;
+    const seedKey = `cohort-${this.name}`;
+    const config: GalaxyConfig = {
+      radiusLy: Math.min(30, DEFAULT_GALAXY_CONFIG.radiusLy),
+      aiCivCount: DEFAULT_GALAXY_CONFIG.aiCivCount,
+    };
+    const clock = newClock(Date.now());
+    const galaxy = generateGalaxy(createRng(seedKey), seedKey, config, 0);
+    this.clock = clock;
+    this.galaxy = galaxy;
+    await this.ctx.storage.put("clock", clock);
+    await this.ctx.storage.put("galaxy:meta", { seedKey, config } satisfies GalaxyMeta);
+    await this.ctx.storage.put("galaxy:stars", galaxy.stars);
+    await this.ctx.storage.put("galaxy:civs", galaxy.civs);
+    await this.ctx.storage.put("events", []);
+    await this.ctx.storage.put("eventLog", []);
+  }
+
+  /**
+   * The player's whole sky in one message: their own present-tense SelfView,
+   * plus the ONLY other-civ data on the wire — visibleSky mapped through
+   * toWireSource, so the client sky is byte-identical to /dev/observe for the
+   * same pair (same code path). localNames are the owner's private labels.
+   */
+  private async sendSky(conn: Connection, token: string, civId: string): Promise<void> {
+    const galaxy = this.requireGalaxy();
+    const clock = this.requireClock();
+    const nowYear = gameYearAt(clock, Date.now());
+    const selfCiv = civById(galaxy, civId);
+    const star = starById(galaxy.stars, selfCiv.starId);
+    const self: SelfView = {
+      civId,
+      seed: selfCiv.seed,
+      starId: star.id,
+      designation: star.designation,
+      position: star.position,
+    };
+    const sources: DetectedSource[] = visibleSky(galaxy, civId, nowYear).map(toWireSource);
+    const run = await this.ctx.storage.get<RunRecord>(`run:${token}`);
+    const localNames = run?.localNames ?? {};
+    this.sendMsg(conn, { type: "sky", nowYear, self, sources, localNames });
+  }
+
+  /**
+   * The inheritance offer — DETERMINISTIC in the token, so a mid-ceremony
+   * refresh re-offers identical cards and `become` re-derives the exact seed.
+   * Draws a pool of recently-ascended peers, then greedily prefers distinct
+   * archetypes for legibility, topping up in pool order.
+   */
+  private makeCandidates(token: string): CivCard[] {
+    const galaxy = this.requireGalaxy();
+    const clock = this.requireClock();
+    const nowYear = gameYearAt(clock, Date.now());
+    const poolRng = createRng(`${galaxy.seedKey}/join/${token}`);
+    const POOL = 6;
+    const WANT = 3;
+    const pool: { readonly i: number; readonly seed: CivSeed }[] = [];
+    for (let i = 0; i < POOL; i++) {
+      const seed = generateCivSeed(poolRng.fork(`cand/${i}`), {
+        id: `cand-${i}`,
+        ageBand: "peer",
+        nowYear,
+        recentlyAscended: true,
+      });
+      pool.push({ i, seed });
+    }
+    const selected: { readonly i: number; readonly seed: CivSeed }[] = [];
+    const seenArchetypes = new Set<string>();
+    for (const entry of pool) {
+      if (selected.length >= WANT) break;
+      if (seenArchetypes.has(entry.seed.archetype)) continue;
+      seenArchetypes.add(entry.seed.archetype);
+      selected.push(entry);
+    }
+    for (const entry of pool) {
+      if (selected.length >= WANT) break;
+      if (selected.some((s) => s.i === entry.i)) continue;
+      selected.push(entry);
+    }
+    return selected.map((entry) => {
+      const archetype = archetypeById(entry.seed.archetype);
+      return {
+        candidateId: String(entry.i),
+        seed: entry.seed,
+        archetypeName: archetype.name,
+        archetypeFirstRead: archetype.firstRead,
+      };
+    });
+  }
+
+  private sendMsg(conn: Connection, msg: CohortServerMessage): void {
+    conn.send(JSON.stringify(msg));
+  }
+
+  private toClockWire(): ClockWire {
+    const clock = this.requireClock();
+    return { epochRealMs: clock.epochRealMs, epochGameYear: clock.epochGameYear };
+  }
+
+  private requireGalaxy(): Galaxy {
+    if (this.galaxy === null) throw new Error("cohort not seeded");
+    return this.galaxy;
+  }
+
+  private requireClock(): ClockState {
+    if (this.clock === null) throw new Error("cohort clock not seeded");
+    return this.clock;
   }
 
   async onRequest(request: Request): Promise<Response> {
