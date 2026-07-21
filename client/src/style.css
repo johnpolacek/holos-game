@@ -1,0 +1,412 @@
+/* Holos — shared visual tokens.
+ *
+ * Near-black stage, letterspaced serif caps for headings, hairline gold
+ * rules, warm amber for the civ, cyan reserved as the accent of *becoming*
+ * (cyan = your own civ — an invariant carried across every later slice).
+ */
+
+:root {
+  --holos-bg: #07060a;
+  --holos-bg-raised: #0c0a10;
+  --holos-ink: #e9e4d6;
+  --holos-ink-dim: rgba(233, 228, 214, 0.55);
+  --holos-ink-faint: rgba(233, 228, 214, 0.3);
+  --holos-gold: #b79b63;
+  --holos-gold-dim: rgba(183, 155, 99, 0.4);
+  --holos-amber: #d99a53;
+  --holos-cyan: #5fe0e6;
+  --holos-cyan-dim: rgba(95, 224, 230, 0.35);
+  --holos-error: #d9694f;
+
+  --holos-font-display: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  --holos-font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: var(--holos-bg);
+  color: var(--holos-ink);
+  font-family: var(--holos-font-body);
+}
+
+#app {
+  font-family: var(--holos-font-body);
+}
+
+.holos-caps {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.7rem;
+  color: var(--holos-ink-dim);
+}
+
+.holos-hairline {
+  border: none;
+  border-top: 1px solid var(--holos-gold-dim);
+  width: 100%;
+  margin: 0;
+}
+
+.holos-serif {
+  font-family: var(--holos-font-display);
+}
+
+/* ── Sky stub (slice 6 replaces this) ───────────────────────────────── */
+.sky-stub {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--holos-ink-dim);
+  font-family: var(--holos-font-display);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+/* ── Ceremony carousel ───────────────────────────────────────────────── */
+.ceremony {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--holos-bg);
+}
+
+.ceremony-carousel {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.ceremony-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.ceremony-spacer {
+  scroll-snap-align: none;
+  width: 100%;
+  height: 11vh;
+  min-height: 11dvh;
+  flex-shrink: 0;
+}
+
+.card-slot {
+  height: 78vh;
+  min-height: 78dvh;
+  scroll-snap-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5vw;
+}
+
+.civ-card {
+  position: relative;
+  width: 100%;
+  max-width: 30rem;
+  height: 100%;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 0.9rem;
+  background: var(--holos-bg-raised);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 320ms ease, transform 320ms ease;
+  cursor: pointer;
+}
+
+.civ-card:not(.focused) {
+  opacity: 0.4;
+  transform: scale(0.92);
+}
+
+.civ-card.focused {
+  opacity: 1;
+  transform: scale(1);
+  cursor: default;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+}
+
+.civ-card-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.civ-card.focused .civ-card-scroll {
+  touch-action: pan-y;
+}
+
+.civ-card:not(.focused) .civ-card-scroll {
+  overflow: hidden;
+}
+
+.world-panel {
+  width: 100%;
+  height: 34%;
+  min-height: 8rem;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.card-body {
+  padding: 0.9rem 1.1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.chronicle {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--holos-ink-dim);
+}
+
+.chronicle p {
+  margin: 0 0 0.35rem;
+}
+
+.detail-extra {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.civ-card:not(.focused) .detail-extra {
+  display: none;
+}
+
+/* ── Dial band ───────────────────────────────────────────────────────── */
+.dial-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.4rem 0;
+}
+
+.dial-row {
+  display: grid;
+  grid-template-columns: 3.6rem 1fr 3.6rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dial-pole {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--holos-ink-dim);
+}
+
+.dial-pole--right {
+  text-align: right;
+}
+
+.dial-track {
+  position: relative;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: rgba(233, 228, 214, 0.08);
+}
+
+.dial-range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: var(--holos-gold-dim);
+}
+
+.dial-marker {
+  position: absolute;
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--holos-cyan);
+  box-shadow: 0 0 8px var(--holos-cyan-dim);
+  transform: translate(-50%, -50%);
+}
+
+/* ── Archetype / charter ─────────────────────────────────────────────── */
+.archetype-name {
+  font-family: var(--holos-font-display);
+  font-size: 1.6rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: var(--holos-ink);
+}
+
+.charter {
+  font-family: var(--holos-font-display);
+  font-style: italic;
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--holos-ink-dim);
+  transition: opacity 700ms ease;
+}
+
+/* ── Name field + BECOME ─────────────────────────────────────────────── */
+.name-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+.name-field input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--holos-gold-dim);
+  color: var(--holos-ink);
+  font-family: var(--holos-font-display);
+  font-size: 1rem;
+  text-align: center;
+  padding: 0.4rem 0.2rem;
+  letter-spacing: 0.04em;
+}
+
+.name-field input:focus {
+  outline: none;
+  border-bottom-color: var(--holos-cyan);
+}
+
+.name-hint {
+  font-size: 0.65rem;
+  color: var(--holos-error);
+  min-height: 1em;
+  visibility: hidden;
+}
+
+.name-hint.visible {
+  visibility: visible;
+}
+
+.become-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding-bottom: 0.4rem;
+}
+
+.become-button {
+  background: none;
+  border: none;
+  color: var(--holos-amber);
+  font-family: var(--holos-font-display);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+}
+
+.become-button:disabled {
+  color: var(--holos-ink-faint);
+  cursor: default;
+}
+
+.become-ring-wrap {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.become-ring-wrap svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.become-ring-track {
+  fill: none;
+  stroke: rgba(233, 228, 214, 0.12);
+  stroke-width: 2;
+}
+
+.become-ring-fill {
+  fill: none;
+  stroke: var(--holos-cyan);
+  stroke-width: 2;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px var(--holos-cyan-dim));
+}
+
+.become-glyph {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--holos-ink-dim);
+  transition: background 200ms ease, box-shadow 200ms ease;
+}
+
+.become-glyph.committing {
+  background: var(--holos-cyan);
+  box-shadow: 0 0 12px var(--holos-cyan);
+}
+
+/* Cyan bloom / dissolve beat on commit (concept 03-00b). */
+.civ-card.committing {
+  animation: holos-dissolve 1100ms ease forwards;
+}
+
+.civ-card.committing .charter,
+.civ-card.committing .chronicle,
+.civ-card.committing .dial-sheet {
+  opacity: 0;
+}
+
+.civ-card.committing::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 85%,
+    var(--holos-cyan-dim),
+    transparent 60%
+  );
+  animation: holos-bloom 1100ms ease forwards;
+}
+
+@keyframes holos-dissolve {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-2.5rem) scale(0.98);
+    opacity: 0.05;
+  }
+}
+
+@keyframes holos-bloom {
+  0% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
