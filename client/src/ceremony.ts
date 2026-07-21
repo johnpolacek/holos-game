@@ -57,6 +57,12 @@ export function clearPendingBecome(): void {
   clearPending();
 }
 
+/** True when a `become` was committed this session but not yet consumed by
+ * the sky — the router reads this to choose the pull-back vs. resume beat. */
+export function hasPendingBecome(): boolean {
+  return readPending() !== null;
+}
+
 /** Placeholder world panel: a gradient tinted by the cradle id. Real planet
  * art is deferred to a later slice. */
 function cradleGradient(cradleId: number): string {

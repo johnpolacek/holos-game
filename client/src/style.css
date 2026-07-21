@@ -55,18 +55,50 @@ body {
   font-family: var(--holos-font-display);
 }
 
-/* ── Sky stub (slice 6 replaces this) ───────────────────────────────── */
-.sky-stub {
+/* ── The Model (the 3D sky) ──────────────────────────────────────────── */
+.model-root {
+  position: relative;
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--holos-ink-dim);
-  font-family: var(--holos-font-display);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  font-size: 0.85rem;
+  overflow: hidden;
+  background: var(--holos-bg);
+}
+
+.model-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* DOM overlay: prose over places. Non-interactive — the canvas owns input. */
+.model-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.model-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: max(1.4rem, env(safe-area-inset-bottom));
+  text-align: center;
+  letter-spacing: 0.28em;
+  color: var(--holos-ink-faint);
+  font-size: 0.66rem;
+}
+
+.model-home-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--holos-cyan);
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  white-space: nowrap;
+  will-change: transform, opacity;
+  transition: opacity 320ms ease;
 }
 
 /* ── Ceremony carousel ───────────────────────────────────────────────── */
