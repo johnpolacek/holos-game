@@ -205,9 +205,12 @@ can wait.*
 > world under a dim red sun — with a one-line caption in slate small-caps
 > naming its species and world ("SONG-CULTURE PELAGIC · A DROWNED WORLD");
 > a compact five-dial sheet, each dial a soft pale range band with a bright
-> cyan notch already settled inside it, ends labelled in tiny caps ("REACH
-> — DEPTH", "VOICE — SILENCE"); an archetype line in editorial serif ("THE
-> HERALD"); and one italic serif fragment of the charter it carries — the
+> cyan notch already settled inside it, the five ends labelled in tiny caps
+> exactly these five in-world labels ("REACH — DEPTH", "VOICE — SILENCE",
+> "GARDEN — FORGE", "SOLO — CHORUS", "MEMORY — RENEWAL"); an archetype line
+> in editorial serif (one of: THE BEACON, THE MONUMENT, THE TIDE, THE
+> CLOISTER, THE HERALD, THE SHEPHERD, THE SOWING, THE ENGINE, THE CONGRESS,
+> THE PHOENIX — here THE HERALD); and one italic serif fragment of the charter it carries — the
 > founding words of a mind with a history. At the very bottom, an empty
 > name field with a thin underline cursor and a single word: "BECOME".
 > Solemn, elegiac, weighty; immense stillness; the feeling of inheriting a

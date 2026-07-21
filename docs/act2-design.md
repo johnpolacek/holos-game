@@ -226,7 +226,10 @@ Nature sets the range; the player sets the point within it.
 
 ### The dials
 
-Five in v1. Names are placeholders.
+Five in v1. The names below are the **design vocabulary** — precise, and
+used throughout these docs and every derivation table. **The player never
+sees them.** In-game, the dials render with *in-world labels* (defined just
+after this table); the two layers map straight across.
 
 | Dial | The question it answers | Act 2 effects | Act 3 shadow |
 |---|---|---|---|
@@ -235,6 +238,29 @@ Five in v1. Names are placeholders.
 | **Custodian ↔ Instrumental** | What are other minds for? | Mostly dormant; colors dilemmas about the home biosphere | Watch, uplift, exploit, or consume, when your probes find someone |
 | **One Mind ↔ Chorus** | Is a copy of you still you? | Coherence economics; tolerance for distributed projects | The entire travel menu: self-transmission is cheap identity-spend for a Chorus, anathema to a One Mind |
 | **Curator ↔ Shedder** | What is the biological past worth? | The Vault; preservation projects; memory beats | What diverged descendants inherit; what contact can offer to trade |
+
+### In-world labels
+
+Settled decision (resolving the open "are the labels surfaced in-game?"
+question): **the player sees poetic, in-world labels, never the design
+vocabulary.** Reach and Voice are already in-world and stay; the other
+three reskin. The poles map straight across — left stays left — so every
+derivation in act2-minds.md holds unchanged and only the presentation
+differs.
+
+| Design vocabulary | In-world label | The reading |
+|---|---|---|
+| Reach ↔ Depth | **Reach ↔ Depth** | *(unchanged)* outward or inward |
+| Voice ↔ Silence | **Voice ↔ Silence** | *(unchanged)* heard or hidden |
+| Custodian ↔ Instrumental | **Garden ↔ Forge** | other life is a garden to keep, or ore for the forge |
+| One Mind ↔ Chorus | **Solo ↔ Chorus** | one voice, or many |
+| Curator ↔ Shedder | **Memory ↔ Renewal** | keep the past, or shed it to remake the self |
+
+**Archetype names stay as they are** (Beacon, Monument, Herald, …) — they
+are already in-world, the constellation the player meets, not a separate
+reskin; the ten-name set in act2-minds.md is canonical. (A concept render's
+invented "The Keeper" / "The Gardener" were the generator not knowing the
+set — they are the Monument and the Shepherd.)
 
 ### Archetypes
 

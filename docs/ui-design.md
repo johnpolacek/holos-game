@@ -274,7 +274,7 @@ once, used everywhere:
 | **Beat frame** | vignette → choice cards → consequence; identical anatomy in all acts; Act 1 adds the roll, Act 2+ replaces it with the cost line (the dice die at the pivot, visibly) |
 | **Light-age chip** | mandatory on every remote fact; tap = "light left in [year]" detail |
 | **Confidence render** | belief + %, visual sharpness ∝ confidence; never a resolved icon below a confidence threshold |
-| **Dial band** | range band + position notch; ghostable (Ledger); price-on-drag; used for reveal, sheet, charters, drift |
+| **Dial band** | range band + position notch; ghostable (Ledger); price-on-drag; used for reveal, sheet, charters, drift; poles render as **in-world labels** — Reach·Depth, Voice·Silence, Garden·Forge, Solo·Chorus, Memory·Renewal (act2-design.md § In-world labels), never the design vocabulary |
 | **Clock pair** | real time + game time, always together, everywhere a duration appears |
 | **Hold-to-commit** | the irreversibility ceremony; consequence renders during the hold; releasing early cancels silently |
 | **Source card** | designation + local name + age + beliefs + light archive scrubber |
