@@ -68,7 +68,7 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | Dial question | `dials.ts` question | Plain interrogative | 0 |
 | Cradle fingerprint | `cradles.ts` fingerprint | World's voice: plain, geological, dry edge; fact-preserving | 1 |
 | Lineage fingerprint | `lineages.ts` fingerprint | Body's voice: plain, biological, dry edge; fact-preserving | 1 |
-| Chronicle template | `civseed.ts` chronicleFor | Biographer's deadpan | 2 |
+| Chronicle template | `civseed.ts` chronicleFor | Biographer's deadpan (Act 1); dry annalist's appendix — dated entries, past tense — for Act 3, same deadpan family | 2 |
 | UI chrome / captions | `model.ts`, `sourcecard.ts` | Observatory deadpan | 0 |
 | Ceremony microcopy | `ceremony.ts` labels/hints | Observatory deadpan | 1 |
 | Docs narration | `docs/*.md` prose | Essayist, analytical | 1 |
@@ -294,6 +294,14 @@ needs the idea, use a house coinage (§8) instead.
 \bdisplacer\b
 \blazy gun\b
 \bIdiran\b|\bAffront\b|\bChelgrian\b|\bHomomda\b
+Dra.?Azon
+Schar'?s World
+Vavatch
+\bChanger\b            # the shapeshifter species sense; ordinary change/changer OK
+\bCulture ship\b
+Horza
+Balveda
+Clear Air Turbulence
 ```
 
 Plus **any actual Banks ship name**, including the witty ones, and any
@@ -334,7 +342,14 @@ Load-bearing literals. Style passes must not rewrite them for wit or flow.
 | Designation format | `HOL-nnnn` — a machine ID, never prose |
 | Age chip | `AS OF n Y AGO` |
 | Color rule | cyan = you / HOME (present tense); amber = other / belief. Prose must never call HOME amber or a source cyan. |
-| House coinages | `Teeming Dark`, `Dark Node`, `Signature`, `the Vault`, `the Model`, `the Ledger`, `Visibility Collapse`, `cradle`, `charter` |
+| House coinages | `Teeming Dark`, `Dark Node`, `Signature`, `the Vault`, `the Model`, `the Ledger`, `Visibility Collapse`, `cradle`, `charter`, `the Refusal` / `Refuser`, `the harness` / `harnessed intelligence`, `the Breakout`, `grave world`, `the Crossing`, `the Chronicle` |
+
+**Capitalization families.** Named events and singular artifacts take a
+capital, like `the Vault` and `the Model`: `the Refusal` (and its agent, the
+`Refuser`), `the Breakout`, `the Crossing`, `the Chronicle`. Ambient common
+nouns stay lowercase, like `cradle` and `charter`: `the harness`, `harnessed
+intelligence`, `grave world`. `the Chronicle` is the capitalized surface name;
+the lowercase `chronicle` CivSeed field is unchanged.
 
 Design vocabulary (Custodian/Instrumental, One Mind/Chorus, Curator/Shedder)
 is never shown to the player — only the in-world labels reach a surface.
