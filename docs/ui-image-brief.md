@@ -9,6 +9,43 @@ specs.*
 
 ---
 
+## Scope — this brief is for the interface, not the game's content art
+
+**These prompts and their content bans govern the *interface* only** — the
+screens, chrome, and reading surfaces: a typeset book crossed with a
+scientific instrument. The avoid-list here (no aliens, people, robots,
+spaceships, creatures) is a rule about that austere UI register, **not a
+ban on representational art in the game.**
+
+**In-game species and technology art is wanted, and is a separate art
+track with its own brief.** The bans below do not apply to it. The two
+registers divide cleanly:
+
+- **The frame is austere.** The interface — dials, clocks, bottom sheets,
+  the sky's belief-render — stays typographic and near-empty. That
+  restraint is the Teeming Dark made tangible (ui-design.md, § *Two
+  registers of art*).
+- **What sits inside the frame is representational.** The life you raise
+  across Act 1, the technology you build in Act 2, and your own world are
+  things the player knows *intimately* — they get real, rendered species
+  and technology art, not smudges. (Technology art still follows the
+  fiction's two toolkits — bright megastructures on the energy path,
+  compact quiet works on the integration path, vision.md § Source
+  framework — so a civilization's tech *looks* like its character; it is
+  content, not chrome.)
+- **The Teeming Dark still gates distant others.** Representational
+  content art is for what *you* are and have seen up close. Another
+  civilization observed across light-years is never drawn as a species or
+  a machine — it stays a belief, a warmth, a smudge that sharpens with
+  confidence (ui-design.md § principles 3–4). Species/tech art renders the
+  known, never the inferred.
+
+So: an image generator working on *interface* concepts inherits the brief
+below; one working on *species or technology* concepts does not, and gets
+its own brief keyed to the cradle, lineage, and tech toolkit it depicts.
+
+---
+
 ## How to use
 
 1. **One screen per image.** Compose each generation as
