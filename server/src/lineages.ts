@@ -133,7 +133,7 @@ export const LINEAGES: readonly Lineage[] = [
       "custodian-instrumental": 0.35,
     },
     fingerprint:
-      "Unseeing and unseen in the sealed dark; it must discover that an outside exists before it can want it.",
+      "Unseeing and unseen in the sealed dark: it must discover that an outside exists before it can want it.",
   },
   {
     id: "S5",
@@ -150,7 +150,7 @@ export const LINEAGES: readonly Lineage[] = [
       "custodian-instrumental": -0.35,
     },
     fingerprint:
-      "A reef that is one slow distributed self; it cannot reach for tools, so it grows its technology instead.",
+      "A reef that is one slow distributed self — it cannot reach for tools, so it grows its technology instead.",
   },
   {
     id: "S6",
@@ -180,7 +180,7 @@ export const LINEAGES: readonly Lineage[] = [
       "custodian-instrumental": -0.15,
     },
     fingerprint:
-      "Built low and strong under crushing gravity; it masters its surface early and finds leaving the hardest thing it will ever do.",
+      "Built low and strong under crushing gravity — it masters its surface early and finds leaving the hardest thing it will ever do.",
   },
   {
     id: "S8",
@@ -227,7 +227,7 @@ export const LINEAGES: readonly Lineage[] = [
       "one-mind-chorus": 0.35,
     },
     fingerprint:
-      "Permanently airborne with no ground and no clear sky; its technology, if it comes, is grown in the air.",
+      "Permanently airborne with no ground and no clear sky — its technology, if it comes, is grown in the air.",
   },
   {
     id: "S11",
@@ -257,7 +257,7 @@ export const LINEAGES: readonly Lineage[] = [
       "reach-depth": 0.5,
     },
     fingerprint:
-      "A landscape that thinks slowly and everywhere, with structural, effectively permanent memory.",
+      "A landscape that thinks slowly and everywhere: its memory is structural, which is to say it does not forget.",
   },
   {
     id: "S13",
@@ -296,7 +296,7 @@ export const LINEAGES: readonly Lineage[] = [
     speculative: false,
     dialSeed: { "voice-silence": 0.6, "reach-depth": 0.6 },
     fingerprint:
-      "A life spent hidden and below; it must dig up into the sky before it can imagine leaving.",
+      "A life spent hidden and below — it must dig up into the sky before it can imagine leaving.",
   },
   {
     id: "S16",
@@ -313,7 +313,7 @@ export const LINEAGES: readonly Lineage[] = [
       "custodian-instrumental": 0.35,
     },
     fingerprint:
-      "Clustered at the vents, indifferent to sunlight; energy is right there, and the universe is a rumor.",
+      "Clustered at the vents, indifferent to sunlight — energy is right there, and the universe is a rumor.",
   },
   {
     id: "S17",
@@ -347,7 +347,7 @@ export const LINEAGES: readonly Lineage[] = [
       "reach-depth": -0.35,
     },
     fingerprint:
-      "Shielded against a sky that hurts, built on constant damage-and-repair, racing a star that will die young.",
+      "Shielded against a sky that hurts: built on constant damage-and-repair, racing a star that will die young.",
   },
   {
     id: "S19",

@@ -369,7 +369,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S11", "S15", "S6"],
     fingerprint:
-      "An Arrakis at the frost line: every drop counts, life clusters at ice margins and springs, a culture of conservation baked in from the first cell.",
+      "A desert pushed to the frost line: every drop is counted, life clusters at ice margins and meltwater springs, conservation baked in from the first cell.",
   },
   {
     id: 22,
@@ -523,7 +523,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S9", "S13", "S6"],
     fingerprint:
-      "A Tatooine: two suns out of step, seasons that don't repeat, life adapted to irregularity itself; a sky that taught it the heavens are plural.",
+      "Two suns out of step, seasons that never repeat, life adapted to irregularity itself; a sky that taught it the heavens are plural.",
   },
   {
     id: 33,
