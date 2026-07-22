@@ -558,6 +558,16 @@ it. Deception is native, because nobody ever sees *you*; they see your
 emissions, and you choose what to emit. A civilization can perform a
 character it does not have, for centuries.
 
+Alliances happen anyway, braided out of exactly these pieces. You and two
+distant others can hold a coalition in which no two of you share a present:
+promises travel as letters, commitment travels as missions and resident
+envoys — sunk, unrecallable, credible in a way no signature can be — and
+payment travels on the compensation menu. Each of you acts on years-stale
+knowledge of the others' adherence, so keeping faith is a matter of reading
+character, not checking behavior. Some of the strongest coalitions are
+families: your own diverged forks, confederated with the versions of
+themselves that remember being you.
+
 The faint warm mass in the distance, or the silence where you expected one,
 might be an ancient superintelligence, or a peer, or a young pre-singularity
 world still in its own incubation act, or another human being whose

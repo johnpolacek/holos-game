@@ -415,6 +415,36 @@ in the civilization's Vault, uplift or protection for their homeworld.
 
 ---
 
+## Coalitions
+
+Diplomacy is bilateral by default — correspondence is a thread between
+two minds — but nothing stops the threads from braiding. Coalitions and
+alliances among many civilizations are an expected mode of play, and
+they are built entirely from existing pieces; the design adds no
+enforcement machinery, because there is none to add:
+
+- **Correspondence carries the promises** — unenforceable by design.
+- **Cooperative missions and exchanged envoys carry the commitments** —
+  physically sunk, unrecallable, credible the way no signature is.
+- **The compensation menu is the consideration** — the medium in which
+  members pay, trade, and bind one another's agents.
+
+The strategic texture has no counterpart at conversational range. In a
+three-civilization agreement, no two members share a present: each acts
+on stale knowledge of the others' adherence, every confirmation is years
+old on arrival, and a defection is already in flight before anyone could
+learn of it. Holding a coalition together across light-lag is a game of
+anticipation and character-reading, not of monitoring. A special case
+with its own flavor: coalitions among one's own diverged forks — family
+alliances between civilizations that were once one mind and remember it
+differently.
+
+The existing principle stands unchanged: nothing agreed across
+light-years is enforceable. A coalition is a set of promises held up
+only by the minds that made them.
+
+---
+
 ## Conflict and deterrence
 
 **Working decision: designed here, deferred from v1.**
