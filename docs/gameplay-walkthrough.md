@@ -577,6 +577,24 @@ perform across the sky for observers you will never meet. Most
 civilizations never fire. All of them decide what they would do if the
 warmth they are watching starts to move.
 
+### The thing with no past
+
+Perhaps once in a real year, somewhere in your region of the galaxy, the sky
+produces something that should not be possible to produce. Every object you
+have ever classified had a history — a cradle behind it, a lineage, light
+that told you where it came from. Then your observatory flags a mass that is
+warm, heavy, moving under power, and has *no past at all*: nothing in its
+back-light, no origin any instrument can find. In a game where the map is
+the past, a thing with no past is the deepest wrongness there is. Or the
+anomaly is a voice: a directed hail from a galaxy that crossed the expansion
+horizon an age ago — perfectly audible, forever unreachable, a message you
+can never answer from a sender who can never repeat it. What happens next is
+the real event. Everyone in light-range must do something, even if the
+something is nothing, and every response is in character and on the record —
+the racers race, the criers hail, the careful go quiet, and some
+civilizations simply pray at it. You will learn more about your neighbors
+from one anomaly than from a century of their letters.
+
 ### Who else is out there
 
 The galaxy is populated by cohorts of players with the empty slots filled by

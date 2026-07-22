@@ -114,7 +114,7 @@ New players seed further out, and light-lag means they do not affect existing pl
 
 ### The dark forest, played for real
 
-Deep time, no FTL, superintelligences unable to coordinate, each deciding whether to reveal itself based on light-delayed guesses about the other's intent. In single-player that is a thought experiment. In multiplayer it is real, because the faint warm mass in the distance, or the silence where you expected one, is another human whose intentions you cannot read across the delay. Contact is rare, enormous, and irreversible, with long solo stretches punctuated by seismic first-contact events millennia in the making.
+Deep time, no FTL, superintelligences unable to coordinate, each deciding whether to reveal itself based on light-delayed guesses about the other's intent. In single-player that is a thought experiment. In multiplayer it is real, because the faint warm mass in the distance, or the silence where you expected one, is another human whose intentions you cannot read across the delay. Contact is rare, enormous, and irreversible, with long solo stretches punctuated by seismic first-contact events millennia in the making. And at the very top of the event scale, rarest of all, the sky occasionally produces a genuine unknown — something with no author, no lineage, and no agenda, which every civilization in light-range must answer from its own character. The thing itself may never resolve; the responses are the event. Race, hail, hide, pray — and every watcher watches the watchers, and learns who its neighbors are.
 
 ---
 

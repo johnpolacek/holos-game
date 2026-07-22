@@ -479,6 +479,41 @@ elder mind chose to preserve and quarantine the grave.
 
 ---
 
+## Anomalies
+
+Rarer still than a grave world, an **anomaly** is a genuine unknown with
+no author: not another civilization, not a scripted villain, not a puzzle
+holding a key. Its game function is to be a mirror. Every civilization
+within light-range must respond from its character — race to it, hail it,
+go dark, send missions, pray at it — and the responses are themselves
+visible, so an anomaly reveals the responders to each other. What it is
+matters less than what everyone does about it.
+
+Mechanically, an anomaly is mostly existing systems firing at once: a
+sensor-and-inference question the observatory cannot close, a mission
+target, a correspondence surge among every watcher, and eventually an
+entry in a hundred separate Chronicles.
+
+Illustrative seeds of an extensible class:
+
+- **A hail from beyond the horizon.** A directed signal from a galaxy
+  that has already crossed the cosmic-expansion edge — audible, forever
+  unreachable, forever unanswerable. The endgame clock as content: proof
+  that the door closes, arriving through the closed door.
+- **A mass that fails the taxonomy.** Warm, heavy, moving under power —
+  and with no lineage: no cradle, no history anywhere in its past light.
+  In a game where the map is the past, a thing with no past is the
+  deepest possible wrongness.
+- **A false grave.** An object or system wearing the quarantine
+  conventions of a grave world with nothing dead inside it. The
+  observatory's tell reads clean; the conclusion it points to is wrong.
+
+Cadence: roughly once per real-world year per region — rare enough that
+each anomaly is an era, and every civilization's answer to it becomes
+part of how the galaxy remembers the time.
+
+---
+
 ## The clocks
 
 **Working decision: telescoping time.** The solo acts compress freely
