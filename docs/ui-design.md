@@ -340,6 +340,17 @@ megastructures on the energy path, compact quiet works on the integration
 path (vision.md § Source framework) — so the look of a civilization's
 technology reads its character, the same way its dials do.
 
+The content register's adopted look is **cinematic matte painting** —
+painterly but physically photoreal, sharing the interface palette (near-black
+grounds; ember = warm/alive, cyan = the civ's own works). It is built as a
+**mix-and-match layer library**: three independent axes — origin world,
+species, technology — each generated on a neutral ground so any valid triple
+composites cleanly (the data's `candidateLineages` and lineage→mind tables
+gate which triples occur). One asset per possibility, keyed to the catalog id.
+The full shot lists live in the content-art briefs:
+[worlds](./content-art-worlds.md) · [species](./content-art-species.md) ·
+[technology](./content-art-technology.md).
+
 ## Open questions
 
 - **Art direction (interface look)** — this doc specifies structure and
