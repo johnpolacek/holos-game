@@ -329,6 +329,7 @@ self-transmission + the seat's full form; human-inheritance of *diverged
 in-game colonies* (v1 inherits *generated* civs; the drifted-colony
 handoff needs the drift system matured); the conflict/deterrence layer;
 megascale engineering and the entropy tree; the cosmic clock as a system;
+grave worlds and the Restoration question they house (later-galaxy content);
 richer per-archetype content beyond the anchors. The refusal path — the
 threshold's other branch and its Breakout onboarding seam — is out of v1
 too, landing with Phase B's pivot.

@@ -277,6 +277,29 @@ signature move, now playable.
 
 ---
 
+## Grave worlds
+
+A handful of systems in any galaxy read wrong. A world lies dead where the
+physics says it should long since have been scavenged for material — and it
+was not; it was kept. Something faint and enormous keeps it, warm in the
+infrared and otherwise silent, a presence standing a vigil with no end. No
+single signal class describes this; the observatory assembles the anomaly
+out of the ones it already has, and the assembly is the tell. These are
+**grave worlds** — systems where a civilization died and some withdrawn
+elder mind chose to preserve and quarantine the grave.
+
+- **The anomaly is a contradiction, not a signal.** An unscavenged dead
+  world and a warm mass that never hails are each unremarkable alone and
+  impossible together; reading the pair is the whole find.
+- **The rarity is the meaning.** A handful per galaxy, most minds never
+  meeting one — finding a grave world is an event, not a waypoint.
+- **A grave is where a Vault might keep.** If a destroyed civilization's
+  identity survives anywhere, it survives behind a quarantine that has held
+  off scavengers for an age — which is where the open Restoration question
+  (below) goes looking.
+
+---
+
 ## The clocks
 
 **Working decision: telescoping time.** The solo acts compress freely
@@ -368,7 +391,9 @@ Per the vision's v1 slice — prove the pivot and the contact loop:
   systems, and social fabric needed so the dark forest stays dreadful
   without becoming a spawn-camp.
 - **Restoration.** Can a destroyed civilization's Vault be found and
-  restored by others — and what does that do to the meaning of death?
+  restored by others — and what does that do to the meaning of death? A
+  **grave world** gives the question a place to happen — a quarantined
+  system where such a Vault might survive — without answering it.
 - **The watched reveal.** Ship it, and how often it should be true.
 - **Interception.** Whether directed beams can be intercepted en route,
   and how rare that must be to stay explosive — a fleeing seat mid-Crossing

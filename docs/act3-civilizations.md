@@ -328,9 +328,9 @@ space**, never a fixed roster — the same discipline act2-minds.md keeps.
   correspondent for a nervous newcomer — once its several selves settle on
   what to say.
 
-### The recursion — young worlds and elders
+### The recursion — young worlds, elders, and grave worlds
 
-Two regions are defined by **age**, not character (vision.md, *Seed the whole
+Three regions are defined by **age**, not character (vision.md, *Seed the whole
 spectrum*):
 
 - **The young world** — a **biosignature** in the sky: someone's Act 1,
@@ -341,6 +341,11 @@ spectrum*):
 - **The elder** — an ancient superintelligence far beyond you, likely a deep
   Dark Node or asleep, its bright years a shell of old light still arriving.
   Contact with an elder is contact with a past you cannot catch up to.
+- **The grave world** — a system a civilization died in, kept and
+  quarantined by a withdrawn elder standing watch. It reads as an anomaly,
+  not a class: a dead world left unscavenged, held by something faint and
+  enormous on a vigil with no end (act3-design.md, *Grave worlds*). A handful
+  per galaxy, and where a destroyed civilization's Vault might survive.
 
 ### Master table
 
@@ -362,6 +367,7 @@ Custodian↔Instrumental).
 | **Congress-grown** | Congress · composite | mixed | plural, mid-Signature | transmission (Chorus) | corresponds readily |
 | **Young world** | *(pre-singularity)* | — (biosignature) | living world, no tech | none yet | cannot; is observed |
 | **Elder** | *(ancient any)* | H4–H5 or bright-relic | deep Dark Node; old light | — | may never answer |
+| **Grave world** | *(an elder's vigil)* | Integration H4–H5 (elder) | dead world kept; warm watcher | — | quarantines; does not answer |
 
 **What the spread says.** It leans dark and quiet — the same lean
 act2-minds.md's character spread already showed, now confirmed at galaxy
@@ -488,7 +494,9 @@ machinery act3-design.md already scopes for v1. The discipline (vision.md,
   galaxy* (vision.md, *Seed the whole spectrum*). Its inaccessibility is the
   point; the open question is how much an elder can *do* to a younger player
   versus merely *be present* — which is the conflict layer's griefing-
-  resistance question (act3-design.md) seen from the top of the age axis.
+  resistance question (act3-design.md) seen from the top of the age axis. The
+  grave-world vigil is one answer already in hand: an elder wholly present and
+  doing nothing but keep, a power that griefs no one.
 - **Performing a false character interacts with divergence.** A civilization
   that performs a mask for centuries (the light echo section) is also
   drifting under the four pressures. Open: does sustained performance *drag*
