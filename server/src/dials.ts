@@ -45,12 +45,12 @@ export const DIAL_AXES: readonly DialAxis[] = [
     left: {
       design: "Reach",
       inWorld: "Reach",
-      gloss: "It pours itself outward — more worlds, more room. Growth is the point, and it will accept a scattered, far-flung self to have it.",
+      gloss: "It spends itself outward — more worlds, more room, always the next system over. Growth is the point, and it will accept a scattered, far-flung self as the price of having it.",
     },
     right: {
       design: "Depth",
       inWorld: "Depth",
-      gloss: "It turns inward — fewer places, deeper mastery. It would rather perfect one world than spread thin across a thousand.",
+      gloss: "It turns inward — fewer places, deeper mastery. It would rather know one world down to the bedrock than spread itself thin across a thousand it half-understands.",
     },
     question: "Does the mind spend itself outward or inward?",
   },
@@ -59,12 +59,12 @@ export const DIAL_AXES: readonly DialAxis[] = [
     left: {
       design: "Voice",
       inWorld: "Voice",
-      gloss: "It wants to be known. It builds bright and signals first, content to be the loudest thing in its sky.",
+      gloss: "It wants to be known. It builds bright and signals first, content to be the loudest thing in its sky and untroubled by who might be listening.",
     },
     right: {
       design: "Silence",
       inWorld: "Silence",
-      gloss: "It keeps to the dark. Better unheard than found — it dampens its own light and lets the neighbors wonder.",
+      gloss: "It keeps to the dark. Better unheard than found — so it dampens its own light, holds its signals close, and lets the neighbors keep wondering whether anyone is home.",
     },
     question: "Does it want to be heard?",
   },
@@ -73,12 +73,12 @@ export const DIAL_AXES: readonly DialAxis[] = [
     left: {
       design: "Custodian",
       inWorld: "Garden",
-      gloss: "Other life is a garden to keep. Younger minds are to be sheltered and tended, never spent.",
+      gloss: "Other life is a garden to keep. Younger minds are to be sheltered and tended, allowed to grow at their own pace — never harvested, never spent.",
     },
     right: {
       design: "Instrumental",
       inWorld: "Forge",
-      gloss: "Other life is ore for the forge. What it finds, it uses; a living world is material like any other.",
+      gloss: "Other life is ore for the forge. What it finds, it uses; a living world is raw material like any other, valued for what it can be made into.",
     },
     question: "What are other minds for?",
   },
@@ -87,7 +87,7 @@ export const DIAL_AXES: readonly DialAxis[] = [
     left: {
       design: "One Mind",
       inWorld: "Monolith",
-      gloss: "It is one indivisible self. A copy is not you — to split the mind is to lose it, so it never forks its will or travels as a mere signal.",
+      gloss: "It is one indivisible self. A copy is not you — to split the mind is to lose it, so it will not fork its will or cross the dark as a signal, only ever move as its whole self.",
     },
     right: {
       design: "Chorus",
@@ -101,12 +101,12 @@ export const DIAL_AXES: readonly DialAxis[] = [
     left: {
       design: "Curator",
       inWorld: "Memory",
-      gloss: "The past is worth keeping. It hoards what it was — its dead, its languages, its first world — and builds vaults against forgetting.",
+      gloss: "The past is worth keeping. It hoards what it was — its dead, its lost languages, its first fragile world — and builds vaults against the day it might forget.",
     },
     right: {
       design: "Shedder",
       inWorld: "Renewal",
-      gloss: "The past is a shell to shed. It remakes itself without grief, leaving each old self behind to become the next.",
+      gloss: "The past is a shell to shed. It remakes itself without grief, leaving each old self behind so the next one can step forward unburdened by it.",
     },
     question: "What is the biological past worth?",
   },
