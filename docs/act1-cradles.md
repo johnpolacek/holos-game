@@ -80,7 +80,7 @@ cradles come from.*
 - **Profile:** ~Earth gravity · temperate insolation · likely water · atmosphere unknown · tidally locked (terminator world) · very old system.
 - **Difficulty:** **III (Testing).** A genuine terminator strip: life crowds the ring of endless dusk between a frozen night side and a baked day side.
 - **Spawn weight:** Common.
-- **Fingerprint:** A civilization raised in a thin livable band, sky owned by a huge dim sun that never moves and six sister worlds hanging close. Astronomy is native here — the neighbors are *right there*.
+- **Fingerprint:** Life in a thin livable band under a huge dim sun that never moves; six sister worlds hang close, so astronomy is native.
 
 #### 2. TRAPPIST-1f
 - **Basis:** Real — confirmed; cooler outer sibling of 1e.
@@ -88,7 +88,7 @@ cradles come from.*
 - **Profile:** ~Earth gravity · cool insolation · likely a deep ocean under ice · tidally locked · very old.
 - **Difficulty:** **IV (Harsh).** Colder than 1e; open water may exist only over the substellar point, ringed by ice.
 - **Spawn weight:** Common.
-- **Fingerprint:** An eyeball ocean — a warm meltwater pupil facing the sun, an ice shell everywhere else. Life pools where the light lands and freezes out of reach beyond it.
+- **Fingerprint:** An eyeball ocean: a warm meltwater pupil facing the sun, ice everywhere else; life pools where the light lands.
 
 #### 3. Proxima Centauri b
 - **Basis:** Real — confirmed; the nearest exoplanet to Earth.
@@ -96,7 +96,7 @@ cradles come from.*
 - **Profile:** ~Earth-plus gravity · temperate insolation · water uncertain · heavy XUV/flare bombardment · tidally locked · old.
 - **Difficulty:** **V (Brutal).** The star flares violently; the day side is periodically scoured by radiation. Any biosphere learns to hide.
 - **Spawn weight:** Common.
-- **Fingerprint:** Life under a dangerous sky, sheltering from flares in caves, deep water, or the terminator's shadow. The lesson written into everything is: *do not be exposed.*
+- **Fingerprint:** Life under a dangerous sky, sheltering from flares in caves, deep water, or shadow. The lesson written into everything: do not be exposed.
 
 #### 4. LHS 1140 b
 - **Basis:** Real — confirmed; a dense, well-characterized super-Earth.
@@ -104,7 +104,7 @@ cradles come from.*
 - **Profile:** high gravity (~1.5–2 g) · temperate insolation · dense rock, possibly a water-world or with a deep ocean · thick atmosphere plausible · tidally locked · old.
 - **Difficulty:** **IV (Harsh).** Heavy gravity flattens everything, but the star is calm — a harsh world under a gentle sun.
 - **Spawn weight:** Common.
-- **Fingerprint:** A crushing, high-pressure world where nothing stands tall and orbit is a nearly impossible height to climb out of. Ambition here is heavy, literally.
+- **Fingerprint:** A crushing high-pressure world under a calm sun; nothing stands tall and orbit is a nearly impossible height to climb.
 
 #### 5. Ross 128 b
 - **Basis:** Real — confirmed.
@@ -112,7 +112,7 @@ cradles come from.*
 - **Profile:** ~Earth-plus gravity · temperate insolation · water plausible · calm radiation environment · likely tidally locked · old.
 - **Difficulty:** **II (Temperate).** One of the kindest red-dwarf cradles: temperate, and the star doesn't try to kill you.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A red-dwarf world that got lucky — steady light, a survivable sky, time to develop without constant catastrophe. A gentle on-ramp that still isn't Earth.
+- **Fingerprint:** A red-dwarf world that got lucky: steady light, a survivable sky, time to develop without constant catastrophe.
 
 #### 6. TOI-700 d
 - **Basis:** Real — confirmed; TESS's first temperate Earth-size HZ world.
@@ -120,7 +120,7 @@ cradles come from.*
 - **Profile:** ~Earth gravity · temperate insolation · likely ocean-bearing · low flare activity · tidally locked · middle-aged.
 - **Difficulty:** **III (Testing).** Temperate and calm-starred, but a locked ocean world with all the terminator constraints.
 - **Spawn weight:** Common.
-- **Fingerprint:** A mild waterworld under a steady red sun — global seas, weather driven by the eternal day-night contrast, life following the currents between hot and cold hemispheres.
+- **Fingerprint:** A mild waterworld under a steady red sun: global seas, weather driven by the eternal day-night contrast.
 
 #### 7. Teegarden's Star b
 - **Basis:** Real — confirmed.
@@ -128,7 +128,7 @@ cradles come from.*
 - **Profile:** ~Earth gravity · temperate insolation · water plausible · low activity · tidally locked · very old (~8 Gyr).
 - **Difficulty:** **III (Testing).** Habitable but dim — the sun is barely a coal; photosynthesis is a scarce, prized trick.
 - **Spawn weight:** Common.
-- **Fingerprint:** An ancient world under a faint, ancient star. Deep time, little energy — a civilization that grows slow, patient, and thrifty with light.
+- **Fingerprint:** An ancient world under a faint ancient star: deep time, little energy, a civilization that grows slow, patient, thrifty with light.
 
 #### 8. GJ 667 Cc
 - **Basis:** Real — confirmed super-Earth.
@@ -136,7 +136,7 @@ cradles come from.*
 - **Profile:** super-Earth gravity (~1.3–1.5 g) · temperate insolation · water plausible · tidally locked · old, metal-poor system.
 - **Difficulty:** **III (Testing).** A heavier world, but the standout is the sky: a close red sun plus two bright far stars that never fully set.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A world with three suns and no true darkness. Astronomy and mythology are dominated by a sky that is never empty; a civilization that always knew it was not alone in the heavens.
+- **Fingerprint:** A world with three suns and no true darkness; a civilization that always knew it was not alone in the heavens.
 
 #### 9. Kepler-186f
 - **Basis:** Real — confirmed; first Earth-size world in an M-dwarf HZ.
@@ -144,7 +144,7 @@ cradles come from.*
 - **Profile:** ~Earth gravity · **cold** outer-edge insolation · ice-prone surface · atmosphere unknown · likely slow/locked rotation · old.
 - **Difficulty:** **IV (Harsh).** Sits at the cold margin — a snowball unless the atmosphere is thick. Habitability hangs on greenhouse luck.
 - **Spawn weight:** Common.
-- **Fingerprint:** A cold-edge world clinging to the far habitable rim, life concentrated around geothermal warmth and equatorial thaw. Scarcity of heat is the organizing pressure.
+- **Fingerprint:** A cold-edge world clinging to the far habitable rim; life gathers around geothermal warmth and equatorial thaw. Heat is scarce.
 
 #### 10. Gliese 12 b
 - **Basis:** Real — confirmed (2024); temperate Earth-size.
@@ -152,7 +152,7 @@ cradles come from.*
 - **Profile:** ~Earth gravity · temperate-to-warm insolation (Venus-or-Earth boundary) · atmosphere retention uncertain · likely tidally locked · middle-aged.
 - **Difficulty:** **III (Testing).** Right at the inner edge — could be temperate, could be sliding toward runaway warmth. A world on a knife.
 - **Spawn weight:** Common.
-- **Fingerprint:** A warm terminator world where the day side runs hot and the habitable margin is a moving line. Life tracks the shifting band where water stays liquid.
+- **Fingerprint:** A warm terminator world where the day side runs hot; life tracks the shifting margin where water stays liquid.
 
 #### 11. Luyten b (GJ 273 b)
 - **Basis:** Real — confirmed; a nearby temperate super-Earth.
@@ -160,7 +160,7 @@ cradles come from.*
 - **Profile:** super-Earth gravity (~1.4 g) · temperate insolation · water plausible · low activity · tidally locked · old.
 - **Difficulty:** **III (Testing).** Heavier than Earth, temperate, calm-starred — a solid mid-tier red-dwarf climb.
 - **Spawn weight:** Common.
-- **Fingerprint:** A steady, weighty world with a stable sky — no single savage pressure, just the constant heaviness and the fixed sun. Endurance over drama.
+- **Fingerprint:** A steady, weighty world with a fixed sun and no single savage pressure; endurance over drama.
 
 #### 12. K2-18 b
 - **Basis:** Real — confirmed; a leading hycean-world candidate.
@@ -168,7 +168,7 @@ cradles come from.*
 - **Profile:** ~8.6 M⊕ mini-Neptune · low surface gravity at cloud-top · possible global ocean under a **hydrogen atmosphere** · warm · old.
 - **Difficulty:** **V (Brutal).** A hycean world: life (if any) lives in a deep ocean beneath a thick H₂ envelope, with no land, no fire, no metallurgy, and no view of the stars.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A drowned civilization under a hydrogen sky it can never see through. Technology has to skip fire entirely; the path to space runs through an ocean and an atmosphere that both fight you.
+- **Fingerprint:** A drowned civilization under a hydrogen sky it can never see through; the road to space skips fire entirely.
 
 #### 13. Terminator storm world
 - **Basis:** Extrapolated — a common outcome for locked M-dwarf worlds with thick atmospheres.
@@ -176,7 +176,7 @@ cradles come from.*
 - **Profile:** ~Earth-plus gravity · temperate mean, savage gradients · water present · thick atmosphere · tidally locked · variable.
 - **Difficulty:** **IV (Harsh).** The day-night temperature contrast drives permanent hurricane-scale winds along the terminator. Life survives in the lee of terrain.
 - **Spawn weight:** Common.
-- **Fingerprint:** A world of endless storms, where the only calm is the shelter of mountains and the deep. A civilization built low, braced, and wind-wise, reading weather as its oldest science.
+- **Fingerprint:** A world of endless terminator storms where the only calm is the lee of terrain; built low, braced, and wind-wise.
 
 #### 14. Eyeball ice world
 - **Basis:** Extrapolated — the cold-side outcome of a locked M-dwarf ocean world.
@@ -184,7 +184,7 @@ cradles come from.*
 - **Profile:** ~Earth gravity · cold mean · a substellar meltpool in an ice shell · thin-to-moderate atmosphere · tidally locked · old.
 - **Difficulty:** **IV (Harsh).** Liquid water exists only in a warm eye facing the sun; everything else is a glacier. Habitat is a single bright puddle in a frozen world.
 - **Spawn weight:** Common.
-- **Fingerprint:** All life in one sunlit eye of open water, hemmed by ice on every side. A concentrated, crowded origin with a hard edge and nowhere to spread.
+- **Fingerprint:** All life in one sunlit eye of open water, hemmed by ice on every side; a crowded origin with nowhere to spread.
 
 #### 15. Tidally-heated moon
 - **Basis:** Extrapolated — a habitable moon of a gas giant in an M-dwarf system, warmed by tidal flexing (Io/Europa-adjacent, but livable).
@@ -192,7 +192,7 @@ cradles come from.*
 - **Profile:** ~Earth-minus gravity · warmth from **internal tidal heating**, not the star · water and volcanism both abundant · thin atmosphere · phase-locked to its giant · young-feeling, resurfaced often.
 - **Difficulty:** **IV (Harsh).** Geologically violent — constant quakes and eruptions — but energy-rich from below. A world lit from within.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** Life around volcanic vents and warm cracks, indifferent to the dim sun, keyed to the giant that fills half the sky and the tides that knead the crust. Chemistry, not sunlight, is the source of everything.
+- **Fingerprint:** Life around volcanic vents keyed to the giant that fills half the sky; chemistry, not sunlight, is the source of everything.
 
 #### 16. Metal-poor drowned world
 - **Basis:** Extrapolated — the vision's flagship *"metal-poor ocean world with no continents."*
@@ -200,7 +200,7 @@ cradles come from.*
 - **Profile:** ~Earth gravity · temperate · a deep **global ocean** floored by high-pressure ice, not rock · thin atmosphere · locked or slow rotation · old.
 - **Difficulty:** **V (Brutal).** No dry land, and the seafloor is ice, not stone — so almost no dissolved metals or minerals. A biosphere starved of the elements technology is built from.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** An entirely aquatic, mineral-poor civilization that never had rock, fire, or metal within reach. The road to technology has to be invented from biology and water alone, if it can be walked at all.
+- **Fingerprint:** An aquatic, mineral-poor civilization that never had rock, fire, or metal within reach; technology invented from biology and water alone.
 
 ---
 
@@ -216,7 +216,7 @@ zones with room outside the tidal-lock trap. Rarer than M dwarfs, still common.*
 - **Profile:** super-Earth gravity (~1.3 g) · temperate insolation · water plausible · possibly slow (not fully locked) rotation · old, calm star.
 - **Difficulty:** **II (Temperate).** Heavier than Earth but bathed in steady orange light — one of the most forgiving non-Earth cradles known.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A stable, weighty, well-lit world with day and night and seasons — close enough to Earth's rhythm to develop broadly, heavy enough to remember it's not Earth.
+- **Fingerprint:** A stable, weighty, well-lit world with days and seasons; close to Earth's rhythm, heavy enough to remember it is not Earth.
 
 #### 18. Kepler-62f
 - **Basis:** Real — confirmed; a leading water-world candidate.
@@ -224,7 +224,7 @@ zones with room outside the tidal-lock trap. Rarer than M dwarfs, still common.*
 - **Profile:** super-Earth gravity · cool outer-HZ insolation · likely a global ocean · thick atmosphere needed for warmth · rotation uncertain · old.
 - **Difficulty:** **III (Testing).** A cool ocean world at the outer edge — habitable if the greenhouse holds, glaciated if it doesn't.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A deep, cool sea-world with little or no land, life spread through a single planetary ocean, weather and ice defining the livable latitudes.
+- **Fingerprint:** A deep cool sea-world with little or no land; life spread through a single planetary ocean, ice defining the livable latitudes.
 
 #### 19. HD 40307 g
 - **Basis:** Real — confirmed super-Earth in a multi-planet system.
@@ -232,7 +232,7 @@ zones with room outside the tidal-lock trap. Rarer than M dwarfs, still common.*
 - **Profile:** super-Earth gravity (~1.7 g) · temperate insolation · water plausible · a real day-night cycle (wider orbit, not locked) · old.
 - **Difficulty:** **III (Testing).** Heavy but well-placed and free-rotating — the gravity is the main antagonist, not the star or the lock.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A rotating super-Earth with proper days, seasons, and continents under heavy gravity. Life is low-slung and strong; culture develops with a normal sky-clock but a heavy tread.
+- **Fingerprint:** A rotating super-Earth with proper days, seasons, and continents under heavy gravity; life low-slung and strong.
 
 #### 20. 40 Eridani A b
 - **Basis:** Real — **candidate / disputed** (the "Vulcan" signal; some analyses attribute it to stellar activity).
@@ -240,15 +240,15 @@ zones with room outside the tidal-lock trap. Rarer than M dwarfs, still common.*
 - **Profile:** super-Earth gravity · temperate insolation · water plausible · rotating · old, sun-like-but-cooler.
 - **Difficulty:** **II (Temperate).** A near-ideal orange-dwarf world *if* it's real — steady light, gentle enough for a long climb.
 - **Spawn weight:** Rare (flagged as candidate).
-- **Fingerprint:** A temperate world with a distant, uncanny pair of stellar companions — a nearby white dwarf that once was a sun, a permanent reminder in the sky that stars die.
+- **Fingerprint:** A temperate world with an uncanny stellar pair in the sky, a nearby white dwarf that once was a sun: a permanent reminder that stars die.
 
 #### 21. Cold-edge desert world
 - **Basis:** Extrapolated — the vision's flagship *"cold-edge desert clinging to the far habitable margin."*
 - **Host star:** K or M dwarf, world near the outer HZ.
 - **Profile:** ~Earth gravity · cold, dry insolation · very little surface water (locked in ice caps and deep aquifers) · thin, dry atmosphere · rotating or slow · old.
-- **Difficulty:** **IV (Harsh).** Arid and cold — an Arrakis at the frost line. Water is the scarce, sacred resource around which everything organizes.
+- **Difficulty:** **IV (Harsh).** Arid and cold — a desert pushed to the frost line. Water is the scarce, sacred resource around which everything organizes.
 - **Spawn weight:** Common.
-- **Fingerprint:** A desert civilization for whom every drop counts, life clustered at ice margins and geothermal springs, a culture of conservation and hoarding baked in from the first cell.
+- **Fingerprint:** A desert pushed to the frost line: every drop is counted, life clusters at ice margins and meltwater springs, conservation baked in from the first cell.
 
 #### 22. The temperate twin
 - **Basis:** Extrapolated — the deliberately rare near-Earth cradle. The onboarding world.
@@ -256,7 +256,7 @@ zones with room outside the tidal-lock trap. Rarer than M dwarfs, still common.*
 - **Profile:** ~Earth gravity · temperate insolation · abundant surface water and land · breathable-track atmosphere · normal day-night rotation · middle-aged.
 - **Difficulty:** **I (Gentle).** The blue marble the galaxy rarely makes. Forgiving beats, generous rolls — the tutorial cradle you earn your way off of.
 - **Spawn weight:** Very rare.
-- **Fingerprint:** A balanced, generous world with room to spread, land and sea both, a legible sky. Life diversifies freely; the civilization inherits abundance and options rather than a single defining wound.
+- **Fingerprint:** The blue marble the galaxy rarely makes: land and sea both, a legible sky; life diversifies freely, inheriting abundance and options.
 
 ---
 
@@ -272,7 +272,7 @@ with age. Uncommon in the pool.*
 - **Profile:** super-Earth gravity (~1.6 g) · warm, **rising** insolation (an aging, brightening sun) · water plausible but evaporating · rotating · old.
 - **Difficulty:** **IV (Harsh).** An old Earth under an aging sun — entering a moist-greenhouse phase, the oceans beginning to boil away. A world with a deadline.
 - **Spawn weight:** Rare.
-- **Fingerprint:** A civilization racing a warming sun, a biosphere that peaked and is now being cooked from above. Time pressure is written into the sky; the future is visibly finite.
+- **Fingerprint:** A civilization racing a warming sun, a biosphere that peaked and is now being cooked from above; the future is visibly finite.
 
 #### 24. Kepler-22b
 - **Basis:** Real — confirmed; a classic possible ocean world.
@@ -280,7 +280,7 @@ with age. Uncommon in the pool.*
 - **Profile:** ~2.4 R⊕, likely low-density · temperate insolation · plausibly a **global ocean** or ocean-over-ice · thick atmosphere · rotating · middle-aged.
 - **Difficulty:** **III (Testing).** Sun-like light on a probable waterworld — mild climate, but little or no land to stand on.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A warm world-ocean under a familiar yellow sun, seasons and days intact but continents absent. An aquatic civilization with a clear view of the stars — rare, and important.
+- **Fingerprint:** A warm world-ocean under a familiar yellow sun, continents absent: an aquatic civilization with a clear view of the stars. Rare, and important.
 
 #### 25. Tau Ceti f
 - **Basis:** Real — confirmed candidate in a nearby, well-studied system.
@@ -288,7 +288,7 @@ with age. Uncommon in the pool.*
 - **Profile:** super-Earth gravity · cool outer-HZ insolation · water plausible · heavy comet/asteroid bombardment (thick debris disk) · rotating · old.
 - **Difficulty:** **IV (Harsh).** Sun-like and rotating, but the metal-poor system means fewer heavy elements to build with, and the debris disk means frequent impacts.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A world under regular bombardment from its own crowded system, its history punctuated by impacts, its crust metal-lean. A civilization shaped by catastrophe from the sky and scarcity in the ground.
+- **Fingerprint:** A world under regular bombardment from its own crowded system, its crust metal-lean; shaped by catastrophe from the sky and scarcity in the ground.
 
 #### 26. 55 Cancri e
 - **Basis:** Real — confirmed; an extreme, well-characterized lava world.
@@ -296,7 +296,7 @@ with age. Uncommon in the pool.*
 - **Profile:** ~8 M⊕ super-Earth · **molten day side** (~2000 K) · possibly carbon-rich (graphite/diamond interior) · no water · tidally locked · old.
 - **Difficulty:** **V (Brutal).** Not surface-habitable at all. A cradle here can only be a deep, shielded, high-temperature-chemistry biosphere — an extreme, edge-of-viable start.
 - **Spawn weight:** Rare (extreme edge case).
-- **Fingerprint:** Life, if it exists, is subsurface and heat-loving, in a carbon-rich crust under a sky of rock vapor. A civilization forged in fire and carbon, alien in its chemistry and its relationship to the surface it can never inhabit.
+- **Fingerprint:** Life, if any, is subsurface and heat-loving in a carbon-rich crust under a sky of rock vapor: forged in fire and carbon, alien in its chemistry.
 
 #### 27. Runaway-greenhouse-edge world
 - **Basis:** Extrapolated — a Venus-adjacent world holding at the survivable inner margin.
@@ -304,7 +304,7 @@ with age. Uncommon in the pool.*
 - **Profile:** ~Earth-plus gravity · hot, high insolation · water only at poles / high altitude · thick CO₂ atmosphere · slow rotation · middle-aged.
 - **Difficulty:** **IV (Harsh).** A hot, high-pressure world one nudge from runaway greenhouse. Life clings to the cool margins — poles, peaks, night.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A civilization of the cool corners, heat-fleeing, altitude- and pole-dwelling, its whole history a negotiation with a suffocating sky. Climate is the ever-present antagonist.
+- **Fingerprint:** A civilization of the cool corners, heat-fleeing, altitude- and pole-dwelling; its whole history a negotiation with a suffocating sky.
 
 ---
 
@@ -320,7 +320,7 @@ faster evolutionary clock. Rare.*
 - **Profile:** ~Earth gravity · high visible + **UV** insolation · water present · thick ozone/haze shield required · rotating · geologically young (the star hasn't lived long).
 - **Difficulty:** **IV (Harsh).** Fierce UV sterilizes exposed surfaces; life needs a thick shield or deep water, and it has less time than usual to get anywhere.
 - **Spawn weight:** Rare.
-- **Fingerprint:** A civilization that evolved under a burning sky, driven to shade, ozone, and water, racing a star that will die young. Pressure comes from above and from the clock at once.
+- **Fingerprint:** A civilization that evolved under a burning sky, driven to shade, ozone, and water, racing a star that will die young.
 
 #### 29. Bright super-Earth
 - **Basis:** Extrapolated — a resource-rich heavy world under an F or bright-G star.
@@ -328,7 +328,7 @@ faster evolutionary clock. Rare.*
 - **Profile:** super-Earth gravity (~1.6 g) · bright, warm insolation · abundant water and heavy elements · thick atmosphere · rotating · young-to-middle-aged.
 - **Difficulty:** **III (Testing).** Heavy and UV-bright, but rich — plenty of energy, water, and metal to work with once you survive the surface.
 - **Spawn weight:** Rare.
-- **Fingerprint:** A world of abundance under a demanding sun — heavy, bright, mineral-rich. A civilization that grows expansive and energetic, used to having enough, racing the star's shorter life.
+- **Fingerprint:** A world of abundance under a demanding sun: heavy, bright, mineral-rich; a civilization that grows expansive and energetic, racing the star's short life.
 
 ---
 
@@ -344,7 +344,7 @@ iron, carbon, ice, haze — that occurrence data says exist in quantity.*
 - **Profile:** super-Earth gravity (~4.8 M⊕) · temperate insolation · water plausible · likely locked · **ancient**.
 - **Difficulty:** **IV (Harsh).** Metal-poor to the bone and unimaginably old — a world where the elements of technology are scarce and time is effectively unlimited.
 - **Spawn weight:** Rare (flagged as disputed).
-- **Fingerprint:** A civilization on a relic world older than most of the galaxy's stars, patient beyond measure, mineral-starved, its history reaching back into deep cosmic time. Age is the defining fact.
+- **Fingerprint:** A relic world older than most of the galaxy's stars, patient beyond measure, mineral-starved; age is the defining fact.
 
 #### 31. Barnard's Star b
 - **Basis:** Real — confirmed (2024); a sub-Earth, not habitable itself, included as the *cold ancient-dwarf* archetype.
@@ -352,7 +352,7 @@ iron, carbon, ice, haze — that occurrence data says exist in quantity.*
 - **Profile:** sub-Earth gravity · cold, low insolation (too hot at its true orbit, but the archetype is the cold outer sibling) · thin atmosphere · locked · very old.
 - **Difficulty:** **V (Brutal).** A small, cold, metal-poor world under a faint ancient star — thin on gravity, warmth, and material all at once.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A frigid, low-gravity relic where life scrapes by on geothermal warmth and thin air. A civilization of the cold and the ancient, small and enduring, holding on rather than reaching out.
+- **Fingerprint:** A frigid, low-gravity relic scraping by on geothermal warmth and thin air: small and enduring, holding on rather than reaching out.
 
 #### 32. Circumbinary world (Kepler-16 type)
 - **Basis:** Real host (Kepler-16 is a confirmed circumbinary system) — the cradle is an extrapolated habitable world/moon with two suns.
@@ -360,7 +360,7 @@ iron, carbon, ice, haze — that occurrence data says exist in quantity.*
 - **Profile:** ~Earth gravity · temperate but **variable** insolation (two suns, shifting distances and eclipses) · water plausible · rotating · middle-aged.
 - **Difficulty:** **IV (Harsh).** Two suns mean complex, non-repeating seasons and irregular light and heat — a climate that never settles into a simple year.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A Tatooine — two suns rising and setting out of step, seasons that don't repeat, life adapted to irregularity itself. A civilization whose sky taught it that the heavens are plural and unpredictable.
+- **Fingerprint:** Two suns out of step, seasons that never repeat, life adapted to irregularity itself; a sky that taught it the heavens are plural.
 
 #### 33. Super-Mercury (iron world)
 - **Basis:** Extrapolated — a dense, iron-rich world; common around metal-rich stars, and produced by mantle-stripping impacts.
@@ -368,7 +368,7 @@ iron, carbon, ice, haze — that occurrence data says exist in quantity.*
 - **Profile:** very high gravity · warm-to-hot insolation · little water · thin atmosphere · slow or locked rotation · variable age.
 - **Difficulty:** **V (Brutal).** A stripped, iron-dominated world — heavy, dry, and mineral-lopsided (metal everywhere, light elements scarce). A crushing, barren start.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A civilization on a great ball of iron and rock — abundant metal, scarce water and air, a savage gravity well. Metallurgy is native and effortless; everything else is a fight.
+- **Fingerprint:** A great ball of iron and rock: abundant metal, scarce water and air, a savage gravity well; metallurgy is native, everything else a fight.
 
 #### 34. Carbon world
 - **Basis:** Extrapolated — a carbon-dominated planet (graphite crust, diamond mantle); forms around carbon-rich stars.
@@ -376,7 +376,7 @@ iron, carbon, ice, haze — that occurrence data says exist in quantity.*
 - **Profile:** ~Earth-plus gravity · warm insolation · **tar/hydrocarbon** seas rather than water, or dry graphite plains · reducing atmosphere · rotating · variable age.
 - **Difficulty:** **IV (Harsh).** A world of carbon chemistry with little free water and little oxygen — life, if it arises, runs on utterly different chemistry.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A civilization of carbon and hydrocarbons, diamonds underfoot and tar in the low places, oxygen a rarity. Its biology and its technology both start from a chemistry alien to ours.
+- **Fingerprint:** A civilization of carbon and hydrocarbons, diamonds underfoot and tar in the low places, oxygen a rarity; biology and technology start alien.
 
 #### 35. Coreless silicate world
 - **Basis:** Extrapolated — a low-density world that never differentiated a metal core (little iron, no strong magnetic field).
@@ -384,7 +384,7 @@ iron, carbon, ice, haze — that occurrence data says exist in quantity.*
 - **Profile:** ~Earth gravity · temperate insolation · water plausible · **no global magnetic field** (weak protection from stellar wind and radiation) · rotating · old.
 - **Difficulty:** **IV (Harsh).** Without a magnetic shield, the surface is exposed to stellar radiation and the atmosphere slowly bleeds to space. Life stays sheltered or underwater.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A civilization under an unshielded sky, sheltering from radiation, its air thinning over eons. Metal-poor and exposed, it learns early that the surface is dangerous and space is worse.
+- **Fingerprint:** A civilization under an unshielded sky, sheltering from radiation, its air thinning over eons; the surface is dangerous and space is worse.
 
 #### 36. Subsurface-ocean ice world
 - **Basis:** Extrapolated — a Europa/Enceladus-type world with life in a **buried ocean** under an ice shell, warmed from below.
@@ -392,7 +392,7 @@ iron, carbon, ice, haze — that occurrence data says exist in quantity.*
 - **Profile:** ~Earth-minus gravity · frozen surface, liquid ocean beneath kilometers of ice · no atmosphere to speak of · vent-driven chemistry · very old.
 - **Difficulty:** **V (Brutal).** Life lives sealed under ice, blind to the sky, powered by hydrothermal vents. The road to technology has no fire, no view of space, and a literal ceiling of ice.
 - **Spawn weight:** Common (subsurface oceans may be the galaxy's most abundant habitat).
-- **Fingerprint:** A sealed civilization that grew in total darkness around vents, that has to *discover* the sky exists before it can dream of reaching it. Everything is inward until the ice is breached.
+- **Fingerprint:** A sealed civilization grown in total darkness around vents; it has to discover the sky exists before it can dream of reaching it.
 
 #### 37. Titan-analog haze world
 - **Basis:** Extrapolated — a cold world with **hydrocarbon** seas and a thick organic haze (a Titan grown into a cradle).
@@ -400,7 +400,7 @@ iron, carbon, ice, haze — that occurrence data says exist in quantity.*
 - **Profile:** low gravity · very cold · **methane/ethane** seas, water-ice bedrock · thick nitrogen-hydrocarbon atmosphere, orange haze · slow rotation · old.
 - **Difficulty:** **IV (Harsh).** Cryogenic chemistry — life (if any) runs on liquid hydrocarbons, not water. Slow, cold, and utterly unlike Earth.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A civilization of the deep cold, breathing haze, sailing methane seas, its chemistry glacially slow and its sky a permanent orange murk. Patience and cold are its native conditions.
+- **Fingerprint:** A civilization of the deep cold, breathing haze, sailing methane seas, its chemistry glacially slow; patience and cold are its native conditions.
 
 #### 38. High-obliquity world
 - **Basis:** Extrapolated — a world with extreme axial tilt (violent, planet-spanning seasons).
@@ -408,7 +408,7 @@ iron, carbon, ice, haze — that occurrence data says exist in quantity.*
 - **Profile:** ~Earth gravity · temperate mean, **extreme seasonal swings** (poles that bake then freeze) · water present · rotating with a large tilt · middle-aged.
 - **Difficulty:** **IV (Harsh).** Each hemisphere roasts and freezes in turn; life must migrate, hibernate, or endure both extremes. Stability is the one thing the climate never offers.
 - **Spawn weight:** Uncommon.
-- **Fingerprint:** A civilization built on migration and cycle, keyed to violent seasons, its cultures nomadic and its biology hardened to extremes. Change, not stability, is the baseline it evolved to expect.
+- **Fingerprint:** A civilization built on migration and cycle, keyed to violent seasons; change, not stability, is the baseline it evolved to expect.
 
 #### 39. Rogue / geothermal world (Stevenson planet)
 - **Basis:** Extrapolated — a **starless** world (ejected or free-floating) kept warm by internal heat under a thick hydrogen blanket.
@@ -416,7 +416,7 @@ iron, carbon, ice, haze — that occurrence data says exist in quantity.*
 - **Profile:** ~Earth gravity · no sunlight, warm surface from below · liquid-water seas under a thick insulating atmosphere · perpetual darkness · ancient.
 - **Difficulty:** **V (Brutal).** No sun at all — no photosynthesis, no seasons, no sky. Life runs entirely on geothermal chemistry in eternal night.
 - **Spawn weight:** Rare.
-- **Fingerprint:** A civilization that arose in total, permanent darkness with no concept of a sun, no stars, no day. When it finally pierces its atmosphere it discovers a universe it had no reason to imagine — a first-contact with the cosmos itself.
+- **Fingerprint:** A civilization that arose in permanent darkness with no concept of a sun; piercing its atmosphere is a first-contact with the cosmos itself.
 
 #### 40. Crushing super-Earth
 - **Basis:** Extrapolated — the vision's flagship *"super-Earth whose heavy gravity flattens everything."* The pure high-gravity archetype.
@@ -424,7 +424,7 @@ iron, carbon, ice, haze — that occurrence data says exist in quantity.*
 - **Profile:** very high gravity (~2–3 g) · temperate insolation · abundant water and land · thick, dense atmosphere · rotating · middle-aged.
 - **Difficulty:** **IV (Harsh).** Nothing stands tall; everything is low, broad, and strong. The atmosphere is thick, the horizon is close, and orbit is a mountain nearly too high to climb.
 - **Spawn weight:** Common.
-- **Fingerprint:** A civilization built low and heavy, flight and spaceflight brutally expensive, the sky a ceiling more than an invitation. It masters its surface long before it can even dream of leaving it — and leaving is the hardest thing it will ever do.
+- **Fingerprint:** Built low and heavy, flight and spaceflight brutally expensive, the sky a ceiling more than an invitation; leaving is the hardest thing it will do.
 
 ---
 
