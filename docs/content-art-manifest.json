@@ -7,7 +7,8 @@
   },
   "usage": "For each plate, produce BOTH outputs. Paste `prompt`, append your tool's aspect flag for that output (output.ar, e.g. --ar 16:9) and your style reference (--sref <anchor>, --sw 50-80 if it over-composes), and save the render to output.path. The STYLE BLOCK / ISOLATION / FRAMING are already baked into `prompt`; `shared` and `anchor` are for reference.",
   "anchor": {
-    "note": "Generate this once and reuse across every plate as a style reference (Midjourney --sref, or the equivalent). One anchor for the whole library, not one per axis. If it over-composes a single-subject render, lower the style weight (--sw 50-80).",
+    "image": "docs/concepts/00-content-style-anchor.png",
+    "note": "Adopted anchor: docs/concepts/00-content-style-anchor.png. Feed it as the style reference (Midjourney --sref, or the equivalent) for every plate — one anchor for the whole library, not one per axis. If it over-composes a single-subject render, lower the style weight (--sw 50-80). `prompt` below is what produced it, kept for regeneration.",
     "prompt": "A style reference sheet for a hard-science-fiction art library: three small studies with generous dark space between them on one near-black (#070B12) field — at top a painterly planet seen from orbit, its curved terminator catching a dim ember sun; at center a lone alien creature as a museum specimen study, anatomically plausible, lit from one side; at the bottom a single compact megastructure in space, its own works picked out in faint moonlight-cyan (#9FC4CC). All three in identical cinematic matte-painting rendering — painterly yet photoreal, fine filmic grain, deep shadow, volumetric depth, muted and desaturated but for ember-amber (#D08A4A) warmth and moonlight-cyan construction. Solemn, elegiac, deep-time restraint. No text, labels, UI, borders, people, or watermark. Render at 1:1 and 16:9."
   },
   "shared": {

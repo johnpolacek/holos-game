@@ -112,7 +112,8 @@ for (const { axis, dir, file } of DOCS) {
     const anchorPara =
       blockquoteParagraphs(text, /^## STYLE ANCHOR\b/).find((p) => p.includes("STYLE ANCHOR PROMPT")) ?? "";
     anchor = {
-      note: "Generate this once and reuse across every plate as a style reference (Midjourney --sref, or the equivalent). One anchor for the whole library, not one per axis. If it over-composes a single-subject render, lower the style weight (--sw 50-80).",
+      image: "docs/concepts/00-content-style-anchor.png",
+      note: "Adopted anchor: docs/concepts/00-content-style-anchor.png. Feed it as the style reference (Midjourney --sref, or the equivalent) for every plate — one anchor for the whole library, not one per axis. If it over-composes a single-subject render, lower the style weight (--sw 50-80). `prompt` below is what produced it, kept for regeneration.",
       prompt: clean(anchorPara).replace(/^STYLE ANCHOR PROMPT\s*[—–-]\s*/, ""),
     };
   }

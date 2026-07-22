@@ -24,6 +24,15 @@ seed with no lookup table beyond the id.
 
 ## STYLE ANCHOR — generate once, reuse everywhere  *(shared across all three docs)*
 
+**Adopted anchor:** [`concepts/00-content-style-anchor.png`](./concepts/00-content-style-anchor.png)
+— feed this image as the `--sref` (Midjourney) or style-reference input for
+every plate in all three docs. Warm ember planet over a cool moonlight-cyan
+structure: it carries the palette (ember = warm/alive, cyan = your own works)
+as well as the rendering. The prompt below is what produced it, kept for
+reference and regeneration.
+
+![The adopted content-art style anchor — the sref for the whole library](./concepts/00-content-style-anchor.png)
+
 The whole library shares **one** style anchor, not one per axis: a style
 reference carries *look*, not subject, so a single anchor is what keeps worlds,
 species, and technology reading as one product when they composite on a card.
