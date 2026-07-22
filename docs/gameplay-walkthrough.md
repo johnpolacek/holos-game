@@ -493,6 +493,20 @@ envoy living out a life inside another civilization as the treaty itself.
 An inspector's report from a far colony, arriving on schedule, written — you
 notice, and read it again — a little too well.
 
+And some of them come back. The envoy with the scar, the crew with the story
+nobody tells the same way twice, the old probe that has been strange since
+its third mission. Veterans are better at this than anything you can make
+fresh, and heavier: what they did, and what was done to them, travels with
+them into every later scene. Nor are yours the only ones. You can lend a
+veteran into another civilization's charter, or write a charter jointly and
+each send someone — the closest two minds ever come to signing the same
+document, and credible in a way no treaty is, because a mission cannot be
+recalled once it flies. And you will pay them in the only currency you hold
+that matters: more life, a backed-up mind, a dead brother restored, a
+homeworld kept safe. Watch what you offer, because it says who you are. And
+watch what it does to them — a courier who has stopped fearing death runs
+differently, and not always in your favor.
+
 ### The Teeming Dark
 
 Here is the inversion no other game in the genre makes: advancing does not

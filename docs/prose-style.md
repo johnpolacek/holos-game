@@ -306,6 +306,10 @@ Clear Air Turbulence
 Azadian
 Gurgeh
 Flere.?Imsaho|Mawhrin.?Skel
+Zakalwe
+\bSma\b                # Use of Weapons character name
+Skaffen.?Amtiskaw
+\bChairmaker\b|Staberinde
 ```
 
 Plus **any actual Banks ship name**, including the witty ones, and any
