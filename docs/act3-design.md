@@ -383,6 +383,22 @@ paid, agent committed, recall impossible — so cooperation through
 missions is credible where treaties cannot be. It complements
 correspondence diplomacy; it does not replace it.
 
+**The compensation menu.** What agents are paid — above all the mortal
+and the foreign — is what only a post-singularity civilization can offer:
+rejuvenation, a backup of their mind, restoration of their dead, a berth
+in the civilization's Vault, uplift or protection for their homeworld.
+
+- **The menu is a dial readout.** What a civilization is willing to pay
+  with reveals its character: an Instrumental civilization pays cheap and
+  personal, a Custodian pays in protections, a Curator offers the Vault
+  itself. In cooperative missions the menu doubles as the cross-civ trade
+  economy — compensation terms travel in the co-written charter.
+- **Payment changes the agent.** A mortal who holds a backup stops
+  fearing death, and runs missions like it — not always in the employer's
+  favor. This feeds the veteran's weight rather than any separate
+  mechanic: what you paid someone becomes part of who they are at the
+  next launch.
+
 **Mechanical spine.**
 
 - Missions are the game's main source of narrative uncertainty after the
