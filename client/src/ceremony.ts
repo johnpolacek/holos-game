@@ -1,8 +1,7 @@
-// The inheritance ceremony (concepts/03-00-inheritance.png,
-// concepts/03-00b-become-hold.png). DOM, not canvas — "canvas for places,
-// DOM for prose". A vertical carousel of CivCards; the focused card is the
-// full read, neighbors peek (world + species + archetype only); holding
-// BECOME for ~1200ms commits the player's civilization.
+// The inheritance ceremony (concepts/03-00-inheritance.png). DOM, not canvas
+// — "canvas for places, DOM for prose". A vertical carousel of CivCards; the
+// focused card is the full read, neighbors peek (world + species + archetype
+// only); clicking BECOME commits the player's civilization.
 
 import {
   DIAL_AXES,
@@ -16,7 +15,6 @@ import {
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 
-const HOLD_MS = 1200;
 const PENDING_KEY = "holos.pendingBecome";
 
 interface PendingBecome {
@@ -155,18 +153,7 @@ interface CardState {
   readonly nameInput: HTMLInputElement;
   readonly nameHint: HTMLElement;
   readonly becomeButton: HTMLButtonElement;
-  holding: boolean;
   committed: boolean;
-  holdStart: number;
-  raf: number | null;
-}
-
-/** Drive the button's charge fill (0..1) via a CSS variable, and mark it
- * "charging" while a hold is mid-flight (for the glow/label state). */
-function setHoldProgress(state: CardState, progress: number): void {
-  const v = Math.min(1, Math.max(0, progress));
-  state.becomeButton.style.setProperty("--hold", String(v));
-  state.becomeButton.classList.toggle("charging", v > 0 && v < 1);
 }
 
 function updateBecomeEnabled(state: CardState): void {
@@ -306,25 +293,18 @@ function buildCard(card: CivCard): CardState {
   nameField.append(nameCaption, nameInput, chipsRow, nameHint);
   detailExtra.append(nameField);
 
-  // Dramatic hold-to-commit button: the label sits over a fill that charges
-  // left-to-right as you hold (driven by the --hold CSS variable), then
-  // consummates into the cyan bloom on the card. Press-and-hold, not click.
+  // Dramatic commit button: a single click/tap consummates the choice into
+  // the cyan bloom on the card.
   const becomeWrap = document.createElement("div");
   becomeWrap.className = "become-wrap";
   const becomeButton = document.createElement("button");
   becomeButton.type = "button";
   becomeButton.className = "become-button";
   becomeButton.disabled = true;
-  const becomeFill = document.createElement("span");
-  becomeFill.className = "become-fill";
-  becomeFill.setAttribute("aria-hidden", "true");
   const becomeLabel = document.createElement("span");
   becomeLabel.className = "become-label";
   becomeLabel.textContent = "Become";
-  const becomeHint = document.createElement("span");
-  becomeHint.className = "become-hint";
-  becomeHint.textContent = "hold";
-  becomeButton.append(becomeFill, becomeLabel, becomeHint);
+  becomeButton.append(becomeLabel);
   becomeWrap.append(becomeButton);
   detailExtra.append(becomeWrap);
 
@@ -338,10 +318,7 @@ function buildCard(card: CivCard): CardState {
     nameInput,
     nameHint,
     becomeButton,
-    holding: false,
     committed: false,
-    holdStart: 0,
-    raf: null,
   };
 }
 
@@ -442,7 +419,6 @@ export function renderCeremony(
         state.becomeButton.disabled = true;
         state.el.classList.add("committing");
         state.becomeButton.classList.add("committing");
-        setHoldProgress(state, 1);
         // Re-send the become: it is idempotent per token server-side (an
         // already-placed run just gets its sky again), so a commit lost to
         // a flaky network retries instead of freezing this card forever.
@@ -463,11 +439,7 @@ export function renderCeremony(
   });
 
   function commit(state: CardState): void {
-    state.holding = false;
-    if (state.raf !== null) {
-      cancelAnimationFrame(state.raf);
-      state.raf = null;
-    }
+    if (state.committed || state.becomeButton.disabled) return;
     const name = validateName(state.nameInput.value);
     if (name === null) return; // guarded by disabled button; defensive only
     state.committed = true;
@@ -478,56 +450,19 @@ export function renderCeremony(
     socket.send({ type: "become", candidateId: state.card.candidateId, name });
   }
 
-  function startHold(state: CardState): void {
-    if (state.committed || state.becomeButton.disabled) return;
-    state.holding = true;
-    state.holdStart = performance.now();
-    const step = (t: number): void => {
-      if (!state.holding) return;
-      const progress = (t - state.holdStart) / HOLD_MS;
-      setHoldProgress(state, progress);
-      if (progress >= 1) {
-        commit(state);
-        return;
-      }
-      state.raf = requestAnimationFrame(step);
-    };
-    state.raf = requestAnimationFrame(step);
-  }
-
-  function cancelHold(state: CardState): void {
-    if (!state.holding) return;
-    state.holding = false;
-    if (state.raf !== null) {
-      cancelAnimationFrame(state.raf);
-      state.raf = null;
-    }
-    setHoldProgress(state, 0);
-  }
-
-  const holdCleanups: Array<() => void> = [];
+  const buttonCleanups: Array<() => void> = [];
   for (const state of cardStates) {
-    const onPointerDown = (e: PointerEvent): void => {
-      e.preventDefault();
-      state.becomeButton.setPointerCapture(e.pointerId);
-      startHold(state);
-    };
-    const onPointerUp = (): void => cancelHold(state);
-    const onPointerCancel = (): void => cancelHold(state);
+    const onClick = (): void => commit(state);
     const onInput = (): void => {
       // Typing again after a server rejection re-enables the field.
       updateBecomeEnabled(state);
     };
 
-    state.becomeButton.addEventListener("pointerdown", onPointerDown);
-    state.becomeButton.addEventListener("pointerup", onPointerUp);
-    state.becomeButton.addEventListener("pointercancel", onPointerCancel);
+    state.becomeButton.addEventListener("click", onClick);
     state.nameInput.addEventListener("input", onInput);
 
-    holdCleanups.push(() => {
-      state.becomeButton.removeEventListener("pointerdown", onPointerDown);
-      state.becomeButton.removeEventListener("pointerup", onPointerUp);
-      state.becomeButton.removeEventListener("pointercancel", onPointerCancel);
+    buttonCleanups.push(() => {
+      state.becomeButton.removeEventListener("click", onClick);
       state.nameInput.removeEventListener("input", onInput);
     });
 
@@ -549,7 +484,6 @@ export function renderCeremony(
     state.committed = false;
     state.el.classList.remove("committing");
     state.becomeButton.classList.remove("committing");
-    setHoldProgress(state, 0);
     state.nameHint.textContent = message.message;
     state.nameHint.classList.add("visible");
     updateBecomeEnabled(state);
@@ -559,9 +493,6 @@ export function renderCeremony(
     unsubscribe();
     carousel.removeEventListener("scroll", onScroll);
     if (scrollRaf !== null) cancelAnimationFrame(scrollRaf);
-    for (const cleanup of holdCleanups) cleanup();
-    for (const state of cardStates) {
-      if (state.raf !== null) cancelAnimationFrame(state.raf);
-    }
+    for (const cleanup of buttonCleanups) cleanup();
   };
 }
