@@ -249,7 +249,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["tide"],
     ladder: "mixed",
     posture: "either",
-    wake: "The reveal reads as a parliament convening — a federation of arms scaled into a federation of selves.",
+    wake: "It woke like a parliament convening — a federation of arms grown into a federation of selves.",
   },
   {
     lineageId: "S2",
@@ -289,7 +289,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: [],
     ladder: "either",
     posture: "either",
-    wake: "The purest report card in the game: every dial traces to a branch its history remembers taking.",
+    wake: "Nothing about it was set in advance; every turn its character took, it remembers taking.",
   },
   {
     lineageId: "S7",
@@ -393,7 +393,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["engine"],
     ladder: "integration",
     posture: "dark",
-    wake: "It wakes in rock and melt, legible only at the edges — an archetype as approximation, not portrait.",
+    wake: "It woke in rock and melt, legible only at the edges — a shape the sky can guess at but never quite draw.",
   },
   {
     lineageId: "S20",
