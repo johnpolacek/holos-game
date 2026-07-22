@@ -141,7 +141,9 @@ the scale where visibility is lethal.
 ### The mesostructure toolkit — projects, mapped
 
 act2-design.md split projects into **bright** (energy), **dark**
-(integration), and **instruments**. theory.pdf's *Technology* section is the
+(integration), and **instruments**. The full game-side catalog — every
+family, with physics, costs, and sky signatures — is
+[technology.md](./technology.md); theory.pdf's *Technology* section is the
 Act 3 catalog of the dark and instrument families — the compact, quiet
 toolkit that is *deliberately unlike the bright megastructures of most
 science fiction* (vision.md, § Source framework). Each maps to a project or
