@@ -258,6 +258,106 @@ undecidable by design, and the uncertainty is the game.
 
 ---
 
+## Missions
+
+The player is a civilization-scale mind, but it can act in the world at
+small scale by dispatching **agents**. Agents span the full range of what
+a civilization contains: biological individuals and groups, avatars,
+sovereign or sub-person AI, drones, probes, ships, and ensembles of all of
+these. The mix is itself expressive of the civilization's character — a
+Refuser sends people, dynasties, and religious orders backed by shackled
+machines; a deep-integration civilization favors small dark probes and
+avatars; a Chorus sends copies of itself and thinks nothing of it.
+
+**Why a vast mind sends something small.**
+
+- **Smallness is stealth.** A single agent is undetectable where a fleet
+  is a signature. For a dark, integrated civilization, missions are its
+  only limb — the one way to touch the world without lighting up the sky.
+- **Presence is bandwidth.** An agent on-site acts in local time; the
+  alternative is correspondence at decades per round trip.
+- **Deniability.** An agent can be disowned. A broadcast cannot.
+- **Character.** Even a chorus-mind is plural inside — specialists,
+  eccentrics, sub-minds. Choosing the right agent and writing its brief is
+  self-portraiture; the mission roster is a civilization's character sheet
+  in motion.
+
+**Anatomy of a mission.** One reusable structure: **who goes** (an
+individual, a group, an AI, a drone, a probe, a ship, or an ensemble) +
+**a charter** (instructions written knowing they can never be patched —
+the colony-charter mechanic at mission scale) + **a travel method** (from
+the existing menu: transmission to a receiver, relativistic ship, slow
+seed or probe) + **a horizon** (the moment the mission passes beyond
+governance and becomes a story whose ending arrives later, as
+light-delayed reports).
+
+**The vignette engine survives into Act 3.** Mission outcomes return as
+narrative beats and reuse Act 1's vignette machinery — authored scene,
+choice, contingent resolution — with one inversion: the player's choice
+happens at launch, in the charter, rather than live. Missions are how
+Act 1's authored-history engine carries into Act 3, which is what makes
+them cheap to build relative to their narrative weight.
+
+**An illustrative array** (grouped by purpose; not an exhaustive spec):
+
+*Watching.*
+
+- **The Vigil.** Embed observers, living or machine, at a pre-singularity
+  world — the concrete verb for the promised recursion: the observer role
+  from Act 1 becomes something players do to each other.
+- **The Assay.** Send an agent to a warm dark mass to settle civilization
+  versus dead star — ground truth for the observatory's inference game.
+- **The Witness.** Dispatch a recorder to a predicted distant event, so
+  the Chronicle gains a primary source.
+
+*Talking.*
+
+- **The Embassy.** Physical presence at another civilization — high
+  bandwidth, high trust. Exchanged resident envoys are the closest thing
+  to an enforceable treaty in a no-enforcement galaxy: each side holds
+  someone the other values.
+- **The Heir Visit.** A mission into your own diverged forks — recontact a
+  descendant colony, assess its drift, carry the family archive.
+- **The Prophet** *(Refuser flavor)*. Missionary expansion: conversion
+  attempts toward other biological civilizations.
+
+*Meddling.*
+
+- **The Gardener's Hand.** Intervene at a young world's evolutionary
+  bottleneck — become the dice in someone else's Act 1: uplift, protect,
+  or prune.
+- **The Counter-Hand.** Oppose another civilization's agents at a
+  third-party world through your own, deniably, principals never visible —
+  cold war by proxy at someone else's cradle.
+- **The Locksmith.** Negotiate or infiltrate access to a grave world;
+  recover, verify, or destroy a dead civilization's Vault — the open
+  Restoration question, given a mission shape without being answered.
+
+*Surviving.*
+
+- **The Courier.** A mission in flight can serve as the receiver at the
+  far end of a fleeing seat — missions as pre-placed lifeboats for the
+  Crossing.
+- **The Inspector** *(Refuser flavor)*. Audit distant colonies for harness
+  breakout; sometimes the report that returns is written a little too
+  well.
+
+**Mechanical spine.**
+
+- Missions are the game's main source of narrative uncertainty after the
+  singularity. The mind does not fumble — but an agent beyond the horizon,
+  meeting other minds, is uncertainty of exactly the kind the vision says
+  replaces chance: migrated from dice to cost to other minds, and now to
+  your own hands at a distance.
+- Every agent inherently carries drift risk — going native, exceeding the
+  charter, coming back wrong. These are ways a mission story can end, not
+  a separate global rule; the Ledger's drift logic already covers it.
+- Mission timescales are decades to millennia. Results arrive as
+  light-delayed reports on the shared clock, consistent with telescoping
+  time; a mission is a bet your future self collects.
+
+---
+
 ## Conflict and deterrence
 
 **Working decision: designed here, deferred from v1.**
@@ -400,6 +500,9 @@ Per the vision's v1 slice — prove the pivot and the contact loop:
 - No strikes, no seat transfer (single node in v1 — the seat rule's full
   form, the Crossing included, arrives with transmission), cosmic clock as
   narrative only
+- Missions are post-v1: probes and hails are their v1 skeleton; the full
+  system (agents, mission charters, vignette returns) arrives with Act 3
+  beat content
 
 ---
 
