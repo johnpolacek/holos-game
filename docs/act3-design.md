@@ -173,7 +173,7 @@ charters becoming other players' origin myths is the onboarding engine.
 ## The seat
 
 **Working decision: one transferable seat.** The player is exactly one
-mind in exactly one place — the seat never divides, so the player's brain
+seat in exactly one place — the seat never divides, so the player's brain
 never becomes an FTL side-channel between forks.
 
 - Default: the seat stays home. Every fork is a child, running its
@@ -181,11 +181,19 @@ never becomes an FTL side-channel between forks.
 - At any transmission of self, the player may instead **go**: the seat
   transfers to the arriving copy, and the origin continues as an AI under
   its standing directives — a mind you used to be.
-- If the seat's node is destroyed, the seat falls to the nearest surviving
-  fork. A lineage can lose almost everything and still be the player.
+- If the seat's node is destroyed, the seat **flees** rather than falls.
+  An ascended mind departs as a lightspeed transmission toward the nearest
+  surviving fork — **the Crossing** — its transit duration the light-distance
+  between the two, and for the whole length of the crossing it is rendered as
+  a directed-beam-class object: visible, interceptable, hunted. A lineage can
+  lose almost everything and still be the player.
+- A Refuser has no transmissible self, so its seat is a **throne world**,
+  the lineage's living center; when it is destroyed the court crosses by
+  evacuation ship instead — slower and worse, which fits the path.
 - **Elimination** = the entire lineage erased. Rare, dramatic, and meant
-  to be. An eliminated player rejoins through divergence onboarding —
-  inheriting some other lineage's diverged colony — which closes the loop.
+  to be; the Crossing is the dramatic window before it. An eliminated player
+  rejoins through divergence onboarding — inheriting some other lineage's
+  diverged colony — which closes the loop.
 
 The One Mind ↔ Chorus dial gives the seat rule its character: a Chorus
 civilization forks cheerfully and the seat choice is light; a One Mind
@@ -344,7 +352,8 @@ Per the vision's v1 slice — prove the pivot and the contact loop:
 - Light-lag messaging: directed hail, broadcast, correspondence
 - Sleep with basic tripwires and notifications
 - No strikes, no seat transfer (single node in v1 — the seat rule's full
-  form arrives with transmission), cosmic clock as narrative only
+  form, the Crossing included, arrives with transmission), cosmic clock as
+  narrative only
 
 ---
 
@@ -362,4 +371,6 @@ Per the vision's v1 slice — prove the pivot and the contact loop:
   restored by others — and what does that do to the meaning of death?
 - **The watched reveal.** Ship it, and how often it should be true.
 - **Interception.** Whether directed beams can be intercepted en route,
-  and how rare that must be to stay explosive.
+  and how rare that must be to stay explosive — a fleeing seat mid-Crossing
+  is interception's highest-stakes instance, and what a *caught* crossing
+  means is deliberately left unsettled here.

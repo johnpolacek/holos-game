@@ -447,16 +447,19 @@ Ledger tracks your whole lineage — every fork, its last-known state, how far
 its dials have walked from yours — and everything in it is stale by exactly
 its distance.
 
-And one rule sits underneath it all: **you are exactly one mind in exactly
+And one rule sits underneath it all: **you are exactly one seat in exactly
 one place.** The seat — the node you actually inhabit — never divides. When
 you transmit yourself, you choose: stay, and the copy that arrives lives out
 its charter as its own mind; or *go*, waking up in the new system as the
 arriving fork while your origin continues under your standing directives, a
 mind you used to be. Neither choice is safe and neither is wrong, and your
 One Mind or Chorus nature has loud opinions about both. It also means the
-death of a world is not the death of you: if the seat's node is ever lost,
-the seat falls to the nearest surviving fork. A lineage can lose almost
-everything and still be you, somewhere, continuing.
+death of a world is not the death of you. If the seat's node dies, you do not
+fall — you flee, as light, toward your nearest surviving fork. For the length
+of that crossing you are a signal in transit, the most hunted object in the
+sky: visible, interceptable, running. And if your people refused the machine,
+you are a fleet instead, evacuating slower and worse. A lineage can lose
+almost everything and still be you, somewhere, continuing.
 
 ### The Teeming Dark
 
