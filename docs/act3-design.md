@@ -342,6 +342,24 @@ them cheap to build relative to their narrative weight.
   breakout; sometimes the report that returns is written a little too
   well.
 
+**Veterans.** Agents who survive persist. A returned agent is not spent;
+it is a named, reusable entity — a scarred envoy, a storied order or crew,
+a probe or ship grown strange and capable across centuries of service.
+Two properties, coupled:
+
+- **Experience.** A veteran is more capable than a fresh agent and, just
+  as valuable, a better-known quantity: its judgment has been observed,
+  its drift has a track record, its charter needs fewer contingencies.
+- **Weight.** Everything a veteran has done and had done to it travels
+  with it. Past missions resurface as authored complications in later
+  ones — the person it spared, the world it broke, the protocol an old
+  ship-mind refuses to run again. Weight is narrative continuity across
+  the vignette engine, not a numeric debuff system.
+
+Veterans are where players form their strongest attachments: a
+civilization accumulates a stable of veterans the way it accumulates
+colonies, and the stable outlives any single mission's stakes.
+
 **Mechanical spine.**
 
 - Missions are the game's main source of narrative uncertainty after the
