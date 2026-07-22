@@ -274,11 +274,22 @@ are the work this document exists to direct:
 Mechanics make the flavors playable; content makes them *inhabitable*.
 Three commitments follow for the beat and report systems:
 
-- **The report speaks in character.** A Tide's report of the same event
-  reads hungry; a Monument's reads liturgical; a Congress's reads like
-  minutes of a meeting. Same state deltas, different existence. This is
-  the cheapest, highest-leverage way the game says *this is what it is
-  like to be you*.
+- **The report speaks in character.** One event — a neighbor system
+  folded into the civilization's works — narrated three ways:
+  - *The Tide:* "The seventh system is inventory now. We have begun on the
+    eighth, because there was an eighth, and it seemed rude to the
+    arithmetic to stop."
+  - *The Monument:* "The seventh system is entered into the record,
+    entire. We keep it now — and will keep it long after the star that lit
+    it has forgotten it was ever bright."
+  - *The Congress:* "The seventh system is secured. The vote was not
+    unanimous; two of us hold the eighth should have come first, and have
+    asked that their objection travel with this report, as it now does."
+
+  A Tide's report reads hungry; a Monument's reads liturgical; a
+  Congress's reads like minutes of a meeting. Same state deltas, different
+  existence. This is the cheapest, highest-leverage way the game says
+  *this is what it is like to be you*.
 - **Dilemmas interrogate the flavor from inside.** The best beats are not
   obstacles but mirrors: the Instrumental mind meeting something it
   cannot price, the Shedder finding one thing it does not want to shed,
