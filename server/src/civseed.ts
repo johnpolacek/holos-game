@@ -286,10 +286,12 @@ function chronicleFor(
     return lines;
   }
   lines.push(row.wake);
+  // In-world phrasing only: "posture beat" is design vocabulary
+  // (act2-design.md § Close) and never reaches the player.
   lines.push(
     posture === "bright"
-      ? `At the posture beat it chose to be heard; its Signature has been climbing since year ${Math.round(ascensionYear)}.`
-      : `At the posture beat it chose the dark; the light of its bright years is still traveling.`,
+      ? `When the choice came, it chose to be heard; it has burned brighter every year since ${Math.round(ascensionYear)}.`
+      : `When the choice came, it chose the dark; the light of its bright years is still traveling.`,
   );
   if (params.ageBand === "elder") {
     lines.push(`It is ancient — a past no younger mind can catch up to.`);
