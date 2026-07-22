@@ -9,11 +9,43 @@ representational register decided in
 come from [ui-image-brief.md](./ui-image-brief.md), which governs only the
 austere interface. **No art is generated here — these are prompts only.***
 
-**How to use:** compose each generation as `STYLE BLOCK + FRAMING + one
-SUBJECT PROMPT`. Portrait or square to taste; the subject prompts are
-framing-agnostic. Each keys to a stable cradle id, which is the filename slug
-(`worlds/NN.webp`), so the client resolves art by seed with no lookup table
-beyond the id.
+**How to use:** generate the shared **STYLE ANCHOR** once (below), then compose
+each render as `--sref <anchor> + STYLE BLOCK + FRAMING + one SUBJECT PROMPT`.
+Render **every subject at both 1:1 (square) and 16:9 (widescreen)** — the
+subject prompts are framing-agnostic and the FRAMING block covers how each crop
+composes. Each subject keys to a stable cradle id; store the two crops as
+`worlds/sq/NN.webp` and `worlds/wide/NN.webp` (the per-entry slug below is the
+shared identity), so the client picks the ratio by layout and resolves art by
+seed with no lookup table beyond the id.
+
+---
+
+## STYLE ANCHOR — generate once, reuse everywhere  *(shared across all three docs)*
+
+The whole library shares **one** style anchor, not one per axis: a style
+reference carries *look*, not subject, so a single anchor is what keeps worlds,
+species, and technology reading as one product when they composite on a card.
+Generate it once, then feed it as `--sref` (Midjourney) or the equivalent
+image-style input to every prompt in all three docs. If the anchor tries to
+force its own composition onto a single-subject render, lower the style weight
+(`--sw 50–80`); raise it if the look drifts.
+
+> **STYLE ANCHOR PROMPT** — A style reference sheet for a hard-science-fiction
+> art library: three small studies with generous dark space between them on one
+> near-black (#070B12) field — at top a painterly planet seen from orbit, its
+> curved terminator catching a dim ember sun; at center a lone alien creature as
+> a museum specimen study, anatomically plausible, lit from one side; at the
+> bottom a single compact megastructure in space, its own works picked out in
+> faint moonlight-cyan (#9FC4CC). All three in identical cinematic
+> matte-painting rendering — painterly yet photoreal, fine filmic grain, deep
+> shadow, volumetric depth, muted and desaturated but for ember-amber (#D08A4A)
+> warmth and moonlight-cyan construction. Solemn, elegiac, deep-time restraint.
+> No text, labels, UI, borders, people, or watermark. Render at 1:1 and 16:9.
+
+Once you have a plate you love in *this* axis, keep it as the axis's **framing
+exemplar** — a secondary reference for pose / scale / orbit conventions, chained
+alongside the master anchor. That locks composition within the axis without
+introducing a second *style*.
 
 ---
 
@@ -48,6 +80,11 @@ beyond the id.
 > single small point of light, never a glowing disc dominating the shot; the
 > remainder deep, near-empty space. Photoreal planetary surface with real
 > cloud, ice, ocean, atmosphere, and rock physics for the world described.
+>
+> Render both crops: **16:9** gives the planet room with deep empty space to
+> one side (the wide hero and the desktop Stage); **1:1** centers it tighter
+> with a thin dark margin. The world is identical in both — only the negative
+> space changes.
 
 ---
 
