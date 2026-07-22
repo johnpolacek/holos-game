@@ -92,7 +92,7 @@ is becoming, and how the cradle is leaning on it — the tidal lock crowding
 life into the terminator, the heavy gravity keeping everything low and
 armored, the drowned world's chemistry starving or feeding what clings to it.
 This is the watching the game is built on, condensed into authored moments
-instead of idle staring at a sim.
+rather than hours of watching a simulator run.
 
 **The decision.** Then the world puts a small handful of choices in front of
 you. These are your interventions, framed in the world's own terms. Do you

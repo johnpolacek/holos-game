@@ -123,8 +123,8 @@ moment its light left** — never its present (act3-design.md, *The Sky*):
   (An elder, though Mara will not have that word for weeks.)
 
 Then the session's authored beat fires — the one act3-design.md leaves as a
-ship-decision, and this account includes because it is the best free
-chill in the design. **The watched reveal.** While calibrating the new
+ship-decision, and this account keeps it because it is the biggest free
+chill the design gives away. **The watched reveal.** While calibrating the new
 instruments against a K-class star 19 light-years out, Undermount finds the
 geometry of a gravitational-lens observatory on the far side of it —
 positioned, for at least the last several centuries, along the focal line
@@ -210,8 +210,8 @@ turn, held at Act 2's altitude — purposes, never logistics:
   Post-Expansion** (act3-civilizations.md, *Holosian Scale*): exploration
   becomes informational first, physical only when inference fails. The
   threshold beat renders it as a change in Undermount's temperament:
-  *"I have stopped wanting to go and look. I want to know, and going is now
-  merely one expensive way of knowing."*
+  *"I have stopped wanting to go and look. I want to know — and going is now
+  merely the most expensive way of knowing."*
 - The Vault — begun in Act 2, now formally the **Chrono Vault** — takes its
   first Act 3 deposit: the full Act 1 history, every branch and roll,
   including the lost flyer lineage. Curator 0.85 makes this beat glow.
