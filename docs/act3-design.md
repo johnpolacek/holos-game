@@ -123,6 +123,28 @@ strategic, and it is the game's most distinctive system.
 
 ---
 
+## The Chronicle
+
+The light echo is the physics; the **Chronicle** is the reading of it. Every
+civilization accrues one continuous record from first life onward — its past
+is never private, because its past is already on the sky.
+
+- **One record, all three acts.** Act 1's authored branching history is its
+  opening entries, Act 2's reports extend it, and Act 3's major events
+  complete it. The archive never stops accruing.
+- **Rendered as the light arrives.** Each observer's copy is composed as the
+  wavefront reaches them, in a dry annalist's voice — entries dated, past
+  tense, exactly as old as their distance. It rides the existing knowledge
+  layer and asserts no new wire concept.
+- **The family history behind the founding document.** This is the
+  divergence-onboarding payload: the charter is the founding document a
+  joining player inherits, and the Chronicle is the family history standing
+  behind it, back to first life.
+- **Physically honest.** A distant observer watching your world is literally
+  reading your past — nothing can be unshone, all the way back to first life.
+
+---
+
 ## Travel and expansion
 
 The vision's travel menu, with mechanical teeth. All three are launches —
@@ -370,7 +392,8 @@ Per the vision's v1 slice — prove the pivot and the contact loop:
 
 - One cohort of human players + a seeded AI spectrum (rule-based)
 - The Sky report and observatory with the five v1 signal classes
-- Light echo tracking (emission history, per-observer views)
+- Light echo tracking (emission history, per-observer views; the seed
+  Chronicle already ships as the inherited civ's legible history)
 - One expansion method: seedships/probes, with charters and basic drift
 - Light-lag messaging: directed hail, broadcast, correspondence
 - Sleep with basic tripwires and notifications

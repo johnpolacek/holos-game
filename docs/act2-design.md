@@ -198,7 +198,7 @@ through failed execution.
 The session-opening report is assembled from state deltas since last
 session, rendered in authored connective prose. It is the Act 2
 descendant of Act 1's cut scene: the watching, still authored, now
-generated.
+generated. Each report is also an entry, appended to the Chronicle.
 
 ---
 

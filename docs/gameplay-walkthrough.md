@@ -157,9 +157,9 @@ Across the beats your world climbs the long ladder — first life, then complex
 life, then something that makes tools, then culture, then a technological
 civilization with a history and an identity of its own, all of it still
 carrying the fingerprint of the cradle. Every branch you took and every roll
-that landed is remembered, so the path is different each run and leaves a
-visible causal chain: you can point to the exact beats that made your
-civilization what it is.
+that landed is remembered — every beat you play is an entry — so the path is
+different each run and leaves a visible causal chain: you can point to the
+exact beats that made your civilization what it is.
 
 That chain is not only flavor. When the world finally crosses the threshold
 and the mind wakes up, the values it wakes up *with* are authored by the
@@ -399,7 +399,9 @@ There is fog of war, but it is temporal, not spatial. You never see a distant
 system's present. You see the light that left it years or millennia ago. Every
 decision you make about another star is made on stale data, and the system you
 are carefully watching may already be dead, transformed, or turned hostile.
-You are always acting on ghosts, and waiting for the light to catch up.
+You are always acting on ghosts, and waiting for the light to catch up. And
+the sky's great events arrive as entries in someone's history — dry, dated,
+and exactly as old as their distance.
 
 So a session opens with the sky. New light arrived while you were away: an
 event that happened four centuries ago has just become visible, a letter
@@ -551,7 +553,8 @@ things because each was raised by a different world.
 And the galaxy grows at its edges as new players arrive. A newcomer does not
 spawn on an empty rock; when one of your AI-run colonies drifts far enough
 from you to become independent, a joining human can take it over and inherit a
-diverged descendant of *your* civilization, history and grudges included. Your
+diverged descendant of *your* civilization, history and grudges included; the
+inherited lore is the parent's Chronicle, back to first life. Your
 children can come back as rivals run by strangers. New players seed further
 out, where light-lag insulates them from everyone already in play, so the
 world can expand forever without disrupting anyone in it.

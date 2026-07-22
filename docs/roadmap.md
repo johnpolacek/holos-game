@@ -217,7 +217,8 @@ we tune here before building anything else.
 
 ### A3 — The light echo
 
-The signature system: your past, propagating.
+The signature system: your past, propagating. (The Chronicle — the readable
+record of that past — rides this same light echo and knowledge layer; thin.)
 
 - [ ] Emission history per civilization (seeded by the `CivSeed`'s
       bright-years debt; appended by everything bright you do).

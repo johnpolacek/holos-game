@@ -433,7 +433,8 @@ onboarding engine*), and it closes the loop the whole chain has been drawing:
 - **Diverged colonies become new players.** When an AI-run fork drifts past
   independence (act3-design.md, *Charters and the Ledger*), a joining human
   can take it over, inheriting a diverged descendant *with history and
-  grudges* and the parent's charter as founding myth. New players do not
+  grudges* and the parent's charter as founding myth — the Chronicle its
+  family history, back to first life. New players do not
   spawn on empty rocks; they inherit somebody's children.
 - **Young worlds are the recursion reaching bottom.** Some quiet sky is not
   hiding but *young* — pre-singularity, still in its own Act 1. AI-run young
