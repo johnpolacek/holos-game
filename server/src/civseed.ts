@@ -276,12 +276,12 @@ function chronicleFor(
 ): string[] {
   const row = speciesMindFor(lineage.id);
   const lines = [
-    `Raised on ${cradle.name} — ${cradle.fingerprint}`,
-    `${lineage.name}: ${lineage.fingerprint}`,
+    `Home was ${cradle.name} — ${cradle.fingerprint}`,
+    `Its shape was ${lineage.name}: ${lineage.fingerprint}`,
   ];
   if (params.ageBand === "young") {
     lines.push(
-      `Still climbing: a living world, pre-singularity, visible to anyone watching its light.`,
+      `Not yet ascended: a living world, pre-singularity, visible to anyone watching its light.`,
     );
     return lines;
   }
@@ -290,11 +290,11 @@ function chronicleFor(
   // (act2-design.md § Close) and never reaches the player.
   lines.push(
     posture === "bright"
-      ? `When the choice came, it chose to be heard; it has burned brighter every year since ${Math.round(ascensionYear)}.`
-      : `When the choice came, it chose the dark; the light of its bright years is still traveling.`,
+      ? `When the choice came, it chose to be heard; it burned brighter every year since ${Math.round(ascensionYear)}.`
+      : `When the choice came, it chose the dark; the light of its bright years had not yet arrived.`,
   );
   if (params.ageBand === "elder") {
-    lines.push(`It is ancient — a past no younger mind can catch up to.`);
+    lines.push(`It had grown ancient — a past no younger mind would ever catch up to.`);
   }
   return lines;
 }
