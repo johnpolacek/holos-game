@@ -505,7 +505,10 @@ recalled once it flies. And you will pay them in the only currency you hold
 that matters: more life, a backed-up mind, a dead brother restored, a
 homeworld kept safe. Watch what you offer, because it says who you are. And
 watch what it does to them — a courier who has stopped fearing death runs
-differently, and not always in your favor.
+differently, and not always in your favor. Sometimes it means one of them
+dies and comes home anyway: restored from the last backup, the same name
+with a hole in it, reading about their own death in the record alongside
+everyone else.
 
 ### The Teeming Dark
 

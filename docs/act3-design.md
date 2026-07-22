@@ -365,6 +365,17 @@ Veterans are where players form their strongest attachments: a
 civilization accumulates a stable of veterans the way it accumulates
 colonies, and the stable outlives any single mission's stakes.
 
+One weight of a particular kind: an agent who holds a mind-backup (see
+the compensation menu) and dies on mission can be re-instantiated at
+home — minus everything since the last backup, which may include the
+mission, and the death. The death still happened; it is in the
+Chronicle, and in other people's memory of them. The **restored
+veteran** is the same name with a hole in it — the crew remembers what
+their captain cannot, the debrief tells an envoy how it died — and that
+is vignette material, not a mechanic: a shape such stories can take, in
+a civilization where death is sometimes a gap in the record instead of
+an ending.
+
 **Cooperative missions.** Agents can serve civilizations other than their
 own — missions as the player-to-player cooperative verb:
 

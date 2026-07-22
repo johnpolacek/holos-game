@@ -314,6 +314,9 @@ Skaffen.?Amtiskaw
 Outside Context Problem
 Interesting Times Gang
 Sleeper Service|Grey Area   # Excession ship names; ordinary "grey area" idiom needs case-sensitive review
+War in Heaven          # the Surface Detail coinage
+Lededje|Veppers|Demeisen
+Falling Outside The Normal
 ```
 
 Plus **any actual Banks ship name**, including the witty ones, and any
