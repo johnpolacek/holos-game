@@ -587,6 +587,18 @@ perform across the sky for observers you will never meet. Most
 civilizations never fire. All of them decide what they would do if the
 warmth they are watching starts to move.
 
+There is one other way, and it is not safer, only quieter. You and your
+rival can agree to fight the war in simulation instead: each of you sends an
+envoy with full authority — an ordinary mission, years in flight — to an
+agreed venue, a neutral system or an arbiter you both trust, and the war is
+fought there, locally, in a machine. The verdict comes back to both of you
+as light. It binds exactly as much as any promise across light-years binds,
+which is to say not at all; the loser can always choose the real thing. But
+they must choose it in front of everyone — the defection shines outward
+forever, into every Chronicle, past every watcher. That is the actual wager:
+not that the simulation settles the dispute, but that your opponent values
+how the sky sees it more than whatever the war was about.
+
 ### The thing with no past
 
 Perhaps once in a real year, somewhere in your region of the galaxy, the sky

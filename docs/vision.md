@@ -176,7 +176,7 @@ Incubation as an authored branching history, then singularity and a thin but rea
 - Full travel menu and the identity mechanics of self-transmission and the seat
 - Divergence system and AI-to-human civilization handoff
 - The mission system: agents, mission charters, and vignette returns
-- The conflict and deterrence layer
+- The conflict and deterrence layer, including the conflicted war — disputes settled in simulation at an agreed venue, binding only as a promise made in front of the watching sky
 - Megascale engineering and the entropy and energy tech tree
 - The cosmic-expansion endgame clock
 - Frontier-expansion and scaling systems for the persistent galaxy

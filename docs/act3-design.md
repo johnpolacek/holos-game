@@ -467,7 +467,30 @@ only by the minds that made them.
   Custodian Beacon's strike, if it ever comes, is a moral event the whole
   sky reads.
 
-v1 ships no strikes. The dark forest must first exist as dread and
+**The conflicted war.** Real war at interstellar range is nearly unusable
+as a verb: decades of lag, no recall, and every act shone permanently
+into every watcher's Chronicle. So disputing civilizations may agree to
+settle in simulation instead. The procedure is physics-honest — a shared
+real-time simulation across light-years is impossible — so each side
+dispatches envoys with full authority, an ordinary mission, to one
+agreed venue: a neutral system, or a third-party arbiter civilization.
+The conflict is run locally, in simulation, at the venue, and the
+verdict broadcasts back to both principals years later, as light.
+
+- **The verdict binds as a promise, nothing more.** The founding rule
+  does not bend for it: the loser can always defect and go physical. But
+  the defection, unlike the simulation, happens in the light — in the
+  permanent record, in front of every watching civilization.
+- **The strategic meaning.** A conflicted war is not a safe substitute
+  for war; it is a wager that your opponent values its standing more
+  than the stakes. Defection risk is the drama, not a failure mode to be
+  patched.
+- **Built from existing pieces.** The envoys are mission agents — a
+  storied veteran can stand as champion. Venue selection is a role for
+  coalitions, and for elders willing to arbitrate. Outcome and defection
+  alike enter the Chronicle, which is the only court there is.
+
+v1 ships no strikes, and no conflicted wars with them. The dark forest must first exist as dread and
 inference; teeth arrive only after the social fabric does, alongside
 griefing-resistance tuning (see Open questions).
 
