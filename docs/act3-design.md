@@ -250,8 +250,11 @@ the currency of betrayal.
 **Nothing is enforceable.** A treaty is a promise held up by two minds'
 natures and nothing else; a betrayal is already in flight before it can be
 detected. Relationship states (correspondence, accord, silence, threat)
-are labels on beliefs, not contracts. This is Diplomacy's trust game at
-lightspeed, and first-contact arcs are the act's seismic authored beats.
+are labels on beliefs, not contracts. The one credible commitment is
+physical: a mission is sunk and unrecallable at launch, which is why
+cooperation that must be believed runs through missions (see Missions).
+This is Diplomacy's trust game at lightspeed, and first-contact arcs are
+the act's seismic authored beats.
 
 **Human or AI?** Never disclosed. At light-lag range the question is
 undecidable by design, and the uncertainty is the game.
@@ -359,6 +362,26 @@ Two properties, coupled:
 Veterans are where players form their strongest attachments: a
 civilization accumulates a stable of veterans the way it accumulates
 colonies, and the stable outlives any single mission's stakes.
+
+**Cooperative missions.** Agents can serve civilizations other than their
+own — missions as the player-to-player cooperative verb:
+
+- **Lending a veteran.** One civilization's agent runs another's mission.
+  A real commitment — physical transit, years of lag, no recall — and a
+  real trust exercise: the agent carries its home civilization's
+  knowledge, and its own weight, into someone else's charter.
+- **Joint missions.** Two civilizations each contribute agents under a
+  co-written charter — the only co-authored object in a galaxy where
+  nothing else can be jointly governed. A shared Vigil; a joint
+  expedition to a grave world.
+- **Cross-civ recruitment.** Hiring agents from another civilization,
+  including from worlds held under a Vigil.
+
+The credibility is physical, not promissory. Nothing agreed across
+light-years is enforceable, but a mission is sunk at launch — transit
+paid, agent committed, recall impossible — so cooperation through
+missions is credible where treaties cannot be. It complements
+correspondence diplomacy; it does not replace it.
 
 **Mechanical spine.**
 
