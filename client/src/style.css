@@ -549,6 +549,45 @@ body {
   border-bottom-color: var(--holos-cyan);
 }
 
+.name-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px 0 2px;
+}
+
+.name-chip {
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 4px 12px;
+  color: var(--holos-ink-dim);
+  font-family: var(--holos-font-body);
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: border-color 200ms ease, color 200ms ease;
+}
+
+.name-chip:active {
+  border-color: var(--holos-gold);
+  color: var(--holos-ink);
+}
+
+.name-chip-reroll {
+  padding: 4px 9px;
+  border-color: transparent;
+  color: var(--holos-ink-faint);
+  font-size: 0.85rem;
+}
+
+.committing .name-chips {
+  pointer-events: none;
+  opacity: 0.3;
+}
+
 .name-hint {
   font-size: 0.65rem;
   color: var(--holos-error);

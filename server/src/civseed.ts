@@ -25,6 +25,7 @@ import {
   type ArchetypeId,
   type Posture,
 } from "./minds";
+import { generateCivName } from "./names";
 import type { Rng } from "./rng";
 
 export type CivId = string;
@@ -96,22 +97,6 @@ export interface GenerateCivParams {
   readonly nowYear: number;
   /** Player civs: ascended only a handful of years ago (Act 3 opens now). */
   readonly recentlyAscended?: boolean;
-}
-
-// --- name generation --------------------------------------------------------
-
-const NAME_HEADS = [
-  "Stone", "Seed", "Tide", "Deep", "Ember", "Salt", "Iron", "Frost",
-  "Vault", "Song", "Root", "Glass", "Ash", "Hollow", "Dawn", "Rift",
-] as const;
-
-const NAME_TAILS = [
-  "binders", "weavers", "keepers", "wardens", "singers", "shapers",
-  "tenders", "reckoners", "menders", "delvers", "callers", "sowers",
-] as const;
-
-export function generateCivName(rng: Rng): string {
-  return `${rng.pick(NAME_HEADS)}${rng.pick(NAME_TAILS)}`;
 }
 
 // --- the generator ----------------------------------------------------------

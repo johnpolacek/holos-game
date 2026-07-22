@@ -7,6 +7,8 @@
 import {
   DIAL_AXES,
   MAX_NAME_LEN,
+  NAME_HEADS,
+  NAME_TAILS,
   validateName,
   type CivCard,
   type DialAxis,
@@ -216,7 +218,51 @@ function buildCard(card: CivCard): CardState {
   nameInput.spellcheck = false;
   const nameHint = document.createElement("div");
   nameHint.className = "name-hint";
-  nameField.append(nameCaption, nameInput, nameHint);
+
+  // Suggested names: the name this civilization already bore, plus fresh
+  // pairings from the shared lexicon. Tapping a chip fills the field (still
+  // editable); the field starts empty — naming stays the deliberate act.
+  const chipsRow = document.createElement("div");
+  chipsRow.className = "name-chips";
+  const composeSuggestion = (taken: ReadonlySet<string>): string => {
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const head = NAME_HEADS[Math.floor(Math.random() * NAME_HEADS.length)] ?? "Dawn";
+      const tail = NAME_TAILS[Math.floor(Math.random() * NAME_TAILS.length)] ?? "keepers";
+      const name = `${head}${tail}`;
+      if (!taken.has(name)) return name;
+    }
+    return `${NAME_HEADS[0] ?? "Stone"}${NAME_TAILS[0] ?? "binders"}`;
+  };
+  const makeChip = (name: string): HTMLButtonElement => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "name-chip";
+    chip.textContent = name;
+    chip.addEventListener("click", () => {
+      nameInput.value = chip.textContent ?? "";
+      nameInput.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    return chip;
+  };
+  const inheritedChip = makeChip(card.seed.name);
+  const rolledA = makeChip("");
+  const rolledB = makeChip("");
+  const reroll = (): void => {
+    const taken = new Set([card.seed.name]);
+    rolledA.textContent = composeSuggestion(taken);
+    taken.add(rolledA.textContent ?? "");
+    rolledB.textContent = composeSuggestion(taken);
+  };
+  reroll();
+  const rerollButton = document.createElement("button");
+  rerollButton.type = "button";
+  rerollButton.className = "name-chip name-chip-reroll";
+  rerollButton.textContent = "⟳";
+  rerollButton.setAttribute("aria-label", "other names");
+  rerollButton.addEventListener("click", reroll);
+  chipsRow.append(inheritedChip, rolledA, rolledB, rerollButton);
+
+  nameField.append(nameCaption, nameInput, chipsRow, nameHint);
   detailExtra.append(nameField);
 
   const becomeWrap = document.createElement("div");
