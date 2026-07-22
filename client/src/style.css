@@ -683,17 +683,17 @@ body {
      marble is a grayscale turbulence layer whose luminance is pushed toward
      black/white veins (a table transfer) so soft-light blending actually
      lightens and darkens the stone instead of washing to a flat orange. */
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='120'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.016 0.055' numOctaves='5' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='table' tableValues='0.02 0.55 1 0.35 0.02'/%3E%3CfeFuncG type='table' tableValues='0.02 0.55 1 0.35 0.02'/%3E%3CfeFuncB type='table' tableValues='0.02 0.55 1 0.35 0.02'/%3E%3CfeFuncA type='linear' slope='0' intercept='0.55'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E"),
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='120'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.016 0.055' numOctaves='5' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='table' tableValues='0 0.45 0.85 0.25 0'/%3E%3CfeFuncG type='table' tableValues='0 0.45 0.85 0.25 0'/%3E%3CfeFuncB type='table' tableValues='0 0.45 0.85 0.25 0'/%3E%3CfeFuncA type='linear' slope='0' intercept='0.85'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E"),
     radial-gradient(
-      ellipse 120% 90% at 50% -30%,
-      rgba(255, 205, 120, 0.9),
-      rgba(255, 205, 120, 0) 60%
+      ellipse 120% 90% at 50% -35%,
+      rgba(235, 160, 80, 0.5),
+      rgba(235, 160, 80, 0) 55%
     ),
-    linear-gradient(180deg, #f28a1e 0%, #d95f13 48%, #7c2d07 100%);
+    linear-gradient(180deg, #a1560f 0%, #7c380a 48%, #3a1303 100%);
   background-size: 300px 120px, auto, auto;
   background-repeat: repeat, no-repeat, no-repeat;
   background-position: center;
-  background-blend-mode: soft-light, normal, normal;
+  background-blend-mode: overlay, normal, normal;
   color: #fff;
   cursor: pointer;
   touch-action: none;
@@ -728,7 +728,7 @@ body {
 .become-label {
   position: relative;
   font-family: var(--holos-font-display);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.3em;
   text-transform: uppercase;
   font-size: 1.6rem;
