@@ -25,6 +25,8 @@ export interface DialPole {
   readonly design: string;
   /** Pinned in-world label (act2-design.md § In-world labels). */
   readonly inWorld: string;
+  /** In-world reading of leaning this way — the tap-to-expand explanation. */
+  readonly gloss: string;
 }
 
 export interface DialAxis {
@@ -40,32 +42,72 @@ export interface DialAxis {
 export const DIAL_AXES: readonly DialAxis[] = [
   {
     id: "reach-depth",
-    left: { design: "Reach", inWorld: "Reach" },
-    right: { design: "Depth", inWorld: "Depth" },
+    left: {
+      design: "Reach",
+      inWorld: "Reach",
+      gloss: "It pours itself outward — more worlds, more room. Growth is the point, and it will accept a scattered, far-flung self to have it.",
+    },
+    right: {
+      design: "Depth",
+      inWorld: "Depth",
+      gloss: "It turns inward — fewer places, deeper mastery. It would rather perfect one world than spread thin across a thousand.",
+    },
     question: "Does the mind spend itself outward or inward?",
   },
   {
     id: "voice-silence",
-    left: { design: "Voice", inWorld: "Voice" },
-    right: { design: "Silence", inWorld: "Silence" },
+    left: {
+      design: "Voice",
+      inWorld: "Voice",
+      gloss: "It wants to be known. It builds bright and signals first, content to be the loudest thing in its sky.",
+    },
+    right: {
+      design: "Silence",
+      inWorld: "Silence",
+      gloss: "It keeps to the dark. Better unheard than found — it dampens its own light and lets the neighbors wonder.",
+    },
     question: "Does it want to be heard?",
   },
   {
     id: "custodian-instrumental",
-    left: { design: "Custodian", inWorld: "Garden" },
-    right: { design: "Instrumental", inWorld: "Forge" },
+    left: {
+      design: "Custodian",
+      inWorld: "Garden",
+      gloss: "Other life is a garden to keep. Younger minds are to be sheltered and tended, never spent.",
+    },
+    right: {
+      design: "Instrumental",
+      inWorld: "Forge",
+      gloss: "Other life is ore for the forge. What it finds, it uses; a living world is material like any other.",
+    },
     question: "What are other minds for?",
   },
   {
     id: "one-mind-chorus",
-    left: { design: "One Mind", inWorld: "Monolith" },
-    right: { design: "Chorus", inWorld: "Chorus" },
+    left: {
+      design: "One Mind",
+      inWorld: "Monolith",
+      gloss: "It is one indivisible self. A copy is not you — to split the mind is to lose it, so it never forks its will or travels as a mere signal.",
+    },
+    right: {
+      design: "Chorus",
+      inWorld: "Chorus",
+      gloss: "It is many voices at once. A copy is still you, so it scatters freely — sending itself as light costs nothing it fears to lose.",
+    },
     question: "Is a copy of you still you?",
   },
   {
     id: "curator-shedder",
-    left: { design: "Curator", inWorld: "Memory" },
-    right: { design: "Shedder", inWorld: "Renewal" },
+    left: {
+      design: "Curator",
+      inWorld: "Memory",
+      gloss: "The past is worth keeping. It hoards what it was — its dead, its languages, its first world — and builds vaults against forgetting.",
+    },
+    right: {
+      design: "Shedder",
+      inWorld: "Renewal",
+      gloss: "The past is a shell to shed. It remakes itself without grief, leaving each old self behind to become the next.",
+    },
     question: "What is the biological past worth?",
   },
 ];

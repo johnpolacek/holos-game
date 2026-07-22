@@ -465,6 +465,66 @@ body {
   grid-template-columns: 3.6rem 1fr 3.6rem;
   align-items: center;
   gap: 0.5rem;
+  padding: 0.2rem 0.3rem;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 200ms ease;
+}
+
+.dial-row:hover,
+.dial-item.open > .dial-row {
+  background: rgba(183, 155, 99, 0.07);
+}
+
+.dial-row:focus-visible {
+  outline: 1px solid var(--holos-gold-dim);
+}
+
+.dial-explain {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 280ms ease, opacity 220ms ease;
+}
+
+.dial-item.open > .dial-explain {
+  max-height: 18rem;
+  opacity: 1;
+}
+
+.dial-question {
+  font-family: var(--holos-font-body);
+  font-style: italic;
+  font-size: 0.8rem;
+  text-align: center;
+  color: var(--holos-ink);
+  margin: 0.5rem 0 0.55rem;
+}
+
+.dial-reading {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--holos-ink-dim);
+  margin: 0 0.3rem 0.4rem;
+}
+
+.dial-reading-term {
+  color: var(--holos-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.62rem;
+  margin-right: 0.45rem;
+}
+
+.dial-hint {
+  font-family: var(--holos-font-body);
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  text-align: center;
+  color: var(--holos-ink-faint);
+  margin: 0.55rem 0 0;
 }
 
 .dial-pole {
@@ -601,69 +661,96 @@ body {
 
 .become-wrap {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-  padding-bottom: 0.4rem;
+  justify-content: center;
+  padding: 0.3rem 0 0.5rem;
 }
 
+/* Dramatic hold-to-commit button. --hold (0..1) drives the charge fill. */
 .become-button {
-  background: none;
-  border: none;
+  --hold: 0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 15rem;
+  max-width: 100%;
+  height: 3.4rem;
+  padding: 0 1.5rem;
+  border: 1px solid var(--holos-gold);
+  border-radius: 999px;
+  background: linear-gradient(#100d16, #0a0810);
   color: var(--holos-amber);
-  font-family: var(--holos-font-display);
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  font-size: 0.85rem;
-  padding: 0.3rem 0.6rem;
   cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 0 0 1px rgba(183, 155, 99, 0.12), 0 8px 26px rgba(0, 0, 0, 0.55);
+  transition: border-color 240ms ease, box-shadow 240ms ease,
+    transform 120ms ease, color 240ms ease, opacity 240ms ease;
 }
 
 .become-button:disabled {
+  opacity: 0.4;
+  border-color: rgba(183, 155, 99, 0.18);
   color: var(--holos-ink-faint);
   cursor: default;
+  box-shadow: none;
 }
 
-.become-ring-wrap {
-  position: relative;
-  width: 3rem;
-  height: 3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.become-ring-wrap svg {
+.become-fill {
   position: absolute;
-  inset: 0;
-  transform: rotate(-90deg);
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: calc(var(--hold) * 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(95, 224, 230, 0.08),
+    rgba(95, 224, 230, 0.34)
+  );
+  box-shadow: 0 0 20px var(--holos-cyan-dim);
+  pointer-events: none;
 }
 
-.become-ring-track {
-  fill: none;
-  stroke: rgba(233, 228, 214, 0.12);
-  stroke-width: 2;
+.become-label {
+  position: relative;
+  font-family: var(--holos-font-display);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-size: 1rem;
+  padding-left: 0.32em; /* optical centering against the tracking */
 }
 
-.become-ring-fill {
-  fill: none;
-  stroke: var(--holos-cyan);
-  stroke-width: 2;
-  stroke-linecap: round;
-  filter: drop-shadow(0 0 4px var(--holos-cyan-dim));
+.become-hint {
+  position: relative;
+  font-family: var(--holos-font-body);
+  font-size: 0.55rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--holos-ink-faint);
+  margin-top: 0.1rem;
+  transition: opacity 200ms ease;
 }
 
-.become-glyph {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 999px;
-  background: var(--holos-ink-dim);
-  transition: background 200ms ease, box-shadow 200ms ease;
+/* charging: brighten toward cyan, lift, drop the hint */
+.become-button.charging {
+  border-color: var(--holos-cyan);
+  box-shadow: 0 0 26px var(--holos-cyan-dim);
+  transform: translateY(-1px) scale(1.01);
+  color: var(--holos-ink);
 }
 
-.become-glyph.committing {
-  background: var(--holos-cyan);
-  box-shadow: 0 0 12px var(--holos-cyan);
+.become-button.charging .become-hint,
+.become-button.committing .become-hint {
+  opacity: 0;
+}
+
+/* committed: full cyan consummation, in step with the card bloom */
+.become-button.committing {
+  border-color: var(--holos-cyan);
+  box-shadow: 0 0 34px var(--holos-cyan);
+  color: var(--holos-cyan);
 }
 
 /* Cyan bloom / dissolve beat on commit (concept 03-00b). */

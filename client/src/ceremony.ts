@@ -18,8 +18,6 @@ import type { CohortSocket } from "./net";
 
 const HOLD_MS = 1200;
 const PENDING_KEY = "holos.pendingBecome";
-const RING_RADIUS = 20;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 interface PendingBecome {
   readonly candidateId: string;
@@ -79,11 +77,18 @@ function dialPct(position: number): number {
   return ((position + 1) / 2) * 100;
 }
 
-/** Reusable dial-band row: pole labels (in-world only) + earned position +
- * the allowed range band it was drawn from. */
+/** Reusable dial band: pole labels (in-world only) + earned position + the
+ * allowed range it was drawn from. Tapping the row expands an in-world
+ * explanation — the axis question and what leaning each way means. */
 function renderDialBand(axis: DialAxis, setting: DialSetting): HTMLElement {
+  const item = document.createElement("div");
+  item.className = "dial-item";
+
   const row = document.createElement("div");
   row.className = "dial-row";
+  row.setAttribute("role", "button");
+  row.setAttribute("tabindex", "0");
+  row.setAttribute("aria-expanded", "false");
 
   const left = document.createElement("span");
   left.className = "dial-pole dial-pole--left";
@@ -110,7 +115,38 @@ function renderDialBand(axis: DialAxis, setting: DialSetting): HTMLElement {
   right.textContent = axis.right.inWorld;
 
   row.append(left, track, right);
-  return row;
+
+  const explain = document.createElement("div");
+  explain.className = "dial-explain";
+  const question = document.createElement("p");
+  question.className = "dial-question";
+  question.textContent = axis.question;
+  explain.append(question);
+  for (const pole of [axis.left, axis.right]) {
+    const reading = document.createElement("p");
+    reading.className = "dial-reading";
+    const term = document.createElement("span");
+    term.className = "dial-reading-term";
+    term.textContent = pole.inWorld;
+    reading.append(term, document.createTextNode(pole.gloss));
+    explain.append(reading);
+  }
+
+  const toggle = (e: Event): void => {
+    e.stopPropagation(); // don't re-trigger the card's focus/scroll handler
+    const open = item.classList.toggle("open");
+    row.setAttribute("aria-expanded", open ? "true" : "false");
+  };
+  row.addEventListener("click", toggle);
+  row.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggle(e);
+    }
+  });
+
+  item.append(row, explain);
+  return item;
 }
 
 interface CardState {
@@ -119,17 +155,18 @@ interface CardState {
   readonly nameInput: HTMLInputElement;
   readonly nameHint: HTMLElement;
   readonly becomeButton: HTMLButtonElement;
-  readonly ringFill: SVGCircleElement;
-  readonly glyph: HTMLElement;
   holding: boolean;
   committed: boolean;
   holdStart: number;
   raf: number | null;
 }
 
-function setRingProgress(state: CardState, progress: number): void {
-  const offset = RING_CIRCUMFERENCE * (1 - Math.min(1, Math.max(0, progress)));
-  state.ringFill.style.strokeDashoffset = String(offset);
+/** Drive the button's charge fill (0..1) via a CSS variable, and mark it
+ * "charging" while a hold is mid-flight (for the glow/label state). */
+function setHoldProgress(state: CardState, progress: number): void {
+  const v = Math.min(1, Math.max(0, progress));
+  state.becomeButton.style.setProperty("--hold", String(v));
+  state.becomeButton.classList.toggle("charging", v > 0 && v < 1);
 }
 
 function updateBecomeEnabled(state: CardState): void {
@@ -199,6 +236,10 @@ function buildCard(card: CivCard): CardState {
   for (const axis of DIAL_AXES) {
     dialSheet.append(renderDialBand(axis, card.seed.dials[axis.id]));
   }
+  const dialHint = document.createElement("p");
+  dialHint.className = "dial-hint";
+  dialHint.textContent = "Tap a dial to read what it means.";
+  dialSheet.append(dialHint);
   detailExtra.append(dialSheet);
 
   const charter = document.createElement("div");
@@ -265,37 +306,26 @@ function buildCard(card: CivCard): CardState {
   nameField.append(nameCaption, nameInput, chipsRow, nameHint);
   detailExtra.append(nameField);
 
+  // Dramatic hold-to-commit button: the label sits over a fill that charges
+  // left-to-right as you hold (driven by the --hold CSS variable), then
+  // consummates into the cyan bloom on the card. Press-and-hold, not click.
   const becomeWrap = document.createElement("div");
   becomeWrap.className = "become-wrap";
   const becomeButton = document.createElement("button");
   becomeButton.type = "button";
   becomeButton.className = "become-button";
-  becomeButton.textContent = "Become";
   becomeButton.disabled = true;
-
-  const ringWrap = document.createElement("div");
-  ringWrap.className = "become-ring-wrap";
-  const svgNS = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("viewBox", "0 0 48 48");
-  const track = document.createElementNS(svgNS, "circle");
-  track.setAttribute("class", "become-ring-track");
-  track.setAttribute("cx", "24");
-  track.setAttribute("cy", "24");
-  track.setAttribute("r", String(RING_RADIUS));
-  const fill = document.createElementNS(svgNS, "circle");
-  fill.setAttribute("class", "become-ring-fill");
-  fill.setAttribute("cx", "24");
-  fill.setAttribute("cy", "24");
-  fill.setAttribute("r", String(RING_RADIUS));
-  fill.style.strokeDasharray = String(RING_CIRCUMFERENCE);
-  fill.style.strokeDashoffset = String(RING_CIRCUMFERENCE);
-  svg.append(track, fill);
-  const glyph = document.createElement("div");
-  glyph.className = "become-glyph";
-  ringWrap.append(svg, glyph);
-
-  becomeWrap.append(becomeButton, ringWrap);
+  const becomeFill = document.createElement("span");
+  becomeFill.className = "become-fill";
+  becomeFill.setAttribute("aria-hidden", "true");
+  const becomeLabel = document.createElement("span");
+  becomeLabel.className = "become-label";
+  becomeLabel.textContent = "Become";
+  const becomeHint = document.createElement("span");
+  becomeHint.className = "become-hint";
+  becomeHint.textContent = "hold";
+  becomeButton.append(becomeFill, becomeLabel, becomeHint);
+  becomeWrap.append(becomeButton);
   detailExtra.append(becomeWrap);
 
   body.append(identity, archetypeName, archetypeFirstRead, detailExtra);
@@ -308,8 +338,6 @@ function buildCard(card: CivCard): CardState {
     nameInput,
     nameHint,
     becomeButton,
-    ringFill: fill,
-    glyph,
     holding: false,
     committed: false,
     holdStart: 0,
@@ -413,8 +441,8 @@ export function renderCeremony(
         state.nameInput.value = pending.name;
         state.becomeButton.disabled = true;
         state.el.classList.add("committing");
-        state.glyph.classList.add("committing");
-        setRingProgress(state, 1);
+        state.becomeButton.classList.add("committing");
+        setHoldProgress(state, 1);
         // Re-send the become: it is idempotent per token server-side (an
         // already-placed run just gets its sky again), so a commit lost to
         // a flaky network retries instead of freezing this card forever.
@@ -446,7 +474,7 @@ export function renderCeremony(
     state.becomeButton.disabled = true;
     writePending({ candidateId: state.card.candidateId, name });
     state.el.classList.add("committing");
-    state.glyph.classList.add("committing");
+    state.becomeButton.classList.add("committing");
     socket.send({ type: "become", candidateId: state.card.candidateId, name });
   }
 
@@ -457,7 +485,7 @@ export function renderCeremony(
     const step = (t: number): void => {
       if (!state.holding) return;
       const progress = (t - state.holdStart) / HOLD_MS;
-      setRingProgress(state, progress);
+      setHoldProgress(state, progress);
       if (progress >= 1) {
         commit(state);
         return;
@@ -474,7 +502,7 @@ export function renderCeremony(
       cancelAnimationFrame(state.raf);
       state.raf = null;
     }
-    setRingProgress(state, 0);
+    setHoldProgress(state, 0);
   }
 
   const holdCleanups: Array<() => void> = [];
@@ -520,8 +548,8 @@ export function renderCeremony(
     clearPending();
     state.committed = false;
     state.el.classList.remove("committing");
-    state.glyph.classList.remove("committing");
-    setRingProgress(state, 0);
+    state.becomeButton.classList.remove("committing");
+    setHoldProgress(state, 0);
     state.nameHint.textContent = message.message;
     state.nameHint.classList.add("visible");
     updateBecomeEnabled(state);
