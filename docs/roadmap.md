@@ -300,6 +300,11 @@ Resolve each before the slice that needs it; record the call here.
 - **Planet rendering** (was M1's decision) — deferred to Phase B with the
   world-reveal screen; the inheritance card can use painterly stills
   meanwhile.
+- **Post-singularity priorities (design, decide by A5):** should a civ's
+  posture stay a chosen bright/dark binary, or derive from a richer
+  priority orientation (what the civilization is *for*)? Captured
+  direction in [priorities.md](./priorities.md); resolve before A5 gives
+  AI civs real behavior.
 
 ## Art that helps now
 
