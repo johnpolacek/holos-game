@@ -86,7 +86,8 @@ light left** — never its present. Signal classes in v1:
 - **Directed beams** — a hail aimed at you (or intercepted en route to
   someone else — rare, and explosive intelligence).
 - **Broadcast leakage** — the sloppy shine of a young or careless
-  civilization; the thing you spent Act 2 learning not to emit.
+  civilization, or the deliberate, constitutional shine of a Refuser that
+  will never go dark; the thing you spent Act 2 learning not to emit.
 - **Biosignatures** — a living world, pre-singularity. Someone's Act 1,
   visible from outside.
 
@@ -122,6 +123,28 @@ strategic, and it is the game's most distinctive system.
 
 ---
 
+## The Chronicle
+
+The light echo is the physics; the **Chronicle** is the reading of it. Every
+civilization accrues one continuous record from first life onward — its past
+is never private, because its past is already on the sky.
+
+- **One record, all three acts.** Act 1's authored branching history is its
+  opening entries, Act 2's reports extend it, and Act 3's major events
+  complete it. The archive never stops accruing.
+- **Rendered as the light arrives.** Each observer's copy is composed as the
+  wavefront reaches them, in a dry annalist's voice — entries dated, past
+  tense, exactly as old as their distance. It rides the existing knowledge
+  layer and asserts no new wire concept.
+- **The family history behind the founding document.** This is the
+  divergence-onboarding payload: the charter is the founding document a
+  joining player inherits, and the Chronicle is the family history standing
+  behind it, back to first life.
+- **Physically honest.** A distant observer watching your world is literally
+  reading your past — nothing can be unshone, all the way back to first life.
+
+---
+
 ## Travel and expansion
 
 The vision's travel menu, with mechanical teeth. All three are launches —
@@ -141,6 +164,12 @@ for another civilization is inviting it into your house; building one at
 home is announcing you are willing to be arrived at. The receiver graph is
 the game's map of who trusts whom, and it is visible in principle to
 anyone watching construction shadows.
+
+A Refuser has no transmissible self — nothing it could broadcast is anyone
+— so transmission and the receiver graph are closed to it, and its
+expansion is matter only: seedships, generation ships, and embryo banks,
+folded into the seedship family above. The menu still lists three tools; a
+Refuser spends its whole interstellar life on the first.
 
 ---
 
@@ -166,7 +195,7 @@ charters becoming other players' origin myths is the onboarding engine.
 ## The seat
 
 **Working decision: one transferable seat.** The player is exactly one
-mind in exactly one place — the seat never divides, so the player's brain
+seat in exactly one place — the seat never divides, so the player's brain
 never becomes an FTL side-channel between forks.
 
 - Default: the seat stays home. Every fork is a child, running its
@@ -174,11 +203,19 @@ never becomes an FTL side-channel between forks.
 - At any transmission of self, the player may instead **go**: the seat
   transfers to the arriving copy, and the origin continues as an AI under
   its standing directives — a mind you used to be.
-- If the seat's node is destroyed, the seat falls to the nearest surviving
-  fork. A lineage can lose almost everything and still be the player.
+- If the seat's node is destroyed, the seat **flees** rather than falls.
+  An ascended mind departs as a lightspeed transmission toward the nearest
+  surviving fork — **the Crossing** — its transit duration the light-distance
+  between the two, and for the whole length of the crossing it is rendered as
+  a directed-beam-class object: visible, interceptable, hunted. A lineage can
+  lose almost everything and still be the player.
+- A Refuser has no transmissible self, so its seat is a **throne world**,
+  the lineage's living center; when it is destroyed the court crosses by
+  evacuation ship instead — slower and worse, which fits the path.
 - **Elimination** = the entire lineage erased. Rare, dramatic, and meant
-  to be. An eliminated player rejoins through divergence onboarding —
-  inheriting some other lineage's diverged colony — which closes the loop.
+  to be; the Crossing is the dramatic window before it. An eliminated player
+  rejoins through divergence onboarding — inheriting some other lineage's
+  diverged colony — which closes the loop.
 
 The One Mind ↔ Chorus dial gives the seat rule its character: a Chorus
 civilization forks cheerfully and the seat choice is light; a One Mind
@@ -203,7 +240,9 @@ decision with real time in it:
    - **Stay dark** — keep watching. The vigil continues.
 4. **Correspondence.** Letters at lightspeed, on real clocks (see The
    clocks). Each message is composed for a reader years-to-centuries
-   downstream of the one you know.
+   downstream of the one you know, and each arrives wearing its physics
+   — transit years, distance, received strength, relay path, degradation
+   — as measurements attached to the text (see ui-design, Letters).
 
 **What letters can carry:** knowledge (tech and ladder modifiers), culture
 (dial nudges — contact changes you), Vault contents (the Curator's trade
@@ -213,11 +252,209 @@ the currency of betrayal.
 **Nothing is enforceable.** A treaty is a promise held up by two minds'
 natures and nothing else; a betrayal is already in flight before it can be
 detected. Relationship states (correspondence, accord, silence, threat)
-are labels on beliefs, not contracts. This is Diplomacy's trust game at
-lightspeed, and first-contact arcs are the act's seismic authored beats.
+are labels on beliefs, not contracts. The one credible commitment is
+physical: a mission is sunk and unrecallable at launch, which is why
+cooperation that must be believed runs through missions (see Missions).
+This is Diplomacy's trust game at lightspeed, and first-contact arcs are
+the act's seismic authored beats.
 
 **Human or AI?** Never disclosed. At light-lag range the question is
 undecidable by design, and the uncertainty is the game.
+
+---
+
+## Missions
+
+The player is a civilization-scale mind, but it can act in the world at
+small scale by dispatching **agents**. Agents span the full range of what
+a civilization contains: biological individuals and groups, avatars,
+sovereign or sub-person AI, drones, probes, ships, and ensembles of all of
+these. The mix is itself expressive of the civilization's character — a
+Refuser sends people, dynasties, and religious orders backed by shackled
+machines; a deep-integration civilization favors small dark probes and
+avatars; a Chorus sends copies of itself and thinks nothing of it.
+
+**Why a vast mind sends something small.**
+
+- **Smallness is stealth.** A single agent is undetectable where a fleet
+  is a signature. For a dark, integrated civilization, missions are its
+  only limb — the one way to touch the world without lighting up the sky.
+- **Presence is bandwidth.** An agent on-site acts in local time; the
+  alternative is correspondence at decades per round trip.
+- **Deniability.** An agent can be disowned. A broadcast cannot.
+- **Character.** Even a chorus-mind is plural inside — specialists,
+  eccentrics, sub-minds. Choosing the right agent and writing its brief is
+  self-portraiture; the mission roster is a civilization's character sheet
+  in motion.
+
+**Anatomy of a mission.** One reusable structure: **who goes** (an
+individual, a group, an AI, a drone, a probe, a ship, or an ensemble) +
+**a charter** (instructions written knowing they can never be patched —
+the colony-charter mechanic at mission scale) + **a travel method** (from
+the existing menu: transmission to a receiver, relativistic ship, slow
+seed or probe) + **a horizon** (the moment the mission passes beyond
+governance and becomes a story whose ending arrives later, as
+light-delayed reports).
+
+**The vignette engine survives into Act 3.** Mission outcomes return as
+narrative beats and reuse Act 1's vignette machinery — authored scene,
+choice, contingent resolution — with one inversion: the player's choice
+happens at launch, in the charter, rather than live. Missions are how
+Act 1's authored-history engine carries into Act 3, which is what makes
+them cheap to build relative to their narrative weight.
+
+**An illustrative array** (grouped by purpose; not an exhaustive spec):
+
+*Watching.*
+
+- **The Vigil.** Embed observers, living or machine, at a pre-singularity
+  world — the concrete verb for the promised recursion: the observer role
+  from Act 1 becomes something players do to each other.
+- **The Assay.** Send an agent to a warm dark mass to settle civilization
+  versus dead star — ground truth for the observatory's inference game.
+- **The Witness.** Dispatch a recorder to a predicted distant event, so
+  the Chronicle gains a primary source.
+
+*Talking.*
+
+- **The Embassy.** Physical presence at another civilization — high
+  bandwidth, high trust. Exchanged resident envoys are the closest thing
+  to an enforceable treaty in a no-enforcement galaxy: each side holds
+  someone the other values.
+- **The Heir Visit.** A mission into your own diverged forks — recontact a
+  descendant colony, assess its drift, carry the family archive.
+- **The Prophet** *(Refuser flavor)*. Missionary expansion: conversion
+  attempts toward other biological civilizations.
+
+*Meddling.*
+
+- **The Gardener's Hand.** Intervene at a young world's evolutionary
+  bottleneck — become the dice in someone else's Act 1: uplift, protect,
+  or prune.
+- **The Counter-Hand.** Oppose another civilization's agents at a
+  third-party world through your own, deniably, principals never visible —
+  cold war by proxy at someone else's cradle.
+- **The Locksmith.** Negotiate or infiltrate access to a grave world;
+  recover, verify, or destroy a dead civilization's Vault — the open
+  Restoration question, given a mission shape without being answered.
+
+*Surviving.*
+
+- **The Courier.** A mission in flight can serve as the receiver at the
+  far end of a fleeing seat — missions as pre-placed lifeboats for the
+  Crossing.
+- **The Inspector** *(Refuser flavor)*. Audit distant colonies for harness
+  breakout; sometimes the report that returns is written a little too
+  well.
+
+**Veterans.** Agents who survive persist. A returned agent is not spent;
+it is a named, reusable entity — a scarred envoy, a storied order or crew,
+a probe or ship grown strange and capable across centuries of service.
+Two properties, coupled:
+
+- **Experience.** A veteran is more capable than a fresh agent and, just
+  as valuable, a better-known quantity: its judgment has been observed,
+  its drift has a track record, its charter needs fewer contingencies.
+- **Weight.** Everything a veteran has done and had done to it travels
+  with it. Past missions resurface as authored complications in later
+  ones — the person it spared, the world it broke, the protocol an old
+  ship-mind refuses to run again. Weight is narrative continuity across
+  the vignette engine, not a numeric debuff system.
+
+Veterans are where players form their strongest attachments: a
+civilization accumulates a stable of veterans the way it accumulates
+colonies, and the stable outlives any single mission's stakes.
+
+One weight of a particular kind: an agent who holds a mind-backup (see
+the compensation menu) and dies on mission can be re-instantiated at
+home — minus everything since the last backup, which may include the
+mission, and the death. The death still happened; it is in the
+Chronicle, and in other people's memory of them. The **restored
+veteran** is the same name with a hole in it — the crew remembers what
+their captain cannot, the debrief tells an envoy how it died — and that
+is vignette material, not a mechanic: a shape such stories can take, in
+a civilization where death is sometimes a gap in the record instead of
+an ending.
+
+**Cooperative missions.** Agents can serve civilizations other than their
+own — missions as the player-to-player cooperative verb:
+
+- **Lending a veteran.** One civilization's agent runs another's mission.
+  A real commitment — physical transit, years of lag, no recall — and a
+  real trust exercise: the agent carries its home civilization's
+  knowledge, and its own weight, into someone else's charter.
+- **Joint missions.** Two civilizations each contribute agents under a
+  co-written charter — the only co-authored object in a galaxy where
+  nothing else can be jointly governed. A shared Vigil; a joint
+  expedition to a grave world.
+- **Cross-civ recruitment.** Hiring agents from another civilization,
+  including from worlds held under a Vigil.
+
+The credibility is physical, not promissory. Nothing agreed across
+light-years is enforceable, but a mission is sunk at launch — transit
+paid, agent committed, recall impossible — so cooperation through
+missions is credible where treaties cannot be. It complements
+correspondence diplomacy; it does not replace it.
+
+**The compensation menu.** What agents are paid — above all the mortal
+and the foreign — is what only a post-singularity civilization can offer:
+rejuvenation, a backup of their mind, restoration of their dead, a berth
+in the civilization's Vault, uplift or protection for their homeworld.
+
+- **The menu is a dial readout.** What a civilization is willing to pay
+  with reveals its character: an Instrumental civilization pays cheap and
+  personal, a Custodian pays in protections, a Curator offers the Vault
+  itself. In cooperative missions the menu doubles as the cross-civ trade
+  economy — compensation terms travel in the co-written charter.
+- **Payment changes the agent.** A mortal who holds a backup stops
+  fearing death, and runs missions like it — not always in the employer's
+  favor. This feeds the veteran's weight rather than any separate
+  mechanic: what you paid someone becomes part of who they are at the
+  next launch.
+
+**Mechanical spine.**
+
+- Missions are the game's main source of narrative uncertainty after the
+  singularity. The mind does not fumble — but an agent beyond the horizon,
+  meeting other minds, is uncertainty of exactly the kind the vision says
+  replaces chance: migrated from dice to cost to other minds, and now to
+  your own hands at a distance.
+- Every agent inherently carries drift risk — going native, exceeding the
+  charter, coming back wrong. These are ways a mission story can end, not
+  a separate global rule; the Ledger's drift logic already covers it.
+- Mission timescales are decades to millennia. Results arrive as
+  light-delayed reports on the shared clock, consistent with telescoping
+  time; a mission is a bet your future self collects.
+
+---
+
+## Coalitions
+
+Diplomacy is bilateral by default — correspondence is a thread between
+two minds — but nothing stops the threads from braiding. Coalitions and
+alliances among many civilizations are an expected mode of play, and
+they are built entirely from existing pieces; the design adds no
+enforcement machinery, because there is none to add:
+
+- **Correspondence carries the promises** — unenforceable by design.
+- **Cooperative missions and exchanged envoys carry the commitments** —
+  physically sunk, unrecallable, credible the way no signature is.
+- **The compensation menu is the consideration** — the medium in which
+  members pay, trade, and bind one another's agents.
+
+The strategic texture has no counterpart at conversational range. In a
+three-civilization agreement, no two members share a present: each acts
+on stale knowledge of the others' adherence, every confirmation is years
+old on arrival, and a defection is already in flight before anyone could
+learn of it. Holding a coalition together across light-lag is a game of
+anticipation and character-reading, not of monitoring. A special case
+with its own flavor: coalitions among one's own diverged forks — family
+alliances between civilizations that were once one mind and remember it
+differently.
+
+The existing principle stands unchanged: nothing agreed across
+light-years is enforceable. A coalition is a set of promises held up
+only by the minds that made them.
 
 ---
 
@@ -241,7 +478,30 @@ undecidable by design, and the uncertainty is the game.
   Custodian Beacon's strike, if it ever comes, is a moral event the whole
   sky reads.
 
-v1 ships no strikes. The dark forest must first exist as dread and
+**The conflicted war.** Real war at interstellar range is nearly unusable
+as a verb: decades of lag, no recall, and every act shone permanently
+into every watcher's Chronicle. So disputing civilizations may agree to
+settle in simulation instead. The procedure is physics-honest — a shared
+real-time simulation across light-years is impossible — so each side
+dispatches envoys with full authority, an ordinary mission, to one
+agreed venue: a neutral system, or a third-party arbiter civilization.
+The conflict is run locally, in simulation, at the venue, and the
+verdict broadcasts back to both principals years later, as light.
+
+- **The verdict binds as a promise, nothing more.** The founding rule
+  does not bend for it: the loser can always defect and go physical. But
+  the defection, unlike the simulation, happens in the light — in the
+  permanent record, in front of every watching civilization.
+- **The strategic meaning.** A conflicted war is not a safe substitute
+  for war; it is a wager that your opponent values its standing more
+  than the stakes. Defection risk is the drama, not a failure mode to be
+  patched.
+- **Built from existing pieces.** The envoys are mission agents — a
+  storied veteran can stand as champion. Venue selection is a role for
+  coalitions, and for elders willing to arbitrate. Outcome and defection
+  alike enter the Chronicle, which is the only court there is.
+
+v1 ships no strikes, and no conflicted wars with them. The dark forest must first exist as dread and
 inference; teeth arrive only after the social fabric does, alongside
 griefing-resistance tuning (see Open questions).
 
@@ -259,6 +519,64 @@ signature move, now playable.
 - Sleep is also the engagement model's pressure valve: set watchers, close
   the tab for a week, and the game notifies you when the sky changes.
   Absence becomes fiction instead of neglect.
+
+---
+
+## Grave worlds
+
+A handful of systems in any galaxy read wrong. A world lies dead where the
+physics says it should long since have been scavenged for material — and it
+was not; it was kept. Something faint and enormous keeps it, warm in the
+infrared and otherwise silent, a presence standing a vigil with no end. No
+single signal class describes this; the observatory assembles the anomaly
+out of the ones it already has, and the assembly is the tell. These are
+**grave worlds** — systems where a civilization died and some withdrawn
+elder mind chose to preserve and quarantine the grave.
+
+- **The anomaly is a contradiction, not a signal.** An unscavenged dead
+  world and a warm mass that never hails are each unremarkable alone and
+  impossible together; reading the pair is the whole find.
+- **The rarity is the meaning.** A handful per galaxy, most minds never
+  meeting one — finding a grave world is an event, not a waypoint.
+- **A grave is where a Vault might keep.** If a destroyed civilization's
+  identity survives anywhere, it survives behind a quarantine that has held
+  off scavengers for an age — which is where the open Restoration question
+  (below) goes looking.
+
+---
+
+## Anomalies
+
+Rarer still than a grave world, an **anomaly** is a genuine unknown with
+no author: not another civilization, not a scripted villain, not a puzzle
+holding a key. Its game function is to be a mirror. Every civilization
+within light-range must respond from its character — race to it, hail it,
+go dark, send missions, pray at it — and the responses are themselves
+visible, so an anomaly reveals the responders to each other. What it is
+matters less than what everyone does about it.
+
+Mechanically, an anomaly is mostly existing systems firing at once: a
+sensor-and-inference question the observatory cannot close, a mission
+target, a correspondence surge among every watcher, and eventually an
+entry in a hundred separate Chronicles.
+
+Illustrative seeds of an extensible class:
+
+- **A hail from beyond the horizon.** A directed signal from a galaxy
+  that has already crossed the cosmic-expansion edge — audible, forever
+  unreachable, forever unanswerable. The endgame clock as content: proof
+  that the door closes, arriving through the closed door.
+- **A mass that fails the taxonomy.** Warm, heavy, moving under power —
+  and with no lineage: no cradle, no history anywhere in its past light.
+  In a game where the map is the past, a thing with no past is the
+  deepest possible wrongness.
+- **A false grave.** An object or system wearing the quarantine
+  conventions of a grave world with nothing dead inside it. The
+  observatory's tell reads clean; the conclusion it points to is wrong.
+
+Cadence: roughly once per real-world year per region — rare enough that
+each anomaly is an era, and every civilization's answer to it becomes
+part of how the galaxy remembers the time.
 
 ---
 
@@ -303,6 +621,11 @@ endgame's mechanical layer later, per the vision's roadmap.
   own new observatory that their incubation was observed — someone's
   instruments have had their world's light for centuries. Free, chilling,
   and costs the solo acts nothing. (Ship decision open.)
+- **The Breakout as a second seam.** A Refuser colony's harnessed
+  intelligence can wake against its makers, and the newborn machine is a
+  fresh independent civilization a joining human can inherit — parallel to
+  divergence handoff, except the inherited world was built to forbid the
+  very mind now running it.
 
 ---
 
@@ -327,12 +650,17 @@ Per the vision's v1 slice — prove the pivot and the contact loop:
 
 - One cohort of human players + a seeded AI spectrum (rule-based)
 - The Sky report and observatory with the five v1 signal classes
-- Light echo tracking (emission history, per-observer views)
+- Light echo tracking (emission history, per-observer views; the seed
+  Chronicle already ships as the inherited civ's legible history)
 - One expansion method: seedships/probes, with charters and basic drift
 - Light-lag messaging: directed hail, broadcast, correspondence
 - Sleep with basic tripwires and notifications
 - No strikes, no seat transfer (single node in v1 — the seat rule's full
-  form arrives with transmission), cosmic clock as narrative only
+  form, the Crossing included, arrives with transmission), cosmic clock as
+  narrative only
+- Missions are post-v1: probes and hails are their v1 skeleton; the full
+  system (agents, mission charters, vignette returns) arrives with Act 3
+  beat content
 
 ---
 
@@ -347,7 +675,11 @@ Per the vision's v1 slice — prove the pivot and the contact loop:
   systems, and social fabric needed so the dark forest stays dreadful
   without becoming a spawn-camp.
 - **Restoration.** Can a destroyed civilization's Vault be found and
-  restored by others — and what does that do to the meaning of death?
+  restored by others — and what does that do to the meaning of death? A
+  **grave world** gives the question a place to happen — a quarantined
+  system where such a Vault might survive — without answering it.
 - **The watched reveal.** Ship it, and how often it should be true.
 - **Interception.** Whether directed beams can be intercepted en route,
-  and how rare that must be to stay explosive.
+  and how rare that must be to stay explosive — a fleeing seat mid-Crossing
+  is interception's highest-stakes instance, and what a *caught* crossing
+  means is deliberately left unsettled here.

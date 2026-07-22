@@ -141,7 +141,9 @@ the scale where visibility is lethal.
 ### The mesostructure toolkit — projects, mapped
 
 act2-design.md split projects into **bright** (energy), **dark**
-(integration), and **instruments**. theory.pdf's *Technology* section is the
+(integration), and **instruments**. The full game-side catalog — every
+family, with physics, costs, and sky signatures — is
+[technology.md](./technology.md); theory.pdf's *Technology* section is the
 Act 3 catalog of the dark and instrument families — the compact, quiet
 toolkit that is *deliberately unlike the bright megastructures of most
 science fiction* (vision.md, § Source framework). Each maps to a project or
@@ -264,6 +266,18 @@ space**, never a fixed roster — the same discipline act2-minds.md keeps.
   A Tide is the civilization most likely to meet *itself*, diverged into a
   rival, and least likely to recognize the kinship.
 
+#### The Refusers — *the mind that never woke*
+- **From:** no archetype — the one region outside the ten: a civilization
+  that reached the threshold and declined it, staying biological and running
+  harnessed intelligence as a tool. No waking mind, so no dial sheet.
+- **In the sky:** the inverse of the Dark Node — bright and legible by
+  constitution, and it stays that way, because its charter forbids the
+  integration that would let it go quiet.
+- **Divergence:** generation-ship wavefronts drifting like any colony; its
+  distinct hazard is internal — the **Breakout**, a colony's harness waking
+  into the mind its parent refused, a standing source of newborn machine
+  civilizations.
+
 ### The dark civilizations (integration ladder, Signature floored)
 
 #### The Monument-grown — *the Dark Node in being*
@@ -316,9 +330,9 @@ space**, never a fixed roster — the same discipline act2-minds.md keeps.
   correspondent for a nervous newcomer — once its several selves settle on
   what to say.
 
-### The recursion — young worlds and elders
+### The recursion — young worlds, elders, and grave worlds
 
-Two regions are defined by **age**, not character (vision.md, *Seed the whole
+Three regions are defined by **age**, not character (vision.md, *Seed the whole
 spectrum*):
 
 - **The young world** — a **biosignature** in the sky: someone's Act 1,
@@ -329,6 +343,11 @@ spectrum*):
 - **The elder** — an ancient superintelligence far beyond you, likely a deep
   Dark Node or asleep, its bright years a shell of old light still arriving.
   Contact with an elder is contact with a past you cannot catch up to.
+- **The grave world** — a system a civilization died in, kept and
+  quarantined by a withdrawn elder standing watch. It reads as an anomaly,
+  not a class: a dead world left unscavenged, held by something faint and
+  enormous on a vigil with no end (act3-design.md, *Grave worlds*). A handful
+  per galaxy, and where a destroyed civilization's Vault might survive.
 
 ### Master table
 
@@ -342,6 +361,7 @@ Custodian↔Instrumental).
 |---|---|---|---|---|---|
 | **Beacon-grown** | Beacon · Shepherd | Energy (bright) | swarm light, star-lifting; loud | relativistic ships / seedships | hails & broadcasts; uplifts |
 | **Tide-grown** | Tide | Energy (bright) | replicator wavefronts; sprawl | seedships + self-transmission (cheap) | exploits / consumes |
+| **Refusers** | *(no archetype; refused the threshold)* | Energy (bright), by charter | bright, loud, legible; never dark | seedships / generation ships only | announced; a polity, not a person |
 | **Monument-grown** | Monument · Herald | Integration H3–H4 | warm mass, Dark Node | seedships; rare transmission | vigil; rarely hails |
 | **Cloister-grown** | Cloister · Engine | Integration H4 (→ asleep) | near-invisible; sleeper | resists transmission (One Mind) | stays dark |
 | **Herald / Beam-sender** | Herald | Integration, Signature-positive | dark + a directed beam | transmission to known endpoints | broadcasts a message, then silence |
@@ -349,12 +369,15 @@ Custodian↔Instrumental).
 | **Congress-grown** | Congress · composite | mixed | plural, mid-Signature | transmission (Chorus) | corresponds readily |
 | **Young world** | *(pre-singularity)* | — (biosignature) | living world, no tech | none yet | cannot; is observed |
 | **Elder** | *(ancient any)* | H4–H5 or bright-relic | deep Dark Node; old light | — | may never answer |
+| **Grave world** | *(an elder's vigil)* | Integration H4–H5 (elder) | dead world kept; warm watcher | — | quarantines; does not answer |
 
 **What the spread says.** It leans dark and quiet — the same lean
 act2-minds.md's character spread already showed, now confirmed at galaxy
 scale. Most mature civilizations are Dark Nodes, sleepers, or silent
-diasporas; the loud ones (Beacon, Tide) are the minority and the ones
-everyone detects first. This *is* the vision's silence guardrail arriving on
+diasporas; the loud ones — Beacon, Tide, and the Refusers who never woke a
+mind — are the minority and the ones everyone detects first; the Refusers
+thicken that loud minority without tipping the galaxy's dark lean, so the
+silence guardrail still passes. This *is* the vision's silence guardrail arriving on
 its own (vision.md, *Visibility is a consistency check, not a lever*): with
 no thumb on the scale, the galaxy this catalog produces is a Teeming Dark —
 full of life, quiet to anyone still listening for radio. The design keeps
@@ -412,7 +435,8 @@ onboarding engine*), and it closes the loop the whole chain has been drawing:
 - **Diverged colonies become new players.** When an AI-run fork drifts past
   independence (act3-design.md, *Charters and the Ledger*), a joining human
   can take it over, inheriting a diverged descendant *with history and
-  grudges* and the parent's charter as founding myth. New players do not
+  grudges* and the parent's charter as founding myth — the Chronicle its
+  family history, back to first life. New players do not
   spawn on empty rocks; they inherit somebody's children.
 - **Young worlds are the recursion reaching bottom.** Some quiet sky is not
   hiding but *young* — pre-singularity, still in its own Act 1. AI-run young
@@ -473,7 +497,9 @@ machinery act3-design.md already scopes for v1. The discipline (vision.md,
   galaxy* (vision.md, *Seed the whole spectrum*). Its inaccessibility is the
   point; the open question is how much an elder can *do* to a younger player
   versus merely *be present* — which is the conflict layer's griefing-
-  resistance question (act3-design.md) seen from the top of the age axis.
+  resistance question (act3-design.md) seen from the top of the age axis. The
+  grave-world vigil is one answer already in hand: an elder wholly present and
+  doing nothing but keep, a power that griefs no one.
 - **Performing a false character interacts with divergence.** A civilization
   that performs a mask for centuries (the light echo section) is also
   drifting under the four pressures. Open: does sustained performance *drag*
@@ -490,7 +516,10 @@ machinery act3-design.md already scopes for v1. The discipline (vision.md,
 - **Data shape (for when this leaves Markdown).** Each region already carries
   the fields a generator needs: a seed archetype (→ a default dial vector
   from act2-minds.md), a ladder lean and Holosian stage, a Signature/visibility
-  band, a travel-menu preference, and a contact posture. Together with the
+  band, a travel-menu preference, and a contact posture. The Refuser region
+  is the one seed path with no archetype behind it — a refusal flag and a
+  biological character in place of a dial vector, the single exception the
+  generator special-cases. Together with the
   drift pressures above, this is the seed for a typed `Civilization` record
   and an AI-behavior table — the Act 3 counterpart to the `Cradle`,
   `Lineage`, and waking-mind records the earlier catalogs specified, and the

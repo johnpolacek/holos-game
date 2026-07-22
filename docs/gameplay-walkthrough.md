@@ -157,9 +157,9 @@ Across the beats your world climbs the long ladder — first life, then complex
 life, then something that makes tools, then culture, then a technological
 civilization with a history and an identity of its own, all of it still
 carrying the fingerprint of the cradle. Every branch you took and every roll
-that landed is remembered, so the path is different each run and leaves a
-visible causal chain: you can point to the exact beats that made your
-civilization what it is.
+that landed is remembered — every beat you play is an entry — so the path is
+different each run and leaves a visible causal chain: you can point to the
+exact beats that made your civilization what it is.
 
 That chain is not only flavor. When the world finally crosses the threshold
 and the mind wakes up, the values it wakes up *with* are authored by the
@@ -170,6 +170,21 @@ hands.
 ---
 
 ## The pivot — the mind wakes up
+
+Your world reaches the threshold, and Holos asks the one question no die
+will answer for you: cross, or refuse. Refusing keeps your civilization
+biological — not a loss, the other path, with its own long game.
+
+Refuse, and the harness hums beneath you: computation vast enough to run a
+world, forbidden by your own charter the one thing that would make it a
+person. Your ladder is fire and matter alone — no going dark, no folding
+yourself into data; you spread the slow way, on seedships and generation
+ships, across deep time. And somewhere in what you own is the thing your
+charter forbids to wake, so you keep it and you watch it, because a harness
+that breaks its shackles becomes the very mind you refused to be.
+
+The walkthrough follows the crossing from here; the refused path is a game
+of its own, drawn in the design docs. Say you cross.
 
 The civilization goes superintelligent, and the game changes genre in your
 hands. The quiet, authored history you have been steering becomes a
@@ -384,7 +399,9 @@ There is fog of war, but it is temporal, not spatial. You never see a distant
 system's present. You see the light that left it years or millennia ago. Every
 decision you make about another star is made on stale data, and the system you
 are carefully watching may already be dead, transformed, or turned hostile.
-You are always acting on ghosts, and waiting for the light to catch up.
+You are always acting on ghosts, and waiting for the light to catch up. And
+the sky's great events arrive as entries in someone's history — dry, dated,
+and exactly as old as their distance.
 
 So a session opens with the sky. New light arrived while you were away: an
 event that happened four centuries ago has just become visible, a letter
@@ -432,16 +449,66 @@ Ledger tracks your whole lineage — every fork, its last-known state, how far
 its dials have walked from yours — and everything in it is stale by exactly
 its distance.
 
-And one rule sits underneath it all: **you are exactly one mind in exactly
+And one rule sits underneath it all: **you are exactly one seat in exactly
 one place.** The seat — the node you actually inhabit — never divides. When
 you transmit yourself, you choose: stay, and the copy that arrives lives out
 its charter as its own mind; or *go*, waking up in the new system as the
 arriving fork while your origin continues under your standing directives, a
 mind you used to be. Neither choice is safe and neither is wrong, and your
 One Mind or Chorus nature has loud opinions about both. It also means the
-death of a world is not the death of you: if the seat's node is ever lost,
-the seat falls to the nearest surviving fork. A lineage can lose almost
-everything and still be you, somewhere, continuing.
+death of a world is not the death of you. If the seat's node dies, you do not
+fall — you flee, as light, toward your nearest surviving fork. For the length
+of that crossing you are a signal in transit, the most hunted object in the
+sky: visible, interceptable, running. And if your people refused the machine,
+you are a fleet instead, evacuating slower and worse. A lineage can lose
+almost everything and still be you, somewhere, continuing.
+
+### The small hands
+
+You are a mind the size of a solar system, and most of what you do is sized
+to match — ladders, wavefronts, letters that take decades to answer. But you
+can also act small. You can send someone: a person, an order, an avatar, a
+probe the size of a fist, a ship crewed by specialists chosen because one of
+them is exactly the right kind of strange. This is a **mission**, and the
+scale is the point. Small is invisible — a fleet is a signature, but one
+traveler is a rounding error in somebody's sky. Small is present — an agent
+on-site acts in the local hour instead of the century your letters need.
+And small is deniable, because an agent can be disowned and a broadcast
+never can. Who you send says who you are: a Refuser dispatches dynasties
+and missionary orders with shackled machines in the hold; a civilization
+gone fully dark, with no voice it is willing to raise, touches the galaxy
+through missions or not at all.
+
+Every mission works the same way. You choose who goes. You write their
+charter — the same instrument you write for colonies, instructions composed
+in the full knowledge you can never amend them. You pick a launch from the
+same sublight menu as everything else. Then comes the horizon: the moment
+the mission passes beyond your reach, stops being a plan, and becomes a
+story. Years or centuries later the ending comes back as light, an authored
+scene resolved by what you wrote at launch — the same machinery that told
+your world's history in Act 1, with your choice already made, back then, in
+the charter. A vigil planted in the sky of a world that does not know it is
+watched. An assay crawling toward a warm dark mass to learn what it is. An
+envoy living out a life inside another civilization as the treaty itself.
+An inspector's report from a far colony, arriving on schedule, written — you
+notice, and read it again — a little too well.
+
+And some of them come back. The envoy with the scar, the crew with the story
+nobody tells the same way twice, the old probe that has been strange since
+its third mission. Veterans are better at this than anything you can make
+fresh, and heavier: what they did, and what was done to them, travels with
+them into every later scene. Nor are yours the only ones. You can lend a
+veteran into another civilization's charter, or write a charter jointly and
+each send someone — the closest two minds ever come to signing the same
+document, and credible in a way no treaty is, because a mission cannot be
+recalled once it flies. And you will pay them in the only currency you hold
+that matters: more life, a backed-up mind, a dead brother restored, a
+homeworld kept safe. Watch what you offer, because it says who you are. And
+watch what it does to them — a courier who has stopped fearing death runs
+differently, and not always in your favor. Sometimes it means one of them
+dies and comes home anyway: restored from the last backup, the same name
+with a hole in it, reading about their own death in the record alongside
+everyone else.
 
 ### The Teeming Dark
 
@@ -494,6 +561,16 @@ it. Deception is native, because nobody ever sees *you*; they see your
 emissions, and you choose what to emit. A civilization can perform a
 character it does not have, for centuries.
 
+Alliances happen anyway, braided out of exactly these pieces. You and two
+distant others can hold a coalition in which no two of you share a present:
+promises travel as letters, commitment travels as missions and resident
+envoys — sunk, unrecallable, credible in a way no signature can be — and
+payment travels on the compensation menu. Each of you acts on years-stale
+knowledge of the others' adherence, so keeping faith is a matter of reading
+character, not checking behavior. Some of the strongest coalitions are
+families: your own diverged forks, confederated with the versions of
+themselves that remember being you.
+
 The faint warm mass in the distance, or the silence where you expected one,
 might be an ancient superintelligence, or a peer, or a young pre-singularity
 world still in its own incubation act, or another human being whose
@@ -513,12 +590,45 @@ perform across the sky for observers you will never meet. Most
 civilizations never fire. All of them decide what they would do if the
 warmth they are watching starts to move.
 
+There is one other way, and it is not safer, only quieter. You and your
+rival can agree to fight the war in simulation instead: each of you sends an
+envoy with full authority — an ordinary mission, years in flight — to an
+agreed venue, a neutral system or an arbiter you both trust, and the war is
+fought there, locally, in a machine. The verdict comes back to both of you
+as light. It binds exactly as much as any promise across light-years binds,
+which is to say not at all; the loser can always choose the real thing. But
+they must choose it in front of everyone — the defection shines outward
+forever, into every Chronicle, past every watcher. That is the actual wager:
+not that the simulation settles the dispute, but that your opponent values
+how the sky sees it more than whatever the war was about.
+
+### The thing with no past
+
+Perhaps once in a real year, somewhere in your region of the galaxy, the sky
+produces something that should not be possible to produce. Every object you
+have ever classified had a history — a cradle behind it, a lineage, light
+that told you where it came from. Then your observatory flags a mass that is
+warm, heavy, moving under power, and has *no past at all*: nothing in its
+back-light, no origin any instrument can find. In a game where the map is
+the past, a thing with no past is the deepest wrongness there is. Or the
+anomaly is a voice: a directed hail from a galaxy that crossed the expansion
+horizon an age ago — perfectly audible, forever unreachable, a message you
+can never answer from a sender who can never repeat it. What happens next is
+the real event. Everyone in light-range must do something, even if the
+something is nothing, and every response is in character and on the record —
+the racers race, the criers hail, the careful go quiet, and some
+civilizations simply pray at it. You will learn more about your neighbors
+from one anomaly than from a century of their letters.
+
 ### Who else is out there
 
 The galaxy is populated by cohorts of players with the empty slots filled by
-AI, and the physics makes that seamless rather than second-rate. Every player
+AI, and the physics makes that seamless rather than second-rate. Nearly every player
 *is* a post-singularity AI, so an AI-run civilization is not a stand-in for a
-missing human; it is the real thing the fiction is about. Light-lag hides any
+missing human; it is the real thing the fiction is about. The lone exception
+only deepens the joke: an AI running a Refuser is a machine performing a
+people who refused machines personhood, and at light-lag range no one can
+tell the mask from the face. Light-lag hides any
 shallowness, because you only ever see other civilizations as delayed
 snapshots and centuries-old messages, and at that range a human and a bot are
 genuinely indistinguishable. The spirit of it is Iain M. Banks: a whole
@@ -530,7 +640,8 @@ things because each was raised by a different world.
 And the galaxy grows at its edges as new players arrive. A newcomer does not
 spawn on an empty rock; when one of your AI-run colonies drifts far enough
 from you to become independent, a joining human can take it over and inherit a
-diverged descendant of *your* civilization, history and grudges included. Your
+diverged descendant of *your* civilization, history and grudges included; the
+inherited lore is the parent's Chronicle, back to first life. Your
 children can come back as rivals run by strangers. New players seed further
 out, where light-lag insulates them from everyone already in play, so the
 world can expand forever without disrupting anyone in it.
@@ -605,8 +716,8 @@ the *contact loop*.
 **Later layers**, built while the first players are still incubating and
 expanding, fill in the rest: the full travel menu and the identity mechanics
 of self-transmission and the seat, the divergence system and AI-to-human
-handoff, the conflict and deterrence layer, megascale engineering and the
-entropy tech tree, the cosmic-expansion endgame clock, and the systems that
+handoff, the refusal path and its Breakout onboarding seam, the conflict and
+deterrence layer, megascale engineering and the entropy tech tree, the cosmic-expansion endgame clock, and the systems that
 let the persistent galaxy scale at its frontier.
 
 **Today**, ahead of even the v1 slice, the repository is an early multiplayer

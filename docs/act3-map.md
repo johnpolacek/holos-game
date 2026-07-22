@@ -115,7 +115,8 @@ Letters, probes, and seedships render as slow bright points on long
 arcs — the game's real clocks made spatial. A letter to a correspondent
 is a mote crawling a hairline; a seedship is a decade-long ember; an
 incoming directed beam, when detected, is the most electric object on
-the map. Objects beyond your light's reach are shown as **dead
+the map — unless what is crossing is a fleeing seat. Objects beyond your
+light's reach are shown as **dead
 reckoning**: an elongating fuzz of where they should be by now, because
 even your own ships, once distant, are beliefs.
 

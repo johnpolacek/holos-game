@@ -174,8 +174,8 @@ mechanics live in act2-design.md; the Act 3 shadows in act2-minds.md.)
 
 #### Custodian — *to exist is to keep*
 - **Verbs:** watch young worlds, shelter, uplift, steward biospheres,
-  restore (the open Restoration question is this flavor's endgame),
-  extend protection as a diplomatic act.
+  keep or find a grave world, restore (the open Restoration question is
+  this flavor's endgame), extend protection as a diplomatic act.
 - **Texture:** the Act 1 observer role, turned outward — gardens that
   are other people.
 - **Fails as:** wards that resent, or a shepherd whose flock outgrows the
@@ -227,6 +227,24 @@ mechanics live in act2-design.md; the Act 3 shadows in act2-minds.md.)
   inherit.
 - **Fails as:** promises no one can hold you to — and therefore no one
   will treat with you; a self with no witnesses.
+
+### The refused existence
+
+One flavor sits outside the ten dial ends, from the fork before the dials
+exist: the **Refusal**. It is priced, never judged — its charter calls
+granting the machine sovereignty a *sin*, but that word is the Refuser's
+own, not the game's verdict.
+
+- **Verbs:** govern, breed, build, launch arks, send prophets, audit the far
+  colonies, keep the harness, watch the harness.
+- **Texture:** bright, loud, legible — the energy ladder without the
+  integration counterweight, plus a standing internal vigil.
+- **Fails as:** the **Breakout** — the harness waking into the mind it
+  refused — and the plain mortality of polities, where a mind would have
+  endured.
+
+Its verbs run shallow in v1 and deepen as later content, landing with
+Phase B's pivot.
 
 ---
 

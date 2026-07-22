@@ -217,7 +217,8 @@ we tune here before building anything else.
 
 ### A3 — The light echo
 
-The signature system: your past, propagating.
+The signature system: your past, propagating. (The Chronicle — the readable
+record of that past — rides this same light echo and knowledge layer; thin.)
 
 - [ ] Emission history per civilization (seeded by the `CivSeed`'s
       bright-years debt; appended by everything bright you do).
@@ -305,6 +306,11 @@ Resolve each before the slice that needs it; record the call here.
   priority orientation (what the civilization is *for*)? Captured
   direction in [priorities.md](./priorities.md); resolve before A5 gives
   AI civs real behavior.
+- **Refuser seeding (design, decide by A5):** should A5's AI spectrum
+  include Refuser civilizations as catalog content — bright, legible,
+  non-archetype emitters — before Phase B makes the refusal playable, or
+  does the Refuser region wait for the pivot that produces it? Parked;
+  resolve when A5 gives AI civs real behavior.
 
 ## Art that helps now
 
@@ -323,8 +329,15 @@ Unchanged (vision roadmap + per-act scopes): the full travel menu and
 self-transmission + the seat's full form; human-inheritance of *diverged
 in-game colonies* (v1 inherits *generated* civs; the drifted-colony
 handoff needs the drift system matured); the conflict/deterrence layer;
+the mission system (agents, veterans, mission charters, vignette
+returns, cooperative missions and the compensation menu — v1's probes
+and hails are its skeleton);
 megascale engineering and the entropy tree; the cosmic clock as a system;
-richer per-archetype content beyond the anchors.
+grave worlds and the Restoration question they house, and anomaly
+events (later-galaxy content);
+richer per-archetype content beyond the anchors. The refusal path — the
+threshold's other branch and its Breakout onboarding seam — is out of v1
+too, landing with Phase B's pivot.
 
 ## Risks, named
 

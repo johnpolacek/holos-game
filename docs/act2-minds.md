@@ -29,6 +29,13 @@ It exists because the pivot needs a target. act1-cradles.md sets each dial's
 resolve into a legible identity — the thing the player sees on the character
 sheet and then plays for the rest of Act 2.
 
+One boundary before the catalog begins: this document maps only the
+crossing. A civilization that takes the other branch at the threshold — the
+Refusal — wakes no mind at all, so it has no character sheet here; it runs
+harnessed intelligence as a tool and keeps a biological character instead.
+Its Act 2 shape is in act2-design.md's *The refused ascent*, its place in
+the galaxy in act3-civilizations.md's Refuser region.
+
 ---
 
 ## The continuity chain
