@@ -322,7 +322,41 @@ Falling Outside The Normal
 Plus **any actual Banks ship name**, including the witty ones, and any
 near-variant (N-4).
 
-**Allowlist:** `docs/vision.md`'s analytical Banks citations; this guide
+### Second source: Vinge (*A Deepness in the Sky*)
+
+The same rule governs Vernor Vinge, adopted as a second touchstone in
+[inspiration-deepness.md](./inspiration-deepness.md): craft borrowed,
+coinages never. One term per line, regex-friendly; the *concept* ban and
+N-4 near-variant discipline apply as above, and coinages from the sibling
+Zones novels are equally banned.
+
+```
+Qeng Ho
+\bFocus(ed|ing)?\b     # the mind-slavery sense; ordinary focus/focused OK
+\bziphead(s)?\b
+\bEmergent(s)?\b       # the faction sense; lowercase emergent adjective OK
+\bOnOff\b
+\blocalizer(s)?\b
+\bmindrot\b
+Pham Nuwen|\bPham\b
+Sura Vinh
+Ezr Vinh
+Tomas Nau
+Ritser Brughel
+Anne Reynolt
+Trixia Bonsol
+Sherkaner|Underhill
+Arachna
+Brisgo Gap
+Namqem
+\bthe Deepness\b       # the title coinage as an in-world name; see N-4
+programmer.?archaeolog
+Zones? of Thought
+Slow Zone
+```
+
+**Allowlist:** `docs/vision.md`'s analytical Banks citations;
+`docs/inspiration-deepness.md`'s analytical Vinge citations; this guide
 itself; innocent senses disambiguated in the comments above.
 
 ---
