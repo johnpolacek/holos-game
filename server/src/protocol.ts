@@ -79,7 +79,7 @@ export type { DialAxisId, DialSetting, DialSheet, DialAxis } from "./dials";
 // The name lexicon is presentational vocabulary in the dials.ts mold (its
 // module imports nothing at runtime): the ceremony's suggestion chips
 // compose from the same word lists the seed generator uses.
-export { NAME_HEADS, NAME_TAILS } from "./names";
+export { NAME_HEADS, NAME_TAILS, NAME_PHRASES } from "./names";
 export type { CivSeed, EmissionEpoch } from "./civseed";
 export type { ObservedSignal, SignalClass } from "./knowledge";
 export type { Star, SpectralClass, Vec3Ly } from "./galaxy";

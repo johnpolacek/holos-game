@@ -7,6 +7,7 @@ import {
   DIAL_AXES,
   MAX_NAME_LEN,
   NAME_HEADS,
+  NAME_PHRASES,
   NAME_TAILS,
   validateName,
   type CivCard,
@@ -254,9 +255,18 @@ function buildCard(card: CivCard): CardState {
   chipsRow.className = "name-chips";
   const composeSuggestion = (taken: ReadonlySet<string>): string => {
     for (let attempt = 0; attempt < 10; attempt++) {
-      const head = NAME_HEADS[Math.floor(Math.random() * NAME_HEADS.length)] ?? "Dawn";
-      const tail = NAME_TAILS[Math.floor(Math.random() * NAME_TAILS.length)] ?? "keepers";
-      const name = `${head}${tail}`;
+      // Two flavors in the pool: ~35% a phrase name, otherwise a head+tail
+      // compound. Mirrors the server generator's dual pool.
+      let name: string;
+      if (Math.random() < 0.35) {
+        name =
+          NAME_PHRASES[Math.floor(Math.random() * NAME_PHRASES.length)] ??
+          "A Rounding Error";
+      } else {
+        const head = NAME_HEADS[Math.floor(Math.random() * NAME_HEADS.length)] ?? "Dawn";
+        const tail = NAME_TAILS[Math.floor(Math.random() * NAME_TAILS.length)] ?? "keepers";
+        name = `${head}${tail}`;
+      }
       if (!taken.has(name)) return name;
     }
     return `${NAME_HEADS[0] ?? "Stone"}${NAME_TAILS[0] ?? "binders"}`;

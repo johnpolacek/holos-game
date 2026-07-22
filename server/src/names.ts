@@ -95,6 +95,73 @@ export const NAME_TAILS = [
   "hedgers", "warreners", "foresters", "verderers", "stewards",
 ] as const;
 
+// A second naming flavor that joins the compound pool: witty phrase-length
+// proper names in the *pattern* of Culture ship-naming — a self-contained
+// quip as a name — with zero borrowed names (prose-style.md §5). Every entry
+// passes N-1..N-5: ≤ MAX_NAME_LEN (24) chars including spaces, Title Case,
+// letters/spaces/comma/apostrophe only, original in words and cadence, reads
+// as a name and not an error string. Registers are spread deliberately:
+// polite menace, bureaucratic deadpan, deep-time shrug, understatement,
+// committee humor, cheerful appetite, self-deprecation.
+export const NAME_PHRASES = [
+  // Polite menace (M7)
+  "Politely Enormous", "Do Sit Down", "After You, Truly",
+  "No Sudden Movements", "Do Watch Your Step", "We Insist, Gently",
+  "Terribly Sorry", "As You Wish, Of Course", "Kindly Step Aside",
+  "We'd Rather You Didn't",
+  // Bureaucratic deadpan (Engine)
+  "Terms And Conditions", "Pending Review", "Noted And Filed",
+  "See Attached", "Per My Last Signal", "Awaiting Your Reply",
+  "Filed Under Later", "Subject To Change", "Escalated Upward",
+  "In Triplicate", "Duly Recorded", "Approved In Principle",
+  "Forms In Duplicate",
+  // Deep-time shrug (M9)
+  "A Rounding Error", "Give It An Age", "Eventually, Yes",
+  "The Long Way Round", "Any Century Now", "Barely A Moment",
+  "Give Or Take An Age", "Roughly Forever", "In A Geological Sense",
+  "Later, Then", "A Brief Ten Millennia", "Not Yet, Not Nearly",
+  // Understatement (M2)
+  "Not The Loud Kind", "Present Tense Only", "Somewhat Inevitable",
+  "Slightly Overqualified", "Fairly Sure", "A Bit Much, Perhaps",
+  "Quietly Effective", "Somewhat Larger", "A Touch Excessive",
+  // Committee humor (Congress)
+  "Ask Me Again Later", "Tabled For Now", "One Voice Against",
+  "Motion Carried", "Under Advisement", "Some Of Us Object",
+  "Provisionally, Yes", "We Shall Deliberate", "Vote Still Pending",
+  "A Split Decision", "One Abstention", "Quorum Achieved",
+  // Cheerful appetite (Tide)
+  "Cheaper To Rebuild", "All Of It, Ideally", "Room For More",
+  "Still Peckish", "Second Helping", "More, If You Please",
+  "A Growing Appetite", "Everything, Eventually", "Bring The Rest",
+  "Hungry, Frankly",
+  // Self-deprecation (Phoenix)
+  "We'll See About That", "Better Than Before", "New, Mostly",
+  "Wiser Now, Allegedly", "Regret Nothing, Nearly", "Yesterday's Idea",
+  "Learning As We Go", "Mostly Rebuilt", "Nobody's Fault, Really",
+  // Beacon
+  "Louder Than Necessary", "Yes, That Was Us", "Hard To Miss",
+  "Someone Had To", "Unmistakably Present", "The Bright One",
+  "Impossible To Ignore",
+  // Monument
+  "Kept, All Of It", "Nothing Discarded", "We Keep The Rest",
+  "Still On File", "Nothing Thrown Away", "Every Last Detail",
+  // Herald
+  "Bright, Regrettably", "Loud And Sealed", "Shouting Quietly",
+  "Open, Yet Not", "Both, Somehow",
+  // Cloister
+  "Still Doing The Math", "Not Hiding, Exactly", "The Door Stays Shut",
+  "No Visitors, Thanks", "Sealed, On Purpose", "Working On It",
+  // Shepherd
+  "You Never Saw Us", "For Your Own Good", "Watching, Kindly",
+  "Best Left Unseen",
+  // Sowing
+  "Everywhere, Discreetly", "Best Not Say Where", "Rather Not Say",
+  "More Of Us, Elsewhere",
+] as const;
+
 export function generateCivName(rng: Rng): string {
+  // Two flavors share one pool: with probability 0.2 a self-contained phrase
+  // name, otherwise a head+tail compound. Deterministic by seed via rng.
+  if (rng.chance(0.2)) return rng.pick(NAME_PHRASES);
   return `${rng.pick(NAME_HEADS)}${rng.pick(NAME_TAILS)}`;
 }
