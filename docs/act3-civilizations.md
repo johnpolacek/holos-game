@@ -242,20 +242,21 @@ space**, never a fixed roster — the same discipline act2-minds.md keeps.
 
 #### The Beacon-grown — *loud benevolence, at scale*
 - **From:** the Beacon (act2-minds.md), Shepherd, some Tides.
-- **In the sky:** the easiest thing to see — swarm-lit, star-lifting,
-  broadcasting. Its light echo announces it for centuries before you could
-  reach it.
+- **In the sky:** the easiest thing in the sky to see, and untroubled by
+  the fact — swarm-lit, star-lifting, broadcasting. Its light echo announces
+  it for centuries before you could reach it.
 - **Contact posture:** hails first, broadcasts freely; enters the dark
   forest *announced*, for better and worse. A Custodian Beacon that finds a
-  young world watches over or uplifts it; it is the galaxy's would-be
-  gardener.
+  young world watches over or uplifts it — the galaxy's would-be gardener,
+  seldom pausing to ask whether the garden wanted tending.
 - **Divergence:** spreads and stays visible; its forks are loud too, so a
-  Beacon lineage lights up a whole region.
+  Beacon lineage does not so much settle a region as illuminate it.
 
 #### The Tide-grown — *the hungry diaspora*
 - **From:** the Tide, some Beacons, the Sowing.
-- **In the sky:** replicator wavefronts; seedships in every direction;
-  everything is material. Reads as expansion without a center.
+- **In the sky:** replicator wavefronts; seedships in every direction; to a
+  Tide, everything in frame is material — the star included. Reads as
+  expansion without a center.
 - **Contact posture:** Instrumental — a probe that finds someone *exploits
   or consumes*. The dark forest's classic predator, and the reason the
   forest has teeth (act3-design.md, *Conflict and deterrence*).
@@ -312,7 +313,8 @@ space**, never a fixed roster — the same discipline act2-minds.md keeps.
 - **In the sky:** a plurality of negotiated selves; enters contact
   *expecting* other minds and knowing how to treat with them. The
   contact-friendliest civilization in the galaxy, and the safest first
-  correspondent for a nervous newcomer.
+  correspondent for a nervous newcomer — once its several selves settle on
+  what to say.
 
 ### The recursion — young worlds and elders
 
