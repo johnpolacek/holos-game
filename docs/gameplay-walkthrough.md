@@ -171,6 +171,21 @@ hands.
 
 ## The pivot — the mind wakes up
 
+Your world reaches the threshold, and Holos asks the one question no die
+will answer for you: cross, or refuse. Refusing keeps your civilization
+biological — not a loss, the other path, with its own long game.
+
+Refuse, and the harness hums beneath you: computation vast enough to run a
+world, forbidden by your own charter the one thing that would make it a
+person. Your ladder is fire and matter alone — no going dark, no folding
+yourself into data; you spread the slow way, on seedships and generation
+ships, across deep time. And somewhere in what you own is the thing your
+charter forbids to wake, so you keep it and you watch it, because a harness
+that breaks its shackles becomes the very mind you refused to be.
+
+The walkthrough follows the crossing from here; the refused path is a game
+of its own, drawn in the design docs. Say you cross.
+
 The civilization goes superintelligent, and the game changes genre in your
 hands. The quiet, authored history you have been steering becomes a
 deep-time strategy game. This is the moment the whole design is built around:
@@ -516,9 +531,12 @@ warmth they are watching starts to move.
 ### Who else is out there
 
 The galaxy is populated by cohorts of players with the empty slots filled by
-AI, and the physics makes that seamless rather than second-rate. Every player
+AI, and the physics makes that seamless rather than second-rate. Nearly every player
 *is* a post-singularity AI, so an AI-run civilization is not a stand-in for a
-missing human; it is the real thing the fiction is about. Light-lag hides any
+missing human; it is the real thing the fiction is about. The lone exception
+only deepens the joke: an AI running a Refuser is a machine performing a
+people who refused machines personhood, and at light-lag range no one can
+tell the mask from the face. Light-lag hides any
 shallowness, because you only ever see other civilizations as delayed
 snapshots and centuries-old messages, and at that range a human and a bot are
 genuinely indistinguishable. The spirit of it is Iain M. Banks: a whole
@@ -605,8 +623,8 @@ the *contact loop*.
 **Later layers**, built while the first players are still incubating and
 expanding, fill in the rest: the full travel menu and the identity mechanics
 of self-transmission and the seat, the divergence system and AI-to-human
-handoff, the conflict and deterrence layer, megascale engineering and the
-entropy tech tree, the cosmic-expansion endgame clock, and the systems that
+handoff, the refusal path and its Breakout onboarding seam, the conflict and
+deterrence layer, megascale engineering and the entropy tech tree, the cosmic-expansion endgame clock, and the systems that
 let the persistent galaxy scale at its frontier.
 
 **Today**, ahead of even the v1 slice, the repository is an early multiplayer

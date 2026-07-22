@@ -264,6 +264,18 @@ space**, never a fixed roster — the same discipline act2-minds.md keeps.
   A Tide is the civilization most likely to meet *itself*, diverged into a
   rival, and least likely to recognize the kinship.
 
+#### The Refusers — *the mind that never woke*
+- **From:** no archetype — the one region outside the ten: a civilization
+  that reached the threshold and declined it, staying biological and running
+  harnessed intelligence as a tool. No waking mind, so no dial sheet.
+- **In the sky:** the inverse of the Dark Node — bright and legible by
+  constitution, and it stays that way, because its charter forbids the
+  integration that would let it go quiet.
+- **Divergence:** generation-ship wavefronts drifting like any colony; its
+  distinct hazard is internal — the **Breakout**, a colony's harness waking
+  into the mind its parent refused, a standing source of newborn machine
+  civilizations.
+
 ### The dark civilizations (integration ladder, Signature floored)
 
 #### The Monument-grown — *the Dark Node in being*
@@ -342,6 +354,7 @@ Custodian↔Instrumental).
 |---|---|---|---|---|---|
 | **Beacon-grown** | Beacon · Shepherd | Energy (bright) | swarm light, star-lifting; loud | relativistic ships / seedships | hails & broadcasts; uplifts |
 | **Tide-grown** | Tide | Energy (bright) | replicator wavefronts; sprawl | seedships + self-transmission (cheap) | exploits / consumes |
+| **Refusers** | *(no archetype; refused the threshold)* | Energy (bright), by charter | bright, loud, legible; never dark | seedships / generation ships only | announced; a polity, not a person |
 | **Monument-grown** | Monument · Herald | Integration H3–H4 | warm mass, Dark Node | seedships; rare transmission | vigil; rarely hails |
 | **Cloister-grown** | Cloister · Engine | Integration H4 (→ asleep) | near-invisible; sleeper | resists transmission (One Mind) | stays dark |
 | **Herald / Beam-sender** | Herald | Integration, Signature-positive | dark + a directed beam | transmission to known endpoints | broadcasts a message, then silence |
@@ -353,8 +366,10 @@ Custodian↔Instrumental).
 **What the spread says.** It leans dark and quiet — the same lean
 act2-minds.md's character spread already showed, now confirmed at galaxy
 scale. Most mature civilizations are Dark Nodes, sleepers, or silent
-diasporas; the loud ones (Beacon, Tide) are the minority and the ones
-everyone detects first. This *is* the vision's silence guardrail arriving on
+diasporas; the loud ones — Beacon, Tide, and the Refusers who never woke a
+mind — are the minority and the ones everyone detects first; the Refusers
+thicken that loud minority without tipping the galaxy's dark lean, so the
+silence guardrail still passes. This *is* the vision's silence guardrail arriving on
 its own (vision.md, *Visibility is a consistency check, not a lever*): with
 no thumb on the scale, the galaxy this catalog produces is a Teeming Dark —
 full of life, quiet to anyone still listening for radio. The design keeps
@@ -490,7 +505,10 @@ machinery act3-design.md already scopes for v1. The discipline (vision.md,
 - **Data shape (for when this leaves Markdown).** Each region already carries
   the fields a generator needs: a seed archetype (→ a default dial vector
   from act2-minds.md), a ladder lean and Holosian stage, a Signature/visibility
-  band, a travel-menu preference, and a contact posture. Together with the
+  band, a travel-menu preference, and a contact posture. The Refuser region
+  is the one seed path with no archetype behind it — a refusal flag and a
+  biological character in place of a dial vector, the single exception the
+  generator special-cases. Together with the
   drift pressures above, this is the seed for a typed `Civilization` record
   and an AI-behavior table — the Act 3 counterpart to the `Cradle`,
   `Lineage`, and waking-mind records the earlier catalogs specified, and the

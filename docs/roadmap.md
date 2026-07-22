@@ -305,6 +305,11 @@ Resolve each before the slice that needs it; record the call here.
   priority orientation (what the civilization is *for*)? Captured
   direction in [priorities.md](./priorities.md); resolve before A5 gives
   AI civs real behavior.
+- **Refuser seeding (design, decide by A5):** should A5's AI spectrum
+  include Refuser civilizations as catalog content — bright, legible,
+  non-archetype emitters — before Phase B makes the refusal playable, or
+  does the Refuser region wait for the pivot that produces it? Parked;
+  resolve when A5 gives AI civs real behavior.
 
 ## Art that helps now
 
@@ -324,7 +329,9 @@ self-transmission + the seat's full form; human-inheritance of *diverged
 in-game colonies* (v1 inherits *generated* civs; the drifted-colony
 handoff needs the drift system matured); the conflict/deterrence layer;
 megascale engineering and the entropy tree; the cosmic clock as a system;
-richer per-archetype content beyond the anchors.
+richer per-archetype content beyond the anchors. The refusal path — the
+threshold's other branch and its Breakout onboarding seam — is out of v1
+too, landing with Phase B's pivot.
 
 ## Risks, named
 

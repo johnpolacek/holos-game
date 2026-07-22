@@ -86,7 +86,8 @@ light left** — never its present. Signal classes in v1:
 - **Directed beams** — a hail aimed at you (or intercepted en route to
   someone else — rare, and explosive intelligence).
 - **Broadcast leakage** — the sloppy shine of a young or careless
-  civilization; the thing you spent Act 2 learning not to emit.
+  civilization, or the deliberate, constitutional shine of a Refuser that
+  will never go dark; the thing you spent Act 2 learning not to emit.
 - **Biosignatures** — a living world, pre-singularity. Someone's Act 1,
   visible from outside.
 
@@ -141,6 +142,12 @@ for another civilization is inviting it into your house; building one at
 home is announcing you are willing to be arrived at. The receiver graph is
 the game's map of who trusts whom, and it is visible in principle to
 anyone watching construction shadows.
+
+A Refuser has no transmissible self — nothing it could broadcast is anyone
+— so transmission and the receiver graph are closed to it, and its
+expansion is matter only: seedships, generation ships, and embryo banks,
+folded into the seedship family above. The menu still lists three tools; a
+Refuser spends its whole interstellar life on the first.
 
 ---
 
@@ -303,6 +310,11 @@ endgame's mechanical layer later, per the vision's roadmap.
   own new observatory that their incubation was observed — someone's
   instruments have had their world's light for centuries. Free, chilling,
   and costs the solo acts nothing. (Ship decision open.)
+- **The Breakout as a second seam.** A Refuser colony's harnessed
+  intelligence can wake against its makers, and the newborn machine is a
+  fresh independent civilization a joining human can inherit — parallel to
+  divergence handoff, except the inherited world was built to forbid the
+  very mind now running it.
 
 ---
 

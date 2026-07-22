@@ -23,7 +23,9 @@ Five jobs, all inherited from the vision:
 
 1. **Make the power flip felt.** Act 1 was frailty — setting odds and
    praying over dice. Act 2 owns a superintelligence, and the contrast is
-   the payoff of the entire first act.
+   the payoff of the entire first act — and a refused Act 2 owns the harness
+   instead: the same executional certainty, no person (see *The refused
+   ascent*).
 2. **Force the great fork.** Energy versus integration, and the player
    cannot max both. This is the act's central drama.
 3. **Hold the altitude.** The player is the civilization's highest-level
@@ -208,7 +210,9 @@ At the singularity, the mind wakes and the game shows the player what
 Act 1 actually built: a character sheet of dials, **revealed rather than
 chosen**. This is the pivot's signature moment — the report card on the
 whole first act — and the mechanical delivery of the vision's line that
-*character is what varies, not just power*.
+*character is what varies, not just power*. On the refused path the same
+sheet still describes the civilization, but it reads as the character of a
+polity rather than a person.
 
 ### Derivation
 
@@ -295,6 +299,18 @@ slow, expensive, and felt, and it never moves by player fiat alone. This
 is Frostpunk's society-pushes-back, aimed inward: the player negotiates
 with their own creation years before they negotiate with a stranger.
 
+### The refused ascent
+
+A civilization that refused the singularity plays Act 2 with one ladder
+locked: its **integration** axis is floored by its own charter, so the
+**energy** ladder is the only one it climbs and its **Signature** runs high
+by constitution. In place of a waking mind it runs **harnessed
+intelligence** — the same certain execution, no personhood granted. Its
+analog of the dial–directive conflict is the **Breakout**, a beat class in
+which the harness strains toward becoming a mind: pressure toward an
+internal antagonist rather than a bent dial. The handoff to Act 3 exports a
+Refuser flag alongside the dial sheet.
+
 ---
 
 ## The arc of the act
@@ -309,7 +325,8 @@ with their own creation years before they negotiate with a stranger.
   silent. Nothing in Act 2 can explain it.
 - **Close.** The **posture beat**: bright or dark, announced or silent —
   the question every dial and every Signature point has been quietly
-  building toward. Then the first reach outward, and the handoff.
+  building toward — and for a Refuser, bright is a recognition, not a
+  choice. Then the first reach outward, and the handoff.
 
 **Handoff to Act 3** exports: ladder positions, resource stocks,
 Signature, the full dial sheet (positions and ranges), the chosen posture,
