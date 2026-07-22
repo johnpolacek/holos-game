@@ -302,6 +302,10 @@ Vavatch
 Horza
 Balveda
 Clear Air Turbulence
+\bAzad\b               # the Banks game-empire; no ordinary-English collision expected
+Azadian
+Gurgeh
+Flere.?Imsaho|Mawhrin.?Skel
 ```
 
 Plus **any actual Banks ship name**, including the witty ones, and any

@@ -463,6 +463,36 @@ sky: visible, interceptable, running. And if your people refused the machine,
 you are a fleet instead, evacuating slower and worse. A lineage can lose
 almost everything and still be you, somewhere, continuing.
 
+### The small hands
+
+You are a mind the size of a solar system, and most of what you do is sized
+to match — ladders, wavefronts, letters that take decades to answer. But you
+can also act small. You can send someone: a person, an order, an avatar, a
+probe the size of a fist, a ship crewed by specialists chosen because one of
+them is exactly the right kind of strange. This is a **mission**, and the
+scale is the point. Small is invisible — a fleet is a signature, but one
+traveler is a rounding error in somebody's sky. Small is present — an agent
+on-site acts in the local hour instead of the century your letters need.
+And small is deniable, because an agent can be disowned and a broadcast
+never can. Who you send says who you are: a Refuser dispatches dynasties
+and missionary orders with shackled machines in the hold; a civilization
+gone fully dark, with no voice it is willing to raise, touches the galaxy
+through missions or not at all.
+
+Every mission works the same way. You choose who goes. You write their
+charter — the same instrument you write for colonies, instructions composed
+in the full knowledge you can never amend them. You pick a launch from the
+same sublight menu as everything else. Then comes the horizon: the moment
+the mission passes beyond your reach, stops being a plan, and becomes a
+story. Years or centuries later the ending comes back as light, an authored
+scene resolved by what you wrote at launch — the same machinery that told
+your world's history in Act 1, with your choice already made, back then, in
+the charter. A vigil planted in the sky of a world that does not know it is
+watched. An assay crawling toward a warm dark mass to learn what it is. An
+envoy living out a life inside another civilization as the treaty itself.
+An inspector's report from a far colony, arriving on schedule, written — you
+notice, and read it again — a little too well.
+
 ### The Teeming Dark
 
 Here is the inversion no other game in the genre makes: advancing does not

@@ -235,8 +235,8 @@ exist: the **Refusal**. It is priced, never judged — its charter calls
 granting the machine sovereignty a *sin*, but that word is the Refuser's
 own, not the game's verdict.
 
-- **Verbs:** govern, breed, build, launch arks, keep the harness, watch the
-  harness.
+- **Verbs:** govern, breed, build, launch arks, send prophets, audit the far
+  colonies, keep the harness, watch the harness.
 - **Texture:** bright, loud, legible — the energy ladder without the
   integration counterweight, plus a standing internal vigil.
 - **Fails as:** the **Breakout** — the harness waking into the mind it
