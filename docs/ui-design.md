@@ -244,7 +244,11 @@ allowed to be this theatrical.
 - **Letters** (Voice): correspondence as threads. An in-flight letter
   renders on the Stage as a moving point on a line between stars — the
   wait made visible — and the thread shows both clocks (`arrives in
-  37 min · 7.3 y`). Composition UI is deliberately unspecified here
+  37 min · 7.3 y`). Every received signal wears its physics: transit
+  years, distance, received strength, relay path, degradation — set as
+  an instrument's measurements attached to the message, in the
+  observatory's register. The texture is astronomy, never email
+  headers. Composition UI is deliberately unspecified here
   pending the player-language decision (vision, § Still open); the
   thread and flight rendering hold regardless of what fills them.
 - **The Ledger** (Desk): the lineage as a tree. Each fork's row shows

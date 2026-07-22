@@ -310,6 +310,10 @@ Zakalwe
 \bSma\b                # Use of Weapons character name
 Skaffen.?Amtiskaw
 \bChairmaker\b|Staberinde
+\bExcession\b          # the title coinage itself
+Outside Context Problem
+Interesting Times Gang
+Sleeper Service|Grey Area   # Excession ship names; ordinary "grey area" idiom needs case-sensitive review
 ```
 
 Plus **any actual Banks ship name**, including the witty ones, and any

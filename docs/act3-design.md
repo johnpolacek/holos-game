@@ -240,7 +240,9 @@ decision with real time in it:
    - **Stay dark** — keep watching. The vigil continues.
 4. **Correspondence.** Letters at lightspeed, on real clocks (see The
    clocks). Each message is composed for a reader years-to-centuries
-   downstream of the one you know.
+   downstream of the one you know, and each arrives wearing its physics
+   — transit years, distance, received strength, relay path, degradation
+   — as measurements attached to the text (see ui-design, Letters).
 
 **What letters can carry:** knowledge (tech and ladder modifiers), culture
 (dial nudges — contact changes you), Vault contents (the Curator's trade
