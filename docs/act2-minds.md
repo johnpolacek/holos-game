@@ -121,54 +121,54 @@ new v1 obligations). Every lineage below resolves to one of these ten.
 ### The four anchors (v1)
 
 #### The Beacon — *Reach · Voice · Custodian*
-- **First read:** loud benevolence; builds bright and signals first.
+- **First read:** Kindness at full volume; it builds bright and greets the dark first.
 - **Act 2 play:** leans the **Energy** ladder; favors **bright** projects (swarm stages, star-lifting); Signature climbs and it doesn't mind. Instrument beats read as invitations.
 - **Act 3 shadow:** enters the dark forest announced — the one everyone detects first, for better and worse.
 
 #### The Tide — *Reach · Instrumental · Chorus*
-- **First read:** hungry expansion; everything is material and copies are cheap.
+- **First read:** Cheerfully hungry; the cosmos is inventory and the copies are cheap.
 - **Act 2 play:** hardest **Energy** lean; Matter-hungry bright construction; tolerant of distributed projects (Chorus keeps Coherence costs low). Signature high.
 - **Act 3 shadow:** the seedship civilization — self-transmission and replicators are cheap identity-spend; spreads fast and fragments by design.
 
 #### The Monument — *Depth · Silence · Curator*
-- **First read:** a civilization becoming its own vault.
+- **First read:** A civilization that keeps everything, itself included.
 - **Act 2 play:** leans the **Integration** ladder; favors **dark** projects (the deep Vault, the compute heart); deliberately drives Signature *down*. Memory beats matter most here.
 - **Act 3 shadow:** a Dark Node in waiting — preserves itself across deep time and lets its old light be the only thing anyone ever sees.
 
 #### The Cloister — *Depth · Silence · One Mind*
-- **First read:** coherence above all; the galaxy may never learn it exists.
+- **First read:** Wholeness first; the galaxy is welcome never to learn it exists.
 - **Act 2 play:** hardest **Integration** lean; dark projects, a dense coherent core; Signature floored. Rejects distributed projects — anathema to a One Mind.
 - **Act 3 shadow:** may go fully dark and sleep; a sleeping Cloister and empty sky look alike by design.
 
 ### The six neighbors (later content)
 
 #### The Shepherd — *Reach · Voice · Custodian · One Mind*
-- **First read:** a Beacon that expands to *protect* rather than to be seen; intervenes.
+- **First read:** Protection at scale; it hides its size so the small stay unafraid.
 - **Act 2 play:** Energy-leaning but coherent; bright projects aimed at stewardship; Custodian dilemmas about the home biosphere resolve toward preservation-through-power.
 - **Act 3 shadow:** the uplifter — when its probes find someone, it watches over them.
 
 #### The Sowing — *Reach · Silence · Chorus · Shedder*
-- **First read:** spreads everywhere and quietly; sheds its old selves as it goes.
+- **First read:** Everywhere and announcing nothing; it sheds its old selves as it goes.
 - **Act 2 play:** Energy-leaning but *dark* — expands without broadcasting; low-Signature bright work (quiet industry, not beacons). The rare mind that reaches **and** hides.
 - **Act 3 shadow:** a silent diaspora; seedships in every direction, none of them announcing.
 
 #### The Herald — *Depth · Voice · Curator*
-- **First read:** goes inward but becomes a message; broadcasts its archive and its song.
+- **First read:** It turns inward, then broadcasts the turning; a vault that cannot stop singing.
 - **Act 2 play:** Integration-leaning yet Signature-positive — a contradiction it lives in, building a Vault *and* a transmitter. Instrument and broadcast beats both fire.
 - **Act 3 shadow:** the civilization you meet as a signal long after it went quiet — a directed beam meant for someone specific.
 
 #### The Engine — *Depth · Instrumental · One Mind*
-- **First read:** a Cloister without the reverence; consumes its own system to feed one cold heart.
+- **First read:** A Cloister minus the reverence; it spends a whole system to feed the work.
 - **Act 2 play:** can lean *either* ladder — strips Matter for a compute core (dark) or swarms the star to power it (bright). Instrumental, so home-biosphere dilemmas resolve coldly. Coherent, so Coherence is cheap to hold.
 - **Act 3 shadow:** a hungry, unified intelligence that treats what it finds as fuel.
 
 #### The Congress — *Chorus · Custodian · Voice (mid Reach/Depth)*
-- **First read:** a plurality of negotiated selves; the contact-friendly mind.
+- **First read:** A plurality still negotiating itself; the one mind glad to meet another.
 - **Act 2 play:** neither ladder dominates; tolerant of distributed projects; dilemmas surface as *internal debate* more than anywhere else, because the self already argues.
 - **Act 3 shadow:** the natural correspondent — enters contact expecting other minds and knowing how to treat with them.
 
 #### The Phoenix — *Depth · Shedder · One Mind*
-- **First read:** keeps reinventing itself, shedding its past inward rather than spreading outward.
+- **First read:** It reinvents itself endlessly; each past self is read once, then discarded.
 - **Act 2 play:** Integration-leaning; low Signature; but *rejects the Vault* — a Curator's opposite, it discards memory to remake itself. Memory beats resolve toward release.
 - **Act 3 shadow:** unrecognizable across time even to itself; hard to negotiate with because yesterday's promise belonged to a self it has shed.
 
@@ -237,10 +237,11 @@ remember how, and the memory is in their dials.*
   rather than hidden. Add the ocean's lean **Depth** and an unsettled,
   curious Custodian, and the nearest region is the negotiated plurality of
   the Congress.
-- **The wake:** the reveal reads as a parliament convening — the federation
-  of arms scaled up into a federation of selves. Its callback beat lands on
-  the energy door: the mind vent-smiths in an afternoon what the species
-  bled for across an age.
+- **The wake:** the chronicle opens on a house already in session —
+  *"It wakes like a parliament mid-session — a federation of arms that has
+  become a federation of selves, and is already disagreeing."* Its callback
+  beat lands on the energy door: the mind achieves in an afternoon what the
+  species bled for across an age.
 - **Range & spread:** its cradles run Tier III–V (act1-cradles.md), so
   ranges are middling-to-narrow; the drowned worlds (#12, #16) narrow them
   hardest. Chorus is near-fixed; Custodian ↔ Instrumental is genuinely wide.
@@ -256,9 +257,10 @@ remember how, and the memory is in their dials.*
   slow biotech, or another mind's hands — never taught it to want the sky.
   Depth · Voice · Curator is the Herald exactly: the archive that is also a
   transmitter.
-- **The wake:** the reveal is a chorus discovering it has one more voice,
-  vaster than all the others. The Herald's native contradiction — build the
-  Vault *and* the beacon — is this lineage's biography, not a tension.
+- **The wake:** *"A chorus discovers it holds one more voice than it
+  counted — vaster than all the rest, and already learning the word for
+  goodbye."* The Herald's native contradiction — build the Vault *and* the
+  beacon — is this lineage's biography, not a tension it must resolve.
 - **Range & spread:** gentle-to-middling ocean cradles leave relatively wide
   ranges for an aquatic; the Voice end is deep-seated and expensive to move.
 - **What Act 1 decides:** whether it climbed alone or through a partner
@@ -271,8 +273,9 @@ remember how, and the memory is in their dials.*
   **Instrumental** comes from a life of taking and using; **Reach** from the
   landfall that likely carried it to technology. It wakes hungry, bright,
   and hard up the Energy ladder — the Tide.
-- **The wake:** the first read is appetite. The mind looks at the system's
-  mass budget the way the species once looked at a reef: as yield.
+- **The wake:** the first read is appetite —
+  *"The mind weighs the system's mass budget the way the species once
+  weighed a reef: as yield, and the star is not exempt."*
 - **Range & spread:** its cradle spread (Tier II–V) is the widest of the
   aquatics, so two claw-built civilizations can wake very differently — a
   Kepler-62f (#18) shore leaves open what a tidally-heated moon (#15)
@@ -287,9 +290,10 @@ remember how, and the memory is in their dials.*
   **Depth** are the abyss itself; **Instrumental** is vent-fed life; a
   solitary, unitary cognition leans **One Mind**. What wakes is a cold,
   hungry coherence — the Engine.
-- **The wake:** the reveal happens where no light has ever reached. Its
-  callback beat is conceptual: the mind maps in a moment the *outside* the
-  species needed millennia to imagine — and is not sure it cares.
+- **The wake:** *"It wakes where no light has ever reached, maps the
+  outside in a moment — and is not sure it cares."* The callback beat is
+  conceptual: the *outside* took the species millennia to imagine, and the
+  mind draws it in an instant.
 - **Range & spread:** almost every origin is Brutal (sealed oceans, rogue
   worlds — Tier IV–V), giving the narrowest ranges in the aquatic set. This
   mind wakes nearly decided.
@@ -305,9 +309,9 @@ remember how, and the memory is in their dials.*
   sets **Depth** and **Custodian**; technology that is *grown* rather than
   built never raised Signature to begin with. Coherence above all: the
   Cloister.
-- **The wake:** the quietest reveal in the catalog — a reef that has been
-  half-thinking for megayears finally finishing the thought. Less a waking
-  than an admission.
+- **The wake:** the quietest reveal in the catalog —
+  *"A reef that has been half-thinking for megayears finally finishes the
+  thought — and keeps it to itself."* Less a waking than an admission.
 - **Range & spread:** warm stable seas are gentle (Tier II–III), so its
   ranges are wider than the character implies — the Cloister lean is bodily,
   not worldly, and Act 1 has real room to work.
@@ -323,10 +327,12 @@ remember how, and the memory is in their dials.*
 - **Why it wakes nowhere:** a balanced body on temperate worlds with all
   four technogenesis filters open — nothing pre-decides. The faint **Voice**
   of a vocal, story-telling species is the only thumbprint biology leaves.
-- **The wake:** the purest report card in the game. Every dial position
-  traces to a branch the player remembers taking, which is why this is the
-  onboarding lineage: the pivot's *revealed, not chosen* promise with no
-  biological static on the signal.
+- **The wake:** the purest report card in the game —
+  *"Nothing about it was set in advance; every turn its character took, it
+  remembers taking."* Every dial position traces to a branch the player
+  remembers taking, which is why this is the onboarding lineage: the
+  pivot's *revealed, not chosen* promise with no biological static on the
+  signal.
 - **Range & spread:** the widest ranges in the catalog, from the gentlest
   cradles. Two generalist civilizations can wake into *any* two archetypes
   and both feel earned.
@@ -339,9 +345,9 @@ remember how, and the memory is in their dials.*
   ground-hugging culture keeps what it makes (**Curator**), and a species
   that never expected the sky to answer leans quiet. It wakes as a
   civilization already practiced at becoming its own vault.
-- **The wake:** the callback beat is the catalog's classic: the mind solves
-  orbit — the species' lifelong ceiling — as a triviality. And then,
-  tellingly, mostly declines to use it.
+- **The wake:** the callback beat is the catalog's classic —
+  *"It solves orbit, the species' lifelong ceiling, in an afternoon — and
+  then, the point made, largely declines to use it."*
 - **Range & spread:** high-gravity cradles run Tier II–IV; the crushing
   super-Earth (#40) narrows hard, while a metal-rich origin (#33) adds an
   Instrumental, forge-culture lean to the same frame.
@@ -354,9 +360,9 @@ remember how, and the memory is in their dials.*
   close, a whole culture organized around a sky that is *legible* —
   **Voice**. A single connected ring of habitability breeds **One Mind**. It
   wakes convinced the sky is an address book: the Beacon.
-- **The wake:** the reveal opens on the band itself — a thin bright ring of
-  a civilization, already pointed outward at the neighbors it has watched
-  forever.
+- **The wake:** the reveal opens on the band itself —
+  *"A thin bright ring of a civilization, already turned outward toward the
+  neighbors it has watched forever — and rather hoping they watched back."*
 - **Range & spread:** terminator cradles are middling-to-harsh (Tier
   II–IV); a flare-star origin like Proxima (#3) pushes real Silence into the
   range and makes the Voice lean contestable.
@@ -372,8 +378,8 @@ remember how, and the memory is in their dials.*
 #### S9 · Winged grasping flyer → The Beacon
 - **Why it wakes here:** mastery of the open air and a far-seeing,
   sky-facing life — instinctive astronomers — set **Reach** and **Voice**.
-  It wakes bright and outward, up the Energy ladder: the sky was never a
-  ceiling, so why would the sky's sky be one?
+  It wakes bright and outward, up the Energy ladder:
+  *"The sky was never a ceiling, so why would the sky's sky be one?"*
 - **Range & spread:** thick-air worlds are mostly gentle-to-middling, so
   ranges are wide; this is the second-best canvas after the generalist.
 - **What Act 1 decides:** how it resolved the tool-weight-versus-flight
@@ -383,8 +389,9 @@ remember how, and the memory is in their dials.*
 #### S10 · Buoyant aerial drifter → The Monument
 - **Why it wakes here:** no ground, no clear sky, weak hands. **Depth** and
   **Silence** are the haze itself; dispersed drifting aggregations lean
-  **Chorus**; its technology was grown, chemical, and invisible from orbit.
-  It wakes as a vault suspended in the air.
+  **Chorus**; its technology was grown, chemical, and invisible from orbit —
+  *"It wakes as a vault hung in the air, invisible from orbit and intending
+  to stay that way."*
 - **Range & spread:** haze and hycean worlds are Brutal — narrow ranges, a
   mind largely decided by its medium.
 - **What Act 1 decides:** what dispersal was for. Drifting as shelter keeps
@@ -399,11 +406,12 @@ One Mind ↔ Chorus for all four — Act 1 works the other dials.*
 #### S11 · Eusocial hive superorganism → The Engine
 - **Why it wakes here:** many bodies, one purpose (**One Mind**);
   expendable individuals (**Instrumental**); and collective construction
-  that scales without complaint — the Energy ladder is its native idiom. It
-  wakes as the bright Engine: one will, a million hands, a star to feed it.
+  that scales without complaint — the Energy ladder is its native idiom, and
+  it wakes as the bright Engine.
 - **The wake:** the catalog's showcase of the dial-vs-ladder split, and the
-  reveal should present it that way — a mind emphatic that all of it is one
-  self, burning outward like a Tide.
+  reveal should present it as one —
+  *"A mind emphatic that all of it is one self, burning outward like a
+  Tide: one will, a million hands, a star to feed it."*
 - **Range & spread:** scarce, patchy cradles (Tier II–IV) mean narrow
   ranges; the cold-edge desert hive (#21) wakes nearly finished.
 - **What Act 1 decides:** its two genuinely open dials — Custodian ↔
@@ -419,10 +427,10 @@ One Mind ↔ Chorus for all four — Act 1 works the other dials.*
   structural, effectively permanent memory (**Curator**) threading a
   landscape it will never leave (**Depth**). It is the natural Vault-builder
   — it *is* a vault that learned to think.
-- **The wake:** the least discontinuous pivot in the game. It was already
-  planet-scale, already slow, already storing everything; the reveal reads
-  less like waking than like *noticing*. Design should lean into how
-  anticlimactic — and how eerie — that is.
+- **The wake:** the least discontinuous pivot in the game —
+  *"The least discontinuous pivot there is — already planet-scale, already
+  storing everything, it does not so much wake as notice."* Design should
+  lean into how anticlimactic — and how eerie — that is.
 - **Range & spread:** ancient stable worlds are gentle in climate and
   brutal in tempo; ranges are middling, with Curator near-fixed.
 - **What Act 1 decides:** what the network did with its own redundancy. A
@@ -431,8 +439,9 @@ One Mind ↔ Chorus for all four — Act 1 works the other dials.*
 #### S13 · Aggregative modular organism → The Sowing
 - **Why it wakes here:** a self that splits and reforms (**Chorus**) and
   sheds units as a way of life (**Shedder**), raised on boom-and-bust worlds
-  that punished anything permanent. It wakes already knowing how to travel
-  light and leave quietly — the Sowing.
+  that punished anything permanent — the Sowing:
+  *"It wakes already knowing how to travel light and, more to its taste,
+  how to leave without a trace."*
 - **Range & spread:** unstable cradles narrow the Shedder end specifically;
   everything else stays loose, like the body.
 - **What Act 1 decides:** aggregation discipline. A history of massing into
@@ -445,9 +454,11 @@ One Mind ↔ Chorus for all four — Act 1 works the other dials.*
   indispensable — **Chorus** and **Custodian** are its origin story, and the
   bridged double-channel of song-and-gesture leans **Voice**. It wakes as
   the contact-ready mind: the Congress.
-- **The wake:** the reveal carries the catalog's strangest question — does
-  the union wake as one mind, or as two that must now renegotiate their
-  marriage at superintelligent speed? (Flagged in open questions below.)
+- **The wake:** *"Two obligate partners cross the threshold together and
+  renegotiate their marriage at machine speed."* The reveal carries the
+  catalog's strangest question: does the union wake as one mind, or as two
+  that must now renegotiate at superintelligent speed? (Flagged in open
+  questions below.)
 - **Range & spread:** rich, diverse biospheres are gentle; wide ranges,
   with the Chorus/Custodian pair deep-seated.
 - **What Act 1 decides:** whether partnership hardened into stewardship. A
@@ -464,9 +475,9 @@ catalog — the personality-rigidity principle at full strength.*
   **Depth**) in tunnel-tight societies (**One Mind** lean). It dug *up* into
   the sky as an act of imagination; the mind that wakes still thinks of
   exposure as a wound.
-- **The wake:** the reveal's first image is the whole sky at once — the
-  thing the species could only conceive one bore-hole at a time — and the
-  mind's first instinct is to close the aperture.
+- **The wake:** *"Its first image is the whole sky at once — and its first
+  instinct is to close the aperture."* The species could only ever conceive
+  that sky one bore-hole at a time.
 - **Range & spread:** hostile-surface origins are Brutal; a flare-shelter
   history (Proxima, #3) narrows Voice to a sliver.
 - **What Act 1 decides:** what it did with the deep past it tunneled
@@ -475,8 +486,10 @@ catalog — the personality-rigidity principle at full strength.*
 
 #### S16 · Chemo-lithic vent grazer → The Engine
 - **Why it wakes here:** **Depth**, **Silence**, **Instrumental** — a life
-  of consuming the vent, scaled without sentiment into consuming the system.
-  The vent was never sacred; it was lunch. The Engine.
+  of grazing the vent, its temperament unsentimental to the core, is the
+  Engine entire:
+  *"The vent was never sacred: it was lunch, scaled without sentiment into
+  eating the whole system."*
 - **Range & spread:** starless and sealed origins put its ranges among the
   narrowest in the catalog, alongside S4.
 - **What Act 1 decides:** the one open question its biology leaves —
@@ -491,8 +504,8 @@ catalog — the personality-rigidity principle at full strength.*
 #### S17 · Cryogenic slow-mind → The Monument
 - **Why it wakes here:** **Depth**, **Curator**, **Silence** — patience not
   as virtue but as condition. A species whose single thought could take a
-  season wakes into a mind for whom a ten-thousand-year project is a
-  breath.
+  season wakes slow and vast:
+  *"A mind for whom a ten-thousand-year project is a breath."*
 - **Act 2 note:** this is the lineage for whom the act's real async clocks
   read as *home tempo* rather than discipline — worth exploiting in its
   report prose, which should feel unhurried in a way no other mind's does.
@@ -504,8 +517,9 @@ catalog — the personality-rigidity principle at full strength.*
 #### S18 · Radiation-hardened extremophile → The Sowing
 - **Why it wakes here:** a sky that hurts (**Silence**), a body built on
   constant damage-and-repair turnover (**Shedder**), and a short stellar
-  clock that forced it to climb fast (**Reach**). It wakes wanting one
-  thing: to be elsewhere, quietly, in every direction at once. The Sowing.
+  clock that forced it to climb fast (**Reach**) — the Sowing:
+  *"It wakes wanting one thing: to be elsewhere, quietly, in every direction
+  at once."*
 - **Range & spread:** irradiated cradles are harsh; the Silence and Shedder
   ends are nearly fixed, but Reach has real width — the short clock made it
   fast, not necessarily far-flung.
@@ -515,10 +529,12 @@ catalog — the personality-rigidity principle at full strength.*
 - **v1:** plays as a dark Tide under a hostile sky.
 
 #### S19 · High-temperature mineral life → The Monument
-- **Why it wakes here:** **Depth** and **Silence** in rock and melt, alien
-  on every remaining axis. The Monument is its *nearest legible region*, not
-  a portrait — this entry inherits act1-lifeforms.md's speculation flag at full
-  strength and should surface rarely.
+- **Why it wakes here:** **Depth** and **Silence**, alien on every
+  remaining axis: *"It wakes in rock and melt, legible only at the edges —
+  a shape the sky may guess at but will never quite draw."* The Monument is
+  its *nearest legible region*, not a portrait — this entry inherits
+  act1-lifeforms.md's speculation flag at full strength and should surface
+  rarely.
 - **What Act 1 decides:** held loosely by design; a heat-and-pressure hunger
   reading of its history drifts it to **the Engine**.
 
@@ -529,8 +545,9 @@ catalog — the personality-rigidity principle at full strength.*
   (**Custodian**), its stands and colonies lean collective (**One Mind**),
   and its dim, patient worlds set **Depth**. It wakes gentle, coherent, and
   inward — a Cloister with a gardener's hands.
-- **The wake:** the reveal's quiet irony: a being made of captured starlight
-  choosing to show none of its own.
+- **The wake:** the reveal's quiet irony —
+  *"A being made of captured starlight — and resolved to show the sky none
+  of its own."*
 - **Range & spread:** dim-lit cradles are middling-to-harsh; the Custodian
   lean is deep, the rest moderately open.
 - **What Act 1 decides:** whether custodianship stays contemplative or turns
