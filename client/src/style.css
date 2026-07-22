@@ -678,14 +678,25 @@ body {
   max-width: 100%;
   height: 3.4rem;
   padding: 0 1.5rem;
-  border: 1px solid var(--holos-gold);
+  border: 1px solid #ffb35c;
   border-radius: 999px;
-  background: linear-gradient(#100d16, #0a0810);
-  color: var(--holos-amber);
+  /* Molten orange: grain on top, a hot spot bleeding in from above,
+     then the ember-to-char vertical gradient underneath. */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.16'/%3E%3C/svg%3E"),
+    radial-gradient(
+      ellipse 120% 90% at 50% -30%,
+      rgba(255, 205, 120, 0.9),
+      rgba(255, 205, 120, 0) 60%
+    ),
+    linear-gradient(180deg, #f28a1e 0%, #d95f13 48%, #7c2d07 100%);
+  background-blend-mode: soft-light, normal, normal;
+  color: #1c0d03;
   cursor: pointer;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 0 0 1px rgba(183, 155, 99, 0.12), 0 8px 26px rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 1px 0 rgba(255, 224, 170, 0.55),
+    0 0 18px rgba(242, 138, 30, 0.55), 0 0 46px rgba(217, 95, 19, 0.3),
+    0 8px 26px rgba(0, 0, 0, 0.55);
   transition: border-color 240ms ease, box-shadow 240ms ease,
     transform 120ms ease, color 240ms ease, opacity 240ms ease;
 }
@@ -693,7 +704,8 @@ body {
 .become-button:disabled {
   opacity: 0.4;
   border-color: rgba(183, 155, 99, 0.18);
-  color: var(--holos-ink-faint);
+  color: rgba(28, 13, 3, 0.6);
+  filter: saturate(0.35);
   cursor: default;
   box-shadow: none;
 }
@@ -728,15 +740,24 @@ body {
   font-size: 0.55rem;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--holos-ink-faint);
+  color: rgba(28, 13, 3, 0.6);
   margin-top: 0.1rem;
   transition: opacity 200ms ease;
 }
 
-/* charging: brighten toward cyan, lift, drop the hint */
+/* charging: the orange banks down to ember so the cyan charge reads */
 .become-button.charging {
   border-color: var(--holos-cyan);
-  box-shadow: 0 0 26px var(--holos-cyan-dim);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.16'/%3E%3C/svg%3E"),
+    radial-gradient(
+      ellipse 120% 90% at 50% -30%,
+      rgba(255, 165, 80, 0.45),
+      rgba(255, 165, 80, 0) 60%
+    ),
+    linear-gradient(180deg, #8a3d0c 0%, #5f2606 48%, #2b1003 100%);
+  background-blend-mode: soft-light, normal, normal;
+  box-shadow: inset 0 1px 0 rgba(255, 200, 140, 0.25),
+    0 0 26px var(--holos-cyan-dim), 0 0 40px rgba(217, 95, 19, 0.25);
   transform: translateY(-1px) scale(1.01);
   color: var(--holos-ink);
 }
@@ -749,6 +770,7 @@ body {
 /* committed: full cyan consummation, in step with the card bloom */
 .become-button.committing {
   border-color: var(--holos-cyan);
+  background: linear-gradient(180deg, #3a1804 0%, #1a0a02 100%);
   box-shadow: 0 0 34px var(--holos-cyan);
   color: var(--holos-cyan);
 }
