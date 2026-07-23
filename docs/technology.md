@@ -1074,12 +1074,19 @@ catalog includes it rather than designing it out.
   produces recurring patterns (de facto sharing etiquette, tap
   standoffs, drain squatting), those patterns earn mechanics *after*
   they appear, not before.
+- **Sentinel ethics ride the mission framework.** The watcher's-log
+  fiction — a sentinel dwelling over a living world, the Custodian ↔
+  Instrumental dial made concrete in real decisions about real
+  creatures — gets no beat family of its own. It lands as content
+  inside the mission system (agents, mission charters, vignette
+  returns; vision.md later layers, roadmap.md), whose v1 skeleton is
+  already the probe and the hail. The long vigil over a young world
+  should be among the first missions that framework authors, because
+  it is the Act 1 relationship played from the other chair.
 
 ## Open questions
-- **Sentinel ethics as a beat family.** A sentinel watching a living
-  world is the Custodian ↔ Instrumental dial in its purest form and
-  probably deserves its own beat class (the watcher's log as recurring
-  fiction). Content question, not systems.
+
+
 - **Coinage adoption.** Which of the new common nouns in the register
   above graduate to prose-style.md §8, and whether `Holocore`,
   `Computronium Kernel`, and `Chrono Vault` render under those names on
