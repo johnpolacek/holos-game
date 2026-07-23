@@ -263,8 +263,10 @@ record of that past — rides this same light echo and knowledge layer; thin.)
 - [ ] **Charters**: the launch-time value function (dial sheet + directives
       + contingencies) — the same `CivSeed` shape, written by the player;
       the recursion made literal.
-- [ ] **The Ledger**: lineage view, staleness chips, drift (magnitude-only
-      in v1).
+- [ ] **The Ledger**: lineage view, staleness chips, drift bands, and
+      drift (magnitude-only in v1) with the conversation brake — thread
+      states derived from the letter records A2 already keeps
+      (act3-design.md § Drift).
 
 ### A5 — A living galaxy
 

@@ -569,7 +569,7 @@ about them.
 - **In play.** Carrier; the v1 expansion method. Cheap in Energy, light
   in Matter, heavy in *consequence*: every launch carries a charter that
   can never be patched in time, and every arrival starts a new cradle
-  leaning on a fork (act3-civilizations.md, the four pressures). The
+  leaning on a fork (act3-civilizations.md, the five pressures). The
   divergence engine ships in this hull.
 - **In the sky.** Almost nothing — a cold small mass coasting. The honest
   signatures are endpoint events: a departure burn, an arrival

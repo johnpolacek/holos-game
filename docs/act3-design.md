@@ -274,9 +274,9 @@ value function writing a value function.
 
 The **Ledger** is the lineage view: every fork, its last-known state, its
 charter, and how far its dials have drifted from yours — all of it stale
-by exactly its distance. **Drift** accrues with time and separation,
-faster where the charter was loose or the local environment is extreme
-(exact curve open). Past a drift threshold, a fork becomes **independent**:
+by exactly its distance. **Drift** — how a fork's character walks away
+from yours — is a full mechanic with its own section below (see Drift).
+Past a drift threshold, a fork becomes **independent**:
 AI-run — or handed to a joining human player, who inherits its history,
 its grudges, and *your charter as their founding document*. Player-authored
 charters becoming other players' origin myths is the onboarding engine.
@@ -308,6 +308,126 @@ distance and the shared clock (the mission-clock rule: derived, never
 stored), and silence at a deadline is an event — the fork that never
 answers is the loudest reply. A beat class riding existing machinery,
 and the natural opening move of a lineage coalition (see Coalitions).
+
+---
+
+## Drift
+
+Divergence is the core strategy layer (vision.md), and drift is its
+mechanic: how one waking mind becomes a family of related-but-alien
+civilizations. This section specifies the model; the *direction* logic
+(which way a fork walks) is act3-civilizations.md's, and numbers here
+are v1 targets, not tuning commitments.
+
+**What drifts.** Every civilization — yours, every fork, every AI —
+carries the same five-dial sheet (position + range per dial, from its
+`CivSeed` or its charter). Drift between two civilizations is the
+distance between their *current* sheets. Both parties walk: a parent
+drifts too, under its own pressures, so estrangement can be as much the
+parent's doing as the child's — the Ledger measures the gap, not the
+blame.
+
+**Computed, never ticked.** A fork's sheet at any year derives
+deterministically from four things: its charter (the starting sheet and
+its pins), its destination cradle (the compass), its seed (the same
+deterministic RNG discipline as everything else), and its **exchange
+record** — the log of letters, reunions, and contacts, each an event
+already on the books. The server simulates nothing and stores no
+walking state; it evaluates the curve on demand, for any year — which
+is exactly what the knowledge layer needs anyway, since every observer
+must be served the fork's sheet *as of their light*. This is the
+future-dated-epoch trick (roadmap.md, A0) applied to character: the
+walk is authored by the record, and becomes true as the clock reaches
+it.
+
+**The five pressures.** Three set the *rate*, two set the *direction*:
+
+1. **Time × separation** — the base rate. Deep time and distance do
+   the walking; nothing stops them.
+2. **Charter looseness** — a rate multiplier per dial. A pinned dial
+   walks slowly; a loose one wanders. (Curator ↔ Shedder, cashing out.)
+3. **The conversation** — the lineage's own brake, detailed below. An
+   alive correspondence slows the clock; silence lets it run.
+4. **The new cradle** — the compass: the fork walks *toward* the
+   character its destination world would have produced
+   (act3-civilizations.md, the continuity chain).
+5. **Contact** — the bend: correspondence with strangers pulls toward
+   or against them (culture nudges), and a reunion letter absorbed is
+   the strong dose — a discrete, bounded step toward the sender.
+
+**The conversation.** Correspondence within a lineage is the fifth
+pressure, and the only one the player works directly, session by
+session:
+
+- **An alive thread slows drift.** A parent-and-child pair in genuine
+  exchange drifts at a fraction of the base rate — values stay aligned
+  through conversation, which is honest fiction and honest physics
+  alike. The brake is bounded: conversation slows the walk, never stops
+  it. Nothing prevents divergence; only reunion letters walk it back,
+  and only in bounded steps.
+- **The ceiling is the light.** Nothing exchanges faster than the
+  round trip, so maximal closeness is one genuine exchange per round
+  trip and no cooldown needs inventing. The ceiling also scales by
+  distance on its own: a neighbor-child can be held close for
+  millennia; a child a hundred light-years out gets one exchange per
+  two centuries of game time no matter the devotion. Distance itself
+  decides who *can* stay close — the spread-or-cohere dilemma, enacted
+  in mail.
+- **Thread states are coarse and derived.** A thread is **alive**,
+  **faded**, or **silent** *(names indicative)*, measured in that
+  pair's own round-trip units — roughly: alive within a couple of round
+  trips of the last exchange, faded within several, silent beyond.
+  Derived from the letter record; no freshness meter, no watering
+  chore. Even maximal devotion is an occasional, slow-paced act.
+- **Silence works in both directions, and silence is an event.** A
+  correspondence rhythm compiles expected-reply countdowns exactly as
+  a mission clock does (derived, never stored), so a thread going
+  quiet *fires a beat* — on either end. *Why has the colony stopped
+  writing* is a story the game generates for free, and the tripwire
+  condition *a fork goes silent* is this rule standing watch while you
+  sleep.
+- **Estrangement is a move.** Going quiet on purpose releases a child
+  toward independence — and independence is the onboarding engine, so
+  deliberate neglect authors some future player's starting
+  civilization. A player may close a thread explicitly with a
+  **farewell letter** — purely expressive, same mechanics, and the
+  child's Chronicle keeps it.
+- **The only scarcities are real.** Letters carry no quota and no
+  attention resource (the missions precedent, economy-design.md): what
+  limits correspondence is the player's session time and lightspeed.
+  You can launch ten colonies; you cannot write to ten with care. Every
+  launch quietly asks: is this a child I will keep, or one I am letting
+  go?
+
+**Bands and the threshold.** Drift renders in the Ledger as bands
+*(names indicative)*: **close** — treats with you as yourself;
+**kindred** — recognizable, negotiates in your shared idiom;
+**estranged** — a stranger holding your founding document;
+**independent** — past the threshold, a civilization of its own,
+AI-run or handed to a joining human. Band crossings fire beats;
+independence is one-way. After it, the reunion letter still exists —
+but as diplomacy between relatives, not maintenance within a self, and
+a lineage alliance (see Coalitions) is what the relationship can
+become next.
+
+**What you know.** All of it is belief. The Ledger shows each fork's
+sheet as of its light — stale by exactly its distance — and the walk
+continues inside your light cone's blind spot. Letters, reunions, and
+the lineage referendum are the instruments that measure drift; the
+truth engine holds the real curve and resolves it whenever light or
+landfall consults it. The forecast's arrival spread already prices
+this for launches; the Ledger's staleness chip prices it for children.
+
+**Prices, never scolding.** A drifted child is a new civilization, not
+a failed one (playstyles.md, rule 1). The conversation prices
+closeness; it must never punish distance — the Tide and the Sowing
+*choose* scatter, and their children's strangeness is the point.
+
+**v1 scope.** A4 ships magnitude-only drift (roadmap.md) plus the
+conversation brake — thread states and the brake are derived from the
+letter records A2 already keeps, so the fifth pressure lands with the
+Ledger. The directional curve (pressures 4–5's full form) arrives with
+the richer drift math; the bands can ship as soon as magnitude does.
 
 ---
 
@@ -895,8 +1015,13 @@ call is borderline, take the bolder inclusion; the slice must still ship.
 - **Player-to-player language.** Freeform text between humans (with the
   moderation burden that implies) versus structured/composed messages, and
   what each does to deception, tone, and safety.
-- **Drift math.** The exact curve from time × separation × charter
-  looseness to dial drift and independence.
+- **Drift math, narrowed to tuning.** The model is now specified (see
+  Drift): computed-never-ticked, five pressures, thread states, bands.
+  Open are the coefficients only — the base rate, the brake's floor,
+  the reunion step size, band widths, and the independence threshold —
+  plus one balance watch: the brake must not starve the onboarding
+  engine of independents (the attention economy and the round-trip
+  ceiling are the intended guards; verify in play).
 - **Griefing resistance.** When strikes ship: cost gates, deterrence
   systems, and social fabric needed so the dark forest stays dreadful
   without becoming a spawn-camp.

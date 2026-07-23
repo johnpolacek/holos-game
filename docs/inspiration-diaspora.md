@@ -244,7 +244,7 @@ B unchanged, since a played history needs owning too.
 
 ### 3. The merge, and the family referendum
 
-**Status: adopted (2026-07), renamed.** Developed as
+**Status: adopted (2026-07), renamed and merged.** Developed as
 [act3-design.md](./act3-design.md) § Charters and the Ledger — *The
 reunion letter* and *The lineage referendum* — with a pointer from
 § Contact's letter payloads and from § Coalitions; thin with letters
@@ -252,8 +252,18 @@ reunion letter* and *The lineage referendum* — with a pointer from
 decision from the review: the *family* vocabulary is dropped — the
 mechanics adopt the house word *lineage* throughout, and the corpus's
 fork-coalition lines (act3-design.md § Coalitions, vision.md) now read
-*lineage alliance*. The entry below keeps its original working labels
-as record.
+*lineage alliance*. In the same review the entry was **merged with a
+designer pitch** (inspired by Karl Schroeder's *Lockstep*, reworked for
+a no-sleep frame): correspondence as the fifth drift pressure — an
+alive lineage thread slows drift, silence lets it run, estrangement
+releases a child toward independence and thereby authors the onboarding
+engine's next inheritance. The merge prompted a full drift
+specification: [act3-design.md](./act3-design.md) § Drift
+(computed-never-ticked, five pressures, thread states, bands, the
+threshold), with act3-civilizations.md's pressure list extended to five
+and the drift-math open question narrowed to tuning. Per N-4, the
+*Lockstep* title term stays banned as an in-world name. The entry below
+keeps its original working labels as record.
 
 **In the book.** The great expansion is a clone fleet: the city of
 minds copies itself a thousandfold and sends the copies to a thousand

@@ -177,11 +177,12 @@ strategy layer*). The mechanics — charters, the Ledger, drift, independence,
 handoff — live in act3-design.md. This section supplies the *shape* of the
 drift: not how fast a fork diverges, but *which way*.
 
-### The four pressures
+### The five pressures
 
-A fork's dials walk under four compounding pressures. The first two are in
-act3-design.md's drift model (*time × separation × charter looseness*); the
-last two are this tier's contribution and are what give drift a direction:
+A fork's dials walk under five compounding pressures. The full mechanic —
+computed-never-ticked, thread states, bands, the threshold — is
+act3-design.md's (§ Drift); this tier's contribution is the *direction*
+(pressures 4–5 below are what give drift a compass):
 
 1. **Time × separation.** The raw magnitude. Light-lag sets a governance
    horizon; past it, a parent cannot patch a charter in time
@@ -191,20 +192,27 @@ last two are this tier's contribution and are what give drift a direction:
    the Curator↔Shedder dial cashing out: a Curator writes tight charters
    and its lineage stays recognizable; a Shedder writes loose ones and its
    children scatter.
-3. **The new cradle.** The destination system re-applies act1-cradles.md's
+3. **The conversation.** The lineage's own brake (act3-design.md, § Drift):
+   an alive correspondence slows the walk, silence lets it run, and
+   deliberate estrangement releases a child toward independence. The only
+   pressure the player works directly — which children stay kindred is
+   something chosen with attention, under a ceiling lightspeed sets for
+   free.
+4. **The new cradle.** The destination system re-applies act1-cradles.md's
    environmental pressures to the fork (see *The continuity chain,
    extended*). A colony on a flare star drifts toward Silence; one in a
    resource-rich system drifts toward Reach; one drowned or buried drifts
    toward Depth and One Mind. **Divergence has a compass, and the new
    world holds it.**
-4. **Contact.** Correspondence *changes you* — act3-design.md lists culture
-   (dial nudges) among what letters carry. A fork in dialogue with an alien
-   character drifts toward or against it; a fork that stays dark drifts only
-   under pressures 1–3.
+5. **Contact.** Correspondence *changes you* — act3-design.md lists culture
+   (dial nudges) among what letters carry, and the reunion letter is the
+   strong dose within a lineage. A fork in dialogue with an alien
+   character drifts toward or against it; a fork that stays dark drifts
+   only under pressures 1–4.
 
 ### What divergence produces
 
-Given enough time, the four pressures turn one waking mind into a family:
+Given enough time, the five pressures turn one waking mind into a family:
 
 - **A recognizable lineage** (tight charters, Curator parent, similar
   cradles) — forks that still share values and can still, mostly, treat with
@@ -595,7 +603,7 @@ machinery act3-design.md already scopes for v1. The discipline (vision.md,
   doing nothing but keep, a power that griefs no one.
 - **Performing a false character interacts with divergence.** A civilization
   that performs a mask for centuries (the light echo section) is also
-  drifting under the four pressures. Open: does sustained performance *drag*
+  drifting under the five pressures. Open: does sustained performance *drag*
   the real dial toward the mask, the way forcing a directive drags it in Act
   2 (act2-design.md, *Resistance and drift*)? If so, a civilization can
   become the thing it pretended to be — a strong, ownable mechanic, but one
