@@ -968,14 +968,19 @@ catalog includes it rather than designing it out.
   sharing arrives, pushing another civilization's ship becomes a trust
   relationship exactly parallel to receivers — and going quiet
   mid-flight becomes the betrayal with the longest fuse in the game.
+- **The tap is unowned — contests play out.** Black holes ship as what
+  physics makes them: rare, fixed, visible landmarks holding the best
+  power in the game — with no ownership, sharing, or exclusivity
+  mechanic layered on top. When two lineages want the same drain, the
+  existing systems are the resolution: a fed disk publishes its feeding
+  schedule to every watcher, letters carry the promises, nothing
+  enforces them, and the deterrence layer eventually prices the greed.
+  Emergence over architecture — deliberately under-built. If play
+  produces recurring patterns (de facto sharing etiquette, tap
+  standoffs, drain squatting), those patterns earn mechanics *after*
+  they appear, not before.
 
 ## Open questions
-
-- **The tap as a commons.** Black holes are rare, fixed landmarks.
-  Whether a fed hole can be *shared* — two lineages drawing on one drain
-  — or contested without the deferred conflict layer is open; it may be
-  the first genuinely scarce location in a game that otherwise refuses
-  scarcity of space.
 - **Sentinel ethics as a beat family.** A sentinel watching a living
   world is the Custodian ↔ Instrumental dial in its purest form and
   probably deserves its own beat class (the watcher's log as recurring
