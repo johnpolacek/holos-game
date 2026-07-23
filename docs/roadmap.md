@@ -188,15 +188,12 @@ see the past.
       volume), the pull-back beat, the point-cloud backdrop, sources
       rendered with **light-age everywhere** and **uncertainty as fuzz**
       (act3-map.md § Scope). WebGL point cloud beside Pixi; DOM for text.
-- [ ] **The observatory (thin)**: the five signal classes
-      (act3-design.md), classification as belief + confidence, sharpening
-      with instrument time against the target's mask — the live
-      mask-versus-instrument contest, thin from day one (technology.md
-      § Working decisions); source cards with local naming.
-      **(unbuilt — scope decision pending: backfill into A1 or move to
-      A2)** — shipped: signal classes, belief + confidence, source cards
-      with local naming (`client/src/sourcecard.ts`); not shipped: the
-      mask-versus-instrument sharpening contest itself.
+- [x] **The observatory (thin)**: the five signal classes
+      (act3-design.md), classification as belief + confidence, source
+      cards with local naming (`client/src/sourcecard.ts`). The
+      sharpening contest against the target's mask moved to A2 (working
+      decision): a contest needs an opponent, and A1's emitters are
+      static — masks first mean something when the other side acts.
 - [x] AI civs as **static emitters** for now — warm masses, leakage,
       biosignatures to classify; behavior arrives in A2/A5.
 
@@ -212,6 +209,11 @@ The soul of the game, reached as directly as possible.
       confidence, decide nothing. (Design note: make the vigil an
       *activity* — hypotheses and instrument allocation — per
       playstyles.md's Silence gap.)
+- [ ] **The mask contest (thin)**: sharpening with instrument time
+      against the target's mask — the live mask-versus-instrument
+      contest (technology.md § Working decisions), moved here from A1
+      because this is the slice where the other side first has behavior
+      worth masking.
 - [ ] **The choice ceremony**: directed hail / broadcast / stay dark —
       irreversible, hold-to-commit, consequences rendered on the Model
       (ui-design.md § the choice screen).
