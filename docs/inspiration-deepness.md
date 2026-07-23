@@ -241,6 +241,10 @@ absence.
 
 ### 6. The star that turns off
 
+**Status: adopted (2026-07).** Shipped as cradle 41, *The century orbit*
+(`cradles.ts`, mirrored in act1-cradles.md and act1-lifeforms.md's
+candidate-lineage table) — live in the seed generator immediately.
+
 **In the book.** A star that shines for roughly 35 years in every 250,
 and a native biosphere that answered with obligate hibernation — a whole
 civilization lived in installments, its physics and culture organized
@@ -396,7 +400,7 @@ or specced machinery, per the rule that entries ride existing systems.
 
 | # | Steal | Rides on | Lands | Size |
 |---|---|---|---|---|
-| 6 | Dormancy cradle | `cradles.ts` + act1-cradles.md sync | Content track, any time — live in A0's generator immediately | One catalog row |
+| 6 | Dormancy cradle | `cradles.ts` + act1-cradles.md sync | **Adopted (2026-07)** — cradle 41, The century orbit | One catalog row |
 | 7 | Interpretive layer, the lurk, rival watchers | The vigil (A2), signal classes, Assay | **A2** — the vigil-as-activity gap is on the contact loop's critical path | Design work now |
 | 9 | Light-cone authentication | Verification challenges, knowledge layer | A2 thin (one challenge class), grows with correspondence | Small mechanic |
 | 1 | Library broadcast + protocol adoption | Light echo (A3), payload stack | **Rejected (2026-07)** | — |
