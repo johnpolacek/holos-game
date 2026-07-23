@@ -173,6 +173,50 @@ Refuser spends its whole interstellar life on the first.
 
 ---
 
+## The forecast
+
+The map is the past; a launch aims at the future. Between the stale light
+a decision is made on and the landfall that pays it off lie both the
+light-lag and the whole flight — so every expansion decision is a bet on
+what the destination will have become, and the game says so with a number.
+
+- **Information age at landfall.** One derived quantity, rendered
+  wherever a launch is being aimed: the light-age of the data now, plus
+  the transit years. Aim at a biosignature world 20 light-years out with
+  an 80-year flight, and the survey says plainly: *at arrival you will be
+  acting on light 100 years old.* No new machinery — the knowledge layer
+  knows the light-age, the travel menu knows the flight clock.
+- **The arrival spread.** The survey renders what the destination may be
+  at landfall as a spread of outcomes, honest per class: negligible for a
+  dead rock, wide for a living world, widest of all for a civilization
+  mid-ascent — and the width is itself the strategic information. The
+  spread is belief about the future, under the Model's one rule: belief,
+  never truth, and never certain.
+- **The timing decision.** Launch now on a wide spread, or watch to
+  narrow it — the same watch-versus-act tension the vigil runs, priced in
+  instrument time and years. A launch deferred is confidence gained and a
+  head start spent; races are lost this way, and blunders avoided.
+- **Landfall.** When the flight clock fires, the truth engine resolves
+  what is actually there, and the report returns as light — the
+  walkthrough's Day 5 already plays it (*"the ocean is deeper than the
+  surveys promised"*). The gap between forecast and found is a beat class
+  in its own right: the world that got loud mid-flight, the civilization
+  that collapsed a decade before the probe fell into orbit, the quiet
+  system that turned out occupied. No new outcome machinery — the truth
+  was always going to be consulted at arrival; the forecast makes the
+  consultation dramatic.
+
+Forecast play is flavor-neutral. The Instrumental mind appraises, times,
+and arbitrages civilizational cycles — the interim verb set
+playstyles.md asks for, landed without waiting for the conflict layer. A
+Custodian times an uplift to a bottleneck it can see coming; a Curator
+times a rescue against a collapse it cannot prevent from here. v1 ships
+the thin version — the information-age figure and a qualitative spread
+on the A4 survey — and probabilistic trajectory modeling arrives later
+as instrument depth, not as entry cost.
+
+---
+
 ## Charters and the Ledger
 
 You cannot govern across light-years, so governance happens once, at
@@ -652,7 +696,9 @@ Per the vision's v1 slice — prove the pivot and the contact loop:
 - The Sky report and observatory with the five v1 signal classes
 - Light echo tracking (emission history, per-observer views; the seed
   Chronicle already ships as the inherited civ's legible history)
-- One expansion method: seedships/probes, with charters and basic drift
+- One expansion method: seedships/probes, with charters, basic drift,
+  and the forecast survey (thin: information age at landfall + a
+  qualitative arrival spread)
 - Light-lag messaging: directed hail, broadcast, correspondence
 - Sleep with basic tripwires and notifications
 - No strikes, no seat transfer (single node in v1 — the seat rule's full

@@ -70,6 +70,11 @@ Sizing verdicts are collected in the table at the end.
 
 ### 1. The culture that is the institution
 
+**Status: rejected (2026-07).** Reviewed and declined as
+over-prescriptive — no adoption stat, no broadcast posture, and no
+legibility system joins the design. The entry stands as record; the
+Voice-economy question it aimed at stays open.
+
 **In the book.** The novel's trading fleets are bound by no government —
 none could survive the distances. What binds them is *culture as
 infrastructure*: shared protocols, a shared calendar, shared trade
@@ -102,6 +107,13 @@ turn out to contain their maker's keys: **adopted standards carry their
 author's locks**. See steal 4.
 
 ### 2. Markets you cannot see yet
+
+**Status: adopted (2026-07).** Developed in full as
+[act3-design.md](./act3-design.md) § The forecast — information age at
+landfall, the arrival spread, the timing decision, and landfall beats —
+landing with A4's survey (roadmap.md) and answering part of
+playstyles.md's Instrumental gap. The entry below is the provenance;
+act3-design.md is the spec.
 
 **In the book.** Fleets plan voyages against *forecasts*, not markets: the
 customer civilization that beckoned at launch will have risen or fallen by
@@ -370,9 +382,9 @@ or specced machinery, per the rule that entries ride existing systems.
 | 6 | Dormancy cradle | `cradles.ts` + act1-cradles.md sync | Content track, any time — live in A0's generator immediately | One catalog row |
 | 7 | Interpretive layer, the lurk, rival watchers | The vigil (A2), signal classes, Assay | **A2** — the vigil-as-activity gap is on the contact loop's critical path | Design work now |
 | 9 | Light-cone authentication | Verification challenges, knowledge layer | A2 thin (one challenge class), grows with correspondence | Small mechanic |
-| 1 | Library broadcast + protocol adoption | Light echo (A3), payload stack | A3 posture flag + modifier; full economy with the message layer | Medium |
+| 1 | Library broadcast + protocol adoption | Light echo (A3), payload stack | **Rejected (2026-07)** | — |
 | 4 | Sealed clauses + lineage keys | Future-dated epochs (shipped), charters (A4), Ledger | A4 thin (one sealed-clause slot); full with missions | Medium |
-| 2 | Forecast play | Destination survey (A4), young worlds (A5) | A4–A5; also the Instrumental interim verbs | Medium |
+| 2 | Forecast play | Forecast survey (A4), young worlds (A5) | **Adopted (2026-07)** — act3-design.md § The forecast; A4–A5 | Medium |
 | 10 | Calendars as character | Chronicle | Content-only, alongside A3's Chronicle | Trivial |
 | 5 | Dust veil | technology.md instrument shelf | Catalog entry; mechanics post-v1 | One catalog entry |
 | 8 | Rendezvous window | Missions, conflicted-war venue | Post-v1 — but the *rule* should be written before any co-location ships | Design work now |
