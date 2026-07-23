@@ -11,9 +11,11 @@
     "dev:client": "npm run dev --workspace client",
     "typecheck": "npm run typecheck --workspaces",
     "build": "npm run build --workspaces",
-    "art:manifest": "node scripts/build-art-manifest.mjs"
+    "art:manifest": "node scripts/build-art-manifest.mjs",
+    "icons": "node scripts/build-icons.mjs"
   },
   "devDependencies": {
+    "sharp": "^0.34.5",
     "wrangler": "^4.112.0"
   }
 }
