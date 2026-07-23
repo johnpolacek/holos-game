@@ -330,7 +330,16 @@ calendar app.
 
 ### 6. The Refuser's clock
 
-**Status: open (2026-07) — for the designer pass.**
+**Status: skipped (2026-07).** Not evaluated on the merits: the review
+surfaced a larger question — whether the Refuser class belongs in the
+game at all, or is complexity the design should shed. That decision is
+out of this document's scope and touches the whole corpus; until it is
+made, nothing lands on the Refuser shelf. If the class survives, the
+no-sleep rework of this entry (mortal stewards relaying deep-time
+projects across successions; the harness as the only participant that
+never forgets; the Breakout as slow inversion rather than sudden
+waking) is recorded in the review thread and can be revisited. The
+entry below is the provenance record.
 
 **In the book.** Hibernation is a biological technology. Whole
 flesh-and-blood populations sample deep time in installments — rulers
@@ -405,7 +414,7 @@ systems.
 | 5 | The aligned dawn | Event queue (shipped), mission clock (A4) | **Adopted, transformed (2026-07)** — the appointment, act3-design.md § Contact | Derived timelines |
 | 4 | Waking-time drift + the insomniac colony | The Ledger (A4), charters | **Referred (2026-07)** — recast as correspondence-as-drift-brake; verdict lands with the communication design | One rule + beat class |
 | 7 | The overslept founder | Light-cone authentication, the Chronicle | Beat content, A4+ | Beat class + one paragraph |
-| 6 | The Refuser's clock | Refuser shelf | Phase B / content track | Content only |
+| 6 | The Refuser's clock | Refuser shelf | **Skipped (2026-07)** — pending the larger question of whether the Refuser class stays in the game | Content only |
 
 Read against [playstyles.md](./playstyles.md)'s flagged gaps: steal 1
 gives **Silence** its social verb; steal 2 gives **Depth** a project and
