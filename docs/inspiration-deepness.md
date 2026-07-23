@@ -395,6 +395,13 @@ it already answers.
 
 ### 10. Seconds since the epoch
 
+**Status: adopted (2026-07).** Formalized as the three registers of
+time — act3-design.md § The Chronicle: truth in global years (never a
+played surface), voices in their own epoch (`year n AE` family,
+pinned in prose-style.md §8), instruments in light-age. Both epoch
+layers already existed in code (`clock.ts`, `CivSeed.ascensionYear`);
+the adoption names them as a rule.
+
 **In the book.** The fleets keep time in raw seconds — kiloseconds,
 megaseconds — from an epoch every crew misremembers as the first moon
 landing; it is actually the zero-second of an ancient operating system,
@@ -428,7 +435,7 @@ or specced machinery, per the rule that entries ride existing systems.
 | 1 | Library broadcast + protocol adoption | Light echo (A3), payload stack | **Rejected (2026-07)** | — |
 | 4 | Sealed clauses + lineage keys | Future-dated epochs (shipped), charters (A4), Ledger | **Rejected (2026-07)** | — |
 | 2 | Forecast play | Forecast survey (A4), young worlds (A5) | **Adopted (2026-07)** — act3-design.md § The forecast; A4–A5 | Medium |
-| 10 | Calendars as character | Chronicle | Content-only, alongside A3's Chronicle | Trivial |
+| 10 | Calendars as character | Chronicle | **Adopted (2026-07)** — three registers of time, act3-design.md § The Chronicle | Two doc blocks |
 | 5 | Dust veil | technology.md instrument shelf | **Adopted (2026-07)** — technology.md § The dust veil | One catalog entry |
 | 8 | Rendezvous window | Missions, conflicted-war venue | **Transformed (2026-07)** — became the mission clock (act3-design.md § Missions); thin at A4 | Derived timelines |
 | 3 | The yoked harness | Refuser shelf | **Rejected as mechanic (2026-07)** — content may reveal it; nothing codified | — |

@@ -142,6 +142,17 @@ is never private, because its past is already on the sky.
   behind it, back to first life.
 - **Physically honest.** A distant observer watching your world is literally
   reading your past — nothing can be unshone, all the way back to first life.
+- **Three registers of time.** Truth thinks in **global years** — the
+  cohort clock's coordinate time, set at galaxy seed and never shown on a
+  played surface; no civilization would keep the referee's calendar.
+  Voices speak in **their own epoch**: every Chronicle and report is dated
+  from its civilization's founding event — the waking for a crossed mind
+  (`CivSeed.ascensionYear` is this field, and the walkthrough's *year 280
+  AE* is the convention in use), the charter's founding for a Refuser — so
+  a foreign Chronicle arrives in its sender's calendar, and reading one
+  means standing briefly inside someone else's count of time. Instruments
+  speak in **light-age** (`AS OF n Y AGO`), unchanged. The conversion is
+  one subtraction for the game and characterization for the player.
 
 ---
 

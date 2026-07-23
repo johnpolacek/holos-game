@@ -390,6 +390,7 @@ Load-bearing literals. Style passes must not rewrite them for wit or flow.
 | Difficulty tiers | `Gentle`, `Temperate`, `Testing`, `Harsh`, `Brutal` |
 | Designation format | `HOL-nnnn` — a machine ID, never prose |
 | Age chip | `AS OF n Y AGO` |
+| Chronicle dating | Epoch-relative — each civilization counts from its own founding event (the `year n AE` family); the cohort's global year never reaches a player surface |
 | Color rule | cyan = you / HOME (present tense); amber = other / belief. Prose must never call HOME amber or a source cyan. |
 | House coinages | `Teeming Dark`, `Dark Node`, `Signature`, `the Vault`, `the Model`, `the Ledger`, `Visibility Collapse`, `cradle`, `charter`, `the Refusal` / `Refuser`, `the harness` / `harnessed intelligence`, `the Breakout`, `grave world`, `the Crossing`, `the Chronicle` |
 
