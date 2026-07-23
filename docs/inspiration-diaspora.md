@@ -316,6 +316,14 @@ with the Ledger and drift math (A4) in full.
 
 ### 4. Self-binding
 
+**Status: rejected (2026-07).** Declined in review — no vow mechanic,
+no range edits, no declared-stance thin version; the dials keep their
+settled shape (nature sets the range, play sets the point, resistance
+prices the rest), and identity-across-time stays the conversation's
+job (§ Drift) rather than a lock's. Consistent with the recorded
+verdict pattern: new stored state declined. The entry stands as
+record.
+
 **In the book.** A mind can adopt a self-applied value-lock: a chosen
 configuration that holds part of the self fixed against all argument,
 forever if unrevised. The book prices it with devastating economy — not
@@ -579,7 +587,7 @@ systems. Sizes are proposals, pending the review verdicts.
 | 2 | The first reading | Ceremony (shipped, A1), Chronicle | **Rejected (2026-07)** — owning belongs to the origin acts (Phase B) | — |
 | 5 | Tempo | Cold berth, the clocks, report registers | One named rule (act3-design.md) + register now; duty-cycle variant with A5 sleep, if ever | Named rule + register |
 | 3 | The merge + family referendum | Payload stack, culture nudges, Ledger, mission-clock derivations | **Adopted (2026-07), renamed** — act3-design.md § Charters and the Ledger (reunion letter, lineage referendum) | Medium; wire question flagged |
-| 4 | Self-binding | Dial ranges, resistance math, charters (A4), Coherence | Thin (declared posture) with A4 charters; full only if wanted | Medium; pushes the prior |
+| 4 | Self-binding | Dial ranges, resistance math, charters (A4), Coherence | **Rejected (2026-07)** — no vow mechanic; identity holds by conversation, not locks | — |
 | 1 | The clade spectrum | act3-civilizations catalog, A5 seeding, signal classes | **Adopted (2026-07)** — act3-civilizations.md § The other stances | Four catalog seeds + beats |
 | 8 | The interior camera | The Model, observatory, project completions | Post-A3 parity work; report vocabulary any time | Medium (presentation only) |
 | 6 | The closed biosphere | `LIVING WORLD`, the vigil (A2), the Assay | Later content; beat class with missions | One catalog seed + beats |
