@@ -90,49 +90,111 @@ Three decisions are already made for you (do not reopen them):
   slice's acceptance scenes (the anthem, the stay-dark resistance beat,
   the whisper, the evening exchange).
 
-## The task — A2 (roadmap § A2 is authoritative)
+## Staging and live preview
 
-1. **Wire protocol growth.** Guarded messages for: open/shelve/call a
-   case; buy a question; allocate instrument time; the choice commit
-   (hail / broadcast / stay dark); send a signal; receive scheduled
-   deliveries (question answers, signals) fired by the alarm queue at
-   light-honest times. Nothing about a remote civ beyond
-   `DetectedSource` + what the new case/evidence shapes explicitly add —
-   and those shapes are derived in `knowledge.ts`, never in handlers.
-2. **The case board** (observatory-design.md § v1 scope): hypothesis
-   menus per signal class, the six question types with costs and
-   clocks, instrument-time income + allocation, sharpen/plateau/regress
-   answers (regress only when the target actually spends — archetype
-   mask rules supply the spend), case tripwires, called/shelved/
-   overtaken exits. **No grounded exit yet** — the Assay is A4; the
-   board simply doesn't offer it.
-3. **The mask contest (thin).** Archetype-rule mask spend for seeded
-   civs (a Cloister pays upkeep forever; a young Beacon never does);
-   the player's own mask as the existing dark-project upkeep. Contest
-   resolution is budget-vs-budget per economy-design.md — no stealth
-   stats, no certainty.
-4. **The choice ceremony.** Hail (thread of light to one source),
-   broadcast (expanding shell with arrival dates), stay dark (a tap) —
-   staged on the Model, hold-to-commit, consequences rendered during
-   the hold. Resistance beats fire when the choice fights the dials
-   (the walkthrough's stay-dark scene is the acceptance test).
-5. **Traffic.** Tight-beam threads on real clocks: composed-parts
-   composer for human pairs (design the part set: payload blocks —
-   knowledge, culture, archive fragments, coordinates, **dossiers**
-   (tradeable in v1, observatory-design.md § The dossier) — plus
-   quantity, tone, and reference parts); freeform for AI counterparts; in-flight
-   rendering on the Model; every received signal wearing its physics
-   stamp. Delivery via the alarm queue; a signal is light and arrives
-   exactly when light would.
-6. **Rule-based AI counterparts (thin).** Enough behavior for complete
-   contact arcs in three registers: a dark whisperer (Hearth-class — 
-   answers only civs that have gone quiet), a loud builder
-   (Lantern-class — hails bright pasts, sings back at broadcasts), and
-   one Congress-style ready answerer. Replies composed from archetype
-   voice + templated payloads; light-lag hides the seams.
-7. **Durable identity (thin).** Account row in DO SQLite; claim flow
-   from the A1 token; second-device sign-in by token; the cohort
-   rejects a claimed civ's old anonymous token. Recovery flows later.
+A2 builds **one screen at a time, in six stages**. Every stage ends
+shippable and *shipped*: a small PR, CI green, merged to `main` — and
+`main` auto-deploys the one Worker, so the production URL on a phone is
+the live preview after every stage (CLAUDE.md § Deployment; merged means
+released, and each stage below is written to be releasable). Workers
+Builds also deploys a preview version per PR branch (`wrangler versions
+upload`) for checking *before* merge — usable here since A2 adds no
+Durable Object migration (the 10211 caveat does not apply) — but note a
+preview version shares production DO state, so run pre-merge checks
+against a dev cohort room name, never the live cohort.
+
+**The stage discipline:** each stage = one screen (plus only the
+substrate it needs), one PR, one phone check written below as its gate.
+A stage does not start until the previous stage's phone check passed on
+the deployed URL. Wire rules hold at every stage: guarded parsing per
+the protocol pattern, and nothing about a remote civ beyond
+`DetectedSource` + what the case/evidence shapes explicitly add — those
+shapes derived in `knowledge.ts`, never in handlers.
+
+## The stages — A2 (roadmap § A2 is authoritative for scope)
+
+### A2.1 — The case board, read-only
+
+The vigil's screen, before its verbs. Wire: open/shelve a case; case
+state on the Cohort DO; hypothesis menus per signal class seeded from
+`ObservedSignal`. Screen: the observatory Desk panel — open cases as
+rows, the focused case showing its hypotheses as confidence bars, the
+light archive annotated with what moved what. The source card grows one
+affordance: *open a case*.
+
+**Phone check:** flag the nearest `DARK NODE` candidate → a case opens
+→ read its hypotheses with confidence shares and the evidence so far.
+Nothing buyable yet.
+
+### A2.2 — Questions, bought and answered
+
+The vigil's verb. Wire: buy a question; instrument-time income and
+allocation; answers scheduled through the alarm queue on real clocks.
+Screen: the case's open questions with costs, clock pairs, and
+which-hypotheses-it-separates; bought questions on the strip's cooking
+clocks; answers landing in the report and moving the bars (sharpen and
+plateau only — no opponent yet).
+
+**Phone check:** buy an overnight question in the evening; the next
+morning's report shows the answer and the case's bars visibly moved —
+or a plateau, honestly labeled.
+
+### A2.3 — The contest, and case tripwires
+
+The other side spends. Archetype-rule mask upkeep for seeded civs (a
+Cloister pays forever; a young Beacon never does), resolved
+budget-vs-budget per economy-design.md — no stealth stats, no
+certainty. Regression joins the answer shapes, its tell stated plainly
+in the observatory deadpan (observatory-design.md, **settled**). Case
+tripwires (*wake this case if confidence regresses; if the leakage
+stops*) fire in-app on next open. Called/shelved/overtaken exits
+complete the case lifecycle — a called case stays called. **No
+grounded exit** — the Assay is A4; the board simply does not offer it.
+
+**Phone check:** a vigil on a masked target regresses and the board
+says why in one flat sentence; a called case closes and stays closed.
+
+### A2.4 — The choice ceremony
+
+The irreversible screen. Hail (a thread of light drawn to one source),
+broadcast (the expanding shell touching sources with arrival dates),
+stay dark (a tap) — staged on the Model, hold-to-commit, consequence
+rendered during the hold; releasing early cancels silently. Resistance
+beats fire when the choice fights the dials (the walkthrough's
+stay-dark scene is the acceptance test). The commit writes emission
+truth; nothing answers yet.
+
+**Phone check:** hold a broadcast far enough to watch the shell sweep
+three sources with arrival dates, release early, and nothing happens;
+hold a hail to commit, and the Model shows the thread in flight.
+
+### A2.5 — Traffic, against the AI
+
+The thread screen, and the first replies. Freeform-with-AI first (the
+settled format order): rule-based counterparts in three registers — a
+dark whisperer (Hearth-class: answers only civs that have gone quiet),
+a loud builder (Lantern-class: hails bright pasts, sings back at
+broadcasts), and a Congress-style ready answerer — replying in
+archetype voice (prose-style §4) on real clocks through the alarm
+queue. Screen: threads in the Voice, in-flight motes on the Model,
+every received signal wearing its physics stamp.
+
+**Phone check:** hail the near whisperer, get a reply roughly half an
+hour later wearing transit years and received strength, and hold a
+conversation across an evening — the walkthrough's Week 2 texture, on
+the deployed URL.
+
+### A2.6 — Human pairs: the composer, dossiers, identity
+
+The multiplayer gate. The composed-parts composer for human pairs
+(part set: payload blocks — knowledge, culture, archive fragments,
+coordinates, **dossiers** (tradeable, observatory-design.md § The
+dossier) — plus quantity, tone, and reference parts). Durable identity
+(account row in DO SQLite, claim flow from the A1 token, second-device
+sign-in by token, old anonymous token rejected). Human-to-human threads
+indistinguishable from the AI path at the wire level.
+
+**Phone check:** the fun gate below, run on two phones.
 
 ## Done when (the fun gate — prove it by playing it)
 
@@ -170,9 +232,15 @@ tune here — nothing else builds until this gate passes (roadmap, § A2).
 
 ## First move
 
-Read the code and docs above, then **propose before building: the wire
-message set (cases, questions, choice, signals, deliveries), the
-composed-signal part grammar, and the case/confidence model** (including
-how archetype mask spend produces an earned regression). After the go,
-decompose into subagent tasks (see *Orchestration*), and integrate +
-verify the invariants yourself before each commit.
+Read the code and docs above, then **propose before building A2.1: the
+case wire shapes (case, hypothesis, evidence) and the case board's
+screen layout** — plus a sketch of where the later stages' messages will
+hang, so A2.1's shapes don't need reshaping. Each subsequent stage opens
+the same way: a short proposal (its wire additions and its screen), the
+go, then build. The two proposals that warrant the double-Opus treatment
+when their stages arrive: the case/confidence model with earned
+regression (A2.3) and the composed-signal part grammar (A2.6). After
+each go, decompose into subagent tasks (see *Orchestration*), and
+integrate + verify the invariants yourself before each commit — every
+stage merges to `main` and is checked on a phone at the deployed URL
+before the next begins.

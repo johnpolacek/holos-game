@@ -203,7 +203,10 @@ remote fact aged and no remote fact certain.
 
 ### A2 — Contact *(north-star proof #1)*
 
-The soul of the game, reached as directly as possible.
+The soul of the game, reached as directly as possible — built **one
+screen at a time in six stages** (build-a2.md § Staging), each stage a
+small PR merged to `main` and phone-checked on the deployed URL before
+the next begins.
 
 - [ ] **The vigil**: a flagged source becomes a case — hypotheses,
       buyable questions, instrument-time allocation, the
