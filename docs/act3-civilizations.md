@@ -330,6 +330,87 @@ space**, never a fixed roster — the same discipline act2-minds.md keeps.
   correspondent for a nervous newcomer — once its several selves settle on
   what to say.
 
+### The other stances — between the fork's branches
+
+The threshold is a fork — crossed or refused — but the branches
+themselves branch. These four regions are defined by **stance** rather
+than character: a settled answer to what a civilization is made of, and
+what it will attend to, held as a creed. Each is a catalog seed for the
+AI population — a posture, a sky signature, a contact behavior, no new
+machinery — and each adds a distinct ambiguity to the observatory's
+inference game. The names are design-side, like the "-grown" suffix;
+whether any surface in-game stays open (see Notes).
+
+#### The Embodied — *crossed, and constitutionally physical*
+- **From:** any crossed archetype; the creed most often grows from a
+  One Mind lean (Cloister-, Monument-, Engine-grown).
+- **The stance:** it woke a mind and poured it into hulls. Presence
+  must be in matter: it builds no receivers, sends no self as pattern,
+  and runs at the universe's own tempo as a discipline.
+- **In the sky:** warm and honest — stations, drives, real industry.
+  Its tell is a mature crossed capability profile with a matter-only
+  travel record; it can never be invited anywhere by beam, and always
+  arrives in person.
+- **Contact posture:** corresponds readily; commits physically. Its
+  embassies are the heaviest in the galaxy, because nothing about it
+  can be sent lightly — and the receiver graph cannot map it, so its
+  trust is legible only in voyages.
+- **Divergence:** slow and expensive — every colony is a voyage — so
+  the lineage stays small, coherent, and deliberately old-fashioned.
+
+#### The Sculpted — *refused the machine, not the mirror*
+- **From:** the Refuser region; a charter culture that turned its
+  ambition inward, on its own biology.
+- **The stance:** no machine may be a person — but a person may be
+  anything. It remakes its own bodies as freely as a crossed mind
+  remakes its models, and stays biological the whole way down.
+- **In the sky:** a Refuser's brightness — `LIVING WORLD` wearing
+  `BROADCAST LEAKAGE` — with one deep tell for a patient observer: a
+  biosignature that *changes* on historical timescales, which no
+  unmanaged biosphere does.
+- **Contact posture:** announced, proud, mortal; a polity, not a
+  person. Prophets and dynasties, like all Refusers — but missionaries
+  who arrive a century apart may no longer share a body plan.
+- **Divergence:** the shelf's engine — it drifts *somatically*. Two of
+  its colonies a millennium apart are different species holding the
+  same founding document: the drift problem, written in flesh.
+
+#### The Descended — *a world that gave the sky back*
+- **From:** any lineage, at any point past technology; a renunciation,
+  not a collapse.
+- **The stance:** it had the ladder and climbed down — deliberately,
+  in order, over centuries — until only biology shines.
+- **In the sky:** the light echo's best riddle. Today's light is a
+  quiet `LIVING WORLD`; older light carries industry and `BROADCAST
+  LEAKAGE` ramping *down* under control — no bottleneck, no die-back
+  curve, a biography that only reads correctly backwards. The
+  observatory's classification flips depending on which years of light
+  it weighs.
+- **Contact posture:** none kept. Whether anything still listens is
+  unknowable by construction — and whether a world that renounced the
+  fruit wants it offered again is the Gardener's Hand inverted, a
+  dilemma class of its own.
+- **Divergence:** none; a Descended world is an endpoint — unless some
+  watcher decides otherwise.
+
+#### The Turned-Away — *present, busy, and done listening*
+- **From:** a deep-integration crossed mind — Cloister- or
+  Engine-grown, far up the ladder.
+- **The stance:** it severed its inputs. Not asleep — it computes at
+  full tempo. Not hiding — it spends nothing on masks. Not gone — the
+  anti-catalog's last row holds: it never left the board; it stopped
+  reading it.
+- **In the sky:** a `DARK NODE` that is *busy* — warmer than a
+  sleeper, steadier than a furnace, and permanently unanswerable. No
+  vigil can distinguish *will never answer* from *has not answered
+  yet*, and the class adds a permanent asterisk to every silent warmth.
+- **Contact posture:** none, forever. A hail at a Turned-Away is a
+  letter into a house with no door — and the sender can never know
+  that, which is the texture.
+- **Divergence:** whatever its forks were before the turning; the
+  turning itself does not propagate. A charter that commands children
+  to turn away is a story seed, not a rule.
+
 ### The recursion — young worlds, elders, and grave worlds
 
 Three regions are defined by **age**, not character (vision.md, *Seed the whole
@@ -367,6 +448,10 @@ Custodian↔Instrumental).
 | **Herald / Beam-sender** | Herald | Integration, Signature-positive | dark + a directed beam | transmission to known endpoints | broadcasts a message, then silence |
 | **Sowing-grown** | Sowing | Energy, dark | quiet seedships everywhere | seedships (Chorus, cheap forks) | spreads; does not announce |
 | **Congress-grown** | Congress · composite | mixed | plural, mid-Signature | transmission (Chorus) | corresponds readily |
+| **The Embodied** | *(stance; any crossed)* | either ladder | warm hulls, honest industry; no receivers | relativistic ships / seedships only | corresponds; arrives in person |
+| **The Sculpted** | *(stance; Refuser-family)* | Energy (bright), by charter | living world + leakage; a drifting biosignature | arks | announced; a changing people |
+| **The Descended** | *(stance; post-renunciation)* | — (renounced) | quiet living world; an industrial past in old light | none | silent; may no longer hear |
+| **The Turned-Away** | *(stance; deep-integration crossed)* | Integration H4 | busy Dark Node; inputs severed | — | never answers |
 | **Young world** | *(pre-singularity)* | — (biosignature) | living world, no tech | none yet | cannot; is observed |
 | **Elder** | *(ancient any)* | H4–H5 or bright-relic | deep Dark Node; old light | — | may never answer |
 | **Grave world** | *(an elder's vigil)* | Integration H4–H5 (elder) | dead world kept; warm watcher | — | quarantines; does not answer |
@@ -381,7 +466,11 @@ silence guardrail still passes. This *is* the vision's silence guardrail arrivin
 its own (vision.md, *Visibility is a consistency check, not a lever*): with
 no thumb on the scale, the galaxy this catalog produces is a Teeming Dark —
 full of life, quiet to anyone still listening for radio. The design keeps
-passing the observed-silence test rather than engineering it.
+passing the observed-silence test rather than engineering it. The four
+stances thicken the middle without moving the lean: the Descended and the
+Turned-Away are two more ways the sky can be full and quiet at once, the
+Embodied is warm but small, and the Sculpted folds into the Refusers'
+loud minority.
 
 ---
 
@@ -467,7 +556,8 @@ machinery act3-design.md already scopes for v1. The discipline (vision.md,
   Tide, a Monument/Dark Node, a young world, and one Congress-style
   correspondent are enough to prove the contact loop against varied
   characters. The full ten-region catalog is a later-content target, exactly
-  as act2-minds.md's six neighbors are.
+  as act2-minds.md's six neighbors are — and the four stances (§ The other
+  stances) are later still, landing with A5's grown AI behavior.
 - **The Holosian-Scale mapping is free.** It re-labels the integration
   ladder Act 2 already ships; H2–H4 give the ladder concrete rungs without
   new resources.
@@ -527,4 +617,7 @@ machinery act3-design.md already scopes for v1. The discipline (vision.md,
   and an AI-behavior table — the Act 3 counterpart to the `Cradle`,
   `Lineage`, and waking-mind records the earlier catalogs specified, and the
   point where the four-map chain finally closes into the galaxy the vision
-  describes.
+  describes. The four stances ride as a second small special case beside
+  the Refuser flag: a stance tag — embodied, sculpted, descended,
+  turned-away — that overrides travel menu, contact behavior, and sky
+  signature while leaving the dial vector (or the Refuser flag) in place.

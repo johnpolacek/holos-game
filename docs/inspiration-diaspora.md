@@ -137,6 +137,15 @@ verdicts are open pending review.
 
 ### 1. The clade spectrum
 
+**Status: adopted (2026-07).** Shipped as
+[act3-civilizations.md](./act3-civilizations.md) § The other stances —
+four catalog regions with master-table rows, a v1-scope note (landing
+with A5's grown AI behavior), and a data-shape note (a stance tag
+beside the Refuser flag). Catalog content only; nothing codified beyond
+it. The working labels were adopted as design-side names — the
+Embodied, the Sculpted, the Descended, the Turned-Away — with in-game
+naming staying open under the archetype-naming convention.
+
 **In the book.** Post-humanity is not two camps but a spectrum of
 settled stances toward substrate, and the novel's opening chapters are
 a tour of them: software citizens in their city-states; robot-bodied
@@ -544,7 +553,7 @@ systems. Sizes are proposals, pending the review verdicts.
 | 5 | Tempo | Cold berth, the clocks, report registers | One named rule (act3-design.md) + register now; duty-cycle variant with A5 sleep, if ever | Named rule + register |
 | 3 | The merge + family referendum | Payload stack, culture nudges, Ledger, mission-clock derivations | Thin with letters (A2–A3); full with Ledger + drift math (A4) | Medium; wire question flagged |
 | 4 | Self-binding | Dial ranges, resistance math, charters (A4), Coherence | Thin (declared posture) with A4 charters; full only if wanted | Medium; pushes the prior |
-| 1 | The clade spectrum | act3-civilizations catalog, A5 seeding, signal classes | A5 AI spectrum + catalog rows | Four catalog seeds + beats |
+| 1 | The clade spectrum | act3-civilizations catalog, A5 seeding, signal classes | **Adopted (2026-07)** — act3-civilizations.md § The other stances | Four catalog seeds + beats |
 | 8 | The interior camera | The Model, observatory, project completions | Post-A3 parity work; report vocabulary any time | Medium (presentation only) |
 | 6 | The closed biosphere | `LIVING WORLD`, the vigil (A2), the Assay | Later content; beat class with missions | One catalog seed + beats |
 | 7 | The sentience line | Charters, mission roster, compensation menu | Mission system layer | Charter vocabulary + beats |
