@@ -312,8 +312,9 @@ Resolve each before the slice that needs it; record the call here.
   truth + clock + light-delay computation (`server/src/cohort.ts`); all
   observer reads go through the knowledge layer.
 - **Letter format (A2):** freeform vs composed for human pairs — the
-  vision's open moderation/deception question; must be decided when
-  correspondence ships.
+  vision's open deception/tone question; must be decided when
+  correspondence ships. Either way, A2 ships with the conduct baseline
+  (conduct.md): report on letters, block ("go dark to them").
 - **Sky data budget (A1):** how much star field streams to a phone first
   render (act3-map.md § Under the hood). Note A0's real cohort field is
   small (~260 stars at 25 ly) — the 50–150k-star *cosmetic* backdrop can

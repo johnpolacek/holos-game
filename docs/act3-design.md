@@ -919,9 +919,11 @@ call is borderline, take the bolder inclusion; the slice must still ship.
 
 ## Open questions
 
-- **Player-to-player language.** Freeform text between humans (with the
-  moderation burden that implies) versus structured/composed messages, and
-  what each does to deception, tone, and safety.
+- **Player-to-player language.** Freeform text between humans versus
+  structured/composed messages, and what each does to deception and
+  tone. Safety is not the deciding axis: the conduct baseline (report,
+  block, betrayal-is-play) is settled in conduct.md and applies to
+  either format.
 - **Drift math.** The exact curve from time × separation × charter
   looseness to dial drift and independence.
 - **Does mission spam require an attention mechanic?** v1 bets that real
