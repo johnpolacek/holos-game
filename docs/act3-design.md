@@ -281,6 +281,34 @@ AI-run — or handed to a joining human player, who inherits its history,
 its grudges, and *your charter as their founding document*. Player-authored
 charters becoming other players' origin myths is the onboarding engine.
 
+**The reunion letter.** Divergence runs one way; mail runs both. A fork
+may send up, down, or across its lineage a letter that means nothing
+between strangers: its own record since separation — what it found, what
+it built, what it has become. Receiving one is a real choice, made once
+per letter: **absorb** it, gaining what the sender learned (the ordinary
+knowledge payload) and taking a bounded step of dial drift *toward* the
+sender — the culture-nudge machinery at lineage strength, because a
+sibling's voice reaches deeper than a stranger's — or **set it aside**,
+unchanged, which is also a statement. Character reads at both ends: a
+Curator absorbs everything and files it; a Phoenix deletes it unread; a
+One Mind treats each absorption as a small identity decision, and the
+beats say so. This is the one verb of lineage coherence the design
+allows itself — not governance, which cannot cross light-years, but
+thicker mail: drift metabolized rather than prevented. v1-thin: the
+effects are the existing letter payloads, lineage-flavored in prose; the
+absorb-or-set-aside choice becomes mechanical with the Ledger and the
+drift math (A4).
+
+**The lineage referendum.** A question put to the whole lineage at once
+— broadcast down the Ledger, answered over years, each reply in the
+fork's own drifted voice — and the spread of answers is the payoff: the
+moment a parent learns what its children have become is the moment they
+disagree about something it thought was settled. Every date derives from
+distance and the shared clock (the mission-clock rule: derived, never
+stored), and silence at a deadline is an event — the fork that never
+answers is the loudest reply. A beat class riding existing machinery,
+and the natural opening move of a lineage coalition (see Coalitions).
+
 ---
 
 ## The seat
@@ -343,7 +371,8 @@ decision with real time in it:
 **What letters can carry:** knowledge (tech and ladder modifiers), culture
 (dial nudges — contact changes you), Vault contents (the Curator's trade
 goods), verification challenges — and **coordinates of third parties**,
-the currency of betrayal.
+the currency of betrayal. Within a lineage, a letter can carry a whole
+self: the **reunion letter** (see Charters and the Ledger).
 
 **A verification challenge is a question about light.** Identity is
 proven by proving what light a worldline has seen: *what did the
@@ -628,9 +657,10 @@ on stale knowledge of the others' adherence, every confirmation is years
 old on arrival, and a defection is already in flight before anyone could
 learn of it. Holding a coalition together across light-lag is a game of
 anticipation and character-reading, not of monitoring. A special case
-with its own flavor: coalitions among one's own diverged forks — family
+with its own flavor: coalitions among one's own diverged forks — lineage
 alliances between civilizations that were once one mind and remember it
-differently.
+differently, and the lineage referendum (see Charters and the Ledger) is
+their natural opening move.
 
 The existing principle stands unchanged: nothing agreed across
 light-years is enforceable. A coalition is a set of promises held up

@@ -244,6 +244,17 @@ B unchanged, since a played history needs owning too.
 
 ### 3. The merge, and the family referendum
 
+**Status: adopted (2026-07), renamed.** Developed as
+[act3-design.md](./act3-design.md) § Charters and the Ledger — *The
+reunion letter* and *The lineage referendum* — with a pointer from
+§ Contact's letter payloads and from § Coalitions; thin with letters
+(A2–A3), mechanical with the Ledger and drift math (A4). One naming
+decision from the review: the *family* vocabulary is dropped — the
+mechanics adopt the house word *lineage* throughout, and the corpus's
+fork-coalition lines (act3-design.md § Coalitions, vision.md) now read
+*lineage alliance*. The entry below keeps its original working labels
+as record.
+
 **In the book.** The great expansion is a clone fleet: the city of
 minds copies itself a thousandfold and sends the copies to a thousand
 skies — as
@@ -557,7 +568,7 @@ systems. Sizes are proposals, pending the review verdicts.
 |---|---|---|---|---|
 | 2 | The first reading | Ceremony (shipped, A1), Chronicle | **Rejected (2026-07)** — owning belongs to the origin acts (Phase B) | — |
 | 5 | Tempo | Cold berth, the clocks, report registers | One named rule (act3-design.md) + register now; duty-cycle variant with A5 sleep, if ever | Named rule + register |
-| 3 | The merge + family referendum | Payload stack, culture nudges, Ledger, mission-clock derivations | Thin with letters (A2–A3); full with Ledger + drift math (A4) | Medium; wire question flagged |
+| 3 | The merge + family referendum | Payload stack, culture nudges, Ledger, mission-clock derivations | **Adopted (2026-07), renamed** — act3-design.md § Charters and the Ledger (reunion letter, lineage referendum) | Medium; wire question flagged |
 | 4 | Self-binding | Dial ranges, resistance math, charters (A4), Coherence | Thin (declared posture) with A4 charters; full only if wanted | Medium; pushes the prior |
 | 1 | The clade spectrum | act3-civilizations catalog, A5 seeding, signal classes | **Adopted (2026-07)** — act3-civilizations.md § The other stances | Four catalog seeds + beats |
 | 8 | The interior camera | The Model, observatory, project completions | Post-A3 parity work; report vocabulary any time | Medium (presentation only) |
