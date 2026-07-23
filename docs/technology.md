@@ -992,7 +992,9 @@ here, following the `cradle`/`charter` capitalization family: **mask**
 tap** (from playstyles.md's "tap black holes"), **payload stack**,
 **deep array**, **worldhousing**, **throne world** (already in
 act3-design.md), **ark**, **the send** (the mission dispatch, §IV). None are Banks coinages or near-variants; all
-should be added to §8's coinage table if they survive review. Ship and
+are adopted into §8 (working decision, 2026-07), and the three great
+structures take plain surface names — `Holocore`, `the Vault`, `the
+Kernel` — with the full design names kept to docs and code. Ship and
 structure *instances* draw phrase names from the prose-style.md §5 pool —
 a beam battery called `Louder Than Necessary` is exactly the register.
 
@@ -1083,14 +1085,17 @@ catalog includes it rather than designing it out.
   already the probe and the hail. The long vigil over a young world
   should be among the first missions that framework authors, because
   it is the Act 1 relationship played from the other chair.
+- **Surface names: Holocore, the Vault, the Kernel.** The three great
+  dark structures render on player surfaces under their plain names —
+  `Holocore`, `the Vault`, `the Kernel` — capital-family artifacts per
+  prose-style.md §8. The full design names (`Computronium Kernel`,
+  `Chrono Vault`) stay formal vocabulary for docs and code and never
+  reach a screen, per the dial-label precedent. The register's new
+  lowercase common nouns graduate to §8 as ambient vocabulary.
 
 ## Open questions
 
-
-- **Coinage adoption.** Which of the new common nouns in the register
-  above graduate to prose-style.md §8, and whether `Holocore`,
-  `Computronium Kernel`, and `Chrono Vault` render under those names on
-  player surfaces or stay design vocabulary with in-world labels, per the
-  dial-label precedent. The Kernel especially may want a humbler in-world
-  name; a civilization does not generally call its own heart by its
-  patent filing.
+None at present. This catalog's original five were resolved above as
+working decisions (masking, beam batteries, the tap, sentinel ethics,
+coinage); new entries and new questions accrue here as the catalog
+grows.
