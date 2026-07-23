@@ -141,6 +141,13 @@ the launch was priced against.
 
 ### 3. The harness with a face
 
+**Status: rejected as mechanic (2026-07).** Nothing is codified — no
+harness variant, no modifier, no named failure line. If a Refuser's
+interior darkness belongs in the game, it emerges through beat content
+and Chronicle writing, revealed by play rather than legislated by a
+system. The entry stands as record and as a sourcebook note for beat
+writers.
+
 **In the book.** The tyranny's engine is a technology that turns people
 into brilliant single-purpose instruments — obsession induced and managed
 as infrastructure. Its horror is specific: the victims are *better at
@@ -388,7 +395,7 @@ or specced machinery, per the rule that entries ride existing systems.
 | 10 | Calendars as character | Chronicle | Content-only, alongside A3's Chronicle | Trivial |
 | 5 | Dust veil | technology.md instrument shelf | Catalog entry; mechanics post-v1 | One catalog entry |
 | 8 | Rendezvous window | Missions, conflicted-war venue | Post-v1 — but the *rule* should be written before any co-location ships | Design work now |
-| 3 | The yoked harness | Refuser shelf | Phase B, with the pivot that makes Refusal playable | Content + one system |
+| 3 | The yoked harness | Refuser shelf | **Rejected as mechanic (2026-07)** — content may reveal it; nothing codified | — |
 
 Read against playstyles.md's flagged gaps: steal 7 is aimed at
 **Silence**; steal 2 at **Instrumental**; steal 4 gives **Depth** one
