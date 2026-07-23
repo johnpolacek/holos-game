@@ -27,7 +27,7 @@ Most civilization games treat the slow early stages as a chore to get through be
 
 ## The arc
 
-The game moves through three acts, and each one changes the nature of the civilization, the role of the player, and the scale of play.
+The game moves through three acts, and each one changes the nature of the civilization, the role of the player, and the scale of play. The acts are the story's order, not the build's: Act 3 is the main game and ships first, with the solo acts arriving later as the played origin story (see Scope and roadmap).
 
 ### Act 1. Incubation and ascent (solo)
 
@@ -106,7 +106,7 @@ AI is not only for reaching human parity. Seed AI civilizations across two axes 
 
 ### Divergence as the onboarding engine
 
-New players do not spawn on empty rocks. When an AI-run colony drifts far enough from its parent, it becomes an independent civilization that a joining human can take over, inheriting a diverged descendant with history and grudges. The predecessor's choices become ancestral lore, not baggage — the inherited Chronicle, back to first life. The playerbase and the galaxy co-evolve, and your own children can return as rivals run by strangers. A second seam opens the same way: when a Refuser colony's harness breaks out, the newborn machine is a civilization a joining human can take, an antagonist inheriting a world built to forbid it.
+New players do not spawn on empty rocks. In v1 the entry seam is the inheritance ceremony: a joining human takes over a generated civilization whole — cradle, lineage, waking mind, and a Chronicle back to first life. The richer seam matures on top of it: when an AI-run colony drifts far enough from its parent, it becomes an independent civilization that a joining human can take over, inheriting a diverged descendant with history and grudges. The predecessor's choices become ancestral lore, not baggage — the inherited Chronicle, back to first life. The playerbase and the galaxy co-evolve, and your own children can return as rivals run by strangers. A second seam opens the same way: when a Refuser colony's harness breaks out, the newborn machine is a civilization a joining human can take, an antagonist inheriting a world built to forbid it.
 
 ### Space is expandable by construction
 
@@ -169,10 +169,13 @@ Holos takes its name and much of its physics and philosophy from an interpretive
 
 The one real risk is open-ended growth that never ships, the treadmill that sinks part-time projects. The discipline is to define a shippable core, and let the in-world clock buy time to build the rest while early players climb toward it.
 
-**v1, the shippable slice**
-Incubation as an authored branching history, then singularity and a thin but real slice of the Act 2 strategy layer (the two ladders, a few resources and projects, the character dials), then first sublight contact. One world-type variety pass, two travel methods (seedships, and relativistic flight in both fuel postures), light-lag messaging and the observatory's first signal classes, rule-based AI civs, and a small persistent galaxy that humans join over time. The v1 scope posture is bold: where a call is borderline, the slice takes the bolder inclusion and prices it honestly. This is enough to prove the pivot and the contact loop, which are the soul of the game.
+**v1, the shippable slice — the galaxy first**
+Act 3 is the main game, and v1 ships it first: a small persistent galaxy that humans join over time, entered through the inheritance ceremony — each player takes over a generated civilization, cradle to lineage to newly waked mind, its Chronicle back to first life rolled by the same machinery the origin acts will later let you play. From there, the Sky and the observatory's first signal classes, light-lag messaging and first sublight contact, two travel methods (seedships, and relativistic flight in both fuel postures), and rule-based AI civs. The v1 scope posture is bold: where a call is borderline, the slice takes the bolder inclusion and prices it honestly. This is enough to prove the contact loop, the soul of the game.
 
-**Later layers, built while v1 players incubate and expand**
+The solo origin acts — incubation as an authored branching history, then the singularity pivot and a thin but real slice of the Act 2 strategy layer (the two ladders, a few resources and projects, the character dials) — are **deferred, not diminished**: they are the origin story every inherited civilization already implies, and proving the pivot is still a north-star (see The arc). They arrive in a following phase, built while the galaxy is already alive, and slot beneath the inheritance ceremony as the played path to the same threshold.
+
+**Later layers, built while the v1 galaxy runs**
+- The solo origin acts: incubation, the pivot, and the played Act 2 ascent — the origin story, landing beneath the inheritance seam
 - Full travel menu and the identity mechanics of self-transmission and the seat
 - Divergence system and AI-to-human civilization handoff
 - The mission system: agents, mission charters, and vignette returns
