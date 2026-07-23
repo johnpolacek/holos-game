@@ -364,7 +364,8 @@ the mission system (agents, veterans, mission charters, vignette
 returns, cooperative missions and the compensation menu — v1's probes
 and hails are its skeleton);
 megascale engineering and the entropy tree; the cosmic clock as a system;
-grave worlds and the Restoration question they house, and anomaly
+grave worlds and the dig they house (harvest, never restore —
+act3-design.md, *Grave worlds*), and anomaly
 events (later-galaxy content);
 richer per-archetype content beyond the anchors. The refusal path — the
 threshold's other branch and its Breakout onboarding seam — is out of v1

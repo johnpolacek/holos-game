@@ -507,9 +507,9 @@ them cheap to build relative to their narrative weight.
 - **The Counter-Hand.** Oppose another civilization's agents at a
   third-party world through your own, deniably, principals never visible —
   cold war by proxy at someone else's cradle.
-- **The Locksmith.** Negotiate or infiltrate access to a grave world;
-  recover, verify, or destroy a dead civilization's Vault — the open
-  Restoration question, given a mission shape without being answered.
+- **The Locksmith.** Infiltrate a grave world's age-old quarantine;
+  recover, decode, or destroy a dead civilization's Vault — the dig
+  (*Grave worlds*) given a mission shape.
 
 *Surviving.*
 
@@ -741,9 +741,45 @@ elder mind chose to preserve and quarantine the grave.
 - **The rarity is the meaning.** A handful per galaxy, most minds never
   meeting one — finding a grave world is an event, not a waypoint.
 - **A grave is where a Vault might keep.** If a destroyed civilization's
-  identity survives anywhere, it survives behind a quarantine that has held
-  off scavengers for an age — which is where the open Restoration question
-  (below) goes looking.
+  archive survives anywhere, it survives behind a quarantine that has held
+  off scavengers for an age — which makes a grave world the game's richest
+  dig site.
+
+**The dig (working decision, 2026-07): a found Vault is harvested, never
+restored.** Nothing comes back; everything can be read. Death is final —
+what a Vault preserves is legacy, not life — and the dig is where that
+legacy changes hands. Built from existing pieces:
+
+- **The yield is informational.** Technology first — a civilization that
+  died further up the ladders leaves rungs you have not reached, the one
+  legitimate way to touch a past you cannot catch up to. Then knowledge:
+  the dead civ's Chronicle, centuries of observations from a vantage you
+  never had, coordinates of civilizations you have not detected — the
+  betrayal currency at archaeological grade. Matter and energy stay home;
+  nothing else is worth crossing light-years for.
+- **Recovered technology arrives as plans, not powers.** The ladder still
+  charges: a recovered rung must be afforded — Compute to break a dead
+  cipher, then the ordinary build costs. The dig shortcuts research,
+  never the economy.
+- **Killing is not harvesting.** A Vault is built over ages precisely to
+  survive its builder — buried, dispersed, dark. Destroying a civilization
+  yields a silence, not a dig site; the Vaults that can actually be found
+  are graves, mostly of civilizations dead long before any current player,
+  and a handful per galaxy. Murder produces no loot.
+- **The quarantine is terrain.** The vigil never bargains and never fights
+  (elders are silent terrain — act3-civilizations.md, *Notes*); what it
+  laid down an age ago — seals, wards, standing defenses — is the
+  obstacle. A dig negotiates physics, not a keeper.
+- **The flashpoint.** A handful of fixed, priceless, unowned sites per
+  galaxy is contested ground by construction. A dig is visible — drive
+  flares aimed at a grave tell every watcher where you are going and
+  roughly why — so rival missions converge, and a grave becomes the rare
+  place two lineages' agents share a present: claim-jumping, sabotage (the
+  Counter-Hand at a graveside), racing to decode, destroying a Vault to
+  deny it, or intercepting the findings beamed home. Dials color the whole
+  scene — a Custodian tends and seals the grave it found; an Instrumental
+  strip-mines it — and what you do at a grave enters the Chronicle like
+  everything else.
 
 ---
 
@@ -895,10 +931,6 @@ call is borderline, take the bolder inclusion; the slice must still ship.
   proves dominant, a light attention or command limiter may be needed — but
   only as a last resort, since a slot pool would violate the
   no-capacity-slots rule.
-- **Restoration.** Can a destroyed civilization's Vault be found and
-  restored by others — and what does that do to the meaning of death? A
-  **grave world** gives the question a place to happen — a quarantined
-  system where such a Vault might survive — without answering it.
 - **The watched reveal.** Ship it, and how often it should be true.
 - **Interception.** Whether directed beams can be intercepted en route,
   and how rare that must be to stay explosive. A receiver can only read a

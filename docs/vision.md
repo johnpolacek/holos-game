@@ -203,4 +203,3 @@ The solo origin acts — incubation as an authored branching history, then the s
 
 - **Player-to-player language.** Whether letters between humans are freeform text, with the moderation burden that implies, or composed from structured parts, and what each choice does to deception and tone.
 - **Conflict tuning.** Strikes, deterrence, and defense-by-darkness are designed but deferred past v1; how hard the teeth bite is unresolved. Griefing resistance is settled as a posture (act3-design.md, *Conflict and deterrence*): cohort symmetry, strike economics, and stale data are the guardrails, and beyond protected incubation the sandbox plays out as it will.
-- **Restoration.** Whether a destroyed civilization's Vault can be found and restored by others, and what that would mean for death; a quarantined grave world is where such a Vault would survive.

@@ -22,7 +22,9 @@ The untagged rows are new design space.
 - **Renewal** — serial self-reinvention; every past self a shed skin.
   *(The Phoenix)*
 - **Restoration** — resurrect what was lost: rebuild extinct biospheres,
-  reconstruct dead civilizations from their still-traveling light.
+  reconstruct dead civilizations from their still-traveling light — as
+  record and memorial; nothing dead returns as an actor (the dig
+  harvests, never restores — act3-design.md, *Grave worlds*).
 
 ### Propagation
 

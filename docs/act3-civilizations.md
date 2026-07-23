@@ -347,7 +347,9 @@ spectrum*):
   quarantined by a withdrawn elder standing watch. It reads as an anomaly,
   not a class: a dead world left unscavenged, held by something faint and
   enormous on a vigil with no end (act3-design.md, *Grave worlds*). A handful
-  per galaxy, and where a destroyed civilization's Vault might survive.
+  per galaxy, and where a destroyed civilization's Vault might survive —
+  waiting for the dig, which harvests and never restores (act3-design.md,
+  *Grave worlds*).
 
 ### Master table
 

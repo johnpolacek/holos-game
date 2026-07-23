@@ -324,9 +324,9 @@ catalog's extensions, built under the same discipline.
   the material to reboot a culture after dormancy, collapse, or
   fragmentation. Mechanically: the Memory pole's project family, the
   contents letters can trade, the third defense in the conflict layer
-  (destruction without erasure), and the object the open Restoration
-  question turns on — a grave world is where a dead civilization's Vault
-  might still be keeping.
+  (destruction without erasure), and the prize of the dig (act3-design.md,
+  *Grave worlds*) — a grave world is where a dead civilization's Vault
+  might still be keeping, waiting to be harvested, never restored.
 - **In the sky.** Nothing, by design — or `DARK NODE` at most, if its
   stability strategy drives it cold, compact, and electromagnetically
   quiet. A Vault found is a Vault someone chose to reveal, or a grave.
