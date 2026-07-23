@@ -735,6 +735,31 @@ above already casts a shadow on this shelf.
   their deterrent is the absence of a target, which the next entry
   completes.
 
+### The conflicted war
+
+- **What it is.** War by agreement: a dispute fought in simulation at an
+  agreed venue, verdict accepted — or defected from, in front of everyone.
+  Not hardware but a protocol, assembled entirely from entries this
+  catalog already carries.
+- **The physics.** A shared real-time simulation across light-years is
+  impossible (law 1), so the war travels as matter: each side dispatches
+  envoys with full authority to a neutral system or a third-party
+  arbiter, the conflict runs locally on the venue's Kernel-class compute
+  (§II), and the verdict broadcasts home years later as light (§V).
+- **In play.** Deferred with the rest of this shelf (act3-design.md, *The
+  conflicted war*). The verdict binds as a promise, nothing more: the
+  loser can always defect and go physical, but the defection happens in
+  the light, in the permanent record. A conflicted war is a wager that
+  the opponent values its standing more than the stakes — the defection
+  risk is the drama, not a failure mode to be patched.
+- **In the sky.** The war itself is invisible — computation at a venue.
+  What shows is its frame: envoy launches, the verdict's `DIRECTED BEAM`
+  going home, and, on defection, the launch flare everyone was promised
+  would not come.
+- **Who builds it.** Nobody alone — it takes two principals and a venue,
+  which is the point. Congress-grown civilizations arbitrate natively;
+  elders lend venues and the standing to referee.
+
 ### The three defenses
 
 - **What it is.** The integration ladder's answer to the strike, as a
@@ -874,6 +899,7 @@ the Signature direction; **Sky** is the primary observatory read.
 | Payload stack | message | any | Compute | — | meaning, not signature |
 | Relativistic strike | conflict (deferred) | E deep gate | Energy (extreme) | ++ | flare, then arrival |
 | Deterrence architecture | conflict (deferred) | E | Signature itself | + (chosen) | curated capability |
+| Conflicted war | conflict (deferred) | two principals + venue | envoys, venue Compute | 0 | verdict beam; or the defection flare |
 | The three defenses | conflict (deferred) | I | Coherence (dispersal) | − | absence of a target |
 | The harness | Refuser | E only | Energy, vigilance | + by charter | `BROADCAST LEAKAGE` |
 | The throne world | Refuser | — | everything, locally | ++ by charter | `LIVING WORLD` + leakage |
