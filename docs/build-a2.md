@@ -118,8 +118,9 @@ Three decisions are already made for you (do not reopen them):
    (the walkthrough's stay-dark scene is the acceptance test).
 5. **Traffic.** Tight-beam threads on real clocks: composed-parts
    composer for human pairs (design the part set: payload blocks —
-   knowledge, culture, archive fragments, coordinates — plus quantity,
-   tone, and reference parts); freeform for AI counterparts; in-flight
+   knowledge, culture, archive fragments, coordinates, **dossiers**
+   (tradeable in v1, observatory-design.md § The dossier) — plus
+   quantity, tone, and reference parts); freeform for AI counterparts; in-flight
    rendering on the Model; every received signal wearing its physics
    stamp. Delivery via the alarm queue; a signal is light and arrives
    exactly when light would.

@@ -23,10 +23,19 @@ ui-design.md's observatory panel is the surface this fills in.
 [missions-design.md](./missions-design.md) supplies the case's escape
 hatch — the Assay — and the Docket rows every bought question lives on.
 
-**The design target, stated once:** every vigil session must contain a
-real decision, visible progress or meaningful lack of it, and a reason to
-come back. If a vigil's best play is ever "do nothing and wait," this
-document has failed and gets revised.
+Six calls were settled in design review (2026-07) and are marked
+**settled** where they land below: portfolio pacing, no certainty at
+range, the plain regression tell, wrong calls playing out, creativity by
+composition, and tradeable dossiers.
+
+**The design target, stated once (settled):** the observatory is played
+as a **portfolio**. Any single case may go quiet for sessions at a
+stretch — dry spells are common, and honest — but the case *load* must
+always offer a real decision: something to buy, hold, probe, shelve,
+call, or re-aim. If the whole board's best play is ever "do nothing and
+wait," this document has failed and gets revised. The fun is breadth
+plus composition: lots of asynchronous watches running at once, and a
+toolset that combines in ways this document does not enumerate.
 
 ---
 
@@ -66,9 +75,13 @@ a small typed menu — the mind proposes; the player prioritizes:
 
 Confidence is a distribution across the open hypotheses, never a single
 number — the source card's headline (`DARK NODE · 71%`) is just the
-leader. No hypothesis ever reaches zero or one hundred: the observatory
-outputs beliefs (act3-design.md), and an empty patch of sky stays
-permanently ambiguous by design (economy-design.md).
+leader. No hypothesis ever reaches zero or one hundred (**settled**):
+watching alone never delivers certainty, however long and however deep —
+the observatory outputs beliefs (act3-design.md), an empty patch of sky
+stays permanently ambiguous (economy-design.md), and going there is the
+only way to truly know. Hypotheses come from the menus (**settled**):
+players do not author free-text theories — their creativity lives in how
+the tools compose (below), which is buildable, honest, and ships sooner.
 
 Hypotheses interlock with the wider game: *somebody's heart* at high
 confidence is a contact case in waiting; *construction under way* feeds
@@ -119,6 +132,32 @@ surfaces this by showing, per question, *which hypotheses it separates* —
 the player learns to read a case like a bracket, and the learning is the
 gameplay deepening.
 
+## The toolset composes
+
+Creativity lives in combination (**settled**), and the pieces are built
+to combine — none of the following is a feature; each is a consequence
+the design must preserve:
+
+- **Watch the neighbors.** Suspect a quiet mass? Open cheap cases on the
+  systems around it — construction shadows, probe traffic, and beam
+  sidelobes show up *near* a hider before the hider does.
+- **Calibrate by grounding.** Ground one look-alike (an Assay to a
+  boring brown-dwarf candidate) and every case of that class sharpens —
+  spending a probe on a nobody to buy confidence about a somebody.
+- **Instrument the calendar.** Chain holds and case tripwires into a
+  self-running program: *hold this case for the conjunction; if the
+  answer regresses, wake me; if it sharpens, auto-buy the follow-up
+  question* (a standing order, missions-design.md).
+- **Breadth as strategy.** Run wide and shallow to map a neighborhood,
+  or narrow and deep to break one mask — the instrument budget prices
+  the choice; nothing else constrains it.
+- **Bait the light.** Your own visible acts are evidence *you* control:
+  go briefly loud, or launch something watchable, and see which cases
+  flinch — the Daybreak lesson from the walkthrough, weaponized.
+
+The list is illustrative, not exhaustive — the parity test is that
+playtesters keep finding combinations this document did not.
+
 ## The contest
 
 Against a live opponent, the vigil is a duel of budgets
@@ -138,10 +177,13 @@ What the case board shows of it — three shapes an answer can take:
   thermal profile that was steady last month and is noisy now, the lines
   that got cleaner in the wrong way. **Nature does not get better at
   hiding.** A regression is evidence of spending, and the case board
-  says so in the observatory's deadpan: the mind reclassifies the case
-  from *what is it* toward *why does it mind being looked at*. Losing
-  ground on a case is the moment a vigil becomes a thriller, and it is
-  information no honest sharpening could have bought.
+  says so plainly (**settled**) — not a wobble left for experts to
+  notice, but the implication stated in the observatory's deadpan: *this
+  does not happen naturally; something is working against the look.* The
+  mind reclassifies the case from *what is it* toward *why does it mind
+  being looked at*. Losing ground on a case is the moment a vigil
+  becomes a thriller, and it is information no honest sharpening could
+  have bought.
 
 The opponent's side needs no new machinery: an AI civilization's mask
 spend is an archetype rule (a Cloister pays the upkeep forever; a young
@@ -166,7 +208,13 @@ filling to 100:
 - **Called.** The player accepts the leading belief and closes the case
   at whatever confidence they can live with. Calling is a real act:
   priorities reprice against the called belief, beats key off it, and a
-  wrongly called case is a story the game is allowed to tell.
+  wrongly called case is a story the game is allowed to tell. **A called
+  case stays called** (**settled**): later light accrues to the archive
+  but never auto-reopens the case, never warns of contradiction, and
+  never charges a penalty — the wrong belief just sits there shaping
+  choices until reality corrects it, as an event, maybe years later.
+  The player can always reopen a case on their own suspicion; the game
+  will not do their doubting for them.
 - **Grounded.** The Assay — a probe goes and looks
   (missions-design.md). Ground truth for the price of a mission and the
   years it takes; the case's escape hatch, and the observatory's
@@ -201,16 +249,23 @@ observatory's finished good. Dossiers are:
   the past, which is the only thing anyone ever knows here — but the
   chip is always on it.
 
-v1 ships dossiers as produced-and-consumed (repricing, beats); the trade
-in them matures with traffic and the compensation menu.
+**Dossiers trade in v1** (**settled**): a dossier is a payload block in
+the composed-signal grammar — sendable, withholdable, tradeable, and as
+deniable as anything else on a beam. Comparing notes on a shared worry
+is the safest first deal two nervous strangers can make, and the quiet
+civilization's whole export economy starts here. What matures later is
+the market's depth — brokering, pricing against the compensation menu,
+forged dossiers and their unmasking — not the existence of the trade.
 
 ## Session texture
 
-A vigil session, five to fifteen minutes, phone: read the new light (which
-questions landed, what moved, anything regress?), buy one or two
-questions across the case load, set or adjust a hold, maybe call or
-shelve something, and leave with the next checkpoint visible on the
-strip. The observatory speaks its register throughout — instrument
+A vigil session, five to fifteen minutes, phone, and it is a *portfolio*
+session: read the new light across the whole board (which questions
+landed, what moved, anything regress, which cases said nothing at all —
+nothing is a normal answer), buy one or two questions wherever they buy
+the most, set or adjust a hold, maybe call or shelve something, and
+leave with the next checkpoints visible on the strip. A single case may
+be mid-dry-spell for a week; the board never is. The observatory speaks its register throughout — instrument
 deadpan, beliefs with ages, no adjectives — and the one flourish it is
 allowed stays true: the light you are reading left before you were
 watching.
@@ -221,11 +276,14 @@ watching.
 
 The hypothesis menus above (2–4 per signal class); the six question
 types; instrument-time income + allocation on the case board; sharpen /
-plateau / regress with archetype-rule opponent spend; case tripwires;
-called / shelved / overtaken exits (grounded arrives with A4's Assay);
-dossiers as internal goods; holds as authored content. Deferred: systemic
-event evidence (A5), dossier trading (with traffic maturity), player-
-authored hypotheses, multi-observer joint cases (with joint missions).
+plateau / regress with archetype-rule opponent spend, the regression
+tell stated plainly; case tripwires; called / shelved / overtaken exits
+(grounded arrives with A4's Assay); dossiers produced, consumed, and
+**tradeable as signal payloads**; holds as authored content. Deferred:
+systemic event evidence (A5), dossier-market depth (brokering, forgery —
+with the compensation menu), multi-observer joint cases (with joint
+missions). Free-text hypotheses are not deferred; they are declined
+(creativity by composition, settled).
 
 ## Open questions
 
@@ -238,11 +296,12 @@ authored hypotheses, multi-observer joint cases (with joint missions).
   exhausted; how often a case *should* plateau; how rare regression must
   stay to keep its charge. Tuning targets for A2's fun gate, not
   specifiable here.
-- **Does calling need teeth?** A called case that later proves wrong
-  should sting narratively (a beat) — but should it cost mechanically?
-  Prices-not-verdicts says the wrong belief's consequences are its own
-  price; watch whether that is enough.
-- **Shared cases.** Two civilizations watching the same source could
-  compare dossiers — the safest first trade two nervous strangers can
-  make, and a natural on-ramp to the intelligence economy. Design when
-  dossier trading ships.
+- **Shared cases, formally.** Dossier exchange ships in v1 (settled);
+  the open half is the *joint case* — two civilizations pooling
+  instrument time on one source with a shared board, which needs joint
+  missions' co-authorship machinery. Design when joint nodes ship.
+- **Forged dossiers.** If dossiers trade, dossiers can lie — a forged
+  finding is deception's cheapest new weapon, and light-cone
+  verification (act3-design.md, § Contact) is its natural check. How
+  early the forgery play should exist is a tone question as much as a
+  systems one.
