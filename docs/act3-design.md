@@ -109,16 +109,17 @@ Act 2 strategy layer. New steals:
 The sky is a catalog of objects, each rendered **as of the moment its
 light left** — never its present. Signal classes in v1:
 
-- **Infrared excess** — warmth without light. Dark Node, brown dwarf, or
-  rogue world; the classic Teeming Dark ambiguity.
-- **Transit shadows** — occlusions too regular to be natural: megastructure
-  construction, seen as it was when the light departed.
-- **Directed beams** — a hail aimed at you (or intercepted en route to
+- **`DARK NODE`** — warmth without light: an infrared excess that could
+  be somebody's heart, a brown dwarf, or a rogue world; the class *is*
+  the classic Teeming Dark ambiguity.
+- **`TRANSIT SHADOWS`** — occlusions too regular to be natural:
+  megastructure construction, seen as it was when the light departed.
+- **`DIRECTED BEAM`** — a hail aimed at you (or intercepted en route to
   someone else — rare, and explosive intelligence).
-- **Broadcast leakage** — the sloppy shine of a young or careless
+- **`BROADCAST LEAKAGE`** — the sloppy shine of a young or careless
   civilization, or the deliberate, constitutional shine of a Refuser that
   will never go dark; the thing you spent Act 2 learning not to emit.
-- **Biosignatures** — a living world, pre-singularity. Someone's Act 1,
+- **`LIVING WORLD`** — a biosignature, pre-singularity. Someone's Act 1,
   visible from outside.
 
 Classification is inference under uncertainty, sharpened by Instrument

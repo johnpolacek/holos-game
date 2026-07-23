@@ -153,9 +153,10 @@ Three families:
 - **Dark** (integration ladder): the compute heart, the deep Vault, the
   energy core, masks. Coherence-positive, Signature-negative,
   reach-neutral.
-- **Instruments** (both): telescopes, receivers, surveys. These generate
-  information beats — including the act's outward glances toward the
-  Teeming Dark.
+- **Instruments** (both): telescopes and surveys — and, once Act 3's
+  trust mechanics exist, receivers (technology.md classes them as a
+  trust-gated instrument/carrier hybrid). These generate information
+  beats — including the act's outward glances toward the Teeming Dark.
 
 Projects complete on **real async time** (hours to days of wall-clock,
 scaled to fictional millennia), and completion is a beat trigger. The

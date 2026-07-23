@@ -133,8 +133,8 @@ introducing a second *style*.
 > self-contained, nearly dark.
 
 #### shepherd · The Shepherd — energy / bright  → `tech/shepherd.webp`
-> A broad, bright array of protective megastructures — shields, watch-stations,
-> and power collectors arranged like a sheltering canopy around something small
+> A broad, bright array of protective megastructures — watch-stations and
+> power collectors arranged like a sheltering canopy around something small
 > and unseen below. Strong ember-gold light and cyan structure, but turned
 > outward as guardianship rather than display. Powerful, watchful, benevolent.
 
@@ -170,3 +170,17 @@ introducing a second *style*.
 > inward and burned to feed the next self. Ember embers of the discarded form,
 > cool cyan of the new. Cyclic, inward, self-renewing — a civilization that
 > keeps becoming.
+
+---
+
+## Deferred subject — the refused path
+
+The ten plates above key to the waking-mind archetype ids in
+`server/src/minds.ts`, which is why the **Refuser** — not a waking-mind
+archetype — has no plate yet. Its signature work, the **throne world**
+(technology.md §VII: a `LIVING WORLD` wearing `BROADCAST LEAKAGE`, the
+brightest and most legible object in any sky), is among the most
+distinctive visual subjects in the catalog. When the refused path gets an
+id on player surfaces, it earns a plate here: a living capital blazing
+ember-warm and cyan-built, hiding nothing, its visibility a founding
+document rather than a failure.

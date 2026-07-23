@@ -84,8 +84,9 @@ Each entry carries up to five fields:
 
 - **What it is.** The thing itself, in a sentence or two.
 - **The physics.** The real mechanism and its honest costs. Numbers here
-  are sincere (prose-style.md R-1); where the science gives a range, the
-  range is stated, not tuned.
+  are sincere (prose-style.md M4 — the framing may be wry, the number
+  never is — and byte-exact under restyle per R-1); where the science
+  gives a range, the range is stated, not tuned.
 - **In play.** Family and ladder gate; the resource profile in the four
   Act 2 currencies (Energy, Matter, Compute, Coherence); the Signature
   effect.
@@ -983,7 +984,7 @@ check*) passes through this table without a thumb on the scale.
 
 House coinages already pinned (prose-style.md §8) are used as-is: `Dark
 Node`, `the Vault`, `Signature`, `the harness`, `the Breakout`, `the
-Crossing`, `grave world`. The theory.pdf structure names — **Holocore**,
+Crossing`, `grave world`, `Teeming Dark`, `the Ledger`, `Refuser`. The theory.pdf structure names — **Holocore**,
 **Computronium Kernel**, **Chrono Vault**, **Sentinel Probes** — are
 adopted as canon with this document. New lowercase common nouns proposed
 here, following the `cradle`/`charter` capitalization family: **mask**
