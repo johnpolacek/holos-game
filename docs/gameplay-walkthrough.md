@@ -311,7 +311,7 @@ your own creation, long before you ever negotiate with a stranger.
 ### The quiet number
 
 Underneath everything, one stat accumulates that Act 2 barely mentions: your
-**signature**. Everything bright you build — the swarm, the beacons, the
+**Signature**. Everything bright you build — the swarm, the beacons, the
 sprawl — adds to how visible your civilization is from very far away.
 Nothing in Act 2 punishes it. Almost nothing in Act 2 even references it.
 But the galaxy is watching, or soon will be, and the players who notice the
@@ -331,7 +331,7 @@ completes and returns something that does not resolve: a mass, dark in
 visible light, faintly warm in the infrared, gravitationally present and
 otherwise silent. The mind cannot tell you what it is. Nothing in Act 2 can.
 The act closes on the posture choice — bright or dark, announced or silent,
-the question every dial and every point of signature has been quietly
+the question every dial and every point of Signature has been quietly
 building toward — and then the first reach outward, and the game becomes
 Act 3.
 
@@ -419,7 +419,7 @@ reorder every priority you have while changing no number at all.
 
 ### You cannot un-shine
 
-Your signature — the number that quietly accumulated all through Act 2 — is
+Your Signature — the number that quietly accumulated all through Act 2 — is
 not a stat anymore. It is a wavefront. Every year you spent bright, that
 light is still traveling outward, and it cannot be recalled. Go dark today
 and you have protected your future, not your past: an observer at the right
@@ -474,7 +474,11 @@ scale is the point. Small is invisible — a fleet is a signature, but one
 traveler is a rounding error in somebody's sky. Small is present — an agent
 on-site acts in the local hour instead of the century your letters need.
 And small is deniable, because an agent can be disowned and a broadcast
-never can. Who you send says who you are: a Refuser dispatches dynasties
+never can. But the send scales all the way up too, and at the top the
+meaning inverts: an armada — an ensemble of ships, minds, and mobile
+industry under one charter — cannot be disowned and cannot arrive
+unannounced, its formation of drive flares read as a sentence years before
+it reaches you. Who you send says who you are: a Refuser dispatches dynasties
 and missionary orders with shackled machines in the hold; a civilization
 gone fully dark, with no voice it is willing to raise, touches the galaxy
 through missions or not at all.
@@ -707,9 +711,10 @@ authored branching history of cut scenes and dice-rolled choices, then the
 singularity pivot and a thin but real slice of Act 2's strategy layer — the
 two ladders, a few resources and projects, the character dials — then first
 sublight contact. One pass of world-type
-variety, one or two of the travel methods, light-lag messaging and the
-observatory's first signal classes, rule-based AI civilizations, and a small
-persistent galaxy that humans join over time. That
+variety, two travel methods — seedships, and relativistic flight in both
+fuel postures — light-lag messaging and the observatory's first signal
+classes, rule-based AI civilizations, and a small persistent galaxy that
+humans join over time. That
 is enough to prove the two things the game lives or dies on, the *pivot* and
 the *contact loop*.
 

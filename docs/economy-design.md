@@ -97,9 +97,11 @@ the same way.
 | A swarm stage / star-lifting | high | high | mod | long | adds a lot | — | Endeavor |
 | The compute heart (dark) | mod | mod | high | long | sheds | heals | Endeavor |
 | The deep Vault (dark) | mod | high | mod | very long | sheds | heals | Endeavor |
+| The energy core (dark) | mod | high | mod | long | sheds | heals | Endeavor |
+| Masks (dark) | mod | low | high | ongoing | sheds *(the product)* | — | Investment |
 | Send an envoy (mission) | mod | mod | high *(instantiate)* | long *(transit)* | by method | risk at scale | Investment–Endeavor |
 | Transmit a fork to a receiver | mod | — | high *(encode)* | = light-distance | a bright beam | risk *(One Mind)* | Investment–Endeavor |
-| A relativistic ship | very high | high | mod | huge | adds a lot | low | Epochal |
+| A relativistic ship | very high | high | mod | huge | adds a lot | low | Endeavor |
 | Force a directive against nature | — | — | — | immediate | — | wounds | Epochal *(self-harm)* |
 
 Read the columns, not the cells: a *bright* purpose costs Energy and Matter
@@ -131,6 +133,25 @@ game. Every real tradeoff in Holos is a budget the player runs out of, or a
 year the universe will not give back. Artificial limits are never the
 source of a hard choice; if a choice is not already hard because of
 scarcity, adding a slot to make it hard is forbidden.
+
+**The mask-versus-instrument contest is priced the same way, not modeled
+separately.** Going dark and being found are opposing, open-ended
+investments, not a stealth stat and a detection stat resolved by a hidden
+formula — mask quality and instrument quality can each keep climbing
+against the other indefinitely, and neither side ever reaches certainty:
+an empty patch of sky stays permanently ambiguous, by design (technology.md,
+*Working decisions*: "Masking is a contest, never a setting").
+
+That is exactly why it belongs here rather than as a new mechanic. The
+contest is exclusive with everything else a civilization is funding this
+era, not with a rival meter: sustaining a mask is the ordinary "Masks
+(dark)" upkeep above, an ongoing Investment that keeps shedding Signature
+for as long as it is paid; sharpening the instruments that might see
+through one is the ordinary "Sharpen an instrument" spend, its own
+Investment on the would-be observer's own budget. Both draw down the same
+Energy, Matter, and Compute as every other purpose, so the arms race is
+priced the moment it is fought, through the ordinary cost profile — no
+separate contest currency, no capacity slot reserved for it.
 
 ---
 
@@ -240,14 +261,17 @@ a Refuser accumulates as Breakout risk. Same economy, different wound.
 
 A mission is not a special economy; it is the same cost profile applied to
 *someone goes* (the mission anatomy lives in
-[act3-design.md](./act3-design.md), *Missions*). It costs, in the ordinary
-terms:
+[act3-design.md](./act3-design.md), *Missions*). This holds at every scale:
+every point on **the send**'s spectrum — a fist-sized probe to a full
+armada — prices the same way, the agent plus the travel method
+(act3-design.md, *Missions*; technology.md, *The send*). It costs, in the
+ordinary terms:
 
 - **The agent** — Matter and Energy to build a body, Compute to train or
   instantiate a mind. A drone is cheap Matter; a sovereign sub-mind is
   expensive Compute; a lent veteran is neither, because it already exists.
 - **The travel method** — whatever the chosen item on the travel menu costs,
-  unchanged. A slow probe is Ambient; a relativistic ship is Epochal; a
+  unchanged. A slow probe is Ambient; a relativistic ship is an Endeavor; a
   transmission to a standing receiver is Compute to encode plus Energy to
   beam. The mission inherits the travel tool's cost character exactly.
 - **Real time** — the transit and the horizon beyond which it stops being
