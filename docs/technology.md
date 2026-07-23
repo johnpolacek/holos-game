@@ -242,8 +242,10 @@ rather than surface area, one world-model rather than many voices, memory
 that survives anything. Its structures are compact, gravitationally
 settled, and quiet in every band engineering can quiet, and its endpoint
 is the Dark Node: a mass dark in visible light, faintly warm in the
-infrared, gravitationally present and otherwise silent. These four
-mesostructures are theory.pdf's toolkit, adopted whole.
+infrared, gravitationally present and otherwise silent. The first three
+entries below — the Holocore, the Kernel, and the Vault — are theory.pdf's
+mesostructure toolkit, adopted whole; masks and the cold berth are this
+catalog's extensions, built under the same discipline.
 
 ### The Holocore
 
@@ -908,14 +910,15 @@ a beam battery called `Louder Than Necessary` is exactly the register.
 
 The catalog is content over existing systems, and almost all of it is
 deliberately later-layer (vision.md roadmap: *megascale engineering and
-the entropy and energy tech tree*). The v1 slice per act2-design.md (~8
-projects: 3 bright, 3 dark, 2 instruments) draws directly from these
+the entropy and energy tech tree*). The v1 slice per act2-design.md (~9
+projects: 3 bright, 4 dark, 2 instruments) draws directly from these
 shelves:
 
 - **Bright ×3:** collector swarm stages, high-output industry,
   star-lifting (as the late-act flex).
-- **Dark ×3:** the compute heart (Kernel, first stage), the Vault (Chrono
-  Vault, first stage), masks (the Signature-reduction project).
+- **Dark ×4:** the compute heart (Kernel, first stage), the Vault (Chrono
+  Vault, first stage), the energy core (Holocore, first stage), masks
+  (the Signature-reduction project).
 - **Instruments ×2:** deep arrays (the Act 2 telescope line), and the
   survey that becomes Act 3's destination survey.
 - **Act 3 v1 additions, already scoped:** seedships with charters,

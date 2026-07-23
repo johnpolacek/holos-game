@@ -151,7 +151,8 @@ Three families:
 - **Bright** (energy ladder): swarm stages, star-lifting, high-output
   industry. Big Energy yields, Matter-hungry, Signature-positive.
 - **Dark** (integration ladder): the compute heart, the deep Vault, the
-  energy core. Coherence-positive, Signature-negative, reach-neutral.
+  energy core, masks. Coherence-positive, Signature-negative,
+  reach-neutral.
 - **Instruments** (both): telescopes, receivers, surveys. These generate
   information beats — including the act's outward glances toward the
   Teeming Dark.
@@ -350,7 +351,7 @@ The shippable slice of this design, per the vision's scope pillar:
 
 - 2 ladders × ~4 stages each
 - 4 resources
-- ~8 projects (3 bright, 3 dark, 2 instruments)
+- ~9 projects (3 bright, 4 dark, 2 instruments)
 - 5 dials, 4 archetype regions
 - ~30–40 systemic beat templates plus ~6 authored spine beats
 
