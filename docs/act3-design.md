@@ -682,8 +682,30 @@ verdict broadcasts back to both principals years later, as light.
   alike enter the Chronicle, which is the only court there is.
 
 v1 ships no strikes, and no conflicted wars with them. The dark forest must first exist as dread and
-inference; teeth arrive only after the social fabric does, alongside
-griefing-resistance tuning (see Open questions).
+inference; teeth arrive only after the social fabric does.
+
+**Griefing resistance (working decision, 2026-07): the sandbox is the
+answer.** When strikes ship, they ship lean — no warning-window
+guarantees, no protective overlays beyond the protected incubation the
+topology already provides. Three structural facts carry the weight:
+
+- **Cohort symmetry.** Human players seed as cohorts, age-peers by
+  construction; the deep-time asymmetry in the sky belongs to AI elders,
+  which are authored content, not players. There is no established human
+  waiting at the frontier to camp a newcomer.
+- **Strike economics.** A strike is Epochal (economy-design.md, *cost
+  classes*) — military action consumes time, resources, and launch
+  capacity on a scale that reorganizes the aggressor's economy and
+  cannot be casually repeated. Serial harassment is self-terminating,
+  and visibly so: the fuel industry that affords a second shot shines
+  on every observer's sky.
+- **Stale data.** Terminal guidance aims at coordinates centuries old;
+  the dispersed, the dark, and the distant are poor targets for free.
+
+Beyond that, the game plays out as it will. If real play produces a
+kill-on-sight meta or a harassment pattern the economics do not curb,
+the deterrence shelf (technology.md, §VI) and the Chronicle are the
+levers to reach for — observed behavior first, mechanics second.
 
 ---
 
@@ -867,9 +889,6 @@ call is borderline, take the bolder inclusion; the slice must still ship.
   what each does to deception, tone, and safety.
 - **Drift math.** The exact curve from time × separation × charter
   looseness to dial drift and independence.
-- **Griefing resistance.** When strikes ship: cost gates, deterrence
-  systems, and social fabric needed so the dark forest stays dreadful
-  without becoming a spawn-camp.
 - **Does mission spam require an attention mechanic?** v1 bets that real
   session time and the Coherence cost of distributed endeavors are enough
   to limit mission dispatch, adding no attention resource
