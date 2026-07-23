@@ -678,7 +678,8 @@ verdict broadcasts back to both principals years later, as light.
   patched.
 - **Built from existing pieces.** The envoys are mission agents — a
   storied veteran can stand as champion. Venue selection is a role for
-  coalitions, and for elders willing to arbitrate. Outcome and defection
+  coalitions and third-party peer civilizations (elders are silent terrain
+  and take no part — act3-civilizations.md, *Notes*). Outcome and defection
   alike enter the Chronicle, which is the only court there is.
 
 v1 ships no strikes, and no conflicted wars with them. The dark forest must first exist as dread and

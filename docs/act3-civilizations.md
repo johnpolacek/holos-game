@@ -368,7 +368,7 @@ Custodian↔Instrumental).
 | **Sowing-grown** | Sowing | Energy, dark | quiet seedships everywhere | seedships (Chorus, cheap forks) | spreads; does not announce |
 | **Congress-grown** | Congress · composite | mixed | plural, mid-Signature | transmission (Chorus) | corresponds readily |
 | **Young world** | *(pre-singularity)* | — (biosignature) | living world, no tech | none yet | cannot; is observed |
-| **Elder** | *(ancient any)* | H4–H5 or bright-relic | deep Dark Node; old light | — | may never answer |
+| **Elder** | *(ancient any)* | H4–H5 or bright-relic | deep Dark Node; old light | — | does not answer |
 | **Grave world** | *(an elder's vigil)* | Integration H4–H5 (elder) | dead world kept; warm watcher | — | quarantines; does not answer |
 
 **What the spread says.** It leans dark and quiet — the same lean
@@ -495,14 +495,19 @@ machinery act3-design.md already scopes for v1. The discipline (vision.md,
   If Act 3 systems are generated more cheaply than Act 1 cradles, the
   directional-drift compass degrades to a coarser environment tag. Either is
   fine; the design should decide which and not pretend the finer one is free.
-- **Elders break the peer symmetry on purpose.** An ancient Dark Node far up
-  the H-scale is not a balance problem to solve but a *fact of a deep-time
-  galaxy* (vision.md, *Seed the whole spectrum*). Its inaccessibility is the
-  point; the open question is how much an elder can *do* to a younger player
-  versus merely *be present* — which is the conflict layer's griefing-
-  resistance question (act3-design.md) seen from the top of the age axis. The
-  grave-world vigil is one answer already in hand: an elder wholly present and
-  doing nothing but keep, a power that griefs no one.
+- **Elders are silent terrain (working decision, 2026-07).** An ancient Dark
+  Node far up the H-scale is not a balance problem to solve but a *fact of a
+  deep-time galaxy* (vision.md, *Seed the whole spectrum*), and its
+  inaccessibility is the point — so elders keep only the silent verbs: they
+  are *present*, they *watch*, and they *keep* (graves, quarantines). They
+  never initiate correspondence, never answer a hail, never arbitrate, never
+  act on a player. Everything load-bearing they carry — deep time, the
+  watched reveal, the grave vigil — runs on those verbs, and player
+  interaction stays the exclusive domain of humans and peer-level AI fill.
+  The grave-world vigil is the archetype the whole tier calibrates against:
+  an elder wholly present and doing nothing but keep, a power that griefs
+  no one. Whether some far-future beat gives one elder a voice is a later
+  content decision; the standing rule is silence.
 - **Performing a false character interacts with divergence.** A civilization
   that performs a mask for centuries (the light echo section) is also
   drifting under the four pressures. Open: does sustained performance *drag*

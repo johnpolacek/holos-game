@@ -841,7 +841,7 @@ above already casts a shadow on this shelf.
   would not come.
 - **Who builds it.** Nobody alone — it takes two principals and a venue,
   which is the point. Congress-grown civilizations arbitrate natively;
-  elders lend venues and the standing to referee.
+  elders take no part, being silent terrain (act3-civilizations.md, *Notes*).
 
 ### The three defenses
 
