@@ -10,11 +10,11 @@
 // the id (per the content-art docs). The caller picks the crop by layout.
 //
 // Invariant: every LineageId and every ArchetypeId has a plate, so those
-// resolvers are total. Worlds are the exception — the cradle catalog carries
-// 41 entries (server/src/cradles.ts) but only 01–40 were rendered; id 41
-// ("The century orbit") has no plate, so worldArt returns null there and the
-// caller falls back (e.g. the ceremony's cradle gradient). Bump WORLD_MAX when
-// a plate for a higher id is added.
+// resolvers are total. Worlds cover the full cradle catalog (ids 1–41,
+// server/src/cradles.ts, plates 01–41). worldArt still returns null for any id
+// outside that range — a future catalog entry rendered later — and the caller
+// falls back (e.g. the ceremony's cradle gradient); bump WORLD_MAX when a plate
+// for a higher id ships.
 
 import type { ArchetypeId, LineageId } from "@holos/protocol";
 
@@ -23,7 +23,7 @@ export type ArtRatio = "sq" | "wide";
 
 const BASE = "/art";
 const WORLD_MIN = 1;
-const WORLD_MAX = 40;
+const WORLD_MAX = 41;
 
 /**
  * World plate URL for a cradle id, or `null` when no plate exists for it
