@@ -350,8 +350,7 @@ share a present.
 **Already in Holos.** Missions are sunk and unrecallable, which makes
 them credible commitments — but the design is quiet about the moment
 two civilizations' agents actually occupy one system. The Embassy, joint
-missions, the conflicted war's venue, and the Crossing's arrival all
-create exactly that moment.
+missions, and the conflicted war's venue all create exactly that moment.
 
 **Take: the rendezvous window.** Name the rule: whenever agents of two
 lineages are co-located, light-lag protections lapse and events run in

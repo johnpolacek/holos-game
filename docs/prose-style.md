@@ -392,7 +392,7 @@ Load-bearing literals. Style passes must not rewrite them for wit or flow.
 | Age chip | `AS OF n Y AGO` |
 | Chronicle dating | Epoch-relative — each civilization counts from its own founding event (the `year n AE` family); the cohort's global year never reaches a player surface |
 | Color rule | cyan = you / HOME (present tense); amber = other / belief. Prose must never call HOME amber or a source cyan. |
-| House coinages | `Teeming Dark`, `Dark Node`, `Signature`, `the Vault`, `the Model`, `the Ledger`, `Visibility Collapse`, `cradle`, `charter`, `the Refusal` / `Refuser`, `the harness` / `harnessed intelligence`, `the Breakout`, `grave world`, `the Crossing`, `the Chronicle`, `Holocore`, `the Kernel`, `mask`, `ark`, `deep array`, `the cold berth`, `the black-hole tap`, `payload stack`, `worldhousing`, `throne world`, `the send` |
+| House coinages | `Teeming Dark`, `Dark Node`, `Signature`, `the Vault`, `the Model`, `the Ledger`, `Visibility Collapse`, `cradle`, `charter`, `the Refusal` / `Refuser`, `the harness` / `harnessed intelligence`, `the Breakout`, `grave world`, `the Chronicle`, `Holocore`, `the Kernel`, `mask`, `ark`, `deep array`, `the cold berth`, `the black-hole tap`, `payload stack`, `worldhousing`, `throne world`, `the send` |
 
 **Display note on the pinned dial labels.** The UI may render the pinned
 in-world dial labels in display form — all-caps with an em dash (e.g.
@@ -403,7 +403,7 @@ typography.
 
 **Capitalization families.** Named events and singular artifacts take a
 capital, like `the Vault` and `the Model`: `the Refusal` (and its agent, the
-`Refuser`), `the Breakout`, `the Crossing`, `the Chronicle`, `Holocore`,
+`Refuser`), `the Breakout`, `the Chronicle`, `Holocore`,
 `the Kernel`. Ambient common
 nouns stay lowercase, like `cradle` and `charter`: `the harness`, `harnessed
 intelligence`, `grave world`, `mask`, `ark`, `deep array`, `the cold berth`,

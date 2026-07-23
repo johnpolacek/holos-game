@@ -117,8 +117,8 @@ is a mote crawling a hairline; a seedship is a decade-long ember; a
 relativistic ship is a hard bright torch on the same slow arc, its
 deceleration flare pointed at its destination — the most dramatic slow
 burn on the map, short of a strike; an incoming directed beam, when
-detected, is the most electric object on the map — unless what is
-crossing is a fleeing seat. Objects beyond your light's reach are shown
+detected, is the most electric object on the map. Objects beyond your
+light's reach are shown
 as **dead
 reckoning**: an elongating fuzz of where they should be by now, because
 even your own ships, once distant, are beliefs.

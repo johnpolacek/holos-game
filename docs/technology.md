@@ -622,14 +622,13 @@ about them.
 - **In play.** Carrier; requires the receiver graph, so it never
   bootstraps — matter goes first, trust goes second, pattern goes third.
   Cheap identity-spend for a Chorus, an existential act for a One Mind,
-  and the transit is the game's most dramatic exposure: a seat in
-  transmission — the Crossing — is a directed-beam-class object for the
-  whole length of the trip. Closed to the Refuser: nothing it could
-  broadcast is anyone.
+  and the transit is the game's most dramatic exposure: a self in
+  transmission is a directed-beam-class object for the whole length of
+  the trip. Closed to the Refuser: nothing it could broadcast is anyone.
 - **In the sky.** A `DIRECTED BEAM`, catchable only from along the path;
   intercepting one meant for someone else is rare and explosive
-  intelligence, and what a *caught* crossing means is deliberately
-  unsettled (act3-design.md, open questions).
+  intelligence — a copy taken, never a capture (act3-design.md, open
+  questions).
 - **Who builds it.** The Congress and the Tide, natively; the Sowing, for
   quiet reunions along its diaspora; the Monument, once, and it still
   comes up.
@@ -647,10 +646,8 @@ about them.
   even by seedship standards, heavy, and thermally honest: life keeps
   itself warm.
 - **In play.** Carrier; the Refuser's only shelf, folded into the
-  seedship family mechanically, plus the evacuation ship — the throne
-  world's grim reciprocal of the Crossing, slower and worse, which fits
-  the path. Every ark colony carries the standing Breakout risk: a
-  harness raised far from its charter's court.
+  seedship family mechanically. Every ark colony carries the standing
+  Breakout risk: a harness raised far from its charter's court.
 - **In the sky.** Warm and steady — an ark cannot mask like a cold
   seedship, and a Refuser would not anyway; its charter is written in its
   silhouette.
@@ -903,8 +900,8 @@ integration that would let it go quiet). What it keeps, it runs bright.
 - **The physics.** A capital engineered for deep time the biological
   way: closed ecologies, hardened archives (a Vault is permitted — books
   do not wake), succession institutions built to outlast any member.
-  When it falls it cannot flee as light; the court crosses by evacuation
-  ship, slower and worse, which fits the path.
+  When it falls, the lineage's continuity passes to a surviving colony —
+  identity that cannot be pattern survives as succession instead.
 - **In play.** The seat rule's biological half (act3-design.md, *The
   seat*); the player is the lineage's continuity, not any single mortal
   mind.
@@ -1008,8 +1005,8 @@ check*) passes through this table without a thumb on the scale.
 ## Naming and coinage register
 
 House coinages already pinned (prose-style.md §8) are used as-is: `Dark
-Node`, `the Vault`, `Signature`, `the harness`, `the Breakout`, `the
-Crossing`, `grave world`, `Teeming Dark`, `the Ledger`, `Refuser`. The theory.pdf structure names — **Holocore**,
+Node`, `the Vault`, `Signature`, `the harness`, `the Breakout`,
+`grave world`, `Teeming Dark`, `the Ledger`, `Refuser`. The theory.pdf structure names — **Holocore**,
 **Computronium Kernel**, **Chrono Vault**, **Sentinel Probes** — are
 adopted as canon with this document. New lowercase common nouns proposed
 here, following the `cradle`/`charter` capitalization family: **mask**

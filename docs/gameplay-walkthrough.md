@@ -456,12 +456,10 @@ its charter as its own mind; or *go*, waking up in the new system as the
 arriving fork while your origin continues under your standing directives, a
 mind you used to be. Neither choice is safe and neither is wrong, and your
 One Mind or Chorus nature has loud opinions about both. It also means the
-death of a world is not the death of you. If the seat's node dies, you do not
-fall — you flee, as light, toward your nearest surviving fork. For the length
-of that crossing you are a signal in transit, the most hunted object in the
-sky: visible, interceptable, running. And if your people refused the machine,
-you are a fleet instead, evacuating slower and worse. A lineage can lose
-almost everything and still be you, somewhere, continuing.
+death of a world is not the death of you. If the seat's node dies, you do
+not fall — you are the lineage's continuity, not any single world, and you
+continue from a surviving fork, on whatever means it has. A lineage can
+lose almost everything and still be you, somewhere, continuing.
 
 ### The small hands
 

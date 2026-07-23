@@ -350,16 +350,15 @@ it. A civilization that looks vast is not rich at the center — it is a
 scatter of separately-solvent nodes that cannot lend to one another in
 time.
 
-**The fleeing seat inherits a local economy.** When the seat's node is
-destroyed and the seat flees — the Crossing for an ascended mind, an
-evacuation for a Refuser court (act3-design.md, *The seat*) — it arrives at
-its refuge node and **inherits that node's local economy, whole**. You do
-not carry a budget across; you land in whatever budget was already there.
-A lineage's wealth is therefore never portable and never safe: losing the
-seat's node means falling back to a colony's means, which may be a frontier
-holding running on a thin income. This is what makes the Crossing a demotion
-as well as a survival — you keep the game, but you keep it on the refuge's
-budget.
+**A seat that loses its node inherits a local economy.** When the seat's
+node is destroyed, the player continues as the lineage's continuity from a
+surviving fork (act3-design.md, *The seat*) and **inherits that node's
+local economy, whole**. You do not carry a budget across; you land in
+whatever budget was already there. A lineage's wealth is therefore never
+portable and never safe: losing the seat's node means falling back to a
+colony's means, which may be a frontier holding running on a thin income.
+This is what makes losing the seat's node a demotion as well as a
+survival — you keep the game, but you keep it on the refuge's budget.
 
 **Cross-civ payment is physical or informational, never a ledger.** The
 [compensation menu](./act3-design.md) and cooperative missions trade real

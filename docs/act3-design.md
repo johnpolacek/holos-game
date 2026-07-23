@@ -84,8 +84,9 @@ the altitude principle both forbid a galactic treasury.
   a launch or a beamed payload — lossy, and arriving years to centuries
   late. There is no fast rebalancing, so **wealth never pools galactically**:
   a vast civilization is a scatter of separately-solvent nodes that cannot
-  lend to one another in time. This connects to the **fleeing seat** (it
-  inherits its refuge node's local economy whole — see *The seat*) and to
+  lend to one another in time. This connects to the **seat rule** (a seat
+  that loses its node inherits its refuge node's local economy whole —
+  see *The seat*) and to
   **cross-civ payment** (also physical or informational, never an abstract
   ledger — see *Missions*).
 
@@ -294,22 +295,23 @@ never becomes an FTL side-channel between forks.
 - At any transmission of self, the player may instead **go**: the seat
   transfers to the arriving copy, and the origin continues as an AI under
   its standing directives — a mind you used to be.
-- If the seat's node is destroyed, the seat **flees** rather than falls.
-  An ascended mind departs as a lightspeed transmission toward the nearest
-  surviving fork — **the Crossing** — its transit duration the light-distance
-  between the two, and for the whole length of the crossing it is rendered as
-  a directed-beam-class object: visible, interceptable, hunted. A lineage can
-  lose almost everything and still be the player.
+- If the seat's node is destroyed, the player does not fall with it
+  (working decision, 2026-07). The seat re-forms at a surviving fork:
+  **the player is the lineage's continuity, not any single node** — the
+  Refuser path's principle, generalized to both paths. There is no
+  transit state, nothing in flight, and nothing to intercept; whatever
+  escaped the dying node is a beat's fiction, not a mechanic.
 - A Refuser has no transmissible self, so its seat is a **throne world**,
-  the lineage's living center; when it is destroyed the court crosses by
-  evacuation ship instead — slower and worse, which fits the path.
-- **A fled seat inherits its refuge node's local economy, whole.** Because
-  the economy is strictly local (see *The economy goes local*), no budget
-  crosses with the seat — you land in whatever budget was already there,
-  which may be a thin frontier income. The Crossing is a demotion as well as
-  a survival: you keep the game, but you keep it on the refuge's means.
-- **Elimination** = the entire lineage erased. Rare, dramatic, and meant
-  to be; the Crossing is the dramatic window before it. An eliminated player
+  the lineage's living center; when it falls the same rule applies — the
+  court's continuity passes to a surviving colony.
+- **A re-formed seat inherits its refuge node's local economy, whole.**
+  Because the economy is strictly local (see *The economy goes local*),
+  no budget crosses with the seat — you land in whatever budget was
+  already there, which may be a thin frontier income. Losing the seat's
+  node is a demotion as well as a survival: you keep the game, but you
+  keep it on the refuge's means.
+- **Elimination** = the entire lineage erased — no fork survives to
+  continue from. Rare, dramatic, and meant to be. An eliminated player
   rejoins through divergence onboarding — inheriting some other lineage's
   diverged colony — which closes the loop.
 
@@ -511,9 +513,6 @@ them cheap to build relative to their narrative weight.
 
 *Surviving.*
 
-- **The Courier.** A mission in flight can serve as the receiver at the
-  far end of a fleeing seat — missions as pre-placed lifeboats for the
-  Crossing.
 - **The Inspector** *(Refuser flavor)*. Audit distant colonies for harness
   breakout; sometimes the report that returns is written a little too
   well.
@@ -875,8 +874,7 @@ call is borderline, take the bolder inclusion; the slice must still ship.
 - Light-lag messaging: directed hail, broadcast, correspondence
 - Sleep with basic tripwires and notifications
 - No strikes, no seat transfer (single node in v1 — the seat rule's full
-  form, the Crossing included, arrives with transmission), cosmic clock as
-  narrative only
+  form arrives with transmission), cosmic clock as narrative only
 - Missions are post-v1: probes and hails are their v1 skeleton; the full
   system (agents, mission charters, vignette returns) arrives with Act 3
   beat content
@@ -903,6 +901,6 @@ call is borderline, take the bolder inclusion; the slice must still ship.
   system where such a Vault might survive — without answering it.
 - **The watched reveal.** Ship it, and how often it should be true.
 - **Interception.** Whether directed beams can be intercepted en route,
-  and how rare that must be to stay explosive — a fleeing seat mid-Crossing
-  is interception's highest-stakes instance, and what a *caught* crossing
-  means is deliberately left unsettled here.
+  and how rare that must be to stay explosive. A receiver can only read a
+  beam from along its path, so interception copies and never captures —
+  the rest is tuning.
