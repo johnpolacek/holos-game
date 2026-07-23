@@ -117,7 +117,13 @@ take. Sizing verdicts are collected in the table at the end.
 
 ### 1. The manufactured present
 
-**Status: open (2026-07) — for the designer pass.**
+**Status: rejected (2026-07).** Reviewed and declined at the root: the
+game will not have a sleep mechanic at all — the designer's direction is
+the opposite texture, many concurrent clocks and projects spinning at
+once (the plate rack, now pinned in [projects.md](./projects.md)). With
+no dormancy there is no cadence to pact over. The entry stands as
+record; the shared-calendar idea survives only where it needs no sleep
+(see steal 3's adoption).
 
 **In the book.** The worlds of the 360/1 schedule are light-months and
 light-years apart, and none of that distance is ever felt. Ships crawl
@@ -194,7 +200,15 @@ posture.
 
 ### 3. The blinking star
 
-**Status: open (2026-07) — for the designer pass.**
+**Status: adopted, transformed (2026-07).** Reworked without sleep —
+rhythm needs no hibernation, only habits — and developed in full as
+[patterns.md](./patterns.md): the pattern catalog (twelve classes with
+readings, false reads, and mirrors), the watch as an Instrument project
+on projects.md's two-part clock, the derived indices, and the rule that
+AI civilizations ship with rhythms. The wake-window half died with
+steal 1; its successor is the catalog's timing play (the pulse's phase
+prediction, the missed beat). The entry below is the provenance;
+patterns.md is the spec.
 
 **In the book.** From outside, a hibernating world is the most legible
 possible schedule: dark for thirty years, lit for a month, forever.
@@ -370,8 +384,8 @@ systems.
 
 | # | Steal | Rides on | Lands | Size |
 |---|---|---|---|---|
-| 3 | Cadence inference + the wake window | `EmissionEpoch[]` + future-dated epochs (shipped), signal classes, forecast, mission clock | Seedable now; read at A2's sky, priced at A4 | Derived quantities |
-| 1 | The cadence pact | Correspondence (A2), tripwires + sleep (A5), coalitions | Thin as letter content at A2; full at A5 | Named rule; thin version stores nothing |
+| 3 | Cadence inference + the wake window | `EmissionEpoch[]` + future-dated epochs (shipped), signal classes, forecast, mission clock | **Adopted, transformed (2026-07)** — the pattern catalog and the watch, [patterns.md](./patterns.md) | Derived quantities |
+| 1 | The cadence pact | Correspondence (A2), tripwires + sleep (A5), coalitions | **Rejected (2026-07)** — no sleep mechanic; the plate rack is the direction | — |
 | 2 | The accrual bargain + starless sites | The cold berth, cost classes, cradle 41 | Rule in economy-design now; sites at A5+ | One rule + one catalog entry |
 | 5 | The aligned dawn | Event queue (shipped), mission clock (A4) | A4–A5 | Derived timelines |
 | 4 | Waking-time drift + the insomniac colony | The Ledger (A4), charters | A4 | One rule + beat class |

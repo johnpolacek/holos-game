@@ -129,6 +129,14 @@ observatory outputs *beliefs with confidence levels*, never facts, and
 observatory findings are a beat trigger class: the flag the mind cannot
 explain is how contact arcs begin.
 
+**The temporal layer (adopted 2026-07).** Beyond the signal classes, the
+observatory reads *patterns* — shapes in a source's light over time —
+and the vigil's core activity is **the watch**, an Instrument project
+that resolves them on the two-part clock. The full catalog of pattern
+classes, their readings and false reads, the derived indices, and the
+seeding rule that AI civilizations ship with rhythms:
+[patterns.md](./patterns.md).
+
 **Progress here is knowledge.** Correctly classifying one warm mass can
 reorder every priority you have while changing no stat at all.
 
