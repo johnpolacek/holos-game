@@ -57,6 +57,16 @@ something concrete to bind to. It is meant to grow.
 rates, so the pool skews toward Tiers III–IV. Legend: **Common / Uncommon /
 Rare / Very rare.** (Earth-twins are *Very rare* by design.)
 
+**No losing path (working decision, 2026-07).** A cradle's life, once
+kindled, persists: a failed roll bends the history, it never ends it. Act 1
+has no game-over — a catastrophe fast-forwards deep time and life tries
+again, later and stranger, with the loss written into the Chronicle
+forever. The tiers grade the *history*, not the odds of survival: a Harsh
+or Brutal cradle deals more bottlenecks, more dead branches, stranger
+survivors. "Failure is the default" means failure of the lineages you
+back, and its cost is paid in what your civilization becomes — who
+arrives at the threshold, carrying which scars — never in a restart.
+
 ---
 
 ## The catalog

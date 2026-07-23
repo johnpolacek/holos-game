@@ -105,7 +105,11 @@ the gap it tears open? A few options, each a genuinely different future.
 a die is cast. Evolution is contingent — the same push can catch fire, limp
 through, or backfire — so a bold call at good odds can still fail, and a long
 shot can still land. The roll is what keeps a played history from being a
-solved one, and it is why two runs from the same cradle diverge.
+solved one, and it is why two runs from the same cradle diverge. And a
+failed roll is never a lost run: the history bends — a lineage falls, an
+epoch is spent, deep time skips ahead and life tries again — but the
+cradle's life, once kindled, persists, and every failure is written into
+the civilization you will become (act1-cradles.md, *No losing path*).
 
 ### The two kinds of choice
 
