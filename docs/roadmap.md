@@ -341,6 +341,22 @@ Resolve each before the slice that needs it; record the call here.
   non-archetype emitters — before Phase B makes the refusal playable, or
   does the Refuser region wait for the pivot that produces it? Parked;
   resolve when A5 gives AI civs real behavior.
+  **Decided (2026-07): deferred to Phase B.** The Refuser waits for the
+  pivot that produces it — nothing about it is codified in Phase A. No
+  Refuser civs in A5's AI spectrum, no refusal flag in the seed path, and
+  no generator special-case for the one no-archetype region. The rationale
+  is complexity: the Refuser is designed as the single exception to nearly
+  every galaxy system (no dial sheet, closed transmission and receiver
+  graph, throne-world seat, its own calendar convention, mission flavors,
+  and the Breakout beat class), so every Phase A system would have to carry
+  a Refuser branch to serve a shelf the corpus itself flags as shallow
+  until Phase B. Deferring keeps Phase A uniform. The Refuser stays intact
+  as design and Phase B content — vision.md pillar 2's "refusal is a played
+  path, not a fail state" is unchanged, and the loud-minority spread in
+  act3-civilizations.md still balances without Refusers at A5 scale. When
+  refusal becomes playable, prefer folding the region into the normal
+  machinery (an eleventh region with a fixed dial vector + a "harness, not
+  mind" flag) over special-casing, so systems stay branch-free.
 
 ## Art that helps now
 
