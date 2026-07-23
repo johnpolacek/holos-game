@@ -272,6 +272,25 @@ and can wait.*
 > only hold light that has already arrived). The screen must feel almost
 > empty; the emptiness is the point.
 
+#### 7b — Act 3: the case board (the observatory desk; A2.1's screen)
+
+> A case file over the dark ground, typography-led, calm and forensic —
+> a well-kept observatory record, not a dashboard. At top, a case
+> header: designation "HOL-0031" in small grotesque, the player's name
+> "HEARTH" large in serif beside it, a chip reading "AS OF 7 Y AGO".
+> Below, four hypothesis rows — short serif phrases ("BROWN DWARF",
+> "ROGUE WORLD", "COOLED REMNANT", "SOMEBODY'S HEART") — each with a
+> thin horizontal confidence bar in slate and a small tabular
+> percentage; the leading bar slightly longer, its tip warmed
+> ember-amber; one flat annotation sentence in slate italic beneath the
+> bars. Next, two or three "open question" rows: one short serif line
+> each, a small cost figure, a paired clock "14 H · ≈160 Y", hairline
+> dividers between them. At the bottom edge, a thin allocation strip —
+> small notches dividing instrument time between this case and one
+> other, named in tiny grotesque. Generous spacing, few words, no
+> charts, no graphs, no dashboard density; the page should read like
+> typeset evidence.
+
 #### 8 — Act 3: the choice ceremony (broadcast)
 
 > Irreversible-decision screen: the same dark star field, and from the

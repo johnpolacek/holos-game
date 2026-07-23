@@ -373,11 +373,12 @@ Resolve each before the slice that needs it; record the call here.
 The image brief's **Act 3 groups are the active shot list** (screens 7–15,
 plus the adopted style tile): the Sky + source card (7), the choice
 ceremony (8), signals in flight (9), the Ledger (10), sleep/wake (11–12),
-and the Model set (13–15, echo shell = poster). New ask from this plan:
-**the inheritance ceremony** — a session-zero card presenting a generated
-civilization (world fingerprint + lineage + dial sheet + charter) to
-accept and name. Phase B's screens (world reveal variants, beat, roll,
-pivot reveal) wait.
+and the Model set (13–15, echo shell = poster). The inheritance-ceremony
+ask from this plan shipped with A1 (concepts 03-00, 03-00b). **Current
+ask (A2.1): the case board** — ui-image-brief.md screen 7b, the
+observatory desk with hypotheses, open questions, and the allocation
+strip. Phase B's screens (world reveal variants, beat, roll, pivot
+reveal) wait.
 
 ## Explicitly out of v1
 
