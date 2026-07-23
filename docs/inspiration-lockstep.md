@@ -247,7 +247,14 @@ and regularity sells the schedule of your blindness.
 
 ### 4. Sleeping in step
 
-**Status: open (2026-07) — for the designer pass.**
+**Status: referred (2026-07).** Reworked without sleep during review —
+correspondence as the fifth drift factor: a colony written to regularly
+drifts slowly, a silent one drifts fast, with the light round trip as
+the natural spam ceiling and the missed-beat pattern
+([patterns.md](./patterns.md)) as the detection of estrangement. The
+proposal was handed to the communication design effort, where letters
+are being specified; its verdict lands there, not here. The entry below
+is the provenance record.
 
 **In the book.** The 360/1 polity is 14,000 years old and still one
 culture, while the fast-living worlds around it bloom and die a whole
@@ -388,7 +395,7 @@ systems.
 | 1 | The cadence pact | Correspondence (A2), tripwires + sleep (A5), coalitions | **Rejected (2026-07)** — no sleep mechanic; the plate rack is the direction | — |
 | 2 | The accrual bargain + starless sites | The cold berth, cost classes, cradle 41 | Rule in economy-design now; sites at A5+ | One rule + one catalog entry |
 | 5 | The aligned dawn | Event queue (shipped), mission clock (A4) | A4–A5 | Derived timelines |
-| 4 | Waking-time drift + the insomniac colony | The Ledger (A4), charters | A4 | One rule + beat class |
+| 4 | Waking-time drift + the insomniac colony | The Ledger (A4), charters | **Referred (2026-07)** — recast as correspondence-as-drift-brake; verdict lands with the communication design | One rule + beat class |
 | 7 | The overslept founder | Light-cone authentication, the Chronicle | Beat content, A4+ | Beat class + one paragraph |
 | 6 | The Refuser's clock | Refuser shelf | Phase B / content track | Content only |
 
