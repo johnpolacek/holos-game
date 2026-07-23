@@ -7,6 +7,7 @@ dist/
 .env
 .env.*
 !.env.example
+art-test/
 
 # Claude Code agent worktrees (transient)
 .claude/worktrees/
