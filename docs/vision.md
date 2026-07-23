@@ -170,7 +170,7 @@ Holos takes its name and much of its physics and philosophy from an interpretive
 The one real risk is open-ended growth that never ships, the treadmill that sinks part-time projects. The discipline is to define a shippable core, and let the in-world clock buy time to build the rest while early players climb toward it.
 
 **v1, the shippable slice**
-Incubation as an authored branching history, then singularity and a thin but real slice of the Act 2 strategy layer (the two ladders, a few resources and projects, the character dials), then first sublight contact. One world-type variety pass, one or two travel methods, light-lag messaging and the observatory's first signal classes, rule-based AI civs, and a small persistent galaxy that humans join over time. This is enough to prove the pivot and the contact loop, which are the soul of the game.
+Incubation as an authored branching history, then singularity and a thin but real slice of the Act 2 strategy layer (the two ladders, a few resources and projects, the character dials), then first sublight contact. One world-type variety pass, two travel methods (seedships, and relativistic flight in both fuel postures), light-lag messaging and the observatory's first signal classes, rule-based AI civs, and a small persistent galaxy that humans join over time. The v1 scope posture is bold: where a call is borderline, the slice takes the bolder inclusion and prices it honestly. This is enough to prove the pivot and the contact loop, which are the soul of the game.
 
 **Later layers, built while v1 players incubate and expand**
 - Full travel menu and the identity mechanics of self-transmission and the seat

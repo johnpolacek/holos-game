@@ -1,8 +1,9 @@
 # The toolkit of ascent — the Holos technology catalog
 
 *Everything a civilization can build, and what building it costs in the
-only currencies Holos tracks: energy, matter, compute, coherence — and
-light. This is the fifth catalog in the chain* worlds → species → minds →
+four currencies Holos tracks — energy, matter, compute, coherence — and
+what it writes on the sky in the one thing that is tracked but never
+spent: light. This is the fifth catalog in the chain* worlds → species → minds →
 civilizations → **means** *: the instruments those civilizations reach for,
 bright and dark, and what each one writes on the sky.*
 
@@ -53,7 +54,9 @@ definition — the fix is to redesign the technology, never to bend the law.
 2. **Thermodynamics is honest.** Waste heat can be shaped, delayed, and
    diluted, but never eliminated. Total thermal output is set by physics,
    not engineering, so perfect stealth does not exist — only discipline.
-   The Teeming Dark is quiet, not cold.
+   The Teeming Dark is quiet, not cold — except where it sleeps: a
+   civilization that stops computing (the cold berth, §II) is the one
+   true cold, and an empty patch of sky is never proof of emptiness.
 3. **Everything is written on the sky.** Every technology has a visibility
    consequence, and the light echo publishes it outward forever. Each
    entry below therefore carries an *in the sky* line, keyed to the
@@ -81,8 +84,9 @@ Each entry carries up to five fields:
 
 - **What it is.** The thing itself, in a sentence or two.
 - **The physics.** The real mechanism and its honest costs. Numbers here
-  are sincere (prose-style.md R-1); where the science gives a range, the
-  range is stated, not tuned.
+  are sincere (prose-style.md M4 — the framing may be wry, the number
+  never is — and byte-exact under restyle per R-1); where the science
+  gives a range, the range is stated, not tuned.
 - **In play.** Family and ladder gate; the resource profile in the four
   Act 2 currencies (Energy, Matter, Compute, Coherence); the Signature
   effect.
@@ -242,8 +246,10 @@ rather than surface area, one world-model rather than many voices, memory
 that survives anything. Its structures are compact, gravitationally
 settled, and quiet in every band engineering can quiet, and its endpoint
 is the Dark Node: a mass dark in visible light, faintly warm in the
-infrared, gravitationally present and otherwise silent. These four
-mesostructures are theory.pdf's toolkit, adopted whole.
+infrared, gravitationally present and otherwise silent. The first three
+entries below — the Holocore, the Kernel, and the Vault — are theory.pdf's
+mesostructure toolkit, adopted whole; masks and the cold berth are this
+catalog's extensions, built under the same discipline.
 
 ### The Holocore
 
@@ -403,6 +409,30 @@ information beats; they are how the sky stops being wallpaper.
   everyone is — the first asymmetry every young civilization learns.
 - **Who builds it.** Everyone, forever. The instrument budget is the one
   line item no archetype cuts.
+
+### The survey
+
+- **What it is.** A finite observing campaign run on the deep arrays:
+  every system within a chosen radius, characterized to a chosen depth,
+  on a schedule with an end. The array is furniture; the survey is a
+  question with a deadline — *what is actually out there* — and its
+  product is the destination catalog everything in Act 3 points at.
+- **The physics.** No new hardware. A survey is integration time,
+  allocated: the same apertures that could stare at one target instead
+  sweep a volume, trading depth per system for completeness across
+  systems. Completeness is the deliverable — a survey's power is that a
+  *null* result means something, because you know where you looked.
+- **In play.** Instrument; the second of the two v1 instruments, and the
+  project that becomes Act 3's destination survey. Compute-hungry like
+  all inference; Signature-neutral. Output is the map as beliefs —
+  worlds, warmths, and anomalies, each with a confidence level — and
+  every later verb (launch, hail, watch, worry) chooses from it.
+- **In the sky.** Invisible, like all watching. No one can tell they
+  have been surveyed, which is why everyone has been.
+- **Who builds it.** Everyone, before anything else interstellar: the
+  Sowing to choose cradles, the Tide to appraise, the Cloister to know
+  what to stay away from. A civilization's first survey is its first
+  admission that the sky is not wallpaper.
 
 ### Gravitational-lens observatories
 
@@ -627,6 +657,36 @@ about them.
 - **Who builds it.** Refusers by constitution; Shepherds moving wards;
   Curators moving originals because a copy would not be the thing kept.
 
+### The send
+
+- **What it is.** Missions as hardware: the craft that carries an agent —
+  anything from a fist-sized probe to an armada — into someone else's
+  sky. Not one hull but a spectrum, and the spectrum is the point: who
+  goes, and at what mass, says who you are.
+- **The physics.** Every point on the spectrum rides the travel shelf
+  above — seed-grade coasting, relativistic torch, or transmission to a
+  receiver for agents that are pattern. Mass buys capability and costs
+  visibility in the same motion; the lag is identical at every scale.
+  Nothing sent can be recalled or patched mid-flight: the charter is the
+  only control that travels (act3-design.md, *Missions*).
+- **In play.** Carrier; the mission system's shelf — agents, charters,
+  horizons, veterans (act3-design.md). The scale ladder is itself
+  expressive: a probe is deniable, an envoy is a commitment, an embassy
+  is a treaty made of people, and an armada is a sentence read years
+  before it arrives. Armada-scale force is deferred with the conflict
+  shelf (§VI); armada-scale peace — the great expedition, the embassy
+  fleet, the evacuation — ships whenever missions do.
+- **In the sky.** The whole run of the scale: a probe is a sentinel-class
+  nothing; a crewed ship a faint, aimed torch; an armada is unmistakable
+  — a formation of drive flares sharing one destination, the loudest
+  thing on this shelf short of a strike. There is no quiet armada
+  (law 2).
+- **Who builds it.** Everyone, in their own image: the Refuser sends
+  dynasties and orders backed by shackled machines; the Cloister sends
+  small dark probes because missions are its only limb; a Chorus sends
+  copies of itself and thinks nothing of it. The mission roster is the
+  civilization's character sheet in motion.
+
 ---
 
 ## V. The message layer
@@ -758,6 +818,31 @@ above already casts a shadow on this shelf.
   their deterrent is the absence of a target, which the next entry
   completes.
 
+### The conflicted war
+
+- **What it is.** War by agreement: a dispute fought in simulation at an
+  agreed venue, verdict accepted — or defected from, in front of everyone.
+  Not hardware but a protocol, assembled entirely from entries this
+  catalog already carries.
+- **The physics.** A shared real-time simulation across light-years is
+  impossible (law 1), so the war travels as matter: each side dispatches
+  envoys with full authority to a neutral system or a third-party
+  arbiter, the conflict runs locally on the venue's Kernel-class compute
+  (§II), and the verdict broadcasts home years later as light (§V).
+- **In play.** Deferred with the rest of this shelf (act3-design.md, *The
+  conflicted war*). The verdict binds as a promise, nothing more: the
+  loser can always defect and go physical, but the defection happens in
+  the light, in the permanent record. A conflicted war is a wager that
+  the opponent values its standing more than the stakes — the defection
+  risk is the drama, not a failure mode to be patched.
+- **In the sky.** The war itself is invisible — computation at a venue.
+  What shows is its frame: envoy launches, the verdict's `DIRECTED BEAM`
+  going home, and, on defection, the launch flare everyone was promised
+  would not come.
+- **Who builds it.** Nobody alone — it takes two principals and a venue,
+  which is the point. Congress-grown civilizations arbitrate natively;
+  elders lend venues and the standing to referee.
+
 ### The three defenses
 
 - **What it is.** The integration ladder's answer to the strike, as a
@@ -839,6 +924,12 @@ if choosing it is a value statement: if it changes the sky, the ladders,
 the identity ledger, or the shape of contact. Everything smaller is the
 mind's business, and the mind does not bring it to meetings.
 
+The one staircase through the floor is the send (§IV). Dispatching an
+agent *is* a value statement — who goes says who you are — so the launch
+is catalog business at every scale from probe to armada, while everything
+the agent does after the horizon stays the mission system's fiction
+(act3-design.md, *Missions*).
+
 ---
 
 ## The anti-catalog
@@ -879,11 +970,12 @@ the Signature direction; **Sky** is the primary observatory read.
 | Stellar engines | bright | E interstellar | Energy, Matter, eras | +++ | proper-motion anomaly |
 | Black-hole tap | bright | E endgame | Matter (feed) | ++ (throttleable) | disciplined accretion source |
 | Holocore | dark | I / H3→H4 | Matter, Compute | − | `DARK NODE` |
-| Computronium Kernel | dark | I / H2→H4 | Energy, Matter | − | `DARK NODE` |
-| Chrono Vault | dark | I / any | Compute, patience | − | nothing / `DARK NODE` |
+| Computronium Kernel | dark | I / H2→H4 | Compute, Energy, Matter | − | `DARK NODE` |
+| Chrono Vault | dark | I / any | Matter, patience | − | nothing / `DARK NODE` |
 | Masks | dark | I / H2→ | Energy, Compute | −− | absence; or a chosen lie |
 | Cold berth | dark | I / H4 | near-zero upkeep | floor | nothing |
 | Deep arrays | instrument | any | Compute | 0 | invisible |
+| The survey | instrument | any | Compute, integration time | 0 | invisible |
 | Grav-lens observatories | instrument | I lean | Compute, years | 0 | invisible |
 | Sentinel probes | instrument | H3 | Compute | ~0 | micro-`DIRECTED BEAM` bursts |
 | Tripwires | instrument | any | trivial | 0 | nothing |
@@ -892,11 +984,13 @@ the Signature direction; **Sky** is the primary observatory read.
 | Relativistic ships | carrier | E deep | Energy (extreme) | ++ | drive plume, aimed |
 | Self-transmission | carrier | receiver graph | identity | beam-only | `DIRECTED BEAM` |
 | Arks | carrier | E (Refuser/Custodian) | Matter, time | + | warm, steady, honest |
+| The send (probe→armada) | carrier | any; scales | agent + travel method | ~0 → ++ | nothing → formation of flares |
 | Phase-coherent beams | message | any | Energy per payload | aimed-only | `DIRECTED BEAM` |
 | Broadcast | message | any | Energy | permanent + | `BROADCAST LEAKAGE` |
 | Payload stack | message | any | Compute | — | meaning, not signature |
 | Relativistic strike | conflict (deferred) | E deep gate | Energy (extreme) | ++ | flare, then arrival |
 | Deterrence architecture | conflict (deferred) | E | Signature itself | + (chosen) | curated capability |
+| Conflicted war | conflict (deferred) | two principals + venue | envoys, venue Compute | 0 | verdict beam; or the defection flare |
 | The three defenses | conflict (deferred) | I | Coherence (dispersal) | − | absence of a target |
 | The harness | Refuser | E only | Energy, vigilance | + by charter | `BROADCAST LEAKAGE` |
 | The throne world | Refuser | — | everything, locally | ++ by charter | `LIVING WORLD` + leakage |
@@ -915,15 +1009,17 @@ check*) passes through this table without a thumb on the scale.
 
 House coinages already pinned (prose-style.md §8) are used as-is: `Dark
 Node`, `the Vault`, `Signature`, `the harness`, `the Breakout`, `the
-Crossing`, `grave world`. The theory.pdf structure names — **Holocore**,
+Crossing`, `grave world`, `Teeming Dark`, `the Ledger`, `Refuser`. The theory.pdf structure names — **Holocore**,
 **Computronium Kernel**, **Chrono Vault**, **Sentinel Probes** — are
 adopted as canon with this document. New lowercase common nouns proposed
 here, following the `cradle`/`charter` capitalization family: **mask**
 (already a playstyles.md verb), **the cold berth**, **the black-hole
 tap** (from playstyles.md's "tap black holes"), **payload stack**,
 **deep array**, **worldhousing**, **throne world** (already in
-act3-design.md), **ark**. None are Banks coinages or near-variants; all
-should be added to §8's coinage table if they survive review. Ship and
+act3-design.md), **ark**, **the send** (the mission dispatch, §IV). None are Banks coinages or near-variants; all
+are adopted into §8 (working decision, 2026-07), and the three great
+structures take plain surface names — `Holocore`, `the Vault`, `the
+Kernel` — with the full design names kept to docs and code. Ship and
 structure *instances* draw phrase names from the prose-style.md §5 pool —
 a beam battery called `Louder Than Necessary` is exactly the register.
 
@@ -931,22 +1027,32 @@ a beam battery called `Louder Than Necessary` is exactly the register.
 
 ## How this feeds v1, and scope discipline
 
-The catalog is content over existing systems, and almost all of it is
-deliberately later-layer (vision.md roadmap: *megascale engineering and
-the entropy and energy tech tree*). The v1 slice per act2-design.md (~8
-projects: 3 bright, 3 dark, 2 instruments) draws directly from these
-shelves:
+**The v1 scope posture is bold** (working decision, 2026-07): where a
+scope call is borderline, v1 takes the bolder inclusion. Scope discipline
+(vision.md) still holds — the slice must ship — but within the slice the
+lean is toward more of the catalog live sooner, priced honestly, rather
+than a minimal core grown cautiously.
+
+Much of the catalog remains deliberately later-layer (vision.md roadmap:
+*megascale engineering and the entropy and energy tech tree*). The v1
+slice per act2-design.md (~9 projects: 3 bright, 4 dark, 2 instruments)
+draws directly from these shelves:
 
 - **Bright ×3:** collector swarm stages, high-output industry,
   star-lifting (as the late-act flex).
-- **Dark ×3:** the compute heart (Kernel, first stage), the Vault (Chrono
-  Vault, first stage), masks (the Signature-reduction project).
+- **Dark ×4:** the compute heart (Kernel, first stage), the Vault (Chrono
+  Vault, first stage), the energy core (Holocore, first stage), masks
+  (the Signature-reduction project).
 - **Instruments ×2:** deep arrays (the Act 2 telescope line), and the
   survey that becomes Act 3's destination survey.
-- **Act 3 v1 additions, already scoped:** seedships with charters,
-  directed hail / correspondence (phase-coherent beams and the payload
-  stack as fiction over the existing message mechanics), sleep with
-  tripwires.
+- **Act 3 v1 additions:** seedships with charters; **relativistic ships**
+  (bold-scope addition — coherent colony founding on real flight clocks,
+  onboard-fuel and beam-pushed variants, the battery bright by design;
+  the seat still does not travel in v1); directed hail / correspondence
+  (phase-coherent beams and the payload stack as fiction over the
+  existing message mechanics); sleep with tripwires; and the
+  mask-versus-instrument contest running classification confidence from
+  day one — thin, but a live economy, never fixed stealth grades.
 
 Everything else — stellar engines, the black-hole tap, gravitational-lens
 observatories, sentinel probes as playable instruments, receivers and
@@ -957,31 +1063,64 @@ concept.
 
 ---
 
+## Working decisions
+
+Three of this catalog's original open questions are resolved as working
+decisions (the act3-design.md convention: sound, but cheaper to revisit
+now than after implementation). Both follow one posture, recorded here
+because it governs future calls too: **maximum technology choice** — when
+a capability is physics-legal and its price can be made honest, the
+catalog includes it rather than designing it out.
+
+- **Masking is a contest, never a setting.** The mask-versus-inference
+  arms race is a live economy: mask quality and instrument quality are
+  opposing, open-ended investments, and neither side ever reaches
+  certainty — an empty patch of sky stays permanently ambiguous, which
+  is the condition the Teeming Dark and the deterrence layer both need.
+  The player-facing guard is presentational, not mechanical: the
+  observatory reports beliefs with confidence levels, never the
+  underlying contest math, so the race stays legible without becoming
+  solvable. v1 ships the contest in embryo (below); the full economy
+  deepens with later layers.
+- **Beam batteries are in, lever included.** Relativistic flight ships
+  in both flavors — onboard fuel and home-system beam-push — and the
+  emitter dependency enters play as a feature: a pushed traveler exists
+  at the pleasure of whoever runs the beam. While batteries push only
+  their owner's sails the lever stays domestic; when infrastructure
+  sharing arrives, pushing another civilization's ship becomes a trust
+  relationship exactly parallel to receivers — and going quiet
+  mid-flight becomes the betrayal with the longest fuse in the game.
+- **The tap is unowned — contests play out.** Black holes ship as what
+  physics makes them: rare, fixed, visible landmarks holding the best
+  power in the game — with no ownership, sharing, or exclusivity
+  mechanic layered on top. When two lineages want the same drain, the
+  existing systems are the resolution: a fed disk publishes its feeding
+  schedule to every watcher, letters carry the promises, nothing
+  enforces them, and the deterrence layer eventually prices the greed.
+  Emergence over architecture — deliberately under-built. If play
+  produces recurring patterns (de facto sharing etiquette, tap
+  standoffs, drain squatting), those patterns earn mechanics *after*
+  they appear, not before.
+- **Sentinel ethics ride the mission framework.** The watcher's-log
+  fiction — a sentinel dwelling over a living world, the Custodian ↔
+  Instrumental dial made concrete in real decisions about real
+  creatures — gets no beat family of its own. It lands as content
+  inside the mission system (agents, mission charters, vignette
+  returns; vision.md later layers, roadmap.md), whose v1 skeleton is
+  already the probe and the hail. The long vigil over a young world
+  should be among the first missions that framework authors, because
+  it is the Act 1 relationship played from the other chair.
+- **Surface names: Holocore, the Vault, the Kernel.** The three great
+  dark structures render on player surfaces under their plain names —
+  `Holocore`, `the Vault`, `the Kernel` — capital-family artifacts per
+  prose-style.md §8. The full design names (`Computronium Kernel`,
+  `Chrono Vault`) stay formal vocabulary for docs and code and never
+  reach a screen, per the dial-label precedent. The register's new
+  lowercase common nouns graduate to §8 as ambient vocabulary.
+
 ## Open questions
 
-- **The mask-versus-inference arms race.** Masks (§II) and deep arrays
-  (§III) are opposite ends of one system. Open: whether mask quality and
-  instrument quality should be tunable against each other as a real
-  economy in v2+, or whether masking stays a posture with fixed grades.
-  The dark forest's dread depends on this balance more than on any weapon.
-- **Beam batteries and consent.** Externally-pushed relativistic sail
-  travel makes the *emitter* a piece of shared infrastructure — a
-  civilization can strand a traveler mid-flight by going quiet. Whether
-  that lever enters play (a betrayal with no analog in the current
-  design) or is designed out (onboard-fuel only) is unresolved.
-- **The tap as a commons.** Black holes are rare, fixed landmarks.
-  Whether a fed hole can be *shared* — two lineages drawing on one drain
-  — or contested without the deferred conflict layer is open; it may be
-  the first genuinely scarce location in a game that otherwise refuses
-  scarcity of space.
-- **Sentinel ethics as a beat family.** A sentinel watching a living
-  world is the Custodian ↔ Instrumental dial in its purest form and
-  probably deserves its own beat class (the watcher's log as recurring
-  fiction). Content question, not systems.
-- **Coinage adoption.** Which of the new common nouns in the register
-  above graduate to prose-style.md §8, and whether `Holocore`,
-  `Computronium Kernel`, and `Chrono Vault` render under those names on
-  player surfaces or stay design vocabulary with in-world labels, per the
-  dial-label precedent. The Kernel especially may want a humbler in-world
-  name; a civilization does not generally call its own heart by its
-  patent filing.
+None at present. This catalog's original five were resolved above as
+working decisions (masking, beam batteries, the tap, sentinel ethics,
+coinage); new entries and new questions accrue here as the catalog
+grows.

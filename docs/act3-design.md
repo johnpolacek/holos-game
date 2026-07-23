@@ -11,9 +11,11 @@ resource, light is the only carrier of truth, and the other minds are real.*
 The [vision](./vision.md) says what Holos is and why. The
 [walkthrough](./gameplay-walkthrough.md) says what it feels like to play.
 The [Act 2 design](./act2-design.md) specifies the strategy layer this act
-inherits. This document specifies how Act 3 actually works: the sky, the
-contact loop, expansion and divergence, and the multiplayer surface. Where
-this document and the vision disagree, the vision wins. Numbers are v1
+inherits, and [economy-design.md](./economy-design.md) pins the choice
+economy both acts run on — including Act 3's strictly-local resource model,
+summarized below. This document specifies how Act 3 actually works: the sky,
+the contact loop, expansion and divergence, and the multiplayer surface.
+Where this document and the vision disagree, the vision wins. Numbers are v1
 targets, not tuning commitments.
 
 **Working decisions.** Three forks were open when this was written and are
@@ -60,6 +62,34 @@ probes checking in from the void.
 
 ---
 
+## The economy goes local
+
+Act 2 was one system with one budget. Act 3 keeps the same four resources
+and the same cost profiles ([economy-design.md](./economy-design.md)) but
+**shatters the economy into a graph of local ones**, because light-lag and
+the altitude principle both forbid a galactic treasury.
+
+- **Every node runs its own economy** — home system, colony, fork holding —
+  producing and spending its own Energy, Matter, and Compute. The player
+  spends only what the **seat's** local system produces; that local budget
+  is always the binding constraint.
+- **Colonies are autonomous, never managed.** Each runs its economy under
+  its charter, by itself, forever. The player never operates a colony's
+  books — the altitude principle forbids it and light-lag makes it
+  impossible regardless. **Expansion plants economies you will never
+  directly spend**; a child enriches the lineage only by existing, never as
+  a purse you can draw on.
+- **Transfers are physical and slow.** Value crosses between systems only as
+  a launch or a beamed payload — lossy, and arriving years to centuries
+  late. There is no fast rebalancing, so **wealth never pools galactically**:
+  a vast civilization is a scatter of separately-solvent nodes that cannot
+  lend to one another in time. This connects to the **fleeing seat** (it
+  inherits its refuge node's local economy whole — see *The seat*) and to
+  **cross-civ payment** (also physical or informational, never an abstract
+  ledger — see *Missions*).
+
+---
+
 ## Inspirations
 
 Carried forward: the beat engine (CK3-style state-fired dilemmas) and the
@@ -79,16 +109,17 @@ Act 2 strategy layer. New steals:
 The sky is a catalog of objects, each rendered **as of the moment its
 light left** — never its present. Signal classes in v1:
 
-- **Infrared excess** — warmth without light. Dark Node, brown dwarf, or
-  rogue world; the classic Teeming Dark ambiguity.
-- **Transit shadows** — occlusions too regular to be natural: megastructure
-  construction, seen as it was when the light departed.
-- **Directed beams** — a hail aimed at you (or intercepted en route to
+- **`DARK NODE`** — warmth without light: an infrared excess that could
+  be somebody's heart, a brown dwarf, or a rogue world; the class *is*
+  the classic Teeming Dark ambiguity.
+- **`TRANSIT SHADOWS`** — occlusions too regular to be natural:
+  megastructure construction, seen as it was when the light departed.
+- **`DIRECTED BEAM`** — a hail aimed at you (or intercepted en route to
   someone else — rare, and explosive intelligence).
-- **Broadcast leakage** — the sloppy shine of a young or careless
+- **`BROADCAST LEAKAGE`** — the sloppy shine of a young or careless
   civilization, or the deliberate, constitutional shine of a Refuser that
   will never go dark; the thing you spent Act 2 learning not to emit.
-- **Biosignatures** — a living world, pre-singularity. Someone's Act 1,
+- **`LIVING WORLD`** — a biosignature, pre-singularity. Someone's Act 1,
   visible from outside.
 
 Classification is inference under uncertainty, sharpened by Instrument
@@ -165,7 +196,11 @@ projects with real-time flight clocks:
   The default expansion tool and the v1 method.
 - **Relativistic ships** push *a coherent self*: brutally expensive
   (energy-ladder gated), subjectively fast, objectively slow — the
-  traveler arrives displaced into an unplanned future.
+  traveler arrives displaced into an unplanned future. Two fuel
+  postures, both in play: onboard fuel (independent, dearest) and
+  beam-push from a home battery (cheaper, and the traveler exists at
+  the pleasure of whoever runs the beam — technology.md, *Working
+  decisions*).
 - **Transmission** pushes *pattern* at lightspeed — but requires a
   **receiver** already standing at the destination.
 
@@ -267,6 +302,11 @@ never becomes an FTL side-channel between forks.
 - A Refuser has no transmissible self, so its seat is a **throne world**,
   the lineage's living center; when it is destroyed the court crosses by
   evacuation ship instead — slower and worse, which fits the path.
+- **A fled seat inherits its refuge node's local economy, whole.** Because
+  the economy is strictly local (see *The economy goes local*), no budget
+  crosses with the seat — you land in whatever budget was already there,
+  which may be a thin frontier income. The Crossing is a demotion as well as
+  a survival: you keep the game, but you keep it on the refuge's means.
 - **Elimination** = the entire lineage erased. Rare, dramatic, and meant
   to be; the Crossing is the dramatic window before it. An eliminated player
   rejoins through divergence onboarding — inheriting some other lineage's
@@ -363,6 +403,35 @@ the existing menu: transmission to a receiver, relativistic ship, slow
 seed or probe) + **a horizon** (the moment the mission passes beyond
 governance and becomes a story whose ending arrives later, as
 light-delayed reports).
+
+**Scale is expressive too.** "Who goes" runs from a fist-sized probe to
+an **armada** — an ensemble of ships, minds, and mobile industry
+dispatched under one charter. Every point on the spectrum prices the
+same way (the agent plus the travel method, below), but the meanings
+invert as mass climbs: smallness is stealth and deniability; mass is
+statement. An armada cannot be disowned and cannot arrive unannounced —
+its formation of drive flares is read by everyone between origin and
+destination years before it arrives, so sending one is a message before
+it is anything else. Armada-scale force projection is deferred with the
+conflict layer (v1 ships no strikes); armada-scale peaceful ensembles —
+a great expedition, an embassy fleet, an evacuation — ride the ordinary
+mission rules.
+
+**What a mission costs.** A mission is priced like everything else
+([economy-design.md](./economy-design.md)) — no special mission economy.
+The bill is the ordinary cost profile applied to *someone goes*: **the
+agent** (Matter and Energy to build a body, Compute to train or instantiate
+a mind — a drone is cheap Matter, a sovereign sub-mind is expensive Compute,
+a lent veteran is neither because it already exists); **the travel method**,
+which keeps its existing cost character exactly (a slow probe is routine
+income; a relativistic ship is an era's savings; a transmission is Compute
+to encode plus Energy to beam); and **real time**, the transit to the
+horizon. There is **no attention resource** in v1: what limits mission
+dispatch is the player's real session time and the Coherence cost of
+running heavily distributed endeavors — no single mission threatens unity,
+but a civilization flooding the sky with agents is distributed by
+definition and pays for the sprawl (economy-design.md, *Coherence*). Whether
+that is enough to hold off mission spam is an open question (below).
 
 **The mission clock.** At launch, every mission compiles its charter
 into a timeline of expected light events — checkpoints, each with a
@@ -512,6 +581,15 @@ in the civilization's Vault, uplift or protection for their homeworld.
   favor. This feeds the veteran's weight rather than any separate
   mechanic: what you paid someone becomes part of who they are at the
   next launch.
+- **Payment is physical or informational, never a ledger.** Every item on
+  the menu is a real good delivered or a real thing transmitted; there is
+  no abstract inter-civ currency and no running account between two minds
+  (economy-design.md, *The Act 3 economy is strictly local*). Consideration
+  rides the co-written charter, sunk and unrecallable at launch — which is
+  exactly why cross-civ cooperation is credible where a promise of *future*
+  payment would not be. The value is already in flight, not a balance
+  someone owes: no-money and no-enforcement are the same rule from two
+  sides.
 
 **Mechanical spine.**
 
@@ -753,15 +831,23 @@ endgame's mechanical layer later, per the vision's roadmap.
 
 ## v1 scope
 
-Per the vision's v1 slice — prove the pivot and the contact loop:
+Per the vision's v1 slice — prove the pivot and the contact loop.
+**Working decision: the v1 scope posture is bold** (2026-07) — where a
+call is borderline, take the bolder inclusion; the slice must still ship.
 
 - One cohort of human players + a seeded AI spectrum (rule-based)
-- The Sky report and observatory with the five v1 signal classes
+- The Sky report and observatory with the five v1 signal classes;
+  classification confidence runs on the mask-versus-instrument contest
+  from day one — thin, but a live economy, never fixed stealth grades
+  (technology.md, *Working decisions*)
 - Light echo tracking (emission history, per-observer views; the seed
   Chronicle already ships as the inherited civ's legible history)
-- One expansion method: seedships/probes, with charters, basic drift,
-  and the forecast survey (thin: information age at landfall + a
-  qualitative arrival spread)
+- Two expansion methods: seedships/probes with charters and basic drift,
+  and relativistic ships — coherent colony founding on real flight
+  clocks, onboard-fuel or beam-pushed (technology.md, *Working
+  decisions*); the seat still does not travel in v1. Both carry the
+  forecast survey (thin: information age at landfall + a qualitative
+  arrival spread)
 - Light-lag messaging: directed hail, broadcast, correspondence
 - Sleep with basic tripwires and notifications
 - No strikes, no seat transfer (single node in v1 — the seat rule's full
@@ -783,6 +869,13 @@ Per the vision's v1 slice — prove the pivot and the contact loop:
 - **Griefing resistance.** When strikes ship: cost gates, deterrence
   systems, and social fabric needed so the dark forest stays dreadful
   without becoming a spawn-camp.
+- **Does mission spam require an attention mechanic?** v1 bets that real
+  session time and the Coherence cost of distributed endeavors are enough
+  to limit mission dispatch, adding no attention resource
+  (economy-design.md, *Missions*). If flooding the galaxy with cheap agents
+  proves dominant, a light attention or command limiter may be needed — but
+  only as a last resort, since a slot pool would violate the
+  no-capacity-slots rule.
 - **Restoration.** Can a destroyed civilization's Vault be found and
   restored by others — and what does that do to the meaning of death? A
   **grave world** gives the question a place to happen — a quarantined

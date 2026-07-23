@@ -316,15 +316,57 @@ rendering; the Ledger with basic drift ghosts; sleep, tripwires, wake
 report, push. Deferred with their systems: the mask/performance surfaces,
 strike ceremonies, seat-transfer UI, the intelligence-brokering desk.
 
+## Two registers of art
+
+The game renders in **two distinct visual registers**, and they must not
+bleed into each other:
+
+- **The interface is austere and typography-led** — the "typeset book
+  crossed with a scientific instrument" of
+  [ui-image-brief.md](./ui-image-brief.md). Its content bans (no aliens,
+  people, machines drawn as chrome) keep the frame quiet; that quiet is the
+  Teeming Dark made tangible.
+- **In-game content — species, technology, worlds — is representational
+  and wanted.** The life the player raises across Act 1, the works it
+  builds in Act 2, and its own cradle are known *intimately*, and they get
+  real rendered art, not smudges. This is the content *inside* the frame,
+  not the frame.
+
+The line between the two registers is the epistemic line the rest of this
+document already draws: **you render what the player knows up close, and
+you refuse to render what they only infer.** Their own species and
+technology are known — draw them. A distant civilization is a belief — it
+stays a warmth, a smudge, a classification with confidence (§ principles
+3–4), never a drawn body or machine, no matter how advanced the observer.
+Species and technology art depicts the *self and the seen*, never the
+inferred other. Content art also honors the fiction's own toolkits — bright
+megastructures on the energy path, compact quiet works on the integration
+path (vision.md § Source framework) — so the look of a civilization's
+technology reads its character, the same way its dials do.
+
+The content register's adopted look is **cinematic matte painting** —
+painterly but physically photoreal, sharing the interface palette (near-black
+grounds; ember = warm/alive, cyan = the civ's own works). It is built as a
+**mix-and-match layer library**: three independent axes — origin world,
+species, technology — each generated on a neutral ground so any valid triple
+composites cleanly (the data's `candidateLineages` and lineage→mind tables
+gate which triples occur). One asset per possibility, keyed to the catalog id.
+The full shot lists live in the content-art briefs:
+[worlds](./content-art-worlds.md) · [species](./content-art-species.md) ·
+[technology](./content-art-technology.md).
+
 ## Open questions
 
-- **Art direction** — this doc specifies structure and rules, not look.
-  A working proposal (dark astronomical matte, ember-warmth accents,
-  editorial type) now lives in [ui-image-brief.md](./ui-image-brief.md)
-  as the concept-image brief; it is a candidate, not a decision. The one
-  commitment implied by the design either way: the sky must read as
-  *dark and mostly empty*, because the Teeming Dark only lands if the
-  screen itself is quiet.
+- **Art direction (interface look)** — this doc specifies structure and
+  rules, not look. A working proposal (dark astronomical matte,
+  ember-warmth accents, editorial type) lives in
+  [ui-image-brief.md](./ui-image-brief.md) as the concept-image brief; it
+  is a candidate, not a decision. What *is* settled is the split above
+  (§ *Two registers of art*): the interface stays austere while in-game
+  species and technology art is representational. The one commitment the
+  design forces on the interface either way: the sky must read as *dark and
+  mostly empty*, because the Teeming Dark only lands if the screen itself
+  is quiet.
 - **How much scene is rendered vs written?** Beat vignettes could be
   full Pixi scenes, styled stills, or prose-forward cards. Cost scales
   brutally with the first option; v1 likely ships prose-forward with a
