@@ -268,9 +268,14 @@ completes; the decay branch lands with mission charters and arks, post-v1.
 
 ### 3. The living world that bites
 
-**Recommended: adopted, slim.** A hazard tail on the forecast's existing
-`LIVING WORLD` class, a landfall-beat outcome, and one content-art plate —
-no new machinery.
+**Status: adopted, slim (2026-07) — as a discovered danger, not a
+forecast tail.** The designer review declined the surfaced hazard: the
+forecast does **not** advertise biological incompatibility, and no new
+art plate is commissioned. Instead the danger is real, grounded in the
+epistemics the game already enforces, and **run into** — it bites only a
+civilization that exposes living things to a living world, in proportion
+to what it exposes. No new machinery; it lives in the landfall
+resolution and beat writing.
 
 **In the book.** The destination is a moon that reads, from years out, as
 habitable — liquid water, a breathable-enough atmosphere, the prize the
@@ -281,30 +286,52 @@ world is not an empty one waiting for you; a biosphere already runs there,
 and you cannot simply move in. *Alive* is the danger, not the reward.
 
 **Already in Holos.** The observatory's `LIVING WORLD` signal class is *"a
-biosignature, pre-singularity… someone's Act 1, visible from outside."* The
-**forecast** renders an arrival spread that is *"widest of all for a
-civilization mid-ascent"* and warns that the gap between forecast and found
-is a beat class — *"the quiet system that turned out occupied."* The
-walkthrough already plays a landfall that undershoots its survey: *"the
-ocean is deeper than the surveys promised and the seafloor is ice, not
-rock — the world is poorer than we hoped."* But the Custodian and
-Instrumental vigil beats quietly assume the ward is *passive* — a garden to
-keep or ore for the forge, never a thing that answers.
+biosignature, pre-singularity… someone's Act 1, visible from outside."*
+The **forecast** is explicitly *belief, never truth, and never certain*,
+and the gap between forecast and found is already a beat class — *"the
+quiet system that turned out occupied."* The walkthrough plays a landfall
+that undershoots its survey: *"the ocean is deeper than the surveys
+promised and the seafloor is ice, not rock — the world is poorer than we
+hoped."* Payload class already orders fragility (steal 2): a machine can
+observe a world without touching it; a living cargo must *land in* it. But
+the Custodian and Instrumental beats quietly assume the ward is *passive* —
+a garden to keep or ore for the forge, never a thing that answers.
 
-**Take: a hazard tail on the `LIVING WORLD` spread.** The forecast's
-arrival spread for a biosignature world should carry an honest tail in
-which the biology is *incompatible or lethal* — landfall resolves not to a
-prize and not merely to a disappointment but to a world that cannot be
-shared and, sometimes, cannot be survived. It is the Instrumental mind's
-sharpest forecast beat (the appraisal that priced a living world as
-inventory and met a biosphere that priced back) and the Custodian's
-(the garden that was never yours to keep). It rides the forecast, the
-landfall resolution, and the truth engine exactly as they stand, and it
-needs one piece of art the set is already short: **there is no content-art
-plate for a living-and-hostile world**, and no plate #41 at all yet —
-`LIVING WORLD` is precisely where a *deadly alive* destination would be
-rendered, under the sheet's ember-for-what-is-warm-and-alive rule
-(content-art-worlds.md).
+**Take: a quiet danger, supported by the physics, discovered at contact.**
+The grounding is honest and already load-bearing: a biosignature proves
+there *is* life, never that its chemistry is compatible with yours —
+compatibility is genuinely unknowable at range, because the light carries
+the fact of life, not a tissue sample. So the danger is not a probability
+the survey quotes; it is a property of the world the truth engine holds
+and the player learns only by *arriving with something that can be hurt*.
+
+- **It scales with exposure, which is the player's choice.** A machine
+  probe or a purely observational vigil is never at risk — it touches
+  nothing. A seedship or ark carrying a living ecology into a living world
+  is the exposure, and the more life it lands, the more there is to lose.
+  The danger is therefore a consequence of *what a civilization does*, not
+  a tax the game levies — a Refuser or a Shepherd moving biological cargo
+  runs it; a dark integrated mind sending cold probes never meets it.
+- **It surfaces at landfall, as a found fact.** When a living cargo makes
+  contact with an incompatible biosphere, the report that comes home years
+  later is an authored scene: the colony that could not root, the crew the
+  world refused, the beachhead that had to be sealed against a chemistry
+  no quarantine holds. The launch charter scripts the response — press on
+  under permanent seal (expensive, joyless, possible), or abandon the
+  landing (steal 5's territory) — exactly as every other mission outcome
+  resolves.
+- **It sharpens two flavors from inside.** The Instrumental mind that
+  priced a living world as inventory meets a biosphere that priced back;
+  the Custodian learns a garden was never theirs to keep, and that its
+  natives — who may one day be someone — are lethal to touch. Neither is
+  told in advance; both are the kind of beat that *interrogates the
+  flavor's own premise*, which playstyles.md names as the best beat there
+  is.
+
+No new art (the existing hostile-world register carries it — the fear is
+in the arrival scene, not a plate), no new survey surface, no new stored
+state: the world's incompatibility is a truth-engine fact consulted at
+contact, the way every landfall already consults the truth.
 
 ### 4. The charter its children never chose
 
@@ -480,7 +507,7 @@ specced machinery, per the rule that entries ride existing systems.
 |---|---|---|---|---|
 | 4 | The charter its children never chose | Inheritance ceremony (A1, shipped), Chronicle | Recommended: adopted (content) — aimed at the "inherited ≠ owned" risk | Two doc/microcopy blocks |
 | 1 | The mind that wakes by narrating | The report + Chronicle, the pivot's volume knob | **Rejected (2026-07)** — unnecessary; beat writing may use it | — |
-| 3 | The living world that bites | The forecast (A4), landfall, `LIVING WORLD` class, content-art | Recommended: adopted, slim | Spread tail + one plate |
+| 3 | The living world that bites | Landfall resolution, payload class (steal 2), truth engine | **Adopted, slim (2026-07)** — discovered danger, not a forecast tail; no new art | Landfall beat, exposure-scaled |
 | 2 | The physics of passage (ark's failing loop, widened) | Forecast survey + mission clock (A4), fuel postures, law 4, vignette engine | **Transformed, adopted (2026-07)** — the headline; voyage line + margin choice, decay branch post-v1 | One derived line + one launch choice |
 | 5 | The vessel that turns back | Charters (A4), drift + the Ledger, the vignette engine | Recommended: split — beat class adopted; mechanism rides charters | Divergence outcome + beat |
 | 8 | The mind that ends with its errand | Missions + veterans (post-v1), compensation menu | Recommended: adopted, slim | A veteran register |
