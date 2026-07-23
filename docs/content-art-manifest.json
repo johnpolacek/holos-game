@@ -29,8 +29,8 @@
     }
   },
   "counts": {
-    "plates": 70,
-    "images": 140
+    "plates": 71,
+    "images": 142
   },
   "plates": [
     {
@@ -754,6 +754,24 @@
       ]
     },
     {
+      "id": "41",
+      "axis": "worlds",
+      "name": "The century orbit — Eccentric long-winter world",
+      "prompt": "Cinematic matte painting in the style of high-end film concept art and natural-history documentary stills — painterly yet physically photoreal: real light, real materials, atmospheric depth, fine surface detail, a faint filmic grain. Low-key dramatic lighting from a single dominant source; deep shadow; volumetric haze. Muted, desaturated palette anchored in near-black (#070B12) and warm off-white (#E8E4DA); color is meaning, used sparingly — ember-amber (#D08A4A) for whatever is warm, alive, or radiant, and moonlight-cyan (#9FC4CC) reserved strictly for a civilization's OWN works and bio-light. Solemn, elegiac, deep-time mood; immense stillness; restraint over spectacle; hard-science-fiction plausibility throughout. No text, letters, numerals, UI, HUD, diagrams, arrows, or borders; no neon, lens flare, or bloom; no cartoon, anime, or video-game-render look; no people or human artifacts; no watermark or signature. ONE SUBJECT ONLY, centered on a neutral cinematic ground so it composites cleanly onto either partner layer. Do not paint the other two layers: a world plate shows the planet with NO life and NO structures on or around it. The ground is deep, near-black, empty space. Nothing orbits it, nothing is built on it, no creatures — just the world and the dark. The planet seen from high orbit, filling roughly two-thirds of the frame, its curvature and day/night terminator visible; its star off-frame or a single small point of light, never a glowing disc dominating the shot; the remainder deep, near-empty space. Photoreal planetary surface with real cloud, ice, ocean, atmosphere, and rock physics for the world described. A world deep in the long winter of a wildly eccentric orbit, its small G-dwarf sun shrunk to a single faint point far off-frame: oceans and atmosphere collapsed into pale ice over a darkened crust, the scars of one brief furious summer still legible as refreezing meltwater channels and a last ember warmth fading from the hemisphere it scorched. A planet of century-long seasons caught mid-hibernation — fire long past, the long dark returned; patient, exact, asleep.",
+      "outputs": [
+        {
+          "ratio": "sq",
+          "ar": "1:1",
+          "path": "worlds/sq/41.webp"
+        },
+        {
+          "ratio": "wide",
+          "ar": "16:9",
+          "path": "worlds/wide/41.webp"
+        }
+      ]
+    },
+    {
       "id": "S1",
       "axis": "species",
       "name": "Tentacled cephalopodan",
@@ -1062,7 +1080,7 @@
     {
       "id": "S18",
       "axis": "species",
-      "name": "Radiation-hardened surface extremophile",
+      "name": "Radiation-hardened extremophile",
       "prompt": "Cinematic matte painting in the style of high-end film concept art and natural-history documentary stills — painterly yet physically photoreal: real light, real materials, atmospheric depth, fine surface detail, a faint filmic grain. Low-key dramatic lighting from a single dominant source; deep shadow; volumetric haze. Muted, desaturated palette anchored in near-black (#070B12) and warm off-white (#E8E4DA); color is meaning, used sparingly — ember-amber (#D08A4A) for whatever is warm, alive, or radiant, and moonlight-cyan (#9FC4CC) reserved strictly for a civilization's OWN works and bio-light. Solemn, elegiac, deep-time mood; immense stillness; restraint over spectacle; hard-science-fiction plausibility throughout. No text, letters, numerals, UI, HUD, diagrams, arrows, or borders; no neon, lens flare, or bloom; no cartoon, anime, or video-game-render look; no people or human artifacts; no watermark or signature. ONE SUBJECT ONLY, centered on a neutral cinematic ground so it composites cleanly onto either partner layer. Do not paint the other two layers: a species plate shows the organism with NO planet in the sky and NO structures or tools. A shallow suggestion of its immediate living medium (water, haze, rock, ice, soil) is allowed at its base, fading fast to deep near-black void. Never a full populated environment or landscape. A full-body specimen study: the single organism centered and complete, anatomically coherent, filling most of the frame in a three-quarter or profile view, lit like a museum diorama. Alien but biologically plausible — evolved, not designed; no anthropomorphic posing, no clothing, no tools, no weapons. A creature, studied, on the dark. A radiation-hardened surface extremophile: a heavily shielded animal, mineral-armored and darkly pigmented, thick-walled and squat, built to endure a sky that burns. On bright-scoured dark ground fading to void. Armored, weathered, sun-defiant.",
       "outputs": [
         {
@@ -1189,7 +1207,7 @@
       "id": "shepherd",
       "axis": "technology",
       "name": "The Shepherd — energy / bright",
-      "prompt": "Cinematic matte painting in the style of high-end film concept art and natural-history documentary stills — painterly yet physically photoreal: real light, real materials, atmospheric depth, fine surface detail, a faint filmic grain. Low-key dramatic lighting from a single dominant source; deep shadow; volumetric haze. Muted, desaturated palette anchored in near-black (#070B12) and warm off-white (#E8E4DA); color is meaning, used sparingly — ember-amber (#D08A4A) for whatever is warm, alive, or radiant, and moonlight-cyan (#9FC4CC) reserved strictly for a civilization's OWN works and bio-light. Solemn, elegiac, deep-time mood; immense stillness; restraint over spectacle; hard-science-fiction plausibility throughout. No text, letters, numerals, UI, HUD, diagrams, arrows, or borders; no neon, lens flare, or bloom; no cartoon, anime, or video-game-render look; no people or human artifacts; no watermark or signature. ONE SUBJECT ONLY, centered on a neutral cinematic ground so it composites cleanly onto either partner layer. Do not paint the other two layers: a technology plate shows the works with NO creatures and NO identifiable home planet (a dimmed or partial star, or bare space, is fine as the thing the works act upon). The ground is deep, near-black space. A built object, never a landscape. A single hero structure — the civilization's signature work — centered in space or low orbit against near-black, its scale implied by the fineness of its detail rather than by any reference object. Moonlight-cyan marks its own construction; ember-amber marks whatever it makes radiant. Real materials and real optics; a built thing, engineered and vast, not a natural formation. A broad, bright array of protective megastructures — shields, watch-stations, and power collectors arranged like a sheltering canopy around something small and unseen below. Strong ember-gold light and cyan structure, but turned outward as guardianship rather than display. Powerful, watchful, benevolent.",
+      "prompt": "Cinematic matte painting in the style of high-end film concept art and natural-history documentary stills — painterly yet physically photoreal: real light, real materials, atmospheric depth, fine surface detail, a faint filmic grain. Low-key dramatic lighting from a single dominant source; deep shadow; volumetric haze. Muted, desaturated palette anchored in near-black (#070B12) and warm off-white (#E8E4DA); color is meaning, used sparingly — ember-amber (#D08A4A) for whatever is warm, alive, or radiant, and moonlight-cyan (#9FC4CC) reserved strictly for a civilization's OWN works and bio-light. Solemn, elegiac, deep-time mood; immense stillness; restraint over spectacle; hard-science-fiction plausibility throughout. No text, letters, numerals, UI, HUD, diagrams, arrows, or borders; no neon, lens flare, or bloom; no cartoon, anime, or video-game-render look; no people or human artifacts; no watermark or signature. ONE SUBJECT ONLY, centered on a neutral cinematic ground so it composites cleanly onto either partner layer. Do not paint the other two layers: a technology plate shows the works with NO creatures and NO identifiable home planet (a dimmed or partial star, or bare space, is fine as the thing the works act upon). The ground is deep, near-black space. A built object, never a landscape. A single hero structure — the civilization's signature work — centered in space or low orbit against near-black, its scale implied by the fineness of its detail rather than by any reference object. Moonlight-cyan marks its own construction; ember-amber marks whatever it makes radiant. Real materials and real optics; a built thing, engineered and vast, not a natural formation. A broad, bright array of protective megastructures — watch-stations and power collectors arranged like a sheltering canopy around something small and unseen below. Strong ember-gold light and cyan structure, but turned outward as guardianship rather than display. Powerful, watchful, benevolent.",
       "outputs": [
         {
           "ratio": "sq",

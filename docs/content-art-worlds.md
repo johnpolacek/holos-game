@@ -324,3 +324,12 @@ introducing a second *style*.
 > thick, low, heavy atmosphere pressed flat, broad shallow seas and worn
 > ground, its horizon barely curving for all its size. The gravity is the
 > antagonist; the sky reads as a ceiling.
+
+#### 41 · The century orbit — Eccentric long-winter world  → `worlds/41.webp`
+> A world deep in the long winter of a wildly eccentric orbit, its small
+> G-dwarf sun shrunk to a single faint point far off-frame: oceans and
+> atmosphere collapsed into pale ice over a darkened crust, the scars of one
+> brief furious summer still legible as refreezing meltwater channels and a
+> last ember warmth fading from the hemisphere it scorched. A planet of
+> century-long seasons caught mid-hibernation — fire long past, the long dark
+> returned; patient, exact, asleep.
