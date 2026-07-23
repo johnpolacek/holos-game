@@ -406,6 +406,30 @@ information beats; they are how the sky stops being wallpaper.
 - **Who builds it.** Everyone, forever. The instrument budget is the one
   line item no archetype cuts.
 
+### The survey
+
+- **What it is.** A finite observing campaign run on the deep arrays:
+  every system within a chosen radius, characterized to a chosen depth,
+  on a schedule with an end. The array is furniture; the survey is a
+  question with a deadline — *what is actually out there* — and its
+  product is the destination catalog everything in Act 3 points at.
+- **The physics.** No new hardware. A survey is integration time,
+  allocated: the same apertures that could stare at one target instead
+  sweep a volume, trading depth per system for completeness across
+  systems. Completeness is the deliverable — a survey's power is that a
+  *null* result means something, because you know where you looked.
+- **In play.** Instrument; the second of the two v1 instruments, and the
+  project that becomes Act 3's destination survey. Compute-hungry like
+  all inference; Signature-neutral. Output is the map as beliefs —
+  worlds, warmths, and anomalies, each with a confidence level — and
+  every later verb (launch, hail, watch, worry) chooses from it.
+- **In the sky.** Invisible, like all watching. No one can tell they
+  have been surveyed, which is why everyone has been.
+- **Who builds it.** Everyone, before anything else interstellar: the
+  Sowing to choose cradles, the Tide to appraise, the Cloister to know
+  what to stay away from. A civilization's first survey is its first
+  admission that the sky is not wallpaper.
+
 ### Gravitational-lens observatories
 
 - **What it is.** Observation systems positioned along a stellar mass's
@@ -886,6 +910,7 @@ the Signature direction; **Sky** is the primary observatory read.
 | Masks | dark | I / H2→ | Energy, Compute | −− | absence; or a chosen lie |
 | Cold berth | dark | I / H4 | near-zero upkeep | floor | nothing |
 | Deep arrays | instrument | any | Compute | 0 | invisible |
+| The survey | instrument | any | Compute, integration time | 0 | invisible |
 | Grav-lens observatories | instrument | I lean | Compute, years | 0 | invisible |
 | Sentinel probes | instrument | H3 | Compute | ~0 | micro-`DIRECTED BEAM` bursts |
 | Tripwires | instrument | any | trivial | 0 | nothing |
