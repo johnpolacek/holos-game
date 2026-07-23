@@ -643,9 +643,11 @@ the missed reports before the mechanics do:
 > our descent.*
 
 More than eight thousand years of a drowned, metal-poor cradle pressing
-on a tight charter — plus two scheduled reports that went unanswered into his sleep
-— have carried the fork past the drift threshold. **Fathom is
-independent.** The message is courteous, formal, and utterly strange:
+on a tight charter have carried the fork past the drift threshold. Not
+the sleep — a slept origin's silence reads as sleep, not neglect, to a
+child watching its embers, and the mind kept the report schedule in
+character the whole time he was away — just deep time, and a world with
+opinions. **Fathom is independent.** The message is courteous, formal, and utterly strange:
 they quote his charter back to him as *scripture* — contingency two, the
 one about opening the record and deciding who they are, is apparently
 the founding text of something like a faith. They have decided who they

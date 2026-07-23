@@ -80,15 +80,15 @@ player civ, placing the chosen civ at inheritance time
 (`client/src/ceremony.ts`), and the observatory/source card
 (`client/src/sourcecard.ts`).
 
-**→ Next to build: A2 — Contact.** Its launch brief doesn't exist yet
-(the just-in-time model: `build-a2.md` is written when the slice starts,
-shaped by what A1 taught).
+**→ Next to build: A2 — Contact.** Launch brief:
+[build-a2.md](./build-a2.md), with
+[observatory-design.md](./observatory-design.md) as the vigil's spec.
 
 Each slice gets a just-in-time **launch brief** — a thin `build-*.md` wrapper
 (read-list, task, done-when, guardrails) that points back here for spec.
-`build-a0.md` and `build-a1.md` are both done and kept as record; the next
-(`build-a2.md`) is written when its slice starts, shaped by what the last
-one taught. Slices are built with **Fable orchestrating Opus (deep-reasoner) and Sonnet
+`build-a0.md` and `build-a1.md` are both done and kept as record;
+`build-a2.md` opens the current slice; the next is written when its slice
+starts, shaped by what the last one taught. Slices are built with **Fable orchestrating Opus (deep-reasoner) and Sonnet
 (fast-worker) subagents** (CLAUDE.md § Build orchestration).
 
 ---
@@ -205,10 +205,12 @@ remote fact aged and no remote fact certain.
 
 The soul of the game, reached as directly as possible.
 
-- [ ] **The vigil**: a flagged source becomes a case — watch, refine
-      confidence, decide nothing. (Design note: make the vigil an
-      *activity* — hypotheses and instrument allocation — per
-      playstyles.md's Silence gap.)
+- [ ] **The vigil**: a flagged source becomes a case — hypotheses,
+      buyable questions, instrument-time allocation, the
+      sharpen/plateau/regress contest, case tripwires, and the
+      called/shelved/overtaken exits
+      ([observatory-design.md](./observatory-design.md) is the spec;
+      the grounded exit — the Assay — lands with A4).
 - [ ] **The mask contest (thin)**: sharpening with instrument time
       against the target's mask — the live mask-versus-instrument
       contest (technology.md § Working decisions), moved here from A1
@@ -219,9 +221,9 @@ The soul of the game, reached as directly as possible.
       (ui-design.md § the choice screen).
 - [ ] **Traffic on real clocks**: tight-beam signals travel at c;
       delivery via the clock/alarm infrastructure; threads with in-flight
-      rendering. **Decide the signal format here** (freeform vs composed
-      — the vision's open player-language question; v1 can ship
-      AI-contact with freeform and human-to-human composed, then loosen).
+      rendering. Signal format decided (2026-07): **composed from
+      structured parts for human pairs, freeform for AI counterparts**
+      (vision.md, § Decisions).
 - [ ] **Rule-based AI counterparts** (thin): enough behavior for a
       complete contact arc against a seeded civ — detect, be detected,
       answer signals in its archetype's register. Single-player-testable.
@@ -325,8 +327,9 @@ Resolve each before the slice that needs it; record the call here.
   truth + clock + light-delay computation (`server/src/cohort.ts`); all
   observer reads go through the knowledge layer.
 - **Signal format (A2):** freeform vs composed for human pairs — the
-  vision's open moderation/deception question; must be decided when
-  traffic ships.
+  vision's open moderation/deception question.
+  **Decided (2026-07):** composed from structured parts for human pairs;
+  freeform permitted with AI counterparts (vision.md, § Decisions).
 - **Sky data budget (A1):** how much star field streams to a phone first
   render (act3-map.md § Under the hood). Note A0's real cohort field is
   small (~260 stars at 25 ly) — the 50–150k-star *cosmetic* backdrop can
@@ -335,6 +338,13 @@ Resolve each before the slice that needs it; record the call here.
   point-sprite pass? Decide at A1 start, before the pull-back is built.
 - **Player identity (A1, thin):** how a browser session maps to its civ in
   the cohort (a per-run token in DO storage is enough for v1).
+  **Decided (A2, 2026-07): durable identity lives in the platform's
+  SQLite** — Durable Objects' native SQLite storage backs accounts (the
+  A1 token becomes claimable; multi-device by carrying the account
+  token; recovery flow later). No external backend: Convex was
+  considered and declined, because the one-Worker architecture and the
+  knowledge layer's server authority are the design's spine and an
+  external state store would fork them.
 - **Player placement (A1):** A0's `generateGalaxy` pre-places one player
   civ at seed time; the inheritance flow replaces this — candidates are
   offered on join and the chosen civ is placed then. Reconcile in A1.

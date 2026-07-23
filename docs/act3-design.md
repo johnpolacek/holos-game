@@ -691,7 +691,7 @@ griefing-resistance tuning (see Open questions).
 
 ---
 
-## Sleep and tripwires
+## Sleep, tripwires, and the absence charter
 
 A civilization can go dormant: emissions near zero, compute deferred to a
 colder future, indistinguishable from empty sky — the Teeming Dark's
@@ -703,6 +703,50 @@ signature move, now playable.
 - Sleep is also the engagement model's pressure valve: set watchers, close
   the tab for a week, and the game notifies you when the sky changes.
   Absence becomes fiction instead of neglect.
+
+**The absence model.** Between sessions — slept or simply away — the
+civilization is handled by three tiers, all of them made from existing
+machinery. There is no "AFK bot": the guided intelligence that plays your
+civilization while you are gone *is the mind*, the same one that runs
+everything beneath purpose while you are present, parameterized by the
+character your history set.
+
+1. **The mind's autonomy (always on, never configured).** Routine
+   execution, Ambient spends, upkeep against entropy, and — critically —
+   the keeping of standing obligations in character: scheduled reports
+   answered, known threads kept warm with routine content, charters
+   honored. This is not a feature toggle; it is the act's premise (the
+   player is the value function, not the operator).
+2. **Standing orders (queued conditionals).** Explicit if-then
+   undertakings the player pre-authorizes — *on warm movement, launch the
+   sentinel; if Fathom goes silent, dispatch the Heir Visit* — armed like
+   tripwires, priced when they fire
+   (missions-design.md, § Standing orders).
+3. **The absence charter (the envelope).** The player-set boundary on
+   what the mind may do unsupervised: the spend ceiling (up to
+   Investment class, never Endeavor), the traffic posture (*answer known
+   counterparts with routine content* versus *hold everything*), and any
+   dials the mind must not walk while unwatched. It is written like any
+   charter, because it is one — the value function writing a value
+   function for its own absence, the same instrument the player already
+   writes for colonies, turned homeward.
+
+**The presence rule.** One line the absence charter cannot override:
+**irreversible acts require presence.** The mind never hails, broadcasts,
+launches an Endeavor, forces a directive, or answers a first contact
+while the player is away, whatever the standing instructions say.
+Absence can cost time; it can never cost a ceremony. (Standing orders
+stay within this line: the armable set excludes the irreversible verbs.)
+
+**Dormancy and drift.** Dormancy is visible — a slept civilization's
+embers are on the sky, and a child watching its origin's emissions can
+*see* that the silence is sleep. So the drift model reads absence
+honestly: unanswered reports accrue neglect-drift only against an origin
+that was awake to answer, and the mind's in-character keeping of a report
+schedule counts as answered. Sleep protects the lineage's bonds along
+with the player's evenings; deep time and the destination cradle remain
+the drift pressures that no charter can suspend
+(act3-civilizations.md, § The four pressures).
 
 ---
 
@@ -869,9 +913,10 @@ call is borderline, take the bolder inclusion; the slice must still ship.
 
 ## Open questions
 
-- **Player-to-player language.** Freeform text between humans (with the
-  moderation burden that implies) versus structured/composed messages, and
-  what each does to deception, tone, and safety.
+- **Player-to-player language — settled (2026-07).** Composed from
+  structured parts for human pairs; freeform permitted with AI
+  counterparts (vision.md, § Decisions). Revisit loosening only with a
+  proven moderation posture.
 - **Drift math.** The exact curve from time × separation × charter
   looseness to dial drift and independence.
 - **Griefing resistance.** When strikes ship: cost gates, deterrence

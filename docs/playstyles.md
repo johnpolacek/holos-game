@@ -276,7 +276,10 @@ are the work this document exists to direct:
 - **Silence** needs the vigil designed as an *activity* (hypotheses,
   instrument allocation, payoffs) and the intelligence economy made
   mechanical — otherwise its optimal play collapses toward inaction,
-  violating rule 5.
+  violating rule 5. *(Answered:
+  [observatory-design.md](./observatory-design.md) — cases, buyable
+  questions, the regression tell, and dossiers as the intelligence
+  good; dossier trading matures with traffic.)*
 - **Instrumental** is under-verbed until the conflict layer ships;
   interim verbs (extraction economics, hard bargaining in signal
   traffic, the Working mission family — missions-design.md) should land

@@ -124,6 +124,10 @@ character — the player's judgment, pre-committed, running on the alarm
 infrastructure that already fires everything else. They are priced when
 they fire, not when they are armed, and a standing order firing while the
 player is away is exactly the kind of thing the wake report leads with.
+Standing orders are the middle tier of the absence model — beneath them
+the mind's always-on autonomy, above them the absence charter and its
+one unbreakable line, that irreversible acts require presence
+(act3-design.md, § Sleep, tripwires, and the absence charter).
 
 ---
 
