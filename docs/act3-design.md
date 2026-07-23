@@ -331,6 +331,19 @@ seed or probe) + **a horizon** (the moment the mission passes beyond
 governance and becomes a story whose ending arrives later, as
 light-delayed reports).
 
+**Scale is expressive too.** "Who goes" runs from a fist-sized probe to
+an **armada** — an ensemble of ships, minds, and mobile industry
+dispatched under one charter. Every point on the spectrum prices the
+same way (the agent plus the travel method, below), but the meanings
+invert as mass climbs: smallness is stealth and deniability; mass is
+statement. An armada cannot be disowned and cannot arrive unannounced —
+its formation of drive flares is read by everyone between origin and
+destination years before it arrives, so sending one is a message before
+it is anything else. Armada-scale force projection is deferred with the
+conflict layer (v1 ships no strikes); armada-scale peaceful ensembles —
+a great expedition, an embassy fleet, an evacuation — ride the ordinary
+mission rules.
+
 **What a mission costs.** A mission is priced like everything else
 ([economy-design.md](./economy-design.md)) — no special mission economy.
 The bill is the ordinary cost profile applied to *someone goes*: **the

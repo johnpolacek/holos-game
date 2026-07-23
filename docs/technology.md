@@ -628,6 +628,36 @@ about them.
 - **Who builds it.** Refusers by constitution; Shepherds moving wards;
   Curators moving originals because a copy would not be the thing kept.
 
+### The send
+
+- **What it is.** Missions as hardware: the craft that carries an agent —
+  anything from a fist-sized probe to an armada — into someone else's
+  sky. Not one hull but a spectrum, and the spectrum is the point: who
+  goes, and at what mass, says who you are.
+- **The physics.** Every point on the spectrum rides the travel shelf
+  above — seed-grade coasting, relativistic torch, or transmission to a
+  receiver for agents that are pattern. Mass buys capability and costs
+  visibility in the same motion; the lag is identical at every scale.
+  Nothing sent can be recalled or patched mid-flight: the charter is the
+  only control that travels (act3-design.md, *Missions*).
+- **In play.** Carrier; the mission system's shelf — agents, charters,
+  horizons, veterans (act3-design.md). The scale ladder is itself
+  expressive: a probe is deniable, an envoy is a commitment, an embassy
+  is a treaty made of people, and an armada is a sentence read years
+  before it arrives. Armada-scale force is deferred with the conflict
+  shelf (§VI); armada-scale peace — the great expedition, the embassy
+  fleet, the evacuation — ships whenever missions do.
+- **In the sky.** The whole run of the scale: a probe is a sentinel-class
+  nothing; a crewed ship a faint, aimed torch; an armada is unmistakable
+  — a formation of drive flares sharing one destination, the loudest
+  thing on this shelf short of a strike. There is no quiet armada
+  (law 2).
+- **Who builds it.** Everyone, in their own image: the Refuser sends
+  dynasties and orders backed by shackled machines; the Cloister sends
+  small dark probes because missions are its only limb; a Chorus sends
+  copies of itself and thinks nothing of it. The mission roster is the
+  civilization's character sheet in motion.
+
 ---
 
 ## V. The message layer
@@ -865,6 +895,12 @@ if choosing it is a value statement: if it changes the sky, the ladders,
 the identity ledger, or the shape of contact. Everything smaller is the
 mind's business, and the mind does not bring it to meetings.
 
+The one staircase through the floor is the send (§IV). Dispatching an
+agent *is* a value statement — who goes says who you are — so the launch
+is catalog business at every scale from probe to armada, while everything
+the agent does after the horizon stays the mission system's fiction
+(act3-design.md, *Missions*).
+
 ---
 
 ## The anti-catalog
@@ -919,6 +955,7 @@ the Signature direction; **Sky** is the primary observatory read.
 | Relativistic ships | carrier | E deep | Energy (extreme) | ++ | drive plume, aimed |
 | Self-transmission | carrier | receiver graph | identity | beam-only | `DIRECTED BEAM` |
 | Arks | carrier | E (Refuser/Custodian) | Matter, time | + | warm, steady, honest |
+| The send (probe→armada) | carrier | any; scales | agent + travel method | ~0 → ++ | nothing → formation of flares |
 | Phase-coherent beams | message | any | Energy per payload | aimed-only | `DIRECTED BEAM` |
 | Broadcast | message | any | Energy | permanent + | `BROADCAST LEAKAGE` |
 | Payload stack | message | any | Compute | — | meaning, not signature |
@@ -950,7 +987,7 @@ here, following the `cradle`/`charter` capitalization family: **mask**
 (already a playstyles.md verb), **the cold berth**, **the black-hole
 tap** (from playstyles.md's "tap black holes"), **payload stack**,
 **deep array**, **worldhousing**, **throne world** (already in
-act3-design.md), **ark**. None are Banks coinages or near-variants; all
+act3-design.md), **ark**, **the send** (the mission dispatch, §IV). None are Banks coinages or near-variants; all
 should be added to §8's coinage table if they survive review. Ship and
 structure *instances* draw phrase names from the prose-style.md §5 pool —
 a beam battery called `Louder Than Necessary` is exactly the register.
