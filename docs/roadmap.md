@@ -270,8 +270,11 @@ record of that past — rides this same light echo and knowledge layer; thin.)
 
 ### A5 — A living galaxy
 
-- [ ] **Sleep, tripwires, wake report** — the engagement pressure valve
-      (act3-design.md § Sleep); in-app wake first, web push after.
+- [ ] **Tripwires + notifications** — the engagement pressure valve
+      (act3-design.md § Sleep and tripwires; sleep itself demoted to
+      fiction and AI content, working decision 2026-07 — a player taking
+      no actions is already the quiet state); in-app first, web push
+      after.
 - [ ] **AI civ behavior (grown)**: the archetype spectrum acting over time
       — postures shifting, construction shadows, occasional directed
       beams — rule-based, hidden by light-lag.
@@ -280,8 +283,8 @@ record of that past — rides this same light echo and knowledge layer; thin.)
       incubation, act3-design.md § Topology).
 
 **Phase A ships** as the v1 galaxy: inherit a mind, read the sky, meet
-someone, launch a child, sleep. The whole loop of the walkthrough's season
-(act3-walkthrough.md) minus the origin acts.
+someone, launch a child, step away under tripwires. The whole loop of the
+walkthrough's season (act3-walkthrough.md) minus the origin acts.
 
 ---
 

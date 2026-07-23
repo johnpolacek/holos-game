@@ -368,6 +368,15 @@ interesting fact to learn about players.
 
 ### 5. Tempo
 
+**Status: adopted, reduced (2026-07).** The review's larger sleep
+decision absorbed this entry: sleep itself was demoted from mechanic to
+fiction (act3-design.md § Sleep and tripwires, working decision — a
+player taking no actions is already the quiet state; tripwires ship, no
+sleep mode does; the cold berth stays as catalog and AI content). What
+survives of tempo is exactly the register — *the waiting is voiced, not
+mechanized* — plus the traveler/waiter symmetry line, both recorded in
+that section. No duty-cycle mechanic, now or later.
+
 **In the book.** Subjective rate is sovereign. A mind slows itself
 until a century is an afternoon — which is how patterns cross
 interstellar distances without dying of boredom — or runs hot and
@@ -585,7 +594,7 @@ systems. Sizes are proposals, pending the review verdicts.
 | # | Steal | Rides on | Lands | Size |
 |---|---|---|---|---|
 | 2 | The first reading | Ceremony (shipped, A1), Chronicle | **Rejected (2026-07)** — owning belongs to the origin acts (Phase B) | — |
-| 5 | Tempo | Cold berth, the clocks, report registers | One named rule (act3-design.md) + register now; duty-cycle variant with A5 sleep, if ever | Named rule + register |
+| 5 | Tempo | Cold berth, the clocks, report registers | **Adopted, reduced (2026-07)** — register + symmetry line in act3-design.md § Sleep and tripwires; sleep itself demoted to fiction | Register only |
 | 3 | The merge + family referendum | Payload stack, culture nudges, Ledger, mission-clock derivations | **Adopted (2026-07), renamed** — act3-design.md § Charters and the Ledger (reunion letter, lineage referendum) | Medium; wire question flagged |
 | 4 | Self-binding | Dial ranges, resistance math, charters (A4), Coherence | **Rejected (2026-07)** — no vow mechanic; identity holds by conversation, not locks | — |
 | 1 | The clade spectrum | act3-civilizations catalog, A5 seeding, signal classes | **Adopted (2026-07)** — act3-civilizations.md § The other stances | Four catalog seeds + beats |

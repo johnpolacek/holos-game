@@ -839,16 +839,37 @@ griefing-resistance tuning (see Open questions).
 
 ## Sleep and tripwires
 
-A civilization can go dormant: emissions near zero, compute deferred to a
-colder future, indistinguishable from empty sky — the Teeming Dark's
-signature move, now playable.
+**Working decision (2026-07): sleep is fiction, not a mode.** The design
+was growing a dormancy system — a sleep state, wake reports, a ceremony
+around absence — and it was over-architecture, because in an async game
+where the mind runs autonomously between sessions, **a player taking no
+actions is already the quiet state**. Waiting is the game's medium; it
+does not need machinery. What that leaves:
 
-- **Tripwires** are standing wake conditions: *anything warm moves within
-  N light-years; a directed beam touches us; a fork goes silent; T years
-  pass.*
-- Sleep is also the engagement model's pressure valve: set watchers, close
-  the tab for a week, and the game notifies you when the sky changes.
-  Absence becomes fiction instead of neglect.
+- **Tripwires ship.** Standing notification conditions — *anything warm
+  moves within N light-years; a directed beam touches us; a fork goes
+  silent; T years pass* — are not sleep machinery; they are the async
+  spine's basic need (tell me when the sky changes), and they stand
+  watch over any absence, deliberate or not. Set watchers, close the tab
+  for a week; absence becomes fiction instead of neglect.
+- **The emissions floor already exists.** A player's quiet is the dark
+  posture and masks (technology.md); a separate dormancy lever would
+  duplicate them. No sleep toggle ships.
+- **The cold berth stays — as content.** Aestivation remains true in the
+  fiction and the catalog (technology.md § The cold berth): a sleeping
+  elder and an empty patch of sky still look alike, and the Teeming Dark
+  keeps its signature move — worn by AI civilizations and the galaxy's
+  elders, not by a player-facing mode.
+- **The waiting is voiced, not mechanized.** Deep time passes at
+  whatever tempo a mind runs, and the prose is licensed to say so: a
+  dormant or slow-running civilization's letters read as if the delay
+  were an afternoon — *their reply took thirty years and reads like it
+  was written the same day; for them, it was.* One register line does
+  what a tempo mechanic would, for free. The symmetry underneath, for
+  the record: the energy path compresses the *traveler's* time by
+  burning fuel (relativistic flight); the quiet path compresses the
+  *waiter's* time by declining to burn anything. Both pay the universe
+  in full.
 
 ---
 
@@ -1000,7 +1021,7 @@ call is borderline, take the bolder inclusion; the slice must still ship.
   forecast survey (thin: information age at landfall + a qualitative
   arrival spread)
 - Light-lag messaging: directed hail, broadcast, correspondence
-- Sleep with basic tripwires and notifications
+- Tripwires and notifications (no sleep mode — see Sleep and tripwires)
 - No strikes, no seat transfer (single node in v1 — the seat rule's full
   form, the Crossing included, arrives with transmission), cosmic clock as
   narrative only
