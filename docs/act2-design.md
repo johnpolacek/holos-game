@@ -110,21 +110,37 @@ fork should emerge from the economy, not from an arbitrary lockout.
 
 ### Resources
 
-Four, and no more in v1:
+Four, and no more in v1 (working decision, 2026-07 — **Time replaces
+Coherence as the fourth resource**; Coherence joins Signature as a
+consequence, below, adopting economy-design.md's taxonomy suite-wide):
 
 - **Energy** — the output harnessed so far; the master input.
 - **Matter** — the mass budget of the home system; spent by construction,
   especially bright construction.
 - **Compute** — grown from Energy; the currency of research, simulation,
   and everything the mind does at scale.
-- **Coherence** — how unified the mind remains. **Not a spendable pool but
-  a meter with thresholds** (the resolution of the old open question): it is
-  *injured*, not spent — sprawl and distributed projects strain it, and
-  forcing a directive against the mind's dials wounds it outright. It heals
-  slowly through quiet, dark work and consolidation, and the integration
-  ladder raises its ceiling and resilience. The full economics —
-  thresholds, healing, and the forced-directive-as-self-harm framing — live
-  in [economy-design.md](./economy-design.md), *Coherence*.
+- **Time** — the real wall-clock everything runs on; the one price the
+  other three cannot buy down. Deep-time projects complete on real async
+  clocks, and flight and light-lag charge years no budget can shorten
+  ([economy-design.md](./economy-design.md), *Real time*).
+
+**Two consequences, tracked but never spent.** Spending marks the
+civilization as surely as it builds:
+
+- **Signature** — what spending writes on the sky: bright work accrues a
+  visibility residue the light echo publishes forever. Never paid, only
+  accrued (economy-design.md, *Signature*).
+- **Coherence** — what distribution does to unity: **a meter with
+  thresholds, not a spendable pool** (the resolution of the old open
+  question). It is *injured*, not spent, and the injury is
+  **de-synchronization**: every fork, colony, and far-flung project puts
+  part of the civilization beyond the reach of a shared present, and no
+  signal can hold what light-lag has separated in sync (theory.pdf's
+  Latency Crisis — the reason the integration ladder exists). Forcing a
+  directive against the mind's dials wounds it outright. It heals slowly
+  through quiet, dark work and consolidation, and the integration ladder
+  raises its ceiling and resilience. Full economics:
+  [economy-design.md](./economy-design.md), *Coherence*.
 
 **Entropy is the antagonist, expressed as upkeep.** Everything decays;
 everything charges maintenance against the dark. Both ladders are answers

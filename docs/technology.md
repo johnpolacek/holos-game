@@ -1,7 +1,7 @@
 # The toolkit of ascent — the Holos technology catalog
 
 *Everything a civilization can build, and what building it costs in the
-four currencies Holos tracks — energy, matter, compute, coherence — and
+four currencies Holos tracks — energy, matter, compute, time — and
 what it writes on the sky in the one thing that is tracked but never
 spent: light. This is the fifth catalog in the chain* worlds → species → minds →
 civilizations → **means** *: the instruments those civilizations reach for,
@@ -88,8 +88,8 @@ Each entry carries up to five fields:
   never is — and byte-exact under restyle per R-1); where the science
   gives a range, the range is stated, not tuned.
 - **In play.** Family and ladder gate; the resource profile in the four
-  Act 2 currencies (Energy, Matter, Compute, Coherence); the Signature
-  effect.
+  Act 2 currencies (Energy, Matter, Compute, Time); the Signature and
+  Coherence effects.
 - **In the sky.** What an observer's instruments read, in signal-class
   terms — `DARK NODE`, `TRANSIT SHADOWS`, `DIRECTED BEAM`, `BROADCAST
   LEAKAGE`, `LIVING WORLD` — and how stale that reading is by construction.
@@ -991,7 +991,7 @@ the Signature direction; **Sky** is the primary observatory read.
 | Relativistic strike | conflict (deferred) | E deep gate | Energy (extreme) | ++ | flare, then arrival |
 | Deterrence architecture | conflict (deferred) | E | Signature itself | + (chosen) | curated capability |
 | Conflicted war | conflict (deferred) | two principals + venue | envoys, venue Compute | 0 | verdict beam; or the defection flare |
-| The three defenses | conflict (deferred) | I | Coherence (dispersal) | − | absence of a target |
+| The three defenses | conflict (deferred) | I | dispersal (strains Coherence) | − | absence of a target |
 | The harness | Refuser | E only | Energy, vigilance | + by charter | `BROADCAST LEAKAGE` |
 | The throne world | Refuser | — | everything, locally | ++ by charter | `LIVING WORLD` + leakage |
 

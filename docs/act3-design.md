@@ -46,7 +46,8 @@ deterrence).
 
 ## The core reframe
 
-Act 2's strategy layer was economic: energy, matter, compute, coherence.
+Act 2's strategy layer was economic: energy, matter, compute, time —
+with Signature and Coherence accruing as consequences.
 Act 3 keeps that economy running (both ladders continue at interstellar
 scale) and subordinates it to an **epistemic layer**: what you believe
 about everywhere else, and how stale each belief is. Every piece of

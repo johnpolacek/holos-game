@@ -78,7 +78,10 @@ what you paid:
 | **Coherence** | A meter of the mind's unity, not a pool. | Nothing spends it. Some spending *injures* it. See *Coherence* below. |
 
 The clean way to say it: **Energy, Matter, Compute, and real time are the
-prices; Signature and Coherence are what the prices do to you.**
+prices; Signature and Coherence are what the prices do to you.** (Working
+decision, 2026-07: this taxonomy is canon suite-wide — act2-design.md's
+resource list now names Time as the fourth resource, with Coherence
+classed as a consequence alongside Signature.)
 
 ---
 
@@ -231,10 +234,14 @@ being reliably one thing:
    the dial's comfort band the demand falls. Every forced directive is a
    real injury the player chooses to inflict for a reason. It should carry
    that weight in the fiction and in the meter alike.
-2. **Running heavily distributed endeavors.** Sprawl strains unity. No
-   single mission or project threatens Coherence; a civilization running
-   *many* distributed things at once does, because holding a scattered self
-   together is the cost of scattering it.
+2. **Running heavily distributed endeavors.** Sprawl strains unity, and
+   the mechanism is **de-synchronization**: every fork, colony, and
+   far-flung project puts part of the civilization beyond the reach of a
+   shared present, and no signal can hold what light-lag has separated in
+   sync (theory.pdf's Latency Crisis). No single mission or project
+   threatens Coherence; a civilization running *many* distributed things
+   at once does, because holding a scattered self together is the cost of
+   scattering it.
 
 **What heals it.** Coherence recovers slowly through **quiet, dark work and
 consolidation** — the compute heart, the Vault, pulling the self back in.
