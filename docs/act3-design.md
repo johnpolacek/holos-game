@@ -182,7 +182,7 @@ The vision's travel menu, with mechanical teeth. All three are launches —
 projects with real-time flight clocks:
 
 - **Seedships and probes** push *matter*: slow, cheap, spreading lineage.
-  The default expansion tool and the v1 method.
+  The default v1 expansion method.
 - **Relativistic ships** push *a coherent self*: brutally expensive
   (energy-ladder gated), subjectively fast, objectively slow — the
   traveler arrives displaced into an unplanned future. Two fuel

@@ -248,9 +248,10 @@ The dark forest, at conversational range, played for real.
 Expansion. The survey has ranked nearby systems, and Mara chooses one 12
 light-years out: a metal-poor ocean world under a small quiet star — a
 drowned system, resource-thin but stable, the kind of place a Monument's
-child could keep its head down. The travel menu offers one v1 method:
-**seedship** (act3-design.md, *Travel and expansion*). Spreading lineage,
-not self.
+child could keep its head down. The travel menu offers two v1 methods:
+**seedship** and **relativistic flight** (act3-design.md, *Travel and
+expansion*). Mara chooses the seedship — a Monument spreads lineage
+quietly; it does not move a self loudly across the dark.
 
 Then the game does the thing this session exists for. It asks her to write
 the **charter** — the one instrument of governance that survives the
@@ -411,7 +412,7 @@ rest, not death* — because after Week 2 it would feel wrong not to. Ember's
 reply arrives 74 minutes later and is one line long: *"We know what sleep
 is. We will still be here."*
 
-The tab closes. For eleven real days, Holos is a silence in her pocket —
+The tab closes. For fourteen real days, Holos is a silence in her pocket —
 absence as fiction instead of neglect, the engagement model's pressure
 valve working exactly as designed. The 1,500-year regardless-wake fires
 once while she is away and re-arms itself unremarked, because its
@@ -506,7 +507,7 @@ promise of the act:
 - **The altitude held**: Mara chose purposes — watch, launch, write, hail,
   sleep — and never once touched logistics.
 - **Absence was fiction**: sleep, tripwires, and a push notification
-  turned eleven days of real life into the Teeming Dark's signature move.
+  turned fourteen days of real life into the Teeming Dark's signature move.
 - **The dials played every scene**: Silence kept a letter unsent, Curator
   filled a Vault and a charter, Depth chose the drowned system, One Mind
   made the whole lineage's fragmentation *cost* something — and contact
@@ -520,7 +521,8 @@ promise of the act:
 Per the honesty convention of gameplay-walkthrough.md's closing section:
 most of this season runs on the v1 scope in act3-design.md — the Sky and
 observatory signal classes, light-echo tracking, seedships with charters
-and basic drift, directed hail and correspondence, sleep with tripwires,
+and basic drift, relativistic ships (both fuel postures), directed hail
+and correspondence, sleep with tripwires,
 rule-based AI civilizations (Ember and the Chorister need nothing
 deeper than rules; light-lag hides the seams). The scenes that reach past
 v1, flagged:

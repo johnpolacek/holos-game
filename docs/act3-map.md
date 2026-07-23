@@ -113,10 +113,13 @@ depth itself.
 
 Letters, probes, and seedships render as slow bright points on long
 arcs — the game's real clocks made spatial. A letter to a correspondent
-is a mote crawling a hairline; a seedship is a decade-long ember; an
-incoming directed beam, when detected, is the most electric object on
-the map — unless what is crossing is a fleeing seat. Objects beyond your
-light's reach are shown as **dead
+is a mote crawling a hairline; a seedship is a decade-long ember; a
+relativistic ship is a hard bright torch on the same slow arc, its
+deceleration flare pointed at its destination — the most dramatic slow
+burn on the map, short of a strike; an incoming directed beam, when
+detected, is the most electric object on the map — unless what is
+crossing is a fleeing seat. Objects beyond your light's reach are shown
+as **dead
 reckoning**: an elongating fuzz of where they should be by now, because
 even your own ships, once distant, are beliefs.
 
@@ -141,6 +144,7 @@ mechanic. (Later layer; see scope.)
 | Colonies / forks | cyan-tinted motes, aged like everything else; ghost-dial overlay via their source card (Ledger) |
 | Light echo shells | translucent luminous layering around any emitter whose history you hold — yours always; others' as reconstructed |
 | In-flight objects | bright points on hairline arcs; dead-reckoned fuzz when beyond your light |
+| Relativistic ships | a hard bright torch on its arc, deceleration flare aimed at the destination — the map's most dramatic slow burn short of a strike |
 | Light-age | ghosting/antiquing with distance + the mandatory age chip on selection |
 | Names | your local names only (ui-design.md, *you name what you see*) |
 

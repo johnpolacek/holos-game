@@ -471,11 +471,14 @@ machinery act3-design.md already scopes for v1. The discipline (vision.md,
 - **The Holosian-Scale mapping is free.** It re-labels the integration
   ladder Act 2 already ships; H2–H4 give the ladder concrete rungs without
   new resources.
-- **The mesostructure toolkit is deferred but pre-slotted.** Holocore,
-  Computronium Kernel, Chrono Vault, Sentinel Probes map onto project and
-  instrument families that already exist; they are art and beats over
-  existing systems, landing with the *megascale engineering* later layer
-  (vision.md roadmap), not before.
+- **The mesostructure toolkit ships in two waves.** The v1 dark slice
+  carries first stages of the Holocore, the Computronium Kernel, and the
+  Chrono Vault (act2-design.md's four dark projects; technology.md's v1
+  section) — a Monument or Dark Node can already be building one. Sentinel
+  Probes as playable instruments, and the gravitational-lens observatory,
+  map onto project and instrument families that already exist but are art
+  and beats over existing systems for now; they land with the *megascale
+  engineering* later layer (vision.md roadmap), not before.
 - **Divergence's new-cradle compass is a later layer too.** v1 ships *basic
   drift* (act3-design.md); the directional model here (drift *toward* the
   destination cradle's character) is the richer curve the *drift math* open
