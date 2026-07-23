@@ -355,8 +355,33 @@ Zones? of Thought
 Slow Zone
 ```
 
+### Third source: Robinson (*Aurora*)
+
+The same rule governs Kim Stanley Robinson, adopted as a third touchstone
+in [inspiration-aurora.md](./inspiration-aurora.md): craft borrowed,
+coinages never. The book's coinage surface is small — it is written in
+plain English — but its proper nouns are still off-limits; the *concept*
+ban and N-4 near-variant discipline apply as above, and proper nouns from
+Robinson's sibling works are equally banned.
+
+```
+Aurora                # the destination-world name; ordinary aurora (borealis/australis) OK — case-sensitive, human-cleared
+Devi
+Freya
+Badim
+Euan
+Jochi
+```
+
+The ship-mind's capital-S *Ship* as a class noun is barred by N-4 (compare
+the capital-M `Mind` ban above); ordinary lowercase *ship* — seedship,
+generation ship, ark — is core Holos vocabulary and stays. Real astronomy
+is never banned: *Aurora*'s Tau Ceti is a Holos cradle host (cradle 25) and
+stays.
+
 **Allowlist:** `docs/vision.md`'s analytical Banks citations;
-`docs/inspiration-deepness.md`'s analytical Vinge citations; this guide
+`docs/inspiration-deepness.md`'s analytical Vinge citations;
+`docs/inspiration-aurora.md`'s analytical Robinson citations; this guide
 itself; innocent senses disambiguated in the comments above.
 
 ---
