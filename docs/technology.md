@@ -944,8 +944,8 @@ the Signature direction; **Sky** is the primary observatory read.
 | Stellar engines | bright | E interstellar | Energy, Matter, eras | +++ | proper-motion anomaly |
 | Black-hole tap | bright | E endgame | Matter (feed) | ++ (throttleable) | disciplined accretion source |
 | Holocore | dark | I / H3→H4 | Matter, Compute | − | `DARK NODE` |
-| Computronium Kernel | dark | I / H2→H4 | Energy, Matter | − | `DARK NODE` |
-| Chrono Vault | dark | I / any | Compute, patience | − | nothing / `DARK NODE` |
+| Computronium Kernel | dark | I / H2→H4 | Compute, Energy, Matter | − | `DARK NODE` |
+| Chrono Vault | dark | I / any | Matter, patience | − | nothing / `DARK NODE` |
 | Masks | dark | I / H2→ | Energy, Compute | −− | absence; or a chosen lie |
 | Cold berth | dark | I / H4 | near-zero upkeep | floor | nothing |
 | Deep arrays | instrument | any | Compute | 0 | invisible |
