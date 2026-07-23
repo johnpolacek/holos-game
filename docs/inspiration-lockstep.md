@@ -88,7 +88,28 @@ named rules were taken; new stored state and codified social systems
 were not.* Every take below is shaped to that pattern in advance — the
 thin version of each steal is derived or declarative, and where a full
 version would want stored state, the entry says so. Each entry carries a
-status line left open for the designer pass.
+status line with its verdict.
+
+**Review outcome (2026-07).** All seven steals were evaluated with the
+designer; each entry carries its verdict. Adopted, both transformed:
+the pattern catalog and the watch (3 — developed in full as
+[patterns.md](./patterns.md)) and the appointment (5 — act3-design.md
+§ Contact). Referred: correspondence as the fifth drift factor (4), to
+the communication design effort. Superseded: the accrual bargain (2),
+whose discussion produced [projects.md](./projects.md) — the review's
+most consequential product, and not a steal at all. Rejected: the
+cadence pact (1) and with it the game's entire sleep mechanic — the
+designer's direction is the opposite texture, many concurrent clocks
+(the plate rack) — and the returned claimant (7), as over-complicated.
+Skipped: the Refuser's clock (6), pending the larger question of
+whether the Refuser class stays in the game. The pattern in the
+verdicts extends the Deepness rule: *what survived rides existing
+clocks and light — derived readings and shared timers; what died asked
+the player for a new posture (sleep) or the game for a new procedure
+(interrogation).* One standing consequence for the corpus: the no-sleep
+decision leaves the shipped sleep/cold-berth canon (vision.md,
+act3-design.md § Sleep and tripwires, technology.md § The cold berth)
+awaiting its own reconciliation pass, out of this document's scope.
 
 ---
 
@@ -162,7 +183,14 @@ can even see.
 
 ### 2. Wintering over
 
-**Status: open (2026-07) — for the designer pass.**
+**Status: superseded (2026-07).** The accrual mechanic as pitched (the
+slow hoard, starless sites) was not adopted; its review discussion
+surfaced that projects were the under-specified concept underneath, and
+produced [projects.md](./projects.md) instead — the anatomy of the long
+work and the plate-rack concurrency texture. The most consequential
+outcome of the whole review, and not a steal at all. The entry below is
+the provenance record; the hoard itself can be revisited as a project
+type if the economy ever wants it.
 
 **In the book.** The 360/1 ratio is not a lifestyle; it is solvency. A
 nomad world in the starless dark cannot feed a waking civilization — the
@@ -369,7 +397,11 @@ nothing here is codified.
 
 ### 7. The overslept founder
 
-**Status: open (2026-07) — for the designer pass.**
+**Status: rejected (2026-07).** Declined as over-complicated. The
+existing verification-challenge paragraph (act3-design.md § Contact)
+stands as the whole of identity proof; no inversion, no bounded-
+ignorance rule, no returned-claimant beat class joins the design. The
+entry stands as record.
 
 **In the book.** The founder oversleeps by fourteen thousand years and
 wakes inside his own myth: a sect has formed around his prophesied
@@ -410,10 +442,10 @@ systems.
 |---|---|---|---|---|
 | 3 | Cadence inference + the wake window | `EmissionEpoch[]` + future-dated epochs (shipped), signal classes, forecast, mission clock | **Adopted, transformed (2026-07)** — the pattern catalog and the watch, [patterns.md](./patterns.md) | Derived quantities |
 | 1 | The cadence pact | Correspondence (A2), tripwires + sleep (A5), coalitions | **Rejected (2026-07)** — no sleep mechanic; the plate rack is the direction | — |
-| 2 | The accrual bargain + starless sites | The cold berth, cost classes, cradle 41 | Rule in economy-design now; sites at A5+ | One rule + one catalog entry |
+| 2 | The accrual bargain + starless sites | The cold berth, cost classes, cradle 41 | **Superseded (2026-07)** — discussion produced [projects.md](./projects.md) instead | One rule + one catalog entry |
 | 5 | The aligned dawn | Event queue (shipped), mission clock (A4) | **Adopted, transformed (2026-07)** — the appointment, act3-design.md § Contact | Derived timelines |
 | 4 | Waking-time drift + the insomniac colony | The Ledger (A4), charters | **Referred (2026-07)** — recast as correspondence-as-drift-brake; verdict lands with the communication design | One rule + beat class |
-| 7 | The overslept founder | Light-cone authentication, the Chronicle | Beat content, A4+ | Beat class + one paragraph |
+| 7 | The overslept founder | Light-cone authentication, the Chronicle | **Rejected (2026-07)** — over-complicated | — |
 | 6 | The Refuser's clock | Refuser shelf | **Skipped (2026-07)** — pending the larger question of whether the Refuser class stays in the game | Content only |
 
 Read against [playstyles.md](./playstyles.md)'s flagged gaps: steal 1
