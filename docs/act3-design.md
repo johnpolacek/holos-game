@@ -283,6 +283,81 @@ charters becoming other players' origin myths is the onboarding engine.
 
 ---
 
+## The return
+
+There is no recall. A launch is sunk the moment it leaves — and yet a
+mission can end by coming home, and a colony can choose to. One rule makes
+both honest: **a return is a new launch, aimed backward.** It is paid for
+at the far end, out of the far end's strictly-local economy, and it obeys
+every law the outbound crossing obeyed — the flight clock, the voyage's
+own odds, the light that announces it. Nothing is undone; the game has no
+undo. Coming home is a second crossing, and it costs like one.
+
+- **The reversal clause.** A charter may declare, at launch, the
+  conditions under which the mission does *not* root: the world found
+  dead or poorer than the forecast promised; the system found occupied;
+  the biosphere found incompatible with a living cargo; the closed loop
+  failing past its margins. The mission clock already branches on exactly
+  this — *"if the survey holds, expect the rooting report by year N; if
+  it does not, expect the return burn by year M"* — the reversal clause
+  names that branch as a first-class charter form, written in advance
+  because nothing can be written later. Physics makes the return leg
+  slower than the outbound: a ship that decelerated and spent itself
+  arriving must first rebuild the means to leave, so the clause's
+  timeline carries years of refit before the burn. Which branch fired,
+  the player learns the way they learn everything: as light.
+- **The voted return.** Past the drift threshold a colony is its own
+  mind, and its homecoming is its own decision — the parent is informed,
+  never consulted. An independent colony that repudiates its founding
+  pays for the crossing back out of its own local means, which is the
+  honest price of changing its mind: the return is an Endeavor spent by
+  the returner, not a favor the parent can fund in time. It arrives
+  generations later, at a home that changed while it was gone, having
+  changed itself — the heir who returns is a stranger at both ends.
+- **What comes back is a portrait.** A biological lineage sails home —
+  ships, bodies, years. An ascended colony with a standing receiver at
+  home can return as pattern instead: the cheap homecoming, minds
+  crossing at lightspeed while the works that housed them are left
+  behind. What a lineage's return looks like — an ark limping back, a
+  transmission asking to be received, a court in evacuation — is
+  character, same as everything else.
+- **The abandoned site persists.** A rooted-then-abandoned colony leaves
+  its works cooling in place. To every observer inside the light, a
+  world that lit up and went dark is a standing question — a colony that
+  died, a colony that left, or a civilization that went quiet on purpose
+  — and the observatory cannot tell which from the darkness alone. The
+  derelict rule generalizes: nothing that was built vanishes, and
+  nothing that shone can be unshone.
+- **Reception is a live ceremony.** The one end of a return that happens
+  at conversational range is the arrival. The returning line reaches the
+  home system in person, and the parent — present, for once, in the same
+  sky — chooses: take them in, hold them at the edge, or turn them away.
+  A live choice in the family of the contact choice, and as
+  irreversible. Reabsorbing a drifted line is priced in Coherence (they
+  are no longer quite you); refusing your own returned children is
+  priced on the sky, where everyone watching your system's light will
+  eventually read it. The game states both bills and shuts up.
+- **The approach is read before it is understood.** A returning mass
+  decelerating toward a system is seen — drive flare, then silence, then
+  approach — and at range it is only a mass that is coming. Homecoming
+  is what it turns out to have been. In v1 there are no strikes and the
+  ambiguity is soft; when the conflict layer ships, classifying an
+  approach becomes one of the observatory's live questions, and a
+  returning child arriving unannounced will discover what its parent's
+  tripwires were set to do.
+
+The Ledger carries the states — outbound, rooted, independent,
+returning, abandoned — each stale by exactly its distance, a returning
+line rendered with its own flight clock. Landing: the reversal clause
+and the Ledger's return states ship thin with A4's charters and mission
+clock; the voted return and the reception ceremony land with the
+divergence-and-handoff layer; the pattern-return follows
+self-transmission. A returned line that arrives after its parent's
+elimination — or drifts again, at home — is inheritance material: an
+heir already entangled with the lineage a joining player takes up.
+
+---
+
 ## The seat
 
 **Working decision: one transferable seat.** The player is exactly one

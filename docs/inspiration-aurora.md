@@ -368,9 +368,14 @@ the v1 premise, and it costs only writing.
 
 ### 5. The vessel that turns back
 
-**Recommended: split — adopted as a divergence-outcome beat class; the
-mechanism rides charters.** No recall system (the physics forbids one), and
-the design already carries the drift machinery this stands on.
+**Status: adopted and developed (2026-07).** Developed in full as
+[act3-design.md](./act3-design.md) § The return — the one rule (*a return
+is a new launch, aimed backward*), the reversal clause, the voted return,
+the pattern-return portrait, the abandoned site, the live reception
+ceremony, the approach ambiguity, and the Ledger's return states, with the
+split landing (reversal clause thin at A4; voted return and reception with
+the divergence layer). The entry below is the provenance; act3-design.md
+is the spec.
 
 **In the book.** When the destination fails, the mission does not simply
 end — a faction *repudiates* it and takes the ship home, hibernating
@@ -509,7 +514,7 @@ specced machinery, per the rule that entries ride existing systems.
 | 1 | The mind that wakes by narrating | The report + Chronicle, the pivot's volume knob | **Rejected (2026-07)** — unnecessary; beat writing may use it | — |
 | 3 | The living world that bites | Landfall resolution, payload class (steal 2), truth engine | **Adopted, slim (2026-07)** — discovered danger, not a forecast tail; no new art | Landfall beat, exposure-scaled |
 | 2 | The physics of passage (ark's failing loop, widened) | Forecast survey + mission clock (A4), fuel postures, law 4, vignette engine | **Transformed, adopted (2026-07)** — the headline; voyage line + margin choice, decay branch post-v1 | One derived line + one launch choice |
-| 5 | The vessel that turns back | Charters (A4), drift + the Ledger, the vignette engine | Recommended: split — beat class adopted; mechanism rides charters | Divergence outcome + beat |
+| 5 | The vessel that turns back | Charters + mission clock (A4), drift + the Ledger, local economies | **Adopted, developed (2026-07)** — act3-design.md § The return | New design section |
 | 8 | The mind that ends with its errand | Missions + veterans (post-v1), compensation menu | Recommended: adopted, slim | A veteran register |
 | 7 | Sleep as a wound | The cold berth (A5), cradle 41 | Recommended: rejected as mechanic — content only | — |
 | 6 | The bound element | The four-resource canon, starved cradles | Recommended: rejected — canon fixes four resources | — |
@@ -576,12 +581,12 @@ flavors that novel served best.
   cheap version is content — a derelict is a rare observatory find and a
   mission target, no new system. Whether salvage needs mechanics waits for
   the mission layer; do not build it before then.
-- **Does the return need the drift system matured first?** Steal 5's
-  Assembly-voted reversal presumes the divergence-and-handoff layer that the
-  roadmap places beyond v1 (Rill's independence is *"the divergence-and-
-  handoff later layer"*). The charter-contingency half (a launch-time *return
-  if…* clause) could land earlier, with charters at A4; the voted-reversal
-  half waits for drift.
+- **How deep is the reception ceremony?** act3-design.md § The return
+  makes the arrival a live choice (take in / hold at the edge / turn
+  away) priced in Coherence and on the sky. Whether reintegration needs
+  more than a price — what a reabsorbed line does to the dial sheet, the
+  Chronicle, the archetype — is deliberately unspecified until the
+  divergence layer's drift math exists; write them together.
 - **Which archetypes narrate a failing loop, and how?** Steal 1's
   narrating-mind framing and steal 8's self-expending agent both want the
   report system to speak the ark's interior in character. The bright
