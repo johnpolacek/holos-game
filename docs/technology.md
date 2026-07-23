@@ -450,6 +450,31 @@ information beats; they are how the sky stops being wallpaper.
 - **Who builds it.** Everyone past H2. The Shepherd's sentinels watch
   over; the Tide's appraise; the difference is not in the hardware.
 
+### The dust veil
+
+- **What it is.** The instrument shelf's local floor: sensing dispersed
+  through the home system as motes — millimeter-scale sensor nodes in
+  their billions, individually trivial, collectively a nervous system for
+  the space a civilization actually inhabits.
+- **The physics.** Each mote is passive sensors, a whisper of compute,
+  and short-range links to its neighbors; the veil's power is the mesh,
+  not the mote. Waste heat is real but diffuse — spread across a system
+  it sits below the zodiacal noise floor (law 2: quiet, not cold). No
+  mote reaches beyond the system. The veil is an organ of self-knowledge,
+  not an eye on the sky.
+- **In play.** Instrument; compute-hungry (the mesh's fusion is the
+  spend), Signature-negligible. It answers the one question the deep
+  arrays cannot: not *what is out there* but *what is in here* — every
+  gram that moves inside the home system, known. The dark family's home
+  sense: the Holocore thinks, the Vault remembers, the veil feels.
+- **In the sky.** Nothing. The veil is the rare large work an observer
+  cannot infer even from construction shadows — it was never assembled
+  anywhere, and no piece of it is big enough to shadow a star.
+- **Who builds it.** The integration ladder's climbers, as reflex — a
+  mature Cloister feels a stranger's gram at its heliopause. Bright
+  civilizations build it late, generally the year after they first wish
+  they had.
+
 ### Tripwires
 
 - **What it is.** Standing watch as infrastructure: autonomous conditions

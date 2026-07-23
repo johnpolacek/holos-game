@@ -215,6 +215,12 @@ range is a dead hand, and a dead hand can hold keys.
 
 ### 5. Dust that listens
 
+**Status: adopted (2026-07).** Shipped as
+[technology.md](./technology.md) § The dust veil — a new instrument-shelf
+option, catalog content only; mechanics arrive if and when a later system
+reads from it. The key-substrate role it had in steal 4 died with
+steal 4.
+
 **In the book.** The pivotal hardware is almost beneath notice:
 millimeter-scale networked sensor-effector motes, scattered through
 ships and cities, individually trivial and collectively a nervous
@@ -397,7 +403,7 @@ or specced machinery, per the rule that entries ride existing systems.
 | 4 | Sealed clauses + lineage keys | Future-dated epochs (shipped), charters (A4), Ledger | **Rejected (2026-07)** | — |
 | 2 | Forecast play | Forecast survey (A4), young worlds (A5) | **Adopted (2026-07)** — act3-design.md § The forecast; A4–A5 | Medium |
 | 10 | Calendars as character | Chronicle | Content-only, alongside A3's Chronicle | Trivial |
-| 5 | Dust veil | technology.md instrument shelf | Catalog entry; mechanics post-v1 | One catalog entry |
+| 5 | Dust veil | technology.md instrument shelf | **Adopted (2026-07)** — technology.md § The dust veil | One catalog entry |
 | 8 | Rendezvous window | Missions, conflicted-war venue | Post-v1 — but the *rule* should be written before any co-location ships | Design work now |
 | 3 | The yoked harness | Refuser shelf | **Rejected as mechanic (2026-07)** — content may reveal it; nothing codified | — |
 
