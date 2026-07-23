@@ -53,7 +53,9 @@ definition — the fix is to redesign the technology, never to bend the law.
 2. **Thermodynamics is honest.** Waste heat can be shaped, delayed, and
    diluted, but never eliminated. Total thermal output is set by physics,
    not engineering, so perfect stealth does not exist — only discipline.
-   The Teeming Dark is quiet, not cold.
+   The Teeming Dark is quiet, not cold — except where it sleeps: a
+   civilization that stops computing (the cold berth, §II) is the one
+   true cold, and an empty patch of sky is never proof of emptiness.
 3. **Everything is written on the sky.** Every technology has a visibility
    consequence, and the light echo publishes it outward forever. Each
    entry below therefore carries an *in the sky* line, keyed to the
