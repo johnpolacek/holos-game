@@ -473,7 +473,7 @@ iron, carbon, ice, haze — that occurrence data says exist in quantity.*
 | 39 | Rogue / geothermal world | none | Starless geothermal | V | Extrapolated | Rare |
 | 40 | Crushing super-Earth | K/G | High-gravity flagship | IV | Extrapolated | Common |
 
-**Distribution check.** Tiers: I ×1 · II ×3 · III ×9 · IV ×18 · V ×8. The pool
+**Distribution check.** Tiers: I ×1 · II ×3 · III ×10 · IV ×18 · V ×8. The pool
 skews hard toward Testing/Harsh, exactly as the vision asks — Earth-twins are
 *Very rare*, and the statistically-common world-types (M-dwarf terminators,
 ocean worlds, high-gravity super-Earths, buried oceans) carry the *Common*
@@ -507,4 +507,5 @@ matching their ~70% share of real stars.
   fields a generator needs: host-star class, a physical profile
   (gravity / insolation / water / atmosphere / metallicity / rotation / age), a
   difficulty tier, and a spawn weight. When Act 1 is built, this table is the
-  natural seed for a typed `Cradle` record in the protocol.
+  natural seed for a typed `Cradle` record living in `server/src/cradles.ts`,
+  with only wire views of it — not the record itself — in protocol.ts.

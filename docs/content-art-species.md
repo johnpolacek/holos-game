@@ -17,7 +17,9 @@ subject prompts are framing-agnostic and the FRAMING block covers how each crop
 composes. Each subject keys to a stable lineage id; store the two crops as
 `species/sq/SN.webp` and `species/wide/SN.webp` (the per-entry slug below is the
 shared identity), so the client picks the ratio by layout and resolves art by
-seed with no lookup table beyond the id.
+seed with no lookup table beyond the id. The per-subject `→ species/SN.webp`
+notation below is the plate's identity slug, not a file path — each is stored
+on disk as the two crops `species/sq/SN.webp` and `species/wide/SN.webp`.
 
 ---
 
@@ -205,7 +207,7 @@ introducing a second *style*.
 > core. On dark hydrocarbon ice fading to void. Glacial, patient, alien in
 > tempo.
 
-#### S18 · Radiation-hardened surface extremophile  → `species/S18.webp`
+#### S18 · Radiation-hardened extremophile  → `species/S18.webp`
 > A radiation-hardened surface extremophile: a heavily shielded animal,
 > mineral-armored and darkly pigmented, thick-walled and squat, built to endure
 > a sky that burns. On bright-scoured dark ground fading to void. Armored,

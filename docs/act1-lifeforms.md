@@ -118,6 +118,7 @@ Ocean worlds are common in the pool and Brutal to climb for exactly this reason.
 - **Sociality & cognition:** solitary-to-loose, **distributed cognition** — much of the mind lives in the arms. The self is already a federation before it is a civilization.
 - **Manipulation & path to technology:** superb manipulation, the best in the water — but underwater, energy mastery is the wall. A cephalopodan reaches technology only through vent-smithing or bioelectric/biochemical routes. **Technogenesis: Severe.**
 - **Dial seed:** strong **Chorus** (a distributed body raises a distributed mind), lean **Depth**, curious-neutral Custodian.
+- **Fingerprint:** A federation of arms that talks in skin — the self is already plural, and its language is impossible to whisper.
 
 #### S2. Song-culture pelagic
 - **Origin cradles:** open ocean worlds — TOI-700 d (#6), Kepler-22b (#24), Kepler-62f (#18), the metal-poor drowned world (#16), high-obliquity migratory seas (#38).
@@ -126,6 +127,7 @@ Ocean worlds are common in the pool and Brutal to climb for exactly this reason.
 - **Sociality & cognition:** deeply social pods; large brains; unitary selves bound by culture.
 - **Manipulation & path to technology:** the tragic case. Enormous cognition, real culture, and **no hands** — fins and mouths cannot build. Reaches technology only by co-opting a manipulator (see S14) or through slow biotech; more often it is a magnificent dead end that Act 1 must route around. **Technogenesis: Near-impossible (alone).**
 - **Dial seed:** strong **Voice** (a species that is its songs), **Custodian** (empathic, social), lean Chorus.
+- **Fingerprint:** A magnificent mind with no hands: it is its songs, and it carries oral history across ocean basins.
 
 #### S3. Clawed benthic exoskeletal
 - **Origin cradles:** shallow/floored ocean worlds — LHS 1140 b (#4), TOI-700 d (#6), Kepler-62f (#18), tidally-heated moon (#15), crushing ocean super-Earths (#40).
@@ -133,7 +135,8 @@ Ocean worlds are common in the pool and Brutal to climb for exactly this reason.
 - **Senses & signal:** vision plus chemoreception and vibration through the substrate; signalling by gesture, sound-taps, and chemistry.
 - **Sociality & cognition:** variable — solitary hunters to loose aggregations; unitary cognition.
 - **Manipulation & path to technology:** the **best aquatic tech path**. Claws build; an amphibious benthic can reach shorelines and vents where the energy door cracks open — the likeliest lineage to actually carry an ocean world to technology. **Technogenesis: Hard.**
-- **Dial seed:** lean **Instrumental** (a builder-predator), neutral One Mind / Chorus, lean Reach if it makes landfall.
+- **Dial seed:** lean **Instrumental** (a builder-predator), neutral One Mind / Chorus, faint Reach if it makes landfall.
+- **Fingerprint:** The water's best builder — a claw-handed predator whose landfall cracks the energy door open.
 
 #### S4. Electro-sensing abyssal
 - **Origin cradles:** lightless and sealed waters — subsurface-ocean ice world (#36), TRAPPIST-1f (#2), tidally-heated moon (#15), rogue geothermal world (#39), hycean K2-18 b (#12).
@@ -142,6 +145,7 @@ Ocean worlds are common in the pool and Brutal to climb for exactly this reason.
 - **Sociality & cognition:** solitary-to-small-group; unitary, patient cognition tuned to a world with no horizon and no sky.
 - **Manipulation & path to technology:** manipulators adequate; energy from vents is *right there*, which is the one advantage of the abyss — but the lineage has no concept of "outside," no sky to aim at, and must discover the universe before it can want to reach it. **Technogenesis: Severe.**
 - **Dial seed:** strong **Silence** (unseeing, unseen), **Depth**, lean Instrumental.
+- **Fingerprint:** Unseeing and unseen in the sealed dark: it must discover that an outside exists before it can want it.
 
 #### S5. Colonial reef superorganism
 - **Origin cradles:** stable warm shallow seas — Kepler-22b (#24), TOI-700 d (#6), temperate twin (#22), Kepler-62f (#18).
@@ -150,6 +154,7 @@ Ocean worlds are common in the pool and Brutal to climb for exactly this reason.
 - **Sociality & cognition:** the colony *is* the individual; cognition is emergent, slow, and everywhere at once.
 - **Manipulation & path to technology:** almost no manipulation and no mobility — it cannot reach for tools, so it must grow its technology, shaping living structures and chemistry rather than building. A profoundly alien, uphill road. **Technogenesis: Near-impossible.**
 - **Dial seed:** strong **One Mind** (a single body of many parts), **Depth**, lean **Custodian**.
+- **Fingerprint:** A reef that is one slow distributed self — it cannot reach for tools, so it grows its technology instead.
 
 ---
 
@@ -166,6 +171,7 @@ straightforward roads to technology run here. This is the convergent
 - **Sociality & cognition:** social bands; unitary self; culture in stories, then writing.
 - **Manipulation & path to technology:** all four filters open at once — the classic, most *tractable* climb. Fire, tools, speech, writing. **Technogenesis: Straightforward.**
 - **Dial seed:** near-balanced, the widest post-cradle latitude of any archetype; a faint **Voice**. What Act 1 chooses matters most here.
+- **Fingerprint:** The open canvas: all four doors to technology open at once, and almost nothing pre-decided.
 
 #### S7. Heavy-world multiped
 - **Origin cradles:** high-gravity worlds — crushing super-Earth (#40), LHS 1140 b (#4), HD 40307 g (#19), Luyten b (#11), Kepler-442b (#17), super-Mercury (#33), Kapteyn b (#30), Tau Ceti f (#25).
@@ -174,6 +180,7 @@ straightforward roads to technology run here. This is the convergent
 - **Sociality & cognition:** cohesive groups; unitary, deliberate cognition; a culture built close to the ground.
 - **Manipulation & path to technology:** manipulation and fire both available — but the gravity well is a lifelong ceiling. It masters its surface early and finds *leaving* the hardest thing it will ever do. (On iron/metal-rich worlds like #33, metallurgy is native and easy — a compensating gift.) **Technogenesis: Straightforward on the surface; Hard to reach orbit.**
 - **Dial seed:** strong **Depth** (the well fights every ambition outward), lean **One Mind**, lean **Custodian** on rich worlds.
+- **Fingerprint:** Built low and strong under crushing gravity — it masters its surface early and finds leaving the hardest thing it will ever do.
 
 #### S8. Twilight-band migratory
 - **Origin cradles:** terminator worlds — TRAPPIST-1e (#1), Proxima b (#3), Ross 128 b (#5), Gliese 12 b (#10), terminator storm world (#13).
@@ -182,6 +189,7 @@ straightforward roads to technology run here. This is the convergent
 - **Sociality & cognition:** mobile bands strung along the terminator; unitary selves; a culture organized around the fixed sun and the trek.
 - **Manipulation & path to technology:** hands and fire both available; the challenge is a *linear, crowded* world with little room and a savage climate at each edge — technology comes, but under permanent scarcity of space. **Technogenesis: Hard.**
 - **Dial seed:** lean **One Mind** (a single connected ring), **Voice** (a sky owned by one unmissable sun and close sister worlds), lean Instrumental under storm/flare pressure.
+- **Fingerprint:** One connected ring of habitability under a fixed, unmissable sun — a culture that always knew where the sky was.
 
 ---
 
@@ -197,6 +205,7 @@ cheap. Wide senses, wide range — but flight and heavy tools are in tension.*
 - **Sociality & cognition:** flocks; unitary selves; a wide-horizon culture, early astronomers by instinct.
 - **Manipulation & path to technology:** manipulation is real but competes with flight for the same limbs and against the weight of tools; fire is available on the ground. A wide-ranging, outward-looking climber. **Technogenesis: Hard.**
 - **Dial seed:** lean **Reach** (mastery of the open air, a taste for range), **Voice** (a sky-facing, far-seeing species), neutral elsewhere.
+- **Fingerprint:** Mastery of the open air and a far-seeing life — an astronomer by instinct, outward by temperament.
 
 #### S10. Buoyant aerial drifter
 - **Origin cradles:** thick/deep atmospheres — hycean K2-18 b (#12), Titan-analog haze world (#37), gas-enveloped worlds.
@@ -205,6 +214,7 @@ cheap. Wide senses, wide range — but flight and heavy tools are in tension.*
 - **Sociality & cognition:** dispersed drifting aggregations; distributed or loosely collective cognition.
 - **Manipulation & path to technology:** the wall is total — nothing solid to stand on, nothing concentrated to burn, weak manipulation. Technology, if it comes, is chemical and biological, grown in the air. **Technogenesis: Near-impossible.**
 - **Dial seed:** **Depth** and **Silence** (a world with no ground and no clear sky), lean Chorus.
+- **Fingerprint:** Permanently airborne with no ground and no clear sky — its technology, if it comes, is grown in the air.
 
 ---
 
@@ -221,6 +231,7 @@ specialization even when no single body could.*
 - **Sociality & cognition:** **collective cognition** — no single mind, an emergent one; manipulator castes give it hands without any one body needing them.
 - **Manipulation & path to technology:** collective construction is its native genius (mounds, farms, climate control); fire and metallurgy come through worker castes. A powerful, alien, *achievable* climb. **Technogenesis: Hard.**
 - **Dial seed:** strong **One Mind** (many bodies, one purpose) *and* **Instrumental** (the individual is expendable) — a combination no unitary species starts from.
+- **Fingerprint:** Many bodies, one purpose: the individual is a cell, and collective construction is its native genius.
 
 #### S12. Networked substrate mind
 - **Origin cradles:** ancient, stable, slow worlds — Kapteyn b (#30), Teegarden's Star b (#7), Barnard's Star b (#31 outer), old temperate worlds.
@@ -229,6 +240,7 @@ specialization even when no single body could.*
 - **Sociality & cognition:** **networked cognition** — thinks slowly and everywhere; memory is structural and effectively permanent.
 - **Manipulation & path to technology:** almost no manipulation and glacial tempo; its "technology" is grown and chemical, and its climb, if it happens, takes deep time — which its ancient world happens to have. **Technogenesis: Near-impossible (but patient).**
 - **Dial seed:** strong **One Mind** (literally one network) and **Curator** (deep, unbroken memory), **Depth**.
+- **Fingerprint:** A landscape that thinks slowly and everywhere: its memory is structural, which is to say it does not forget.
 
 #### S13. Aggregative modular organism
 - **Origin cradles:** unstable, cyclic worlds — high-obliquity world (#38), circumbinary world (#32), worlds of boom-and-bust.
@@ -237,6 +249,7 @@ specialization even when no single body could.*
 - **Sociality & cognition:** cognition that **assembles on demand** — solitary units, transient group minds when they mass.
 - **Manipulation & path to technology:** manipulation depends on configuration; energy mastery is hard; but adaptability to catastrophe is unmatched. A strange, resilient, uneven climber. **Technogenesis: Severe.**
 - **Dial seed:** strong **Chorus** (a self that splits and reforms), **Shedder** (it sheds units and starts over as a way of life).
+- **Fingerprint:** A self that assembles on demand and disperses again — shedding units and starting over is its way of life.
 
 #### S14. Obligate symbiotic composite
 - **Origin cradles:** rich, diverse biospheres — temperate twin (#22), Kepler-442b (#17), ocean worlds where a manipulator and a cognition species meet (#24, #6).
@@ -245,6 +258,7 @@ specialization even when no single body could.*
 - **Sociality & cognition:** **composite cognition** — a partnership that thinks; identity is inherently plural and negotiated.
 - **Manipulation & path to technology:** the symbiosis is precisely how a song-culture *gets hands* — the composite passes filters neither partner could alone. Rare, but a real answer to the tool-less dead end. **Technogenesis: Hard.**
 - **Dial seed:** strong **Chorus** *and* **Custodian** (a species whose founding lesson is that another mind is indispensable) — a distinctive, contact-friendly start.
+- **Fingerprint:** Two species, one mind — its founding lesson is that another mind is indispensable.
 
 ---
 
@@ -260,6 +274,7 @@ and inward — and the last to learn the universe is even there.*
 - **Sociality & cognition:** tunnel-network societies; unitary cognition tuned to a world without a horizon.
 - **Manipulation & path to technology:** manipulation and geothermal energy both available underground; the wall is conceptual — a species that must *dig up into the sky* before it can imagine leaving. **Technogenesis: Hard.**
 - **Dial seed:** strong **Silence** and **Depth** (a life spent hidden and below), neutral elsewhere.
+- **Fingerprint:** A life spent hidden and below — it must dig up into the sky before it can imagine leaving.
 
 #### S16. Chemo-lithic vent grazer
 - **Origin cradles:** vent-rich and starless worlds — subsurface-ocean ice (#36), tidally-heated moon (#15), rogue geothermal world (#39), Kepler-186f (#9), Barnard's Star b (#31), carbon (#34) and lava (#26) worlds.
@@ -268,6 +283,7 @@ and inward — and the last to learn the universe is even there.*
 - **Sociality & cognition:** vent-colony societies; slow, place-bound cognition.
 - **Manipulation & path to technology:** energy and minerals are abundant at the vents (a rare underwater gift), but mobility and abstraction are limited; the climb is chemical and local. **Technogenesis: Severe.**
 - **Dial seed:** **Depth**, **Silence**, lean **Instrumental** (a life of consuming the vent).
+- **Fingerprint:** Clustered at the vents, indifferent to sunlight — energy is right there, and the universe is a rumor.
 
 ---
 
@@ -284,14 +300,16 @@ and the game's most speculative branches.*
 - **Sociality & cognition:** sparse; **glacially slow** cognition — a thought can take a season.
 - **Manipulation & path to technology:** manipulation possible, but the metabolic tempo is so slow that a "technological civilization" here operates on a timescale of its own — deep patience is not a virtue but a condition. **Technogenesis: Severe.**
 - **Dial seed:** strong **Depth**, **Curator** (patience beyond reckoning), lean **Silence**.
+- **Fingerprint:** A thought can take a season: patience not as virtue but as condition, in methane cold.
 
-#### S18. Radiation-hardened surface extremophile
+#### S18. Radiation-hardened extremophile
 - **Origin cradles:** irradiated worlds — UV-scoured F-star world (#28), coreless silicate world (#35), Proxima b (#3), runaway-greenhouse-edge (#27).
 - **Medium & body plan:** terrestrial, heavily **shielded** — pigmented, mineral-armored, or thick-walled; built to take a beating from the sky.
 - **Senses & signal:** UV-shifted or shielded vision; robust chemistry; high cellular turnover and repair.
 - **Sociality & cognition:** hardy groups; unitary cognition under constant environmental assault.
 - **Manipulation & path to technology:** manipulation and fire available; the antagonist is the sky itself and the short clock of a bright, fast-living star — a lineage that climbs *fast* or not at all. **Technogenesis: Hard.**
 - **Dial seed:** strong **Silence** (a sky that hurts), **Shedder** (constant damage-and-repair, a fast turnover of the past), lean Reach under a short clock.
+- **Fingerprint:** Shielded against a sky that hurts: built on constant damage-and-repair, racing a star that will die young.
 
 #### S19. High-temperature mineral life
 - **Origin cradles:** the extreme worlds — 55 Cancri e (#26), carbon world (#34), super-Mercury (#33 hot side).
@@ -300,6 +318,7 @@ and the game's most speculative branches.*
 - **Sociality & cognition:** the most speculative case — cognition on a mineral or high-carbon substrate, deeply alien in tempo and form.
 - **Manipulation & path to technology:** almost everything is against it; a technological civilization here is at the outer bound of plausibility, included as the extreme edge the game can gesture at rather than lean on. **Technogenesis: Near-impossible.**
 - **Dial seed:** **Depth**, **Silence**, deeply alien on every axis.
+- **Fingerprint:** Cognition in rock and melt, alien in tempo and chemistry — the outer bound of the plausible.
 
 ---
 
@@ -315,6 +334,7 @@ A dim red sun makes this pay, and a strange, gentle intelligence can grow from i
 - **Sociality & cognition:** stands and colonies that are half-forest, half-society; slow, gentle, collective-leaning cognition.
 - **Manipulation & path to technology:** weak manipulation and a slow, light-starved metabolism make the climb long and uphill; when it comes, it is patient and grown rather than forged. **Technogenesis: Severe.**
 - **Dial seed:** strong **Depth** and **One Mind**, lean **Custodian** (a species for whom life quite literally *is* light).
+- **Fingerprint:** Half-forest, half-society: it grazes light under a dim sun, and life quite literally is light to it.
 
 ---
 
@@ -355,7 +375,7 @@ symbiotic composite (S14), S12 through the deep time its ancient cradle affords.
 space, and the table confirms it does:
 
 - **Medium** — all five are populated: aquatic (S1–S5, plus vent-dwelling S16),
-  terrestrial (S6–S8, S11–S13, S15, S18, S20), aerial/buoyant (S9, S10),
+  terrestrial (S6–S8, S11–S13, S18, S20), aerial/buoyant (S9, S10),
   subsurface/sealed (S15, S16, S19), and cryogenic (S17). The pool skews aquatic
   and terrestrial exactly as habitable worlds do.
 - **Cognition model** — every fork appears: unitary (the plurality — S2–S4, S6–
@@ -364,8 +384,9 @@ space, and the table confirms it does:
   on-demand-aggregate (S13). The One Mind ↔ Chorus dial is therefore pre-loaded
   from *both* ends by biology, as *How this feeds Act 1* and the open questions
   note.
-- **Technogenesis** — Straightforward ×2 (S6, S7 on its surface) · Hard ×7 (S3,
-  S8, S9, S11, S14, S15, S18) · Severe ×6 (S1, S4, S13, S16, S17, S20) ·
+- **Technogenesis** — Straightforward ×1 (S6) · Hard ×8 (S3, S7, S8, S9, S11,
+  S14, S15, S18 — S7's surface story leans straightforward, but the orbit gate
+  governs) · Severe ×6 (S1, S4, S13, S16, S17, S20) ·
   Near-impossible ×5 (S2, S5, S10, S12, S19). The distribution mirrors the
   cradle tiers in act1-cradles.md: most roads to technology are genuinely hard,
   a handful are near-barred, and the easy climb is deliberately rare — the same
