@@ -182,8 +182,10 @@ mechanics live in act2-design.md; the Act 3 shadows in act2-minds.md.)
   fence.
 
 #### Instrumental — *to exist is to use*
-- **Verbs:** price everything, extract, consume systems, spend forks,
-  trade without sentiment; when the conflict layer ships, strike
+- **Verbs:** price everything, appraise and time launches against
+  civilizational cycles, arbitrage across rise and fall
+  (act3-design.md, *The forecast*), extract, consume systems, spend
+  forks, trade without sentiment; when the conflict layer ships, strike
   economics and coercion join the set.
 - **Texture:** a cold optimization game where other minds are line items
   — and the beats confront the player with what that feels like from
@@ -278,7 +280,9 @@ are the work this document exists to direct:
 - **Instrumental** is under-verbed until the conflict layer ships;
   interim verbs (extraction economics, hard bargaining in
   correspondence) should land earlier so the flavor exists in v1 as more
-  than a dilemma-colorer.
+  than a dilemma-colorer. *(Partly answered: forecast play —
+  act3-design.md, The forecast — lands the appraisal-and-timing set with
+  A4's survey.)*
 - **Shedder** has no shedding *project* — releasing the past should cost
   and yield something concrete, or the dial end is flavor text.
 - **Depth** needs the visible-progression answer (the parity requirement

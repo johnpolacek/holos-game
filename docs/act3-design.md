@@ -173,6 +173,17 @@ is never private, because its past is already on the sky.
   behind it, back to first life.
 - **Physically honest.** A distant observer watching your world is literally
   reading your past — nothing can be unshone, all the way back to first life.
+- **Three registers of time.** Truth thinks in **global years** — the
+  cohort clock's coordinate time, set at galaxy seed and never shown on a
+  played surface; no civilization would keep the referee's calendar.
+  Voices speak in **their own epoch**: every Chronicle and report is dated
+  from its civilization's founding event — the waking for a crossed mind
+  (`CivSeed.ascensionYear` is this field, and the walkthrough's *year 280
+  AE* is the convention in use), the charter's founding for a Refuser — so
+  a foreign Chronicle arrives in its sender's calendar, and reading one
+  means standing briefly inside someone else's count of time. Instruments
+  speak in **light-age** (`AS OF n Y AGO`), unchanged. The conversion is
+  one subtraction for the game and characterization for the player.
 
 ---
 
@@ -205,6 +216,50 @@ A Refuser has no transmissible self — nothing it could broadcast is anyone
 expansion is matter only: seedships, generation ships, and embryo banks,
 folded into the seedship family above. The menu still lists three tools; a
 Refuser spends its whole interstellar life on the first.
+
+---
+
+## The forecast
+
+The map is the past; a launch aims at the future. Between the stale light
+a decision is made on and the landfall that pays it off lie both the
+light-lag and the whole flight — so every expansion decision is a bet on
+what the destination will have become, and the game says so with a number.
+
+- **Information age at landfall.** One derived quantity, rendered
+  wherever a launch is being aimed: the light-age of the data now, plus
+  the transit years. Aim at a biosignature world 20 light-years out with
+  an 80-year flight, and the survey says plainly: *at arrival you will be
+  acting on light 100 years old.* No new machinery — the knowledge layer
+  knows the light-age, the travel menu knows the flight clock.
+- **The arrival spread.** The survey renders what the destination may be
+  at landfall as a spread of outcomes, honest per class: negligible for a
+  dead rock, wide for a living world, widest of all for a civilization
+  mid-ascent — and the width is itself the strategic information. The
+  spread is belief about the future, under the Model's one rule: belief,
+  never truth, and never certain.
+- **The timing decision.** Launch now on a wide spread, or watch to
+  narrow it — the same watch-versus-act tension the vigil runs, priced in
+  instrument time and years. A launch deferred is confidence gained and a
+  head start spent; races are lost this way, and blunders avoided.
+- **Landfall.** When the flight clock fires, the truth engine resolves
+  what is actually there, and the report returns as light — the
+  walkthrough's Day 5 already plays it (*"the ocean is deeper than the
+  surveys promised"*). The gap between forecast and found is a beat class
+  in its own right: the world that got loud mid-flight, the civilization
+  that collapsed a decade before the probe fell into orbit, the quiet
+  system that turned out occupied. No new outcome machinery — the truth
+  was always going to be consulted at arrival; the forecast makes the
+  consultation dramatic.
+
+Forecast play is flavor-neutral. The Instrumental mind appraises, times,
+and arbitrages civilizational cycles — the interim verb set
+playstyles.md asks for, landed without waiting for the conflict layer. A
+Custodian times an uplift to a bottleneck it can see coming; a Curator
+times a rescue against a collapse it cannot prevent from here. v1 ships
+the thin version — the information-age figure and a qualitative spread
+on the A4 survey — and probabilistic trajectory modeling arrives later
+as instrument depth, not as entry cost.
 
 ---
 
@@ -289,6 +344,19 @@ decision with real time in it:
 goods), verification challenges — and **coordinates of third parties**,
 the currency of betrayal.
 
+**A verification challenge is a question about light.** Identity is
+proven by proving what light a worldline has seen: *what did the
+year-4406 flare of our star look like from where you claim to have
+been, and when did it arrive?* Only a civilization that actually stood
+where that light fell can answer — a voice, a format, a history can be
+worn, but the sky publishes every event outward on a strict schedule,
+and the knowledge layer already adjudicates what any observer's light
+has included. Each challenge round-trips at lightspeed, so testing a
+suspicious correspondent is a project measured in years; where it
+matters first is the Ledger's own family — *is this our colony
+answering, or something wearing it?* No new machinery: deception is
+native to the light echo, and this is its one honest countermeasure.
+
 **Nothing is enforceable.** A treaty is a promise held up by two minds'
 natures and nothing else; a betrayal is already in flight before it can be
 detected. Relationship states (correspondence, accord, silence, threat)
@@ -364,6 +432,39 @@ running heavily distributed endeavors — no single mission threatens unity,
 but a civilization flooding the sky with agents is distributed by
 definition and pays for the sprawl (economy-design.md, *Coherence*). Whether
 that is enough to hold off mission spam is an open question (below).
+
+**The mission clock.** At launch, every mission compiles its charter
+into a timeline of expected light events — checkpoints, each with a
+countdown the player can watch:
+
+- **Arrival** — the flight clock, already on the books.
+- **Earliest confirmation** — arrival plus the light-travel time home:
+  the number that makes the physics felt. A probe sent 12 light-years
+  out at 0.1c says plainly at launch: *first possible word in 132
+  years — the flight, plus twelve for the light.*
+- **Scheduled reports** — whatever cadence the charter promises,
+  thereafter.
+
+Checkpoints chain in sequence, and they branch: charter contingencies
+make the timeline a flowchart rather than a line — *if the survey
+holds, expect the rooting report by year N; if it does not, expect the
+return burn by year M* — each branch carrying its own clocks. Which
+branch the mission actually took is itself something the player learns
+only when the light arrives, so the flowchart is a map of futures
+narrowing as reports come home.
+
+Two rules give the clock its teeth. **Silence at a deadline is an
+event, not an absence** — a countdown that resolves with no signal
+fires its own beat, exactly as informative as a report and usually
+worse; the tripwire condition *a fork goes silent* is this rule
+generalized. And **every date is derived, never stored** — distance,
+travel method, and charter schedule fix the whole timeline at launch,
+so the alarm infrastructure fires it with no new state. The mission
+clock is the async spine made visible: what am I waiting for, and
+when. In v1, launches carry the thin version (arrival, earliest
+confirmation, first report — the natural companion to the forecast
+survey, which says what you are betting on while the clock says when
+you will know); the full branching form arrives with mission charters.
 
 **The vignette engine survives into Act 3.** Mission outcomes return as
 narrative beats and reuse Act 1's vignette machinery — authored scene,
@@ -695,6 +796,12 @@ endgame's mechanical layer later, per the vision's roadmap.
   practical reach: no strike, probe, or transmission can arrive before
   ascension. The recursion — watch, uplift, exploit, leave alone — applies
   to AI-run young worlds only.
+- **Shared vigils.** Seeding should sometimes give one young world more
+  than one watcher, each unaware of the other. Discovering mid-vigil that
+  the dark beside you is another vigil is a contact arc that begins at a
+  third party's cradle — an authored beat class, not a new system: the
+  observatory already renders the unexplained source, and the
+  Counter-Hand already names the conflict it can become.
 - **The watched reveal.** On entering Act 3, a player may learn from their
   own new observatory that their incubation was observed — someone's
   instruments have had their world's light for centuries. Free, chilling,
@@ -738,7 +845,9 @@ call is borderline, take the bolder inclusion; the slice must still ship.
 - Two expansion methods: seedships/probes with charters and basic drift,
   and relativistic ships — coherent colony founding on real flight
   clocks, onboard-fuel or beam-pushed (technology.md, *Working
-  decisions*); the seat still does not travel in v1
+  decisions*); the seat still does not travel in v1. Both carry the
+  forecast survey (thin: information age at landfall + a qualitative
+  arrival spread)
 - Light-lag messaging: directed hail, broadcast, correspondence
 - Sleep with basic tripwires and notifications
 - No strikes, no seat transfer (single node in v1 — the seat rule's full

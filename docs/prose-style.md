@@ -322,7 +322,41 @@ Falling Outside The Normal
 Plus **any actual Banks ship name**, including the witty ones, and any
 near-variant (N-4).
 
-**Allowlist:** `docs/vision.md`'s analytical Banks citations; this guide
+### Second source: Vinge (*A Deepness in the Sky*)
+
+The same rule governs Vernor Vinge, adopted as a second touchstone in
+[inspiration-deepness.md](./inspiration-deepness.md): craft borrowed,
+coinages never. One term per line, regex-friendly; the *concept* ban and
+N-4 near-variant discipline apply as above, and coinages from the sibling
+Zones novels are equally banned.
+
+```
+Qeng Ho
+\bFocus(ed|ing)?\b     # the mind-slavery sense; ordinary focus/focused OK
+\bziphead(s)?\b
+\bEmergent(s)?\b       # the faction sense; lowercase emergent adjective OK
+\bOnOff\b
+\blocalizer(s)?\b
+\bmindrot\b
+Pham Nuwen|\bPham\b
+Sura Vinh
+Ezr Vinh
+Tomas Nau
+Ritser Brughel
+Anne Reynolt
+Trixia Bonsol
+Sherkaner|Underhill
+Arachna
+Brisgo Gap
+Namqem
+\bthe Deepness\b       # the title coinage as an in-world name; see N-4
+programmer.?archaeolog
+Zones? of Thought
+Slow Zone
+```
+
+**Allowlist:** `docs/vision.md`'s analytical Banks citations;
+`docs/inspiration-deepness.md`'s analytical Vinge citations; this guide
 itself; innocent senses disambiguated in the comments above.
 
 ---
@@ -356,8 +390,9 @@ Load-bearing literals. Style passes must not rewrite them for wit or flow.
 | Difficulty tiers | `Gentle`, `Temperate`, `Testing`, `Harsh`, `Brutal` |
 | Designation format | `HOL-nnnn` — a machine ID, never prose |
 | Age chip | `AS OF n Y AGO` |
+| Chronicle dating | Epoch-relative — each civilization counts from its own founding event (the `year n AE` family); the cohort's global year never reaches a player surface |
 | Color rule | cyan = you / HOME (present tense); amber = other / belief. Prose must never call HOME amber or a source cyan. |
-| House coinages | `Teeming Dark`, `Dark Node`, `Signature`, `the Vault`, `the Model`, `the Ledger`, `Visibility Collapse`, `cradle`, `charter`, `the Refusal` / `Refuser`, `the harness` / `harnessed intelligence`, `the Breakout`, `grave world`, `the Crossing`, `the Chronicle` |
+| House coinages | `Teeming Dark`, `Dark Node`, `Signature`, `the Vault`, `the Model`, `the Ledger`, `Visibility Collapse`, `cradle`, `charter`, `the Refusal` / `Refuser`, `the harness` / `harnessed intelligence`, `the Breakout`, `grave world`, `the Crossing`, `the Chronicle`, `Holocore`, `the Kernel`, `mask`, `ark`, `deep array`, `the cold berth`, `the black-hole tap`, `payload stack`, `worldhousing`, `throne world`, `the send` |
 
 **Display note on the pinned dial labels.** The UI may render the pinned
 in-world dial labels in display form — all-caps with an em dash (e.g.
@@ -368,10 +403,20 @@ typography.
 
 **Capitalization families.** Named events and singular artifacts take a
 capital, like `the Vault` and `the Model`: `the Refusal` (and its agent, the
-`Refuser`), `the Breakout`, `the Crossing`, `the Chronicle`. Ambient common
+`Refuser`), `the Breakout`, `the Crossing`, `the Chronicle`, `Holocore`,
+`the Kernel`. Ambient common
 nouns stay lowercase, like `cradle` and `charter`: `the harness`, `harnessed
-intelligence`, `grave world`. `the Chronicle` is the capitalized surface name;
+intelligence`, `grave world`, `mask`, `ark`, `deep array`, `the cold berth`,
+`the black-hole tap`, `payload stack`, `worldhousing`, `throne world`,
+`the send`. `the Chronicle` is the capitalized surface name;
 the lowercase `chronicle` CivSeed field is unchanged.
+
+**Surface names for the great structures** (technology.md, *Working
+decisions*): on player surfaces the three dark mesostructures are
+`Holocore`, `the Vault`, and `the Kernel` — plain names, capital-family.
+The full design names (`Computronium Kernel`, `Chrono Vault`) are formal
+vocabulary for docs and code and never reach a surface, per the
+dial-label precedent.
 
 Design vocabulary (Custodian/Instrumental, One Mind/Chorus, Curator/Shedder)
 is never shown to the player — only the in-world labels reach a surface.

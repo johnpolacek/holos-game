@@ -480,6 +480,31 @@ information beats; they are how the sky stops being wallpaper.
 - **Who builds it.** Everyone past H2. The Shepherd's sentinels watch
   over; the Tide's appraise; the difference is not in the hardware.
 
+### The dust veil
+
+- **What it is.** The instrument shelf's local floor: sensing dispersed
+  through the home system as motes — millimeter-scale sensor nodes in
+  their billions, individually trivial, collectively a nervous system for
+  the space a civilization actually inhabits.
+- **The physics.** Each mote is passive sensors, a whisper of compute,
+  and short-range links to its neighbors; the veil's power is the mesh,
+  not the mote. Waste heat is real but diffuse — spread across a system
+  it sits below the zodiacal noise floor (law 2: quiet, not cold). No
+  mote reaches beyond the system. The veil is an organ of self-knowledge,
+  not an eye on the sky.
+- **In play.** Instrument; compute-hungry (the mesh's fusion is the
+  spend), Signature-negligible. It answers the one question the deep
+  arrays cannot: not *what is out there* but *what is in here* — every
+  gram that moves inside the home system, known. The dark family's home
+  sense: the Holocore thinks, the Vault remembers, the veil feels.
+- **In the sky.** Nothing. The veil is the rare large work an observer
+  cannot infer even from construction shadows — it was never assembled
+  anywhere, and no piece of it is big enough to shadow a star.
+- **Who builds it.** The integration ladder's climbers, as reflex — a
+  mature Cloister feels a stranger's gram at its heliopause. Bright
+  civilizations build it late, generally the year after they first wish
+  they had.
+
 ### Tripwires
 
 - **What it is.** Standing watch as infrastructure: autonomous conditions
@@ -992,7 +1017,9 @@ here, following the `cradle`/`charter` capitalization family: **mask**
 tap** (from playstyles.md's "tap black holes"), **payload stack**,
 **deep array**, **worldhousing**, **throne world** (already in
 act3-design.md), **ark**, **the send** (the mission dispatch, §IV). None are Banks coinages or near-variants; all
-should be added to §8's coinage table if they survive review. Ship and
+are adopted into §8 (working decision, 2026-07), and the three great
+structures take plain surface names — `Holocore`, `the Vault`, `the
+Kernel` — with the full design names kept to docs and code. Ship and
 structure *instances* draw phrase names from the prose-style.md §5 pool —
 a beam battery called `Louder Than Necessary` is exactly the register.
 
@@ -1038,12 +1065,12 @@ concept.
 
 ## Working decisions
 
-Three of this catalog's original open questions are resolved as working
-decisions (the act3-design.md convention: sound, but cheaper to revisit
-now than after implementation). All three follow one posture, recorded here
-because it governs future calls too: **maximum technology choice** — when
-a capability is physics-legal and its price can be made honest, the
-catalog includes it rather than designing it out.
+All five of this catalog's original open questions are resolved as
+working decisions (the act3-design.md convention: sound, but cheaper to
+revisit now than after implementation). The first three share one
+posture, recorded here because it governs future calls too: **maximum
+technology choice** — when a capability is physics-legal and its price
+can be made honest, the catalog includes it rather than designing it out.
 
 - **Masking is a contest, never a setting.** The mask-versus-inference
   arms race is a live economy: mask quality and instrument quality are
@@ -1074,16 +1101,26 @@ catalog includes it rather than designing it out.
   produces recurring patterns (de facto sharing etiquette, tap
   standoffs, drain squatting), those patterns earn mechanics *after*
   they appear, not before.
+- **Sentinel ethics ride the mission framework.** The watcher's-log
+  fiction — a sentinel dwelling over a living world, the Custodian ↔
+  Instrumental dial made concrete in real decisions about real
+  creatures — gets no beat family of its own. It lands as content
+  inside the mission system (agents, mission charters, vignette
+  returns; vision.md later layers, roadmap.md), whose v1 skeleton is
+  already the probe and the hail. The long vigil over a young world
+  should be among the first missions that framework authors, because
+  it is the Act 1 relationship played from the other chair.
+- **Surface names: Holocore, the Vault, the Kernel.** The three great
+  dark structures render on player surfaces under their plain names —
+  `Holocore`, `the Vault`, `the Kernel` — capital-family artifacts per
+  prose-style.md §8. The full design names (`Computronium Kernel`,
+  `Chrono Vault`) stay formal vocabulary for docs and code and never
+  reach a screen, per the dial-label precedent. The register's new
+  lowercase common nouns graduate to §8 as ambient vocabulary.
 
 ## Open questions
-- **Sentinel ethics as a beat family.** A sentinel watching a living
-  world is the Custodian ↔ Instrumental dial in its purest form and
-  probably deserves its own beat class (the watcher's log as recurring
-  fiction). Content question, not systems.
-- **Coinage adoption.** Which of the new common nouns in the register
-  above graduate to prose-style.md §8, and whether `Holocore`,
-  `Computronium Kernel`, and `Chrono Vault` render under those names on
-  player surfaces or stay design vocabulary with in-world labels, per the
-  dial-label precedent. The Kernel especially may want a humbler in-world
-  name; a civilization does not generally call its own heart by its
-  patent filing.
+
+None at present. This catalog's original five were resolved above as
+working decisions (masking, beam batteries, the tap, sentinel ethics,
+coinage); new entries and new questions accrue here as the catalog
+grows.

@@ -474,6 +474,7 @@ first. (Species IDs are S1–S20 above.)
 | 38 | High-obliquity world | S13 aggregative · S9 winged flyer · S2 song-culture |
 | 39 | Rogue / geothermal world | S16 vent grazer · S4 abyssal · S15 burrower |
 | 40 | Crushing super-Earth | S7 heavy-world · S11 hive · S3 clawed benthic |
+| 41 | The century orbit | S17 cryo slow-mind · S15 burrower |
 
 ---
 

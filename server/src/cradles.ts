@@ -33,7 +33,7 @@ export type LineageId =
   | "S16" | "S17" | "S18" | "S19" | "S20";
 
 export interface Cradle {
-  /** Stable id 1–40, matching the act1-cradles.md master table row. */
+  /** Stable id 1–41, matching the act1-cradles.md master table row. */
   readonly id: number;
   /** Display name. */
   readonly name: string;
@@ -636,6 +636,20 @@ export const CRADLES: readonly Cradle[] = [
     candidateLineages: ["S7", "S11", "S3"],
     fingerprint:
       "Built low and heavy, flight and spaceflight brutally expensive, the sky a ceiling more than an invitation; leaving is the hardest thing it will do.",
+  },
+  {
+    id: 41,
+    name: "The century orbit",
+    host: "G or K dwarf; a world flung wide by ancient migration",
+    hostClass: "G",
+    archetype: "Eccentric long-winter world",
+    tier: 5,
+    spawnWeight: "rare",
+    basis: "extrapolated",
+    disputed: false,
+    candidateLineages: ["S17", "S15"],
+    fingerprint:
+      "A year lasts a century: one furious summer, then a dark it must sleep through. Its civilization happens in installments, and it keeps exact calendars.",
   },
 ];
 

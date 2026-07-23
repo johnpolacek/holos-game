@@ -426,6 +426,14 @@ iron, carbon, ice, haze — that occurrence data says exist in quantity.*
 - **Spawn weight:** Common.
 - **Fingerprint:** Built low and heavy, flight and spaceflight brutally expensive, the sky a ceiling more than an invitation; leaving is the hardest thing it will do.
 
+#### 41. The century orbit
+- **Basis:** Extrapolated — a temperate-summer world on a violently eccentric, comet-class orbit, flung wide by ancient planetary migration. Its year lasts roughly a century.
+- **Host star:** G or K dwarf.
+- **Profile:** ~Earth gravity · one brief, furious summer near perihelion, then decades of deep frozen winter · water present, ice-locked most of the year · rotating · middle-aged.
+- **Difficulty:** **V (Brutal).** Every living thing must cross a winter longer than a lifetime; obligate dormancy is the price of existing here. What survives is what keeps the best calendar.
+- **Spawn weight:** Rare.
+- **Fingerprint:** A year lasts a century: one furious summer, then a dark it must sleep through. Its civilization happens in installments, and it keeps exact calendars.
+
 ---
 
 ## Master table
@@ -472,12 +480,13 @@ iron, carbon, ice, haze — that occurrence data says exist in quantity.*
 | 38 | High-obliquity world | G/K | Extreme-seasons world | IV | Extrapolated | Uncommon |
 | 39 | Rogue / geothermal world | none | Starless geothermal | V | Extrapolated | Rare |
 | 40 | Crushing super-Earth | K/G | High-gravity flagship | IV | Extrapolated | Common |
+| 41 | The century orbit | G/K | Eccentric long-winter world | V | Extrapolated | Rare |
 
-**Distribution check.** Tiers: I ×1 · II ×3 · III ×10 · IV ×18 · V ×8. The pool
+**Distribution check.** Tiers: I ×1 · II ×3 · III ×10 · IV ×18 · V ×9. The pool
 skews hard toward Testing/Harsh, exactly as the vision asks — Earth-twins are
 *Very rare*, and the statistically-common world-types (M-dwarf terminators,
 ocean worlds, high-gravity super-Earths, buried oceans) carry the *Common*
-weight. Hosts: M dwarfs dominate (16 of 40, plus several exotic M hosts),
+weight. Hosts: M dwarfs dominate (16 of 41, plus several exotic M hosts),
 matching their ~70% share of real stars.
 
 ---

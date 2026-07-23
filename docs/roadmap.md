@@ -245,11 +245,19 @@ record of that past — rides this same light echo and knowledge layer; thin.)
 
 ### A4 — Expansion
 
-- [ ] **Seedships**: launches with real flight clocks; destination survey.
+- [ ] **Seedships**: launches with real flight clocks; the **forecast
+      survey** — information age at landfall (light-age + transit years)
+      and an honest arrival spread per target class; landfall reports
+      resolve against truth when the flight clock fires
+      (act3-design.md § The forecast).
 - [ ] **Relativistic ships (thin)**: coherent colony founding on real
       flight clocks — the second v1 travel method (bold-scope decision,
       2026-07); onboard-fuel and beam-pushed variants, the beam battery
       bright by design; the seat stays home.
+- [ ] **The mission clock (thin)**: every launch compiles its expected
+      light events — arrival, earliest confirmation, first report — into
+      visible countdowns; silence at a deadline fires a beat
+      (act3-design.md § Missions, *The mission clock*).
 - [ ] **Charters**: the launch-time value function (dial sheet + directives
       + contingencies) — the same `CivSeed` shape, written by the player;
       the recursion made literal.
