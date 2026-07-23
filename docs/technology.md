@@ -1040,7 +1040,7 @@ concept.
 
 Three of this catalog's original open questions are resolved as working
 decisions (the act3-design.md convention: sound, but cheaper to revisit
-now than after implementation). Both follow one posture, recorded here
+now than after implementation). All three follow one posture, recorded here
 because it governs future calls too: **maximum technology choice** — when
 a capability is physics-legal and its price can be made honest, the
 catalog includes it rather than designing it out.

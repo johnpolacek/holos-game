@@ -18,7 +18,10 @@ subject prompts are framing-agnostic and the FRAMING block covers how each crop
 composes. Each subject keys to a stable archetype id; store the two crops as
 `tech/sq/<id>.webp` and `tech/wide/<id>.webp` (the per-entry slug below is the
 shared identity), so the client picks the ratio by layout and resolves art by
-seed with no lookup table beyond the id.
+seed with no lookup table beyond the id. (Each subject line below is tagged
+`→ tech/<id>.webp` — that notation names the plate's identity slug, not a
+file on disk; on disk each plate is stored as the two crops above, under
+`sq/` and `wide/`.)
 
 ---
 

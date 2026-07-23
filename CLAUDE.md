@@ -7,13 +7,22 @@ workflows, and conventions for anyone (human or agent) working in this repo.
 
 - **TypeScript everywhere**, npm workspaces monorepo with two packages:
   - `server/` — [partyserver](https://github.com/cloudflare/partykit)
-    (PartyKit's library form) running as a **Cloudflare Durable Object**.
-    A single `Room` class in `server/src/index.ts` holds **authoritative
-    game state**: each connected player is a colored dot; the server
-    validates/clamps move intents and broadcasts positions to all clients.
+    (PartyKit's library form) running as **Cloudflare Durable Objects**.
+    `server/src/index.ts` still carries the original `Room` class (the A0
+    colored-dot demo — each connected player is a dot; the server
+    validates/clamps move intents and broadcasts positions), now vestigial.
+    The live game is the `Cohort` Durable Object (`server/src/cohort.ts`),
+    the Act 3 slice: it owns the authoritative galaxy, the inheritance
+    ceremony, and the light-delay knowledge layer, with typed catalogs
+    and generation logic in `cradles.ts`, `lineages.ts`, `minds.ts`,
+    `civseed.ts`, `galaxy.ts`, `knowledge.ts`, `clock.ts`, `dials.ts`, and
+    `rng.ts`.
   - `client/` — Vite + Pixi.js. Mobile-friendly: touch/pointer input,
-    responsive full-screen canvas. Connects to the Room over WebSocket via
-    `partysocket` at `/parties/room/:roomName`.
+    responsive full-screen canvas. Boots the Act 3 App (`client/src/app.ts`)
+    — the Model (`model.ts`), the inheritance ceremony (`ceremony.ts`), and
+    the source card (`sourcecard.ts`) — connected to the `Cohort` room over
+    WebSocket via `partysocket` (`net.ts`'s `CohortSocket`) at
+    `/parties/cohort/:roomName`.
 - **One Worker ships both**: the root `wrangler.jsonc` points `main` at the
   server entry and serves the built client from `dist/` as static assets.
   In production the client connects to its own origin — no cross-origin

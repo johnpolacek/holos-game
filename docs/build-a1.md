@@ -7,6 +7,19 @@ scope is [roadmap.md](./roadmap.md) (§ Phase A → A1), which wins on any
 disagreement. [build-a0.md](./build-a0.md) is the previous slice's brief,
 kept as record — A0 is merged and deployed.*
 
+> **Status: A1 shipped, merged to main.** Kept below as a record of the
+> launch brief, not rewritten. Two as-built deviations from the text as
+> originally written:
+>
+> - The wire type is `DetectedSource` (`server/src/protocol.ts`), a strict
+>   narrowing of `ObservedCiv` (`Omit<ObservedCiv, …>` plus a
+>   `DetectedSource`-only field) — tighter than this brief's literal
+>   "`ObservedCiv` crosses the wire" language below; the no-leak discipline
+>   is unchanged, just enforced through a narrower wire shape.
+> - `galaxy.ts` no longer pre-places a player civ at seed time; placement
+>   now happens at inheritance (`server/src/cohort.ts`'s
+>   `pickPlayerHome`), as this brief intended.
+
 ---
 
 ## Orchestration

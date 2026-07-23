@@ -133,14 +133,17 @@ the sref, paste the **short brief** in place of the full one below:
 ## Screen prompts
 
 *Grouped by act below. Screen numbers are stable — they're referenced in
-*Notes for the set* and in [`concepts/`](./concepts/README.md) filenames —
-so the groups never renumber them. Build-order note: the roadmap now runs
+*Notes for the set* — so the groups never renumber them. (`concepts/`
+filenames use their own group-sequence numbers, not these screen numbers;
+[concepts/README.md](./concepts/README.md)'s status table maps each
+filename to its screen.) Build-order note: the roadmap now runs
 **Act 3 first** ([roadmap.md](./roadmap.md), Phase A), so the **Act 3
-groups (screens 7–15) are the active shot list**, plus one new ask — the
+groups (screens 7–15) are the active shot list**, plus screen 16 — the
 **inheritance ceremony** (session zero for Act-3-first: a card presenting
 a generated civilization's world, lineage, dial sheet, and charter to
-accept and name). The Act 1 / pivot / Act 2 groups belong to Phase B and
-can wait.*
+accept and name) — and screen 17, the home system (present tense),
+adopted alongside it. The Act 1 / pivot / Act 2 groups belong to Phase B
+and can wait.*
 
 ### Style & components · all milestones
 

@@ -359,6 +359,13 @@ Load-bearing literals. Style passes must not rewrite them for wit or flow.
 | Color rule | cyan = you / HOME (present tense); amber = other / belief. Prose must never call HOME amber or a source cyan. |
 | House coinages | `Teeming Dark`, `Dark Node`, `Signature`, `the Vault`, `the Model`, `the Ledger`, `Visibility Collapse`, `cradle`, `charter`, `the Refusal` / `Refuser`, `the harness` / `harnessed intelligence`, `the Breakout`, `grave world`, `the Crossing`, `the Chronicle` |
 
+**Display note on the pinned dial labels.** The UI may render the pinned
+in-world dial labels in display form — all-caps with an em dash (e.g.
+`REACH — DEPTH`) or an unspaced middot (`Reach·Depth`) — for chrome
+typography. The pinned form above, spaced middot (`Reach · Depth`),
+governs prose; R-2's byte-exact rule applies to prose, not to display
+typography.
+
 **Capitalization families.** Named events and singular artifacts take a
 capital, like `the Vault` and `the Model`: `the Refusal` (and its agent, the
 `Refuser`), `the Breakout`, `the Crossing`, `the Chronicle`. Ambient common

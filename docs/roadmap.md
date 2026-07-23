@@ -68,17 +68,27 @@ light-delay knowledge layer (`knowledge.ts` — `observeCiv`/`observeSky`,
 with `ObservedCiv` as the *only* shape about another civ that may ever
 cross the wire), and a `Cohort` Durable Object (`cohort.ts`) owning truth,
 clock, and an alarm-driven event queue, exposed through **local-dev-only
-endpoints**. `protocol.ts` is deliberately untouched — the first real wire
-messages land with A1.
+endpoints**.
 
-**→ Next to build: [A1 — the Sky](#a1--the-sky)** — the first
-player-facing Act 3 slice: inherit a civilization, see the past.
+**A1 is merged and deployed too.** `protocol.ts` now carries the first
+real Act 3 wire messages (the cohort join/inheritance flow, sky
+snapshot, source detail), landed as part of A1. Cohort inheritance —
+session zero, candidate civs, name + BECOME — replaces A0's pre-placed
+player civ, placing the chosen civ at inheritance time
+(`server/src/cohort.ts`'s `pickPlayerHome`). The client boots the Model
+(`client/src/model.ts`), the inheritance ceremony
+(`client/src/ceremony.ts`), and the observatory/source card
+(`client/src/sourcecard.ts`).
+
+**→ Next to build: A2 — Contact.** Its launch brief doesn't exist yet
+(the just-in-time model: `build-a2.md` is written when the slice starts,
+shaped by what A1 taught).
 
 Each slice gets a just-in-time **launch brief** — a thin `build-*.md` wrapper
-(read-list, task, done-when, guardrails) that points back here for spec. The
-current one is [build-a1.md](./build-a1.md) (build-a0.md is done and kept
-as record); the next is written when its slice starts, shaped by what the
-last one taught. Slices are built with **Fable orchestrating Opus (deep-reasoner) and Sonnet
+(read-list, task, done-when, guardrails) that points back here for spec.
+`build-a0.md` and `build-a1.md` are both done and kept as record; the next
+(`build-a2.md`) is written when its slice starts, shaped by what the last
+one taught. Slices are built with **Fable orchestrating Opus (deep-reasoner) and Sonnet
 (fast-worker) subagents** (CLAUDE.md § Build orchestration).
 
 ---
@@ -169,12 +179,12 @@ its light?" for any of them.
 The first player-facing Act 3 build: open the URL, inherit a civilization,
 see the past.
 
-- [ ] **Inheritance session zero**: present 2–3 generated civilizations —
+- [x] **Inheritance session zero**: present 2–3 generated civilizations —
       each a card with its world's fingerprint, its lineage, its dial sheet
       *revealed* — choose one, name it, accept its charter as your founding
       document (the ceremony that makes it *yours*). Reuses the
       world-reveal card pattern and renders from the `CivSeed`.
-- [ ] **The Model (v1 core)**: the continuous camera (system → sky →
+- [x] **The Model (v1 core)**: the continuous camera (system → sky →
       volume), the pull-back beat, the point-cloud backdrop, sources
       rendered with **light-age everywhere** and **uncertainty as fuzz**
       (act3-map.md § Scope). WebGL point cloud beside Pixi; DOM for text.
@@ -183,7 +193,11 @@ see the past.
       with instrument time against the target's mask — the live
       mask-versus-instrument contest, thin from day one (technology.md
       § Working decisions); source cards with local naming.
-- [ ] AI civs as **static emitters** for now — warm masses, leakage,
+      **(unbuilt — scope decision pending: backfill into A1 or move to
+      A2)** — shipped: signal classes, belief + confidence, source cards
+      with local naming (`client/src/sourcecard.ts`); not shipped: the
+      mask-versus-instrument sharpening contest itself.
+- [x] AI civs as **static emitters** for now — warm masses, leakage,
       biosignatures to classify; behavior arrives in A2/A5.
 
 **Done when:** a new player inherits and names a civilization, pulls back
