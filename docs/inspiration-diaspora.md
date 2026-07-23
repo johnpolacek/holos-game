@@ -413,6 +413,12 @@ correspondent thinks ten letters between yours.
 
 ### 6. The closed biosphere
 
+**Status: rejected (2026-07).** Declined as too much of a one-off — a
+single showpiece world rather than a repeatable content class; no
+catalog seed, no Assay variant, no asterisk rule joins the design. The
+entry stands as record and as a sourcebook note for beat writers if a
+living-world beat ever wants the unaddressable-mind texture.
+
 **In the book.** The thousand skies yield one living world, and the
 find is the genre's best alien: ocean life that is, structurally, a
 computation — and the computation is running *something else*, a rich
@@ -599,7 +605,7 @@ systems. Sizes are proposals, pending the review verdicts.
 | 4 | Self-binding | Dial ranges, resistance math, charters (A4), Coherence | **Rejected (2026-07)** — no vow mechanic; identity holds by conversation, not locks | — |
 | 1 | The clade spectrum | act3-civilizations catalog, A5 seeding, signal classes | **Adopted (2026-07)** — act3-civilizations.md § The other stances | Four catalog seeds + beats |
 | 8 | The interior camera | The Model, observatory, project completions | Post-A3 parity work; report vocabulary any time | Medium (presentation only) |
-| 6 | The closed biosphere | `LIVING WORLD`, the vigil (A2), the Assay | Later content; beat class with missions | One catalog seed + beats |
+| 6 | The closed biosphere | `LIVING WORLD`, the vigil (A2), the Assay | **Rejected (2026-07)** — too much of a one-off | — |
 | 7 | The sentience line | Charters, mission roster, compensation menu | Mission system layer | Charter vocabulary + beats |
 | 9 | The burst + the rescue | Anomaly class, light echo, three defenses | Later-galaxy anomaly content | Anomaly seeds + beat class |
 | 10 | The completed civilization | Chronicle, Vault, light echo, grave worlds | Later-galaxy content; the Restoration question | Convention + catalog content |
