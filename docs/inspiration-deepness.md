@@ -177,6 +177,10 @@ pays its agents versus what it does to them.
 
 ### 4. Code older than nations
 
+**Status: rejected (2026-07).** No dormant clauses, no lineage keys, no
+charter-audit project — charters stay fully legible instruments, as
+designed. The entry stands as record.
+
 **In the book.** Software is millennia deep; nobody writes fresh; the
 skilled trade is *archaeology* — digging functionality out of layers
 older than any living polity. And the fleet's founder spent centuries
@@ -390,7 +394,7 @@ or specced machinery, per the rule that entries ride existing systems.
 | 7 | Interpretive layer, the lurk, rival watchers | The vigil (A2), signal classes, Assay | **A2** — the vigil-as-activity gap is on the contact loop's critical path | Design work now |
 | 9 | Light-cone authentication | Verification challenges, knowledge layer | A2 thin (one challenge class), grows with correspondence | Small mechanic |
 | 1 | Library broadcast + protocol adoption | Light echo (A3), payload stack | **Rejected (2026-07)** | — |
-| 4 | Sealed clauses + lineage keys | Future-dated epochs (shipped), charters (A4), Ledger | A4 thin (one sealed-clause slot); full with missions | Medium |
+| 4 | Sealed clauses + lineage keys | Future-dated epochs (shipped), charters (A4), Ledger | **Rejected (2026-07)** | — |
 | 2 | Forecast play | Forecast survey (A4), young worlds (A5) | **Adopted (2026-07)** — act3-design.md § The forecast; A4–A5 | Medium |
 | 10 | Calendars as character | Chronicle | Content-only, alongside A3's Chronicle | Trivial |
 | 5 | Dust veil | technology.md instrument shelf | Catalog entry; mechanics post-v1 | One catalog entry |
