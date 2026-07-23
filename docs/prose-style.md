@@ -355,9 +355,33 @@ Zones? of Thought
 Slow Zone
 ```
 
+### Third source: Schroeder (*Lockstep*)
+
+The same rule governs Karl Schroeder, reviewed as a candidate third
+touchstone in [inspiration-lockstep.md](./inspiration-lockstep.md):
+craft borrowed, coinages never. One term per line, regex-friendly; the
+*concept* ban and N-4 near-variant discipline apply as above.
+
+```
+\block.?step\b         # the title coinage as an in-world name; the netcode sense (deterministic simulation) is innocent in code commentary
+cicada.?bed
+\bdenner(s)?\b
+McGonigal
+Toby Wyatt
+\bEvayne\b
+\bCorva\b
+\bThisbe\b             # the world; Ovid's Thisbe stays legal
+\bLowdown\b            # the world sense; lowercase "the lowdown" idiom OK
+\bjubilee\b            # as the in-world name of the aligned-calendar event; plain English jubilee OK
+Emperor of Time
+```
+
+Plus the remaining world names of the novel and any near-variant (N-4).
+
 **Allowlist:** `docs/vision.md`'s analytical Banks citations;
-`docs/inspiration-deepness.md`'s analytical Vinge citations; this guide
-itself; innocent senses disambiguated in the comments above.
+`docs/inspiration-deepness.md`'s analytical Vinge citations;
+`docs/inspiration-lockstep.md`'s analytical Schroeder citations; this
+guide itself; innocent senses disambiguated in the comments above.
 
 ---
 
