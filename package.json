@@ -12,7 +12,8 @@
     "typecheck": "npm run typecheck --workspaces",
     "build": "npm run build --workspaces",
     "art:manifest": "node scripts/build-art-manifest.mjs",
-    "icons": "node scripts/build-icons.mjs"
+    "icons": "node scripts/build-icons.mjs",
+    "og": "node scripts/build-og.mjs"
   },
   "devDependencies": {
     "sharp": "^0.34.5",
