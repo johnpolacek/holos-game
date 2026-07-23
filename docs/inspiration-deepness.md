@@ -36,6 +36,16 @@ skeleton awaiting texture. These are exactly the places where a second
 literary source would pay best — and it happens that the four of them are
 the four places where *A Deepness in the Sky* is richest.
 
+**Review outcome (2026-07).** All ten steals were evaluated with the
+designer; each entry below carries its verdict. Adopted: the forecast
+(2), the dust veil (5), cradle 41 (6), shared vigils (7, part), the
+mission clock (8, transformed), light-cone verification (9), and the
+three registers of time (10). Rejected: protocol adoption (1), the
+yoked harness (3), and sealed clauses (4) — the pattern in the verdicts
+is consistent and worth keeping: *derived quantities, catalog content,
+and named rules were taken; new stored state and codified social
+systems were not.*
+
 That is the thesis of this document. The vision already names Iain M.
 Banks as the touchstone for the galaxy's *character spectrum* — what kinds
 of mind fill the sky. Vinge is the complementary source: the touchstone
