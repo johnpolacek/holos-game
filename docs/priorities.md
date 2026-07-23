@@ -72,8 +72,15 @@ The untagged rows are new design space.
   archive to whoever comes after. *(The Herald)*
 - **Star husbandry** — engineer for the 10⁹-year horizon: lift stellar
   mass, bank fuel, prepare for cosmological winter.
-- **Exit** — leave the game board entirely: new physics, time dilation,
-  tunneling out of the observable; the priority of not being *here*.
+- **Withdrawal** — be as gone as physics permits without leaving the
+  board: sleep through the expensive eras in the cold berth, ride
+  relativistic dilation forward past them, turn so far inward that the
+  outside barely registers (the H-scale asymptote). The priority of not
+  being *here* — cashed out as the Teeming Dark's deepest silence, not an
+  exit ramp. (There is no leaving: no new physics, no tunnelling out of
+  the observable; the anti-catalog's one refusal that is load-bearing is
+  that civilizations go quiet, and quiet is a place in the game — see
+  technology.md, *The anti-catalog*.)
 
 ## The mechanical implication (if adopted)
 
