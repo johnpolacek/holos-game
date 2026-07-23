@@ -185,7 +185,11 @@ projects with real-time flight clocks:
   The default expansion tool and the v1 method.
 - **Relativistic ships** push *a coherent self*: brutally expensive
   (energy-ladder gated), subjectively fast, objectively slow — the
-  traveler arrives displaced into an unplanned future.
+  traveler arrives displaced into an unplanned future. Two fuel
+  postures, both in play: onboard fuel (independent, dearest) and
+  beam-push from a home battery (cheaper, and the traveler exists at
+  the pleasure of whoever runs the beam — technology.md, *Working
+  decisions*).
 - **Transmission** pushes *pattern* at lightspeed — but requires a
   **receiver** already standing at the destination.
 
@@ -720,13 +724,21 @@ endgame's mechanical layer later, per the vision's roadmap.
 
 ## v1 scope
 
-Per the vision's v1 slice — prove the pivot and the contact loop:
+Per the vision's v1 slice — prove the pivot and the contact loop.
+**Working decision: the v1 scope posture is bold** (2026-07) — where a
+call is borderline, take the bolder inclusion; the slice must still ship.
 
 - One cohort of human players + a seeded AI spectrum (rule-based)
-- The Sky report and observatory with the five v1 signal classes
+- The Sky report and observatory with the five v1 signal classes;
+  classification confidence runs on the mask-versus-instrument contest
+  from day one — thin, but a live economy, never fixed stealth grades
+  (technology.md, *Working decisions*)
 - Light echo tracking (emission history, per-observer views; the seed
   Chronicle already ships as the inherited civ's legible history)
-- One expansion method: seedships/probes, with charters and basic drift
+- Two expansion methods: seedships/probes with charters and basic drift,
+  and relativistic ships — coherent colony founding on real flight
+  clocks, onboard-fuel or beam-pushed (technology.md, *Working
+  decisions*); the seat still does not travel in v1
 - Light-lag messaging: directed hail, broadcast, correspondence
 - Sleep with basic tripwires and notifications
 - No strikes, no seat transfer (single node in v1 — the seat rule's full

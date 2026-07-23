@@ -180,7 +180,9 @@ see the past.
       (act3-map.md § Scope). WebGL point cloud beside Pixi; DOM for text.
 - [ ] **The observatory (thin)**: the five signal classes
       (act3-design.md), classification as belief + confidence, sharpening
-      with instrument time; source cards with local naming.
+      with instrument time against the target's mask — the live
+      mask-versus-instrument contest, thin from day one (technology.md
+      § Working decisions); source cards with local naming.
 - [ ] AI civs as **static emitters** for now — warm masses, leakage,
       biosignatures to classify; behavior arrives in A2/A5.
 
@@ -230,6 +232,10 @@ record of that past — rides this same light echo and knowledge layer; thin.)
 ### A4 — Expansion
 
 - [ ] **Seedships**: launches with real flight clocks; destination survey.
+- [ ] **Relativistic ships (thin)**: coherent colony founding on real
+      flight clocks — the second v1 travel method (bold-scope decision,
+      2026-07); onboard-fuel and beam-pushed variants, the beam battery
+      bright by design; the seat stays home.
 - [ ] **Charters**: the launch-time value function (dial sheet + directives
       + contingencies) — the same `CivSeed` shape, written by the player;
       the recursion made literal.
@@ -325,8 +331,9 @@ pivot reveal) wait.
 
 ## Explicitly out of v1
 
-Unchanged (vision roadmap + per-act scopes): the full travel menu and
-self-transmission + the seat's full form; human-inheritance of *diverged
+Per the vision roadmap + per-act scopes (v1 posture is bold — relativistic
+ships moved *into* v1 above; these stay out): self-transmission + the
+seat's full form; human-inheritance of *diverged
 in-game colonies* (v1 inherits *generated* civs; the drifted-colony
 handoff needs the drift system matured); the conflict/deterrence layer;
 the mission system (agents, veterans, mission charters, vignette

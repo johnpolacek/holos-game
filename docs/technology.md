@@ -1000,11 +1000,16 @@ a beam battery called `Louder Than Necessary` is exactly the register.
 
 ## How this feeds v1, and scope discipline
 
-The catalog is content over existing systems, and almost all of it is
-deliberately later-layer (vision.md roadmap: *megascale engineering and
-the entropy and energy tech tree*). The v1 slice per act2-design.md (~9
-projects: 3 bright, 4 dark, 2 instruments) draws directly from these
-shelves:
+**The v1 scope posture is bold** (working decision, 2026-07): where a
+scope call is borderline, v1 takes the bolder inclusion. Scope discipline
+(vision.md) still holds — the slice must ship — but within the slice the
+lean is toward more of the catalog live sooner, priced honestly, rather
+than a minimal core grown cautiously.
+
+Much of the catalog remains deliberately later-layer (vision.md roadmap:
+*megascale engineering and the entropy and energy tech tree*). The v1
+slice per act2-design.md (~9 projects: 3 bright, 4 dark, 2 instruments)
+draws directly from these shelves:
 
 - **Bright ×3:** collector swarm stages, high-output industry,
   star-lifting (as the late-act flex).
@@ -1013,10 +1018,14 @@ shelves:
   (the Signature-reduction project).
 - **Instruments ×2:** deep arrays (the Act 2 telescope line), and the
   survey that becomes Act 3's destination survey.
-- **Act 3 v1 additions, already scoped:** seedships with charters,
-  directed hail / correspondence (phase-coherent beams and the payload
-  stack as fiction over the existing message mechanics), sleep with
-  tripwires.
+- **Act 3 v1 additions:** seedships with charters; **relativistic ships**
+  (bold-scope addition — coherent colony founding on real flight clocks,
+  onboard-fuel and beam-pushed variants, the battery bright by design;
+  the seat still does not travel in v1); directed hail / correspondence
+  (phase-coherent beams and the payload stack as fiction over the
+  existing message mechanics); sleep with tripwires; and the
+  mask-versus-instrument contest running classification confidence from
+  day one — thin, but a live economy, never fixed stealth grades.
 
 Everything else — stellar engines, the black-hole tap, gravitational-lens
 observatories, sentinel probes as playable instruments, receivers and
@@ -1027,23 +1036,46 @@ concept.
 
 ---
 
-## Open questions
+## Working decisions
 
-- **The mask-versus-inference arms race.** Masks (§II) and deep arrays
-  (§III) are opposite ends of one system. Open: whether mask quality and
-  instrument quality should be tunable against each other as a real
-  economy in v2+, or whether masking stays a posture with fixed grades.
-  The dark forest's dread depends on this balance more than on any weapon.
-- **Beam batteries and consent.** Externally-pushed relativistic sail
-  travel makes the *emitter* a piece of shared infrastructure — a
-  civilization can strand a traveler mid-flight by going quiet. Whether
-  that lever enters play (a betrayal with no analog in the current
-  design) or is designed out (onboard-fuel only) is unresolved.
-- **The tap as a commons.** Black holes are rare, fixed landmarks.
-  Whether a fed hole can be *shared* — two lineages drawing on one drain
-  — or contested without the deferred conflict layer is open; it may be
-  the first genuinely scarce location in a game that otherwise refuses
-  scarcity of space.
+Three of this catalog's original open questions are resolved as working
+decisions (the act3-design.md convention: sound, but cheaper to revisit
+now than after implementation). Both follow one posture, recorded here
+because it governs future calls too: **maximum technology choice** — when
+a capability is physics-legal and its price can be made honest, the
+catalog includes it rather than designing it out.
+
+- **Masking is a contest, never a setting.** The mask-versus-inference
+  arms race is a live economy: mask quality and instrument quality are
+  opposing, open-ended investments, and neither side ever reaches
+  certainty — an empty patch of sky stays permanently ambiguous, which
+  is the condition the Teeming Dark and the deterrence layer both need.
+  The player-facing guard is presentational, not mechanical: the
+  observatory reports beliefs with confidence levels, never the
+  underlying contest math, so the race stays legible without becoming
+  solvable. v1 ships the contest in embryo (below); the full economy
+  deepens with later layers.
+- **Beam batteries are in, lever included.** Relativistic flight ships
+  in both flavors — onboard fuel and home-system beam-push — and the
+  emitter dependency enters play as a feature: a pushed traveler exists
+  at the pleasure of whoever runs the beam. While batteries push only
+  their owner's sails the lever stays domestic; when infrastructure
+  sharing arrives, pushing another civilization's ship becomes a trust
+  relationship exactly parallel to receivers — and going quiet
+  mid-flight becomes the betrayal with the longest fuse in the game.
+- **The tap is unowned — contests play out.** Black holes ship as what
+  physics makes them: rare, fixed, visible landmarks holding the best
+  power in the game — with no ownership, sharing, or exclusivity
+  mechanic layered on top. When two lineages want the same drain, the
+  existing systems are the resolution: a fed disk publishes its feeding
+  schedule to every watcher, letters carry the promises, nothing
+  enforces them, and the deterrence layer eventually prices the greed.
+  Emergence over architecture — deliberately under-built. If play
+  produces recurring patterns (de facto sharing etiquette, tap
+  standoffs, drain squatting), those patterns earn mechanics *after*
+  they appear, not before.
+
+## Open questions
 - **Sentinel ethics as a beat family.** A sentinel watching a living
   world is the Custodian ↔ Instrumental dial in its purest form and
   probably deserves its own beat class (the watcher's log as recurring
