@@ -293,6 +293,19 @@ decision with real time in it:
 goods), verification challenges — and **coordinates of third parties**,
 the currency of betrayal.
 
+**A verification challenge is a question about light.** Identity is
+proven by proving what light a worldline has seen: *what did the
+year-4406 flare of our star look like from where you claim to have
+been, and when did it arrive?* Only a civilization that actually stood
+where that light fell can answer — a voice, a format, a history can be
+worn, but the sky publishes every event outward on a strict schedule,
+and the knowledge layer already adjudicates what any observer's light
+has included. Each challenge round-trips at lightspeed, so testing a
+suspicious correspondent is a project measured in years; where it
+matters first is the Ledger's own family — *is this our colony
+answering, or something wearing it?* No new machinery: deception is
+native to the light echo, and this is its one honest countermeasure.
+
 **Nothing is enforceable.** A treaty is a promise held up by two minds'
 natures and nothing else; a betrayal is already in flight before it can be
 detected. Relationship states (correspondence, accord, silence, threat)

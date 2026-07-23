@@ -359,6 +359,13 @@ mechanics that already exist.
 
 ### 9. The legend, broadcast
 
+**Status: adopted, slim (2026-07).** One paragraph in
+act3-design.md § Contact defines verification challenges physically —
+a question about claimed light, adjudicated by the knowledge layer,
+round-tripping at c. No impersonation system, no challenge catalog;
+the impersonation half of this entry (which leaned on the rejected
+steal 1) is not taken.
+
 **In the book.** The trading culture's most valuable cargo is its own
 myth — a reputation deliberately broadcast for centuries, worth more
 than any hold's contents, and, in the founding-era backstory, weaponized:
@@ -417,7 +424,7 @@ or specced machinery, per the rule that entries ride existing systems.
 |---|---|---|---|---|
 | 6 | Dormancy cradle | `cradles.ts` + act1-cradles.md sync | **Adopted (2026-07)** — cradle 41, The century orbit | One catalog row |
 | 7 | Interpretive layer, the lurk, rival watchers | The vigil (A2), signal classes, Assay | **Split (2026-07)** — rival watchers adopted (act3-design.md, *Shared vigils*); the rest declined | Seeding note + beats |
-| 9 | Light-cone authentication | Verification challenges, knowledge layer | A2 thin (one challenge class), grows with correspondence | Small mechanic |
+| 9 | Light-cone authentication | Verification challenges, knowledge layer | **Adopted, slim (2026-07)** — one defining paragraph in act3-design.md § Contact | One paragraph |
 | 1 | Library broadcast + protocol adoption | Light echo (A3), payload stack | **Rejected (2026-07)** | — |
 | 4 | Sealed clauses + lineage keys | Future-dated epochs (shipped), charters (A4), Ledger | **Rejected (2026-07)** | — |
 | 2 | Forecast play | Forecast survey (A4), young worlds (A5) | **Adopted (2026-07)** — act3-design.md § The forecast; A4–A5 | Medium |
