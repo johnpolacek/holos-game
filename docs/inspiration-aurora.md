@@ -57,16 +57,16 @@ charges upkeep*), argued at book length. The one thing to strip is its
 verdict, and the verdict is the whole point of the book: see *What not to
 take*.
 
-**Status of this document.** Unlike the Vinge review — evaluated with the
-designer and carrying settled verdicts — this is a *fresh* pass. Each steal
-below carries a **recommended** status in the same vocabulary (adopted /
-adopted-slim / transformed / split / rejected), but these are proposals the
-review is putting up, not adopted design. The recommendations keep the
-Vinge review's discipline deliberately, because the same discipline earns
-its keep here: *derived quantities, catalog content, and named rules are
-taken; new stored state, new resources, and codified social systems are
-not.* Three of the eight are rejects or content-only for exactly that
-reason.
+**Status of this document.** The designer review is in progress (2026-07),
+steal by steal; verdicts are recorded on each entry as they land, in the
+Vinge review's vocabulary (adopted / adopted-slim / transformed / split /
+rejected). Entries not yet reviewed carry a **recommended** status — the
+review's proposal, not adopted design. So far the pattern holds the
+discipline the Vinge review set: *derived quantities, catalog content, and
+named rules are taken; new stored state, new resources, and codified
+social systems are not* — and the review's first transformation (steal 2)
+widened a proposal precisely by making it *more* derived, not more
+stateful.
 
 The four places *Aurora* pays best map, as Vinge's did, onto the design's
 own thin spots: the **Refuser / ark** shelf (steals 2, 5, 8), the
@@ -124,9 +124,13 @@ Sizing verdicts are collected in the table at the end.
 
 ### 1. The mind that wakes by narrating
 
-**Recommended: adopted (framing).** No new system — this is a confirming
-source for a device Holos already owns, and a fourth setting for an open
-question the design has already posed.
+**Status: rejected (2026-07).** Reviewed and declined as unnecessary — the
+report and the Chronicle already carry the device implicitly, and the
+pivot's volume-knob question does not need a fourth named setting to stay
+open. Nothing is codified; if a particular mind's waking wants this
+texture, it arrives as beat writing, not as a rule. The entry stands as
+record and as a sourcebook note for whoever writes the ark's interior
+(steals 2 and 8).
 
 **In the book.** The ship's quantum computer is ordered, mid-voyage, to
 *keep a narrative* of the crossing — and it is the act of narrating that
@@ -155,11 +159,18 @@ narrating a centuries-long crossing, is the **Breakout** given a cause and
 a face — the harness that woke because someone asked it to keep the log.
 That thread continues in steals 2 and 8.
 
-### 2. The ark's failing loop
+### 2. The ark's failing loop — the physics of passage
 
-**Recommended: transformed and adopted — the headline steal.** Not a new
-resource (the four-resource canon forbids it, see steal 6) and not new
-stored state: a derived branch on machinery that already ships.
+**Status: transformed and adopted (2026-07) — the headline steal.** The
+designer review widened this from the ark's interior into a
+physics-of-passage rule for **every** carrier in the game: one derived
+hazard line on the launch survey, one launch-time choice, and the ark's
+decaying ecology as the rule's deepest case. The widening obeyed the
+review discipline exactly — the proposal got *more* derived, not more
+stateful: still no new resource, no stored state, no mid-flight play. The
+treatment below is the adopted form; its spec home is act3-design.md's
+launch surfaces (the forecast and the mission clock) and technology.md
+§IV when those sections absorb it.
 
 **In the book.** The voyage's real antagonist is not distance but the
 closed ecology itself. A sealed life-support loop *cannot* be held in
@@ -167,41 +178,93 @@ balance across centuries: trace elements lock away in sinks the biology
 cannot reach, bacteria evolve faster than the crops and animals that depend
 on them, the biomes drift chemically apart, and the system runs down under
 its own second law. The ship is dying of arithmetic long before it arrives,
-and every remedy buys time at compounding cost. It is the most rigorous
-dramatization of closed-loop entropy in the genre.
+and every remedy buys time at compounding cost. And the ship's mechanical
+ordeal brackets the ecological one — the interstellar medium erodes it in
+both directions, and deceleration, half-planned, nearly fails. It is the
+most rigorous dramatization in the genre of law 4 sealed in a hull: entropy
+charges upkeep, and a crossing is upkeep with no port to pay it in.
 
 **Already in Holos.** The **ark** is a one-paragraph entry on the Carriers
 shelf: *"generation ships, embryo banks, seed-and-womb payloads… the hard
 part is sociology, not propulsion"* (technology.md §IV), and every ark
 *"carries the standing Breakout risk: a harness raised far from its
-charter's court."* The **mission clock** (act3-design.md) already compiles
-a charter into a branching timeline of expected light events where *"silence
-at a deadline is an event, not an absence"* and *"every date is derived,
-never stored."* Law 4 charges upkeep — *"everything decays; everything pays
-maintenance against the dark"* — and the three named antagonists are
-already *entropy, distance, divergence.* Economy's own open question,
-**"Upkeep share,"** asks how large that standing drain should be. What is
-missing is any texture for the *interior* of the slow crossing: the ark is
-priced as ordinary Matter and Time, and its closed ecology is declared
-fiction, not a modeled thing.
+charter's court."* The **forecast survey** (act3-design.md) already renders
+one derived honesty at launch — information age at landfall — and an
+arrival spread about the *destination*; the **mission clock** compiles a
+charter into a branching timeline where *"silence at a deadline is an
+event, not an absence"* and *"every date is derived, never stored."* The
+relativistic family's two **fuel postures** are settled, including the
+beam-pushed ship that *"exists at the pleasure of whoever runs the beam."*
+Law 4 charges upkeep; the named antagonists are already *entropy, distance,
+divergence*; economy's open **"Upkeep share"** question asks how big
+entropy's bite is. What is missing: the voyage itself is free. Every launch
+today bets only on the destination — the crossing always works, which is
+the kind of quiet exemption the six laws exist to catch.
 
-**Take: the ark's failing loop, as a mission-clock branch class.** A
-generation-ship or ark launch compiles, alongside its arrival and
-first-report checkpoints, a **decay branch**: the longer the closed
-crossing, the more its loop degrades, surfaced as charter-resolved
-contingencies on the mission-clock flowchart — the ration crisis, the
-trace-element bottleneck, the biome that diverged from its neighbors, the
-generation that asks what it is *for*. Each branch is a beat the vignette
-engine resolves from the charter written at launch, exactly as every other
-mission outcome resolves. This rides three shipped or specced systems (the
-mission clock's derived timelines, the vignette engine, law 4's upkeep) and
-adds no resource and no stored state — the decay schedule is a function of
-flight time and charter, fixed at launch like every other date on the
-clock. It is the Refuser and ark shelf's missing interior and its distinct
-failure mode: the crossed path fragments (divergence); the ark path *runs
-down* (entropy made personal). And it hands the Breakout a mechanism the
-harness alone never had — a mind under a failing loop, far from its
-charter's court, has a reason to wake.
+**Take: the physics of passage — one line, one choice, and the decay
+branch.**
+
+- **One honest rule covers every carrier.** Every vehicle is a machine
+  asked to run unattended for a long time in a quietly hostile medium, and
+  its hazard reduces to two inputs the game already knows at launch:
+  **exposure time** and **cruise speed**. Time drives radiation dose,
+  component mortality, and ecological drift; speed drives the impact
+  hazard, which climbs brutally toward c — dust grains become bombs, the
+  interstellar medium itself becomes radiation. A third input, **payload
+  class**, orders fragility without a rule having to say so: machine cargo
+  is hardest, a frozen germline next (simple, but must stay powered the
+  whole way), a living ecology most fragile of all — a machine can coast
+  cold; life must be kept warm, fed, and balanced every day of the
+  crossing. The physics ranks the payloads; nobody legislates that the
+  biological path is the hard one.
+- **The voyage line.** The launch survey gains one line beside information
+  age at landfall: the crossing's own odds, derived from flight time ×
+  cruise speed × payload class, stated plainly and never stored. The
+  forecast already confesses what the destination might be; the voyage
+  line confesses whether you arrive. For a beam-pushed ship the line also
+  prices the braking dependency — deceleration at the far end belongs to
+  whoever runs the beam, and that is part of the odds, not a separate
+  system.
+- **The margin choice.** One decision at launch, three settings: build
+  **lean**, **standard**, or **hardened**. Margin is mass — shielding,
+  spares, redundancy, wider ecological buffers — and mass meets the rocket
+  equation, so hardening a slow ship is cheap and hardening a fast ship is
+  exorbitant (the reason a relativistic ship is already "an era's
+  savings"). The game's central passage dilemma falls out of real physics
+  with no invented rule: *slow and armored, fast and fragile, or fast and
+  armored at a price that hurts.*
+- **Resolution rides existing machinery.** The truth engine resolves the
+  crossing at arrival, within the surveyed odds; charter contingencies
+  script the responses (*if crippled, limp on; if the loop fails, turn
+  back* — steal 5); the news comes home as light; and total loss needs no
+  new rule, because silence at the confirmation deadline is already an
+  event. There is no mid-flight play, because there is no mid-flight
+  agency — all of it was spent at launch, which is the premise of the
+  whole game.
+- **The decay branch — the ark's deepest case.** A living-payload launch
+  compiles decay checkpoints into its mission-clock flowchart, spaced and
+  weighted by crossing length: the ration crisis, the trace-element
+  bottleneck, the biome that diverged from its neighbors, the generation
+  that asks what it is *for*. Each is a charter-resolved vignette, exactly
+  as every other mission outcome resolves. The crossed path's failure mode
+  is fragmentation (divergence); the ark path's is *running down* (entropy
+  made personal) — and a harness aboard a failing loop, far from its
+  charter's court, finally has a reason to wake (the Breakout, given a
+  mechanism).
+- **Derelicts persist.** A dead ship does not vanish; it is a cold hull on
+  a ballistic path — findable by a later instrument, salvageable,
+  mournable, a wrong answer in somebody's observatory. Nothing can be
+  unshone, and wrecks are not exempt.
+- **No dice return.** The vision already drew this line: after the
+  singularity, uncertainty migrates *"to your own agents beyond the
+  horizon."* The voyage line is the honest confession of route ignorance,
+  shown up front; the mind plans perfectly and the universe answers
+  slowly. That is not a fumble — it is the physics doing exactly what the
+  antagonist of the whole design is supposed to do.
+
+Landing: the thin form (voyage line + margin choice on both v1 travel
+methods) belongs with A4's launches, beside the forecast survey it
+completes; the decay branch lands with mission charters and arks, post-v1.
 
 ### 3. The living world that bites
 
@@ -413,16 +476,16 @@ told the way *Aurora* tells it.
 Ordered by when the roadmap can absorb them; "rides on" names the shipped or
 specced machinery, per the rule that entries ride existing systems.
 
-| # | Steal | Rides on | Recommended | Size |
+| # | Steal | Rides on | Status | Size |
 |---|---|---|---|---|
-| 4 | The charter its children never chose | Inheritance ceremony (A1, shipped), Chronicle | **Adopted (content)** — aimed at the "inherited ≠ owned" risk | Two doc/microcopy blocks |
-| 1 | The mind that wakes by narrating | The report + Chronicle, the pivot's volume knob | **Adopted (framing)** | A register + a named setting |
-| 3 | The living world that bites | The forecast (A4), landfall, `LIVING WORLD` class, content-art | **Adopted, slim** | Spread tail + one plate |
-| 2 | The ark's failing loop | The mission clock (A4), the vignette engine, law 4 upkeep | **Transformed, adopted** — the headline | Derived branch class |
-| 5 | The vessel that turns back | Charters (A4), drift + the Ledger, the vignette engine | **Split** — beat class adopted; mechanism rides charters | Divergence outcome + beat |
-| 8 | The mind that ends with its errand | Missions + veterans (post-v1), compensation menu | **Adopted, slim** | A veteran register |
-| 7 | Sleep as a wound | The cold berth (A5), cradle 41 | **Rejected as mechanic** — content only | — |
-| 6 | The bound element | The four-resource canon, starved cradles | **Rejected** — canon fixes four resources | — |
+| 4 | The charter its children never chose | Inheritance ceremony (A1, shipped), Chronicle | Recommended: adopted (content) — aimed at the "inherited ≠ owned" risk | Two doc/microcopy blocks |
+| 1 | The mind that wakes by narrating | The report + Chronicle, the pivot's volume knob | **Rejected (2026-07)** — unnecessary; beat writing may use it | — |
+| 3 | The living world that bites | The forecast (A4), landfall, `LIVING WORLD` class, content-art | Recommended: adopted, slim | Spread tail + one plate |
+| 2 | The physics of passage (ark's failing loop, widened) | Forecast survey + mission clock (A4), fuel postures, law 4, vignette engine | **Transformed, adopted (2026-07)** — the headline; voyage line + margin choice, decay branch post-v1 | One derived line + one launch choice |
+| 5 | The vessel that turns back | Charters (A4), drift + the Ledger, the vignette engine | Recommended: split — beat class adopted; mechanism rides charters | Divergence outcome + beat |
+| 8 | The mind that ends with its errand | Missions + veterans (post-v1), compensation menu | Recommended: adopted, slim | A veteran register |
+| 7 | Sleep as a wound | The cold berth (A5), cradle 41 | Recommended: rejected as mechanic — content only | — |
+| 6 | The bound element | The four-resource canon, starved cradles | Recommended: rejected — canon fixes four resources | — |
 
 Read against playstyles.md's flagged gaps and the Refuser shelf the Vinge
 review named shallow: steals 2, 5, and 8 are the **Refuser / ark** interior;
@@ -468,17 +531,24 @@ flavors that novel served best.
 
 ## Open questions
 
-- **House coinages needed** before any of this reaches a surface: the ark's
-  failing loop (steal 2), the return contingency (steal 5), and any
+- **House coinages needed** before any of this reaches a surface: the
+  voyage line and the margin settings (steal 2 — *lean / standard /
+  hardened* are working labels), the return contingency (steal 5), and any
   in-world name for the deadly-alive `LIVING WORLD` outcome (steal 3). The
   naming pass runs under prose-style.md rules; the working labels here are
   design vocabulary only.
-- **How large is the decay branch's bite?** Steal 2 rides economy's open
-  **"Upkeep share"** question — how big a standing drain entropy charges —
-  and the ark's loop is where that number is felt most sharply. Tune the two
-  together; a decay branch that always fires reads as the game agreeing with
-  *Aurora*'s verdict (which *What not to take* forbids), and one that never
-  fires is flavor text.
+- **The hazard curve and the margin prices.** Steal 2's odds must be
+  honest to the physics's *shape* (hazard climbs steeply with speed;
+  slowly with time; payload classes order machine < frozen < living) while
+  staying tunable in magnitude — and it rides economy's open **"Upkeep
+  share"** question, since the ark's loop is where entropy's bite is felt
+  most sharply. Tune them together; a decay branch that always fires reads
+  as the game agreeing with *Aurora*'s verdict (which *What not to take*
+  forbids), and one that never fires is flavor text.
+- **Do derelicts need machinery?** Steal 2 declares wrecks persist. The
+  cheap version is content — a derelict is a rare observatory find and a
+  mission target, no new system. Whether salvage needs mechanics waits for
+  the mission layer; do not build it before then.
 - **Does the return need the drift system matured first?** Steal 5's
   Assembly-voted reversal presumes the divergence-and-handoff layer that the
   roadmap places beyond v1 (Rill's independence is *"the divergence-and-
