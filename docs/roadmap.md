@@ -279,7 +279,7 @@ record of that past — rides this same light echo and knowledge layer; thin.)
 
 **Phase A ships** as the v1 galaxy: inherit a mind, read the sky, meet
 someone, launch a child, sleep. The whole loop of the walkthrough's season
-(act3-walkthrough.md) minus the origin acts.
+(walkthrough.md).
 
 ---
 

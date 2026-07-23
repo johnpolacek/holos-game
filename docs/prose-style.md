@@ -372,7 +372,7 @@ restyle that edits a bank without its doc sync is incomplete.
 | `lineages.ts` fingerprints | `act1-lifeforms.md` | **Verbatim** |
 | `cradles.ts` fingerprints | `act1-cradles.md` | **Verbatim** |
 | `dials.ts` labels / questions | `act2-design.md` | Labels byte-exact; question wording tracks |
-| Interface prose quoted in walkthroughs | `gameplay-walkthrough.md`, `act3-walkthrough.md` | Voice must be consistent with the speaking archetype (§4) |
+| Interface prose quoted in the walkthrough | `walkthrough.md` | Voice must be consistent with the speaking archetype (§4) |
 
 ---
 

@@ -9,7 +9,7 @@ resource, light is the only carrier of truth, and the other minds are real.*
 ## About this document
 
 The [vision](./vision.md) says what Holos is and why. The
-[walkthrough](./gameplay-walkthrough.md) says what it feels like to play.
+[walkthrough](./walkthrough.md) says what it feels like to play.
 The [Act 2 design](./act2-design.md) specifies the strategy layer this act
 inherits, and [economy-design.md](./economy-design.md) pins the choice
 economy both acts run on — including Act 3's strictly-local resource model,

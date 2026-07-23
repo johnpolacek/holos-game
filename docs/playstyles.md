@@ -36,8 +36,8 @@ choices in it.
 > [act2-design.md](./act2-design.md) (dials, ladders, resistance),
 > [act3-design.md](./act3-design.md) (the mechanics these verbs run on),
 > [act3-civilizations.md](./act3-civilizations.md) (the flavor space at
-> galaxy scale), [act3-walkthrough.md](./act3-walkthrough.md) (one flavor,
-> played — and a standing invitation to write the others).
+> galaxy scale), [walkthrough.md](./walkthrough.md) (one flavor, played —
+> and a standing invitation to write the others).
 
 ---
 
@@ -337,8 +337,8 @@ Three commitments follow for the beat and report systems:
   ladder's stage list it is useful; if playtesters read H-numbers as a
   global rank rather than one ladder's rungs, rule 1 is being violated
   by UI, and the fix is presentation, not mechanics.
-- **A bright season of the walkthrough.** act3-walkthrough.md plays a
-  Monument. The strongest test of verb parity is to write (and
+- **A bright season of the walkthrough.** walkthrough.md plays a Monument
+  inheritance. The strongest test of verb parity is to write (and
   eventually play) the same six weeks as a Tide or a Beacon and check it
   is equally dense with choices — different in texture, equal in
   agency. If that document is hard to write, this document has found a

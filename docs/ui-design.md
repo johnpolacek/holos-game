@@ -11,18 +11,17 @@ player's altitude.*
 
 ## About this document
 
-The [walkthroughs](./gameplay-walkthrough.md) describe what playing feels
-like and [act3-walkthrough.md](./act3-walkthrough.md) plays a season of it
-in detail — but both *imply* an interface without specifying one. This
-document is that specification. The walkthrough scenes double as its
-acceptance tests: every scene in Mara's season must be assemblable from
-the screens and components below. Where this document and the vision or a
+The [walkthrough](./walkthrough.md) plays a season of the designed
+experience in day-by-day detail — but it *implies* an interface without
+specifying one. This document is that specification. The walkthrough
+scenes double as its acceptance tests: every scene in Theo's season must
+be assemblable from the screens and components below. Where this document and the vision or a
 design doc disagree, they win and this document is what needs fixing.
 
 **Inherited constraints**, from the stack and the design:
 
 - **The game is a URL.** Browser, no installer; first meaningful render
-  must be fast on a phone (vision, walkthrough § Session zero).
+  must be fast on a phone (vision; walkthrough § Day 1).
 - **Mobile-first.** Touch/pointer input, responsive full-screen canvas
   (CLAUDE.md). Real sessions are a phone at breakfast and a laptop in the
   evening; the phone is the primary device for *reading and deciding*,
@@ -152,14 +151,14 @@ color, its gravity in the set of the horizon, its defining pressure
 rendered before any text. Then one card: the world's name-slot (yours to
 fill), its profile in the catalog's plain fields, and its tier stated
 without euphemism. No menu precedes it; the URL opens into the world
-(walkthrough § Session zero). Difficulty dial and a Tier I–II guaranteed
+(vision § The arc, Act 1). Difficulty dial and a Tier I–II guaranteed
 first draw live behind a single "this world or an easier start?" choice,
 not a settings screen.
 
 ### Act 1 — the beat frame
 
 The whole act is one repeating screen, the **beat frame**, in three
-movements (gameplay-walkthrough.md § The beat):
+movements (vision.md § The arc, Act 1 — scene, decision, roll):
 
 1. **Vignette** — full-bleed scene on the Stage with sparse caption
    prose. The world has changed since last beat; the render shows it.

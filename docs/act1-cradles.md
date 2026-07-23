@@ -3,10 +3,9 @@
 *A working list of 40 starting worlds for Act 1 (Incubation). This is the
 pool the game draws from when it hands a player their home planet.*
 
-> Related design: [vision.md](./vision.md) (§ Act 1, the cradle concept),
-> [gameplay-walkthrough.md](./gameplay-walkthrough.md) (§ Session zero, § Act 1),
-> [act2-minds.md](./act2-minds.md), [act2-design.md](./act2-design.md) (how a
-> cradle's fingerprint becomes the Act 2 character).
+> Related design: [vision.md](./vision.md) (§ The arc, Act 1 — the cradle
+> concept), [act2-minds.md](./act2-minds.md), [act2-design.md](./act2-design.md)
+> (how a cradle's fingerprint becomes the Act 2 character).
 
 ---
 
@@ -25,8 +24,8 @@ extrapolated from world-types we know are common.
 The cradle does three jobs across the whole game:
 
 1. **It sets Act 1 difficulty.** Harsher worlds hand out harsher odds —
-   narrower windows, crueler failures on the dice (gameplay-walkthrough.md,
-   *"Difficulty is the cradle"*).
+   narrower windows, crueler failures on the dice (vision.md, § The arc,
+   Act 1 — *"difficulty follows from the cradle itself"*).
 2. **It fixes how much is already decided.** A harsher world leaves less to
    chance later. A civilization that clawed through a terminator strip or a
    crushing gravity well wakes with firmer convictions and less room to move;
@@ -499,7 +498,7 @@ matching their ~70% share of real stars.
   cheap and additive.
 - **Spawn weighting vs. difficulty selection.** Two factors interact: real
   occurrence rates (which make harsh worlds common) and the player's optional
-  difficulty setting (gameplay-walkthrough.md). Open question: does the
+  difficulty setting (vision.md, § The arc, Act 1). Open question: does the
   difficulty setting *bias the draw* toward a tier, or *overlay* a modifier on
   whatever cradle is drawn? The vision implies the latter (cradle first,
   difficulty on top), but a first-run onboarding path should probably guarantee
