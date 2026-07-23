@@ -1,8 +1,9 @@
 # The toolkit of ascent — the Holos technology catalog
 
 *Everything a civilization can build, and what building it costs in the
-only currencies Holos tracks: energy, matter, compute, coherence — and
-light. This is the fifth catalog in the chain* worlds → species → minds →
+four currencies Holos tracks — energy, matter, compute, coherence — and
+what it writes on the sky in the one thing that is tracked but never
+spent: light. This is the fifth catalog in the chain* worlds → species → minds →
 civilizations → **means** *: the instruments those civilizations reach for,
 bright and dark, and what each one writes on the sky.*
 
