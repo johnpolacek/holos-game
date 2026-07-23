@@ -451,6 +451,12 @@ bill is what the Chronicle and the watching sky make of what you did.
 
 ### 7. The sentience line
 
+**Status: adopted (2026-07).** Shipped as
+[act3-design.md](./act3-design.md) § Missions, *The agent line* — the
+charter declaration and the beat class (*the agent that comes back
+someone*), landing with the mission system per the roadmap; charter
+vocabulary only until then. Nothing codified beyond it.
+
 **In the book.** The software polity's charter draws one bright line:
 everything below citizenship is scrupulously non-sentient — the
 generative machinery, the tools, the environments — and anything
@@ -606,7 +612,7 @@ systems. Sizes are proposals, pending the review verdicts.
 | 1 | The clade spectrum | act3-civilizations catalog, A5 seeding, signal classes | **Adopted (2026-07)** — act3-civilizations.md § The other stances | Four catalog seeds + beats |
 | 8 | The interior camera | The Model, observatory, project completions | Post-A3 parity work; report vocabulary any time | Medium (presentation only) |
 | 6 | The closed biosphere | `LIVING WORLD`, the vigil (A2), the Assay | **Rejected (2026-07)** — too much of a one-off | — |
-| 7 | The sentience line | Charters, mission roster, compensation menu | Mission system layer | Charter vocabulary + beats |
+| 7 | The sentience line | Charters, mission roster, compensation menu | **Adopted (2026-07)** — act3-design.md § Missions, *The agent line* | Charter vocabulary + beats |
 | 9 | The burst + the rescue | Anomaly class, light echo, three defenses | Later-galaxy anomaly content | Anomaly seeds + beat class |
 | 10 | The completed civilization | Chronicle, Vault, light echo, grave worlds | Later-galaxy content; the Restoration question | Convention + catalog content |
 

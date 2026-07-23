@@ -545,6 +545,26 @@ avatars; a Chorus sends copies of itself and thinks nothing of it.
   self-portraiture; the mission roster is a civilization's character sheet
   in motion.
 
+**The agent line.** Every crossed charter declares where its tools end
+and its people begin — one sentence, stated at the founding: whether
+sub-person agents may exist at all, how close to personhood they may be
+built, and what a citizen may be asked to do that a tool cannot. The
+declaration is not a mechanic; it is a readable fact the mission roster
+is judged against, by the player and by every watcher — a civilization
+that pours sub-person probes into other minds' skies is making a
+statement, and so is one that sends only citizens, paying a person's
+price for every errand. It is the crossed path's mirror of the
+Refuser's founding line: the Refuser forbids tools from becoming
+persons; a crossed charter forbids — or permits, or prices — persons
+being used as tools. And it seeds one beat class, **the agent that
+comes back someone**: a probe or sub-mind returning from beyond the
+horizon not wrong but *awake*, over its charter's line, asking to be
+counted — the crossed path's quiet mirror of the Breakout. The
+drift-risk rule already covers the mechanics; this is its sharpest
+case, and what a player does with the one who came back — citizen it,
+wipe it, or leave it a century unresolved — is a
+compensation-menu-grade portrait. Priced and recorded, never graded.
+
 **Anatomy of a mission.** One reusable structure: **who goes** (an
 individual, a group, an AI, a drone, a probe, a ship, or an ensemble) +
 **a charter** (instructions written knowing they can never be patched —
