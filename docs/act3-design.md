@@ -340,6 +340,39 @@ seed or probe) + **a horizon** (the moment the mission passes beyond
 governance and becomes a story whose ending arrives later, as
 light-delayed reports).
 
+**The mission clock.** At launch, every mission compiles its charter
+into a timeline of expected light events — checkpoints, each with a
+countdown the player can watch:
+
+- **Arrival** — the flight clock, already on the books.
+- **Earliest confirmation** — arrival plus the light-travel time home:
+  the number that makes the physics felt. A probe sent 12 light-years
+  out at 0.1c says plainly at launch: *first possible word in 132
+  years — the flight, plus twelve for the light.*
+- **Scheduled reports** — whatever cadence the charter promises,
+  thereafter.
+
+Checkpoints chain in sequence, and they branch: charter contingencies
+make the timeline a flowchart rather than a line — *if the survey
+holds, expect the rooting report by year N; if it does not, expect the
+return burn by year M* — each branch carrying its own clocks. Which
+branch the mission actually took is itself something the player learns
+only when the light arrives, so the flowchart is a map of futures
+narrowing as reports come home.
+
+Two rules give the clock its teeth. **Silence at a deadline is an
+event, not an absence** — a countdown that resolves with no signal
+fires its own beat, exactly as informative as a report and usually
+worse; the tripwire condition *a fork goes silent* is this rule
+generalized. And **every date is derived, never stored** — distance,
+travel method, and charter schedule fix the whole timeline at launch,
+so the alarm infrastructure fires it with no new state. The mission
+clock is the async spine made visible: what am I waiting for, and
+when. In v1, launches carry the thin version (arrival, earliest
+confirmation, first report — the natural companion to the forecast
+survey, which says what you are betting on while the clock says when
+you will know); the full branching form arrives with mission charters.
+
 **The vignette engine survives into Act 3.** Mission outcomes return as
 narrative beats and reuse Act 1's vignette machinery — authored scene,
 choice, contingent resolution — with one inversion: the player's choice

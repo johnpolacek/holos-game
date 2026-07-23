@@ -234,6 +234,10 @@ record of that past — rides this same light echo and knowledge layer; thin.)
       and an honest arrival spread per target class; landfall reports
       resolve against truth when the flight clock fires
       (act3-design.md § The forecast).
+- [ ] **The mission clock (thin)**: every launch compiles its expected
+      light events — arrival, earliest confirmation, first report — into
+      visible countdowns; silence at a deadline fires a beat
+      (act3-design.md § Missions, *The mission clock*).
 - [ ] **Charters**: the launch-time value function (dial sheet + directives
       + contingencies) — the same `CivSeed` shape, written by the player;
       the recursion made literal.

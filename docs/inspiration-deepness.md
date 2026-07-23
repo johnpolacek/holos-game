@@ -320,6 +320,15 @@ not yet designed.
 
 ### 8. The first hour
 
+**Status: transformed and adopted (2026-07).** The rendezvous-window
+rule was declined; the discussion of it produced something better —
+**the mission clock** (act3-design.md § Missions, *The mission clock*):
+every mission compiles its charter into a branching timeline of
+expected light events with visible countdowns, and silence at a
+deadline is itself an event. The first hour's dread survives in
+temporal form — the countdown whose outcome you cannot know until the
+light comes back. Thin version lands with A4's launches (roadmap.md).
+
 **In the book.** After years of courteous lightspeed negotiation, two
 fleets finally share one sky — and the ambush comes in the first hour of
 the first meeting. The book's structural lesson: distance *is* the
@@ -414,7 +423,7 @@ or specced machinery, per the rule that entries ride existing systems.
 | 2 | Forecast play | Forecast survey (A4), young worlds (A5) | **Adopted (2026-07)** — act3-design.md § The forecast; A4–A5 | Medium |
 | 10 | Calendars as character | Chronicle | Content-only, alongside A3's Chronicle | Trivial |
 | 5 | Dust veil | technology.md instrument shelf | **Adopted (2026-07)** — technology.md § The dust veil | One catalog entry |
-| 8 | Rendezvous window | Missions, conflicted-war venue | Post-v1 — but the *rule* should be written before any co-location ships | Design work now |
+| 8 | Rendezvous window | Missions, conflicted-war venue | **Transformed (2026-07)** — became the mission clock (act3-design.md § Missions); thin at A4 | Derived timelines |
 | 3 | The yoked harness | Refuser shelf | **Rejected as mechanic (2026-07)** — content may reveal it; nothing codified | — |
 
 Read against playstyles.md's flagged gaps: steal 7 is aimed at
