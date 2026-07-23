@@ -174,8 +174,9 @@ mechanics live in act2-design.md; the Act 3 shadows in act2-minds.md.)
 
 #### Custodian — *to exist is to keep*
 - **Verbs:** watch young worlds, shelter, uplift, steward biospheres,
-  keep or find a grave world, restore (the open Restoration question is
-  this flavor's endgame), extend protection as a diplomatic act.
+  keep or find a grave world — tend it, seal it against the diggers (the
+  dig, act3-design.md *Grave worlds*, is this flavor's endgame stage) —
+  extend protection as a diplomatic act.
 - **Texture:** the Act 1 observer role, turned outward — gardens that
   are other people.
 - **Fails as:** wards that resent, or a shepherd whose flock outgrows the
