@@ -14,6 +14,7 @@ import {
   type DialAxis,
   type DialSetting,
 } from "@holos/protocol";
+import { worldArt } from "./art";
 import type { CohortSocket } from "./net";
 
 const PENDING_KEY = "holos.pendingBecome";
@@ -62,8 +63,9 @@ export function hasPendingBecome(): boolean {
   return readPending() !== null;
 }
 
-/** Placeholder world panel: a gradient tinted by the cradle id. Real planet
- * art is deferred to a later slice. */
+/** Cradle-tinted gradient for the world panel — the base layer, shown on its
+ * own for cradles without a plate (id 41) and as the fallback beneath the real
+ * planet plate if it fails to load. */
 function cradleGradient(cradleId: number): string {
   const hue = (cradleId * 47) % 360;
   return (
@@ -179,7 +181,14 @@ function buildCard(card: CivCard): CardState {
 
   const worldPanel = document.createElement("div");
   worldPanel.className = "world-panel";
-  worldPanel.style.background = cradleGradient(card.seed.cradleId);
+  // The wide crop suits the panel's banner shape; the gradient sits under it as
+  // a fallback so a missing/failed plate (or unplated cradle 41) still tints.
+  const worldPlate = worldArt(card.seed.cradleId, "wide");
+  const worldGradient = cradleGradient(card.seed.cradleId);
+  worldPanel.style.background =
+    worldPlate !== null
+      ? `url("${worldPlate}") center / cover no-repeat, ${worldGradient}`
+      : worldGradient;
 
   const body = document.createElement("div");
   body.className = "card-body";

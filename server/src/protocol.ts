@@ -83,6 +83,11 @@ export { NAME_HEADS, NAME_TAILS, NAME_PHRASES } from "./names";
 export type { CivSeed, EmissionEpoch } from "./civseed";
 export type { ObservedSignal, SignalClass } from "./knowledge";
 export type { Star, SpectralClass, Vec3Ly } from "./galaxy";
+// Catalog id string-sets, for the content-art resolver (client/src/art.ts).
+// Type-only: the id vocabulary, not the catalogs — no cradles.ts/minds.ts
+// runtime or data ships, and archetypeName stays the server-resolved wire field.
+export type { LineageId } from "./cradles";
+export type { ArchetypeId } from "./minds";
 
 /** Clock anchor; the client computes nowYear locally (no time polling). */
 export interface ClockWire {
