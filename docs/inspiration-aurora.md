@@ -444,8 +444,15 @@ that ship today. The book's fifth scarcity lands in Holos as a *beat* and a
 
 ### 7. Sleep as a wound
 
-**Recommended: rejected as mechanic — content-only.** Sleep stays clean;
-the book's framing survives as beat and Chronicle material.
+**Status: rejected as mechanic (2026-07) — content-only, and sleep
+deprioritized.** The designer confirmed the rejection and went further:
+sleep is a system to *deprioritize* in the game, not deepen — so the
+lossy-sleep variant is declined twice over, once for breaking the
+engagement valve and reintroducing dice, and once because sleep is not
+where effort should go. Nothing is codified. The book's framing survives
+only as ark and Refuser beat writing, inside steal 2's decay branch. (This
+touches the roadmap's A5 placement of sleep/tripwires; that reprioritization
+is a roadmap decision, noted here, not made here.)
 
 **In the book.** Hibernation is not a mature technology the travelers set
 out with — it is invented mid-voyage, under duress, to survive the
@@ -516,7 +523,7 @@ specced machinery, per the rule that entries ride existing systems.
 | 2 | The physics of passage (ark's failing loop, widened) | Forecast survey + mission clock (A4), fuel postures, law 4, vignette engine | **Transformed, adopted (2026-07)** — the headline; voyage line + margin choice, decay branch post-v1 | One derived line + one launch choice |
 | 5 | The vessel that turns back | Charters + mission clock (A4), drift + the Ledger, local economies | **Adopted, developed (2026-07)** — act3-design.md § The return | New design section |
 | 8 | The mind that ends with its errand | Missions + veterans (post-v1), compensation menu | Recommended: adopted, slim | A veteran register |
-| 7 | Sleep as a wound | The cold berth (A5), cradle 41 | Recommended: rejected as mechanic — content only | — |
+| 7 | Sleep as a wound | The cold berth (A5), cradle 41 | **Rejected as mechanic (2026-07)** — content only; sleep deprioritized | — |
 | 6 | The bound element | The four-resource canon, starved cradles | Recommended: rejected — canon fixes four resources | — |
 
 Read against playstyles.md's flagged gaps and the Refuser shelf the Vinge
