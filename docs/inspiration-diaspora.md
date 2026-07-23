@@ -206,6 +206,12 @@ without touching the silence guardrail.
 
 ### 2. The orphan's ceremony
 
+**Status: rejected (2026-07).** The owning problem belongs to the
+origin acts: Acts 1–2 are where a civilization is built, and Phase B's
+played history — not a ceremony beat — is the design's real answer to
+*inherited ≠ owned*. No first-reading beat, no stored epigraph joins
+the ceremony. The entry stands as record.
+
 **In the book.** The novel opens inside a birth: a mind generated from
 a seed, by machinery, with no parent — randomized within a lawful
 space, exactly as the catalog chain randomizes a `CivSeed` — and its
@@ -549,7 +555,7 @@ systems. Sizes are proposals, pending the review verdicts.
 
 | # | Steal | Rides on | Lands | Size |
 |---|---|---|---|---|
-| 2 | The first reading | Ceremony (shipped, A1), Chronicle | A2+ ceremony polish; carries into Phase B | One beat + one stored line |
+| 2 | The first reading | Ceremony (shipped, A1), Chronicle | **Rejected (2026-07)** — owning belongs to the origin acts (Phase B) | — |
 | 5 | Tempo | Cold berth, the clocks, report registers | One named rule (act3-design.md) + register now; duty-cycle variant with A5 sleep, if ever | Named rule + register |
 | 3 | The merge + family referendum | Payload stack, culture nudges, Ledger, mission-clock derivations | Thin with letters (A2–A3); full with Ledger + drift math (A4) | Medium; wire question flagged |
 | 4 | Self-binding | Dial ranges, resistance math, charters (A4), Coherence | Thin (declared posture) with A4 charters; full only if wanted | Medium; pushes the prior |
