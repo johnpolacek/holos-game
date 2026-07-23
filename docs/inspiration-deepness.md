@@ -273,6 +273,12 @@ with the title phrase.
 
 ### 7. The watchers over the cradle
 
+**Status: split (2026-07).** *Rival watchers* adopted — a seeding note
+and beat class in act3-design.md § Topology and onboarding (*Shared
+vigils*), nothing codified beyond it. The interpretive layer and the
+lurk-scaling rule were declined; if a vigil's texture wants either, it
+arrives as beat content, not system.
+
 **In the book.** Two rival starfaring powers hang in orbit above a
 rising pre-technological world for decades — hiding from the natives,
 hiding from each other, reading the natives' own radio once it exists,
@@ -401,7 +407,7 @@ or specced machinery, per the rule that entries ride existing systems.
 | # | Steal | Rides on | Lands | Size |
 |---|---|---|---|---|
 | 6 | Dormancy cradle | `cradles.ts` + act1-cradles.md sync | **Adopted (2026-07)** — cradle 41, The century orbit | One catalog row |
-| 7 | Interpretive layer, the lurk, rival watchers | The vigil (A2), signal classes, Assay | **A2** — the vigil-as-activity gap is on the contact loop's critical path | Design work now |
+| 7 | Interpretive layer, the lurk, rival watchers | The vigil (A2), signal classes, Assay | **Split (2026-07)** — rival watchers adopted (act3-design.md, *Shared vigils*); the rest declined | Seeding note + beats |
 | 9 | Light-cone authentication | Verification challenges, knowledge layer | A2 thin (one challenge class), grows with correspondence | Small mechanic |
 | 1 | Library broadcast + protocol adoption | Light echo (A3), payload stack | **Rejected (2026-07)** | — |
 | 4 | Sealed clauses + lineage keys | Future-dated epochs (shipped), charters (A4), Ledger | **Rejected (2026-07)** | — |

@@ -661,6 +661,12 @@ endgame's mechanical layer later, per the vision's roadmap.
   practical reach: no strike, probe, or transmission can arrive before
   ascension. The recursion — watch, uplift, exploit, leave alone — applies
   to AI-run young worlds only.
+- **Shared vigils.** Seeding should sometimes give one young world more
+  than one watcher, each unaware of the other. Discovering mid-vigil that
+  the dark beside you is another vigil is a contact arc that begins at a
+  third party's cradle — an authored beat class, not a new system: the
+  observatory already renders the unexplained source, and the
+  Counter-Hand already names the conflict it can become.
 - **The watched reveal.** On entering Act 3, a player may learn from their
   own new observatory that their incubation was observed — someone's
   instruments have had their world's light for centuries. Free, chilling,
