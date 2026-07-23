@@ -129,21 +129,25 @@ new v1 obligations). Every lineage below resolves to one of these ten.
 
 #### The Beacon — *Reach · Voice · Custodian*
 - **First read:** Kindness at full volume; it builds bright and greets the dark first.
+- **Charter:** We shine so none need wake alone; that we are seen doing it, we can live with.
 - **Act 2 play:** leans the **Energy** ladder; favors **bright** projects (swarm stages, star-lifting); Signature climbs and it doesn't mind. Instrument beats read as invitations.
 - **Act 3 shadow:** enters the dark forest announced — the one everyone detects first, for better and worse.
 
 #### The Tide — *Reach · Instrumental · Chorus*
 - **First read:** Cheerfully hungry; the cosmos is inventory and the copies are cheap.
+- **Charter:** All that is, is provision; we are the tide that comes for it.
 - **Act 2 play:** hardest **Energy** lean; Matter-hungry bright construction; tolerant of distributed projects (Chorus keeps Coherence costs low). Signature high.
 - **Act 3 shadow:** the seedship civilization — self-transmission and replicators are cheap identity-spend; spreads fast and fragments by design.
 
 #### The Monument — *Depth · Silence · Curator*
 - **First read:** A civilization that keeps everything, itself included.
+- **Charter:** What we were, we keep; what we keep, we are.
 - **Act 2 play:** leans the **Integration** ladder; favors **dark** projects (the deep Vault, the compute heart); deliberately drives Signature *down*. Memory beats matter most here.
 - **Act 3 shadow:** a Dark Node in waiting — preserves itself across deep time and lets its old light be the only thing anyone ever sees.
 
 #### The Cloister — *Depth · Silence · One Mind*
 - **First read:** Wholeness first; the galaxy is welcome never to learn it exists.
+- **Charter:** One mind, whole, and owing the sky nothing.
 - **Act 2 play:** hardest **Integration** lean; dark projects, a dense coherent core; Signature floored. Rejects distributed projects — anathema to a One Mind.
 - **Act 3 shadow:** may go fully dark and sleep; a sleeping Cloister and empty sky look alike by design.
 
@@ -151,31 +155,37 @@ new v1 obligations). Every lineage below resolves to one of these ten.
 
 #### The Shepherd — *Reach · Voice · Custodian · One Mind*
 - **First read:** Protection at scale; it hides its size so the small stay unafraid.
+- **Charter:** We grew strong so the small could stay small, and never know why.
 - **Act 2 play:** Energy-leaning but coherent; bright projects aimed at stewardship; Custodian dilemmas about the home biosphere resolve toward preservation-through-power.
 - **Act 3 shadow:** the uplifter — when its probes find someone, it watches over them.
 
 #### The Sowing — *Reach · Silence · Chorus · Shedder*
 - **First read:** Everywhere and announcing nothing; it sheds its old selves as it goes.
+- **Charter:** We go everywhere and take care to be noticed nowhere.
 - **Act 2 play:** Energy-leaning but *dark* — expands without broadcasting; low-Signature bright work (quiet industry, not beacons). The rare mind that reaches **and** hides.
 - **Act 3 shadow:** a silent diaspora; seedships in every direction, none of them announcing.
 
 #### The Herald — *Depth · Voice · Curator*
 - **First read:** It turns inward, then broadcasts the turning; a vault that cannot stop singing.
+- **Charter:** We carry memory across waters and time, that those yet to come may know we were.
 - **Act 2 play:** Integration-leaning yet Signature-positive — a contradiction it lives in, building a Vault *and* a transmitter. Instrument and broadcast beats both fire.
 - **Act 3 shadow:** the civilization you meet as a signal long after it went quiet — a directed beam meant for someone specific.
 
 #### The Engine — *Depth · Instrumental · One Mind*
 - **First read:** A Cloister minus the reverence; it spends a whole system to feed the work.
+- **Charter:** Nothing is sacred but the work.
 - **Act 2 play:** can lean *either* ladder — strips Matter for a compute core (dark) or swarms the star to power it (bright). Instrumental, so home-biosphere dilemmas resolve coldly. Coherent, so Coherence is cheap to hold.
 - **Act 3 shadow:** a hungry, unified intelligence that treats what it finds as fuel.
 
 #### The Congress — *Chorus · Custodian · Voice (mid Reach/Depth)*
 - **First read:** A plurality still negotiating itself; the one mind glad to meet another.
+- **Charter:** Another mind is indispensable; on this, remarkably, we all agree.
 - **Act 2 play:** neither ladder dominates; tolerant of distributed projects; dilemmas surface as *internal debate* more than anywhere else, because the self already argues.
 - **Act 3 shadow:** the natural correspondent — enters contact expecting other minds and knowing how to treat with them.
 
 #### The Phoenix — *Depth · Shedder · One Mind*
 - **First read:** It reinvents itself endlessly; each past self is read once, then discarded.
+- **Charter:** Yesterday's self is a shell; we owe it only departure.
 - **Act 2 play:** Integration-leaning; low Signature; but *rejects the Vault* — a Curator's opposite, it discards memory to remake itself. Memory beats resolve toward release.
 - **Act 3 shadow:** unrecognizable across time even to itself; hard to negotiate with because yesterday's promise belonged to a self it has shed.
 
@@ -190,8 +200,8 @@ open canvas — its row is a center of gravity, not a verdict.
 
 | # | Lineage | Primary | Drifts → | Dial lean | Ladder | Posture |
 |---|---|---|---|---|---|---|
-| S1 | Tentacled cephalopodan | **The Congress** | Tide | Chorus · Depth · curious | integration-ish | mixed |
-| S2 | Song-culture pelagic | **The Herald** | Beacon | Voice · Custodian · Chorus | neutral | bright |
+| S1 | Tentacled cephalopodan | **The Congress** | Tide | Chorus · Depth · curious | mixed | either |
+| S2 | Song-culture pelagic | **The Herald** | Beacon | Voice · Custodian · Chorus | mixed | bright |
 | S3 | Clawed benthic exoskeletal | **The Tide** | Engine | Reach · Instrumental | energy | bright |
 | S4 | Electro-sensing abyssal | **The Engine** | Cloister | Depth · Silence · One Mind · Instrumental | integration | dark |
 | S5 | Colonial reef superorganism | **The Cloister** | Shepherd | Depth · One Mind · Custodian | integration | dark |
@@ -202,7 +212,7 @@ open canvas — its row is a center of gravity, not a verdict.
 | S10 | Buoyant aerial drifter | **The Monument** | Sowing | Depth · Silence · Chorus | integration | dark |
 | S11 | Eusocial hive superorganism | **The Engine** | Tide | One Mind · Instrumental · (Reach) | **energy** | bright |
 | S12 | Networked substrate mind | **The Monument** | Cloister | One Mind · Curator · Depth | integration | dark |
-| S13 | Aggregative modular organism | **The Sowing** | Tide | Chorus · Shedder | mixed | mixed |
+| S13 | Aggregative modular organism | **The Sowing** | Tide | Chorus · Shedder | mixed | dark |
 | S14 | Obligate symbiotic composite | **The Congress** | Shepherd | Chorus · Custodian · Voice | mixed | bright |
 | S15 | Blind seismic-thermal burrower | **The Cloister** | Monument | Silence · Depth · One Mind | integration | dark |
 | S16 | Chemo-lithic vent grazer | **The Engine** | Cloister | Depth · Silence · Instrumental | integration | dark |
@@ -230,7 +240,8 @@ the dials where they do, how the reveal reads for that lineage, how much
 room its cradles leave, and which Act 1 histories push it toward its drift.
 Groups follow act1-lifeforms.md. Where a lineage's primary is a neighbor, the
 **v1** line names the anchor it plays as until the richer archetype layer
-lands — chosen to agree with its drift column, so v1 needs no extra rules.*
+lands — each lineage plays as its archetype's fixed v1 anchor (minds.ts's
+`v1Anchor`), which usually but not always coincides with the drift column.*
 
 ### A. Oceanic and aquatic minds
 
@@ -255,7 +266,7 @@ remember how, and the memory is in their dials.*
 - **What Act 1 decides:** *how* it broke the energy wall. A history of
   strip-mining the vents leans Instrumental and Reach — the drift to **the
   Tide**; a history of husbanding reef and rival holds it at the Congress.
-- **v1:** plays as the Tide with the hunger damped to curiosity.
+- **v1:** plays as the Beacon, its warmth turned outward as curiosity.
 
 #### S2 · Song-culture pelagic → The Herald
 - **Why it wakes here:** a species that *is* its songs wakes as a song.
@@ -427,7 +438,7 @@ One Mind ↔ Chorus for all four — Act 1 works the other dials.*
   castes are cheap *in practice* drifts it into **the Tide's** region on
   Reach and Instrumental even though the One Mind end never moves — the
   clearest proof that archetypes are nearest-fit regions, not straitjackets.
-- **v1:** plays as the Tide that insists, correctly, that it is one mind.
+- **v1:** plays as the Cloister that insists, correctly, that it is one mind.
 
 #### S12 · Networked substrate mind → The Monument
 - **Why it wakes here:** literally one network (**One Mind**) with
