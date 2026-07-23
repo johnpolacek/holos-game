@@ -160,7 +160,7 @@ view for the same observer/target pair must agree.
 
 ## Guardrails
 
-- **No contact verbs.** No hail, broadcast, letters, or vigil mechanics —
+- **No contact verbs.** No hail, broadcast, signals, or vigil mechanics —
   A2. No echo shell, no time scrubbing — A3. Ship the smallest true Sky.
 - `ObservedCiv` discipline is absolute: if a field about another civ
   isn't in it, it doesn't cross the wire. Extend the type only by

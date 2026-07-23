@@ -46,7 +46,7 @@ The untagged rows are new design space.
 
 ### Other minds
 
-- **Communion** — seek correspondence; the centuries-long letter as the
+- **Communion** — seek traffic; the centuries-long transmission as the
   highest art. *(The Beacon, The Congress)*
 - **Custodianship** — guard young biospheres from everything, including
   contact. *(The Shepherd)*

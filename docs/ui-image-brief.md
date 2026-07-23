@@ -103,7 +103,7 @@ the sref, paste the **short brief** in place of the full one below:
 - **`--sw` (style weight, default 100):** raise it (150–250) if a
   screen's *look* drifts off the tile; lower it (50–70) if the tile
   forces its *composition* onto a screen that needs a different layout
-  (the Model pull-back, letters-in-flight), letting the short brief pull
+  (the Model pull-back, signals-in-flight), letting the short brief pull
   structure back.
 - **No style reference?** Use the full **THE BRIEF** below instead — it
   carries the same look in words.
@@ -213,13 +213,13 @@ and can wait.*
 
 #### 5 — Act 2: the report
 
-> A reading screen, typography-led: a long scrolling letter in elegant
+> A reading screen, typography-led: a long scrolling account in elegant
 > serif on the dark background, written by an immense calm intelligence,
 > broken into short scene-paragraphs. Between paragraphs, slim inline
 > cards: one showing a tiny system-map thumbnail with an amber ring
 > filling in, captioned by a paired clock "14 H · ≈160 Y"; one showing a
 > faint telescope smudge with "62%" beside it. A hairline top strip
-> holds three tiny project clocks. Feels like reading correspondence,
+> holds three tiny project clocks. Feels like reading a mind's account,
 > not a dashboard.
 
 #### 6 — Act 2: the system map going quiet
@@ -283,15 +283,15 @@ and can wait.*
 > typographic ceremony, three-quarters complete. No dialog box, no
 > buttons. Gravity and silence.
 
-#### 9 — Act 3: letters in flight
+#### 9 — Act 3: signals in flight
 
-> Correspondence screen split vertically: the top third is a dark map
+> Traffic screen split vertically: the top third is a dark map
 > showing two star-points joined by a hairline arc, a small bright
 > point traveling along it at two-thirds of the way; twin clocks beneath
 > the arc read "ARRIVES IN 37 MIN · 7.3 Y". The lower two-thirds is the
-> letter thread: alternating serif paragraphs, the correspondent's in
+> signal thread: alternating serif paragraphs, the counterpart's in
 > warm off-white, the player's in cool moonlight tone, each stamped with
-> a tiny light-age chip. Epistolary, intimate, astronomical.
+> a tiny light-age chip. Spare, intimate, astronomical.
 
 #### 10 — Act 3: the Ledger, drift ghosts
 
@@ -309,7 +309,7 @@ and can wait.*
 > the UI itself is banked coals — all elements present but faded near
 > black. Center column: four plain-language rule rows in serif, each
 > beginning "WAKE ME —" ("if anything warm moves within 25 light-years",
-> "if a beam touches us", "if a fork misses two letters", "after 1,500
+> "if a beam touches us", "if a fork misses two reports", "after 1,500
 > years regardless"), each with a small toggle rendered as a dim ember
 > dot. At the bottom, a single line: "the galaxy runs on". The visual
 > feeling of a house at night with the pilot lights on.
@@ -357,7 +357,7 @@ and can wait.*
 > A 3D star chart with knowledge rendered as depth: near stars crisp,
 > distant stars progressively ghosted and antiqued, two faint concentric
 > guide shells labeled "50 Y" and "100 Y" in tiny slate type. Between
-> stars, three hairline arcs each carry a slow bright point — a letter
+> stars, three hairline arcs each carry a slow bright point — a signal
 > in flight, a seedship mid-decade, and one incoming line rendered
 > hotter than everything else. One unresolved source is a soft amber
 > fuzz-cloud just beginning to condense toward a point. Mostly black,

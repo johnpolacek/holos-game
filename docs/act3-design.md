@@ -58,7 +58,7 @@ reasoning about what the present probably became.
 The session loop is unchanged from Act 2 — **report → strategy turn →
 beats → release** — but the report becomes **The Sky**: the light that
 arrived while you were away. Events becoming visible years after they
-happened, letters finally delivered, colony reports stale by decades,
+happened, signals finally delivered, colony reports stale by decades,
 probes checking in from the void.
 
 ---
@@ -334,13 +334,13 @@ decision with real time in it:
    - **Broadcast** — reveals you to everyone inside the expanding shell of
      your voice, forever.
    - **Stay dark** — keep watching. The vigil continues.
-4. **Correspondence.** Letters at lightspeed, on real clocks (see The
-   clocks). Each message is composed for a reader years-to-centuries
+4. **Traffic.** Tight-beam signals at lightspeed, on real clocks (see The
+   clocks). Each signal is composed for a reader years-to-centuries
    downstream of the one you know, and each arrives wearing its physics
    — transit years, distance, received strength, relay path, degradation
-   — as measurements attached to the text (see ui-design, Letters).
+   — as measurements attached to the payload (see ui-design, Signals).
 
-**What letters can carry:** knowledge (tech and ladder modifiers), culture
+**What signals can carry:** knowledge (tech and ladder modifiers), culture
 (dial nudges — contact changes you), Vault contents (the Curator's trade
 goods), verification challenges — and **coordinates of third parties**,
 the currency of betrayal.
@@ -353,14 +353,14 @@ where that light fell can answer — a voice, a format, a history can be
 worn, but the sky publishes every event outward on a strict schedule,
 and the knowledge layer already adjudicates what any observer's light
 has included. Each challenge round-trips at lightspeed, so testing a
-suspicious correspondent is a project measured in years; where it
+suspicious counterpart is a project measured in years; where it
 matters first is the Ledger's own family — *is this our colony
 answering, or something wearing it?* No new machinery: deception is
 native to the light echo, and this is its one honest countermeasure.
 
 **Nothing is enforceable.** A treaty is a promise held up by two minds'
 natures and nothing else; a betrayal is already in flight before it can be
-detected. Relationship states (correspondence, accord, silence, threat)
+detected. Relationship states (traffic, accord, silence, threat)
 are labels on beliefs, not contracts. The one credible commitment is
 physical: a mission is sunk and unrecallable at launch, which is why
 cooperation that must be believed runs through missions (see Missions).
@@ -373,6 +373,10 @@ undecidable by design, and the uncertainty is the game.
 ---
 
 ## Missions
+
+*(This section defines the mission anatomy and remains canonical for it;
+[missions-design.md](./missions-design.md) builds the work graph on top —
+undertakings, nesting, the Docket, and the prevalence commitments.)*
 
 The player is a civilization-scale mind, but it can act in the world at
 small scale by dispatching **agents**. Agents span the full range of what
@@ -389,7 +393,7 @@ avatars; a Chorus sends copies of itself and thinks nothing of it.
   is a signature. For a dark, integrated civilization, missions are its
   only limb — the one way to touch the world without lighting up the sky.
 - **Presence is bandwidth.** An agent on-site acts in local time; the
-  alternative is correspondence at decades per round trip.
+  alternative is signal traffic at decades per round trip.
 - **Deniability.** An agent can be disowned. A broadcast cannot.
 - **Character.** Even a chorus-mind is plural inside — specialists,
   eccentrics, sub-minds. Choosing the right agent and writing its brief is
@@ -565,7 +569,7 @@ The credibility is physical, not promissory. Nothing agreed across
 light-years is enforceable, but a mission is sunk at launch — transit
 paid, agent committed, recall impossible — so cooperation through
 missions is credible where treaties cannot be. It complements
-correspondence diplomacy; it does not replace it.
+signal diplomacy; it does not replace it.
 
 **The compensation menu.** What agents are paid — above all the mortal
 and the foreign — is what only a post-singularity civilization can offer:
@@ -610,13 +614,13 @@ in the civilization's Vault, uplift or protection for their homeworld.
 
 ## Coalitions
 
-Diplomacy is bilateral by default — correspondence is a thread between
+Diplomacy is bilateral by default — a tight beam is a thread between
 two minds — but nothing stops the threads from braiding. Coalitions and
 alliances among many civilizations are an expected mode of play, and
 they are built entirely from existing pieces; the design adds no
 enforcement machinery, because there is none to add:
 
-- **Correspondence carries the promises** — unenforceable by design.
+- **Signals carry the promises** — unenforceable by design.
 - **Cooperative missions and exchanged envoys carry the commitments** —
   physically sunk, unrecallable, credible the way no signature is.
 - **The compensation menu is the consideration** — the medium in which
@@ -645,8 +649,8 @@ only by the minds that made them.
 - **The strike.** A relativistic kinetic strike is the only true weapon at
   interstellar range: catastrophically expensive (deep energy-ladder
   gate), launched on stale data, arriving barely behind the light that
-  announces it, impossible to recall. War is a letter you cannot unsend,
-  addressed to someone you knew centuries ago.
+  announces it, impossible to recall. War is a message that cannot be
+  unsent, addressed to someone you knew centuries ago.
 - **Defense** is the integration ladder's payoff: dispersal (no single
   target worth the price), darkness (no target found), and the Vault
   (destruction without erasure).
@@ -737,7 +741,7 @@ matters less than what everyone does about it.
 
 Mechanically, an anomaly is mostly existing systems firing at once: a
 sensor-and-inference question the observatory cannot close, a mission
-target, a correspondence surge among every watcher, and eventually an
+target, a surge of traffic among every watcher, and eventually an
 entry in a hundred separate Chronicles.
 
 Illustrative seeds of an extensible class:
@@ -821,7 +825,7 @@ endgame's mechanical layer later, per the vision's roadmap.
   unexplained sources, the first classification arc — and possibly the
   watched reveal. The first launch.
 - **Middle.** Expansion, the Ledger filling with children, first
-  correspondence, the fork of the ladders continuing at interstellar
+  traffic, the fork of the ladders continuing at interstellar
   scale (star-moving and black-hole power on one path; near-invisibility
   and sleep on the other).
 - **There is no end.** The galaxy is persistent; the cosmic clock is the
@@ -849,14 +853,17 @@ call is borderline, take the bolder inclusion; the slice must still ship.
   decisions*); the seat still does not travel in v1. Both carry the
   forecast survey (thin: information age at landfall + a qualitative
   arrival spread)
-- Light-lag messaging: directed hail, broadcast, correspondence
+- Light-lag messaging: directed hail, broadcast, tight-beam traffic
 - Sleep with basic tripwires and notifications
 - No strikes, no seat transfer (single node in v1 — the seat rule's full
   form, the Crossing included, arrives with transmission), cosmic clock as
   narrative only
-- Missions are post-v1: probes and hails are their v1 skeleton; the full
-  system (agents, mission charters, vignette returns) arrives with Act 3
-  beat content
+- Missions in v1, thin (working decision 2026-07 — see
+  [missions-design.md](./missions-design.md)): every launch is a mission
+  on the Docket; probe-class missions (the Assay, the emplaced Sentinel)
+  with real charters, mission clocks, and silence-at-deadline beats. The
+  full system (veterans, joint missions, vignette returns) arrives with
+  Act 3 beat content
 
 ---
 

@@ -111,8 +111,8 @@ depth itself.
 
 ### 4. Things in flight
 
-Letters, probes, and seedships render as slow bright points on long
-arcs — the game's real clocks made spatial. A letter to a correspondent
+Signals, probes, and seedships render as slow bright points on long
+arcs — the game's real clocks made spatial. A signal to a counterpart
 is a mote crawling a hairline; a seedship is a decade-long ember; a
 relativistic ship is a hard bright torch on the same slow arc, its
 deceleration flare pointed at its destination — the most dramatic slow
@@ -155,7 +155,7 @@ overlays — the galaxy has no borders to draw, only light. The wow comes
 from depth, parallax, scale, and motion. If a screenshot of the Model
 looks *busy*, it is wrong; the emptiness carries the thesis
 (ui-design.md's one art-direction commitment), and the moments of light
-— a shell, a beam, an arriving letter — land *because* of it.
+— a shell, a beam, an arriving signal — land *because* of it.
 
 ## Touching the Model
 

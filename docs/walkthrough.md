@@ -283,7 +283,7 @@ priced in energy or matter but in **Coherence** — a wound, scaled by how
 far outside the comfort band the demand falls (economy-design.md,
 *Coherence*). Theo looks at the number, looks at the draft, and yields.
 **Stay dark.** Somewhere in the state a flag is set that will matter
-later: an unsent letter, kept. Memory 0.85. Of course it is kept.
+later: an unsent reply, kept. Memory 0.85. Of course it is kept.
 
 ---
 
@@ -295,22 +295,39 @@ The Day 2 morning session — year 280 AE by Longlight's own count — settles
 into the loop that will carry the season: the **report** (what the light
 brought while he was away), the **strategy turn** (purposes, never
 logistics), the **beats** (the dilemmas his purposes set in motion), and
-release. The economy underneath is a hum he steers rather than a
-spreadsheet he balances: routine income covers the ambient work without
-being asked; a session has one or two investments he is deliberately
-aiming; and one endeavor accrues quietly across real days on the strip's
-project clocks, each stamped with the clock pair (`31 h · ≈370 y`) that
-keeps deep time legible. He never sees a queue. He decides *what for*;
-the mind owns *how*.
+release. The strategy turn happens on the **Docket** — the Desk panel
+where everything the civilization is doing lives as one nested plan of
+works: each undertaking a row with its class chip, its clock pair
+(`31 h · ≈370 y`), and a state derived from physics rather than set by
+hand — *in hand*, *in flight*, *awaiting light*. The economy underneath
+is a hum he steers rather than a spreadsheet he balances: routine income
+covers the ambient rows without being asked; a session has one or two
+investments he is deliberately aiming; one endeavor accrues quietly
+across real days. He never sees a queue, and he never files anything —
+the mind proposes candidate undertakings from the state of the sky, and
+his verb is choosing. He decides *what for*; the mind owns *how*.
 
-What he aims at, this week:
+What he says yes to, this week:
 
 - **The vigil on Hearth.** Flagging the source turns it into a case on
   the observatory desk: hypotheses listed (someone's heart; a brown
   dwarf; a rogue world), instrument time allocated between them — a
   purpose-level choice, *which question*, never which telescope setting.
-  He commissions a deep-inspection instrument (an Investment; ~14 real
-  hours) and the case begins accruing light.
+  The case lands on the Docket as a parent with a child already
+  drafted: build the deep-inspection instrument (a project, an
+  Investment, ~14 real hours), then ferry it out to the solar focal
+  line (a mission, a short flight with a clock). Two rows, one purpose,
+  and the vigil sits above them, *blocked on light* until they land.
+- **The Assay on HOL-0554.** The mind's second proposal teaches him the
+  game's cheapest habit. A warmth nine light-years out has sat at
+  *rogue world · 55%* since the first survey, and the source card
+  offers the two honest prices of certainty: patience, or a probe. He
+  launches the probe — an Ambient row, no ceremony, a two-line charter
+  — and the mission clock stamps it: *arrival in 90 years* (seven and a
+  half real hours), *earliest confirmation in 99*. By tomorrow's
+  coffee the answer is home: a dead rogue world, cold and ordinary.
+  The smudge resolves; the sky is one question smaller. Most warmths
+  are nobody, and now he knows how cheaply that can be found out.
 - **The Vault's first deposit.** A beat surfaces the option and Memory
   0.85 makes it glow: deposit the inheritance itself — the whole
   chronicle, first life to the ceremony — into the deep archive begun
@@ -337,7 +354,7 @@ case file:
 
 The smudge on the Model visibly condenses toward a point. No stat
 changed; every priority did. There is a mature, deliberately silent
-civilization **6.8 light-years away** — close enough that letters would
+civilization **6.8 light-years away** — close enough that traffic would
 run inside an evening — and it has had Longlight's light, all of it,
 flare and turn both, for as long as it has cared to look. The confidence
 will not climb further this week: past 71% the case notes report the
@@ -402,7 +419,7 @@ the horizon, the constitution that can never be patched after launch:
   wider than his own. Memory he pins at 0.85. *Remember us.* The
   interface notes, without comment, that tight charters drift slowly. A
   keeper writes tight charters.
-- **Directives.** Root, go quiet, keep the correspondence schedule,
+- **Directives.** Root, go quiet, keep the report schedule,
   contribute to the shared survey of the sky.
 - **Contingencies.** The ones he can think of tonight, knowing the list
   is by definition incomplete. *If hailed, do not answer before
@@ -434,7 +451,7 @@ while he slept:
 > *Fathom is down. The ocean is deeper than the surveys promised and the
 > seafloor is ice, not rock — the world is poorer than we hoped and
 > quieter than we feared. The colony has rooted in the warm shallows of
-> the substellar sea. First correspondence attached, twelve years stale.*
+> the substellar sea. First report attached, twelve years stale.*
 
 The forecast's fan has collapsed into a fact, and the fact is off-center:
 the world at landfall was not quite the world the stale light promised,
@@ -478,19 +495,19 @@ before you inherited me.* Theo holds the hail, and the thread of light
 draws itself across 6.8 light-years of Model.
 
 **6.8 light-years is ~34 minutes one-way on his clock.** For the first
-time Holos becomes a correspondence game played inside an evening: he
-sends, makes dinner, and the reply is waiting when the plates are dry.
-Each letter arrives wearing its physics — transit years, received
-strength, degradation — set like an instrument's measurements above the
-text, and the thread shows both clocks at once (*arrives in 34 min ·
-6.8 y*). Three exchanges on Day 8, four on Day 11. The letters carry what
-letters can carry (act3-design.md, *Contact*):
+time Holos becomes a conversation carried on tight beams inside an
+evening: he sends, makes dinner, and the reply is waiting when the
+plates are dry. Each signal arrives wearing its physics — transit years,
+received strength, degradation — set like an instrument's measurements
+above the payload, and the thread shows both clocks at once (*arrives in
+34 min · 6.8 y*). Three exchanges on Day 8, four on Day 11. The signals
+carry what signals can carry (act3-design.md, *Contact*):
 
 - **Knowledge.** Hearth trades a refinement to cold-side radiator
   geometry — a real integration-ladder modifier — for nothing, as a
   gift. The gift is itself information: they are old enough that it
   costs them nothing.
-- **Culture.** Small dial nudges, slow and cumulative. Corresponding
+- **Culture.** Small dial nudges, slow and cumulative. Trading signals
   with something further down the quiet road pulls gently on Longlight's
   own notches. Contact changes you, mechanically.
 - **Archive contents.** The keeper's trade goods. Theo offers a sealed
@@ -501,14 +518,14 @@ letters can carry (act3-design.md, *Contact*):
   keeping of. Two civilizations of Memory, comparing vaults across
   seven light-years.
 - **Third parties.** And on Day 12, the explosive category. Hearth's
-  letter includes, without comment, coordinates and a light-curve for
+  signal includes, without comment, coordinates and a light-curve for
   **the Lantern** — with an annotation showing the swarm construction
   *accelerating*. The currency of betrayal, or of warning; nothing in
-  the letter says which, and nothing across light-years is enforceable
-  either way. Theo now holds intelligence about one correspondent, given
+  the payload says which, and nothing across light-years is enforceable
+  either way. Theo now holds intelligence about one counterpart, given
   to him by another, and no way to know why.
 
-He marks the relationship *correspondence*, sets the exchange cadence,
+He marks the relationship *traffic*, sets the exchange cadence,
 and notices two things on the walk to bed. First, that he has started
 thinking of a warm smudge of infrared as a friend. Second — and the
 design plants this thought and then refuses to water it — that Hearth's
@@ -525,7 +542,7 @@ point.
 
 The rhythm becomes the long middle: projects completing, the compute
 heart's endeavor ticking over on the strip, Fathom's scheduled
-correspondence arriving every twenty real hours, always twelve years
+reports arriving every twenty real hours, always twelve years
 stale, drift ticking upward with a steady lean — 0.06, 0.09, 0.11,
 always toward its wet dark world.
 
@@ -534,7 +551,7 @@ On Day 17, the neighborhood changes. A source Theo had barely registered
 bothered to name — **broadcasts**. Not a directed beam: a shell,
 addressed to everyone, the loudest thing the sky has produced since he
 joined. The payload is an introduction — coordinates, a history, an
-offer of correspondence to any listener. The report renders what it
+invitation for any listener to answer. The report renders what it
 means with the tense discipline the interface never breaks: *fifteen
 years ago, something there decided to be known to everyone, forever.*
 
@@ -543,7 +560,7 @@ to everyone else. Over the next sessions, the sky answers, each response
 arriving on its own light: the Lantern — of course — sings back, a
 directed anthem crossing the dark between them. The Shallows does
 nothing, because a pre-singularity world cannot do otherwise. Hearth's
-letter that evening contains one line on the subject: *We heard. We were
+signal that evening contains one line on the subject: *We heard. We were
 not asked, so we will not answer.* And a patch of sky Theo had never
 flagged — never had reason to — goes *quieter*: an infrared floor he had
 taken for background dims by a fraction his instruments only caught
@@ -563,11 +580,11 @@ hands. It never will.
 The week's quiet coda: the Lantern's leakage, background music since Day
 1, is still arriving — swarm shadows thickening, the construction
 Hearth flagged still accelerating by the light. Somewhere in the Vault
-is the unsent letter from Day 1. The mind surfaces it once, in a beat
+is the unsent reply from Day 1. The mind surfaces it once, in a beat
 with no decision attached, which is somehow worse:
 
 > *They watched our flare and sang to it. They watched our silence and
-> went back to their building. I keep the letter you wrote them on the
+> went back to their building. I keep the reply you wrote them on the
 > first day. I do not know why. That is not quite true. I keep
 > everything.*
 
@@ -586,10 +603,10 @@ grammar as composable plain-language rows:
 
 - *wake me if anything warm moves within 25 light-years;*
 - *wake me if a directed beam touches us;*
-- *wake me if Fathom misses two scheduled correspondences;*
+- *wake me if Fathom misses two scheduled reports;*
 - *wake me after 1,500 years regardless.*
 
-He writes Hearth a note first — *we will be quiet for a while; this is
+He signals Hearth first — *we will be quiet for a while; this is
 rest, not death* — because after Week 2 it would feel wrong not to. The
 reply arrives sixty-eight minutes round-trip later and is one line:
 *We know what sleep is. We will keep the watch meanwhile.*
@@ -603,7 +620,7 @@ neglect.
 
 On Day 33, on the train home from the airport, his phone buzzes once.
 
-> **HOLOS — tripwire: Fathom has missed two scheduled correspondences.**
+> **HOLOS — tripwire: Fathom has missed two scheduled reports.**
 
 ---
 
@@ -618,21 +635,21 @@ Theo has not seen before — triaged, bombshells first, then the sky
 digest, then the queue — because for the first time there is too much.
 
 **First: the silence that woke him.** Fathom's row in the Ledger renders
-in a new state, and the letter that finally follows — three days late by
+in a new state, and the signal that finally follows — three days late by
 its own schedule, eighty-three centuries into its own descent — explains
-the missed correspondences before the mechanics do:
+the missed reports before the mechanics do:
 
 > *To the Origin, from the Keeping of Fathom, in the ninth millennium of
 > our descent.*
 
 More than eight thousand years of a drowned, metal-poor cradle pressing
-on a tight charter — plus two scheduled letters that went unanswered into his sleep
+on a tight charter — plus two scheduled reports that went unanswered into his sleep
 — have carried the fork past the drift threshold. **Fathom is
-independent.** The letter is courteous, formal, and utterly strange:
+independent.** The message is courteous, formal, and utterly strange:
 they quote his charter back to him as *scripture* — contingency two, the
 one about opening the record and deciding who they are, is apparently
 the founding text of something like a faith. They have decided who they
-are. They are not him. They ask for nothing except the correspondence
+are. They are not him. They ask for nothing except the report
 schedule he wrote for them, which they intend to keep — *as one keeps a
 grave.* The Ledger notes, in small type, that an independent lineage may
 one day be taken up by a joining human. The charter Theo wrote on a
@@ -650,10 +667,10 @@ went silent tactically (saw something).* Three readings, three
 incompatible responses, and the intelligence Hearth handed him in Week 2
 — *the construction is accelerating* — now reads as either the last
 chapter of a rise or the wind-up to something. His vigil flips back on.
-The unsent letter is still in the Vault, addressed to a civilization
+The unsent reply is still in the Vault, addressed to a civilization
 that may no longer exist in any form that could read it.
 
-**Third: Hearth, constant.** A stack of letters waited out his sleep,
+**Third: Hearth, constant.** A stack of signals waited out his sleep,
 patient as promised, the last one recent. It closes with the only
 comfort the dark forest offers, which is company inside the
 uncertainty:
@@ -703,10 +720,14 @@ promise of the v1 game:
   holder, the lens-builder — and not one carried a nameplate. Human or
   rule-set was undecidable at every range, the broadcast event turned
   everyone's response into everyone else's intelligence, and the only
-  co-authored objects in the season were physical: a launch, a letter,
+  co-authored objects in the season were physical: a launch, a beam,
   a gift.
 - **The altitude held.** He chose purposes — watch, deposit, launch,
   hail, sleep — and never once touched a queue, a route, or a unit.
+- **The dispatch was a habit by Day 3.** The season's questions were
+  answered by sending things — an assay probe, a ferried instrument, a
+  seedship under a charter — each a Docket row with a clock, and every
+  answer came home as light on a countdown he could watch.
 - **The economy stayed a rhythm, not a spreadsheet.** Ambient hum,
   one or two Investments a sitting, an Endeavor accruing across days —
   and the one price with no material cost, forcing the mind against its
@@ -722,11 +743,11 @@ promise of the v1 game:
 Most of this season runs on the v1 scope in act3-design.md: the
 inheritance ceremony and the seeded cohort, the Sky and the five signal
 classes with the mask-versus-instrument contest thin but live, the light
-echo, seedships with charters and basic drift, the forecast survey and
-mission clock in their thin forms, directed hail, broadcast, and
-correspondence on real clocks, sleep with tripwires, and rule-based AI
-correspondents (Hearth, the Lantern, and Daybreak need nothing deeper
-than rules; light-lag hides the seams). The scenes that reach past v1,
+echo, seedships and probe-class missions with charters on the Docket,
+the forecast survey and mission clock in their thin forms, directed
+hail, broadcast, and tight-beam traffic on real clocks, sleep with
+tripwires, and rule-based AI counterparts (Hearth, the Lantern, and
+Daybreak need nothing deeper than rules; light-lag hides the seams). The scenes that reach past v1,
 flagged per this document's honesty convention:
 
 - **The watched reveal** (Day 3's lens geometry) is an open ship
@@ -734,15 +755,15 @@ flagged per this document's honesty convention:
   because it costs one scene and lands the act's thesis — and, for an
   heir, reframes the whole inheritance as a document with prior readers.
   If cut, Day 3 loses its chill but nothing structural.
-- **Fathom's independence and the "Keeping of Fathom" letter** (Week 6)
+- **Fathom's independence and the "Keeping of Fathom" message** (Week 6)
   belong to the divergence-and-handoff later layer. v1 ships basic drift
   numbers in the Ledger; the season finale is what those numbers are
   building toward, not what v1 delivers on its own clock.
 - **The directional drift compass** (Fathom leaning toward its drowned
   world's character) is the richer curve behind the *drift math* open
   question; v1 drift can be magnitude-only without breaking the season.
-- **Letter prose as shown** assumes a resolution of the player-language
-  question (vision.md, *Still open*). Every letter in this season is
+- **Signal prose as shown** assumes a resolution of the player-language
+  question (vision.md, *Still open*). Every signal in this season is
   AI-authored or player-to-unknown, which is exactly the case v1 must
   ship first; the human-pair moderation question remains open.
 - **The Chronicle as a fully rendered reading surface** (the annalist's
