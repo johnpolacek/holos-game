@@ -231,11 +231,11 @@ allowed to be this theatrical.
   everything your instruments have ever received from it. Scrubbing a
   source's past is how "the map is the past" becomes something the
   player's fingers know.
-- **The observatory** (Desk): the inference workbench — the case board.
-  Active vigils as cases: hypotheses with confidence shares, buyable
-  questions priced in instrument time (a purpose-level choice — *which
-  question*, never *which telescope setting*), answers that sharpen,
-  plateau, or regress, and per-case tripwires
+- **The observatory** (Desk): the inference workbench. Active vigils as
+  studies: hypotheses with confidence shares, buyable questions priced
+  in instrument time (a purpose-level choice — *which question*, never
+  *which telescope setting*), answers that sharpen, plateau, or
+  regress, and per-study tripwires
   ([observatory-design.md](./observatory-design.md) is the spec). This
   is Silence's verb set (playstyles.md) given a surface.
 - **The choice screen**: contact's irreversible stage gets the full
@@ -318,10 +318,10 @@ both transformations, dial sheet, ladder/project columns with clock
 pairs; the Sky as the 3D Model in its v1 form (continuous camera, pull-back
 beat, point-cloud backdrop, the player's own echo shell — act3-map.md
 § Scope) with source cards and the five signal classes; the
-observatory as the case board (observatory-design.md — hypotheses,
-questions, allocation; the grounded exit waits for A4's Assay); the
-choice ceremony; signal threads with flight
-rendering; the Docket in list form with probe-mission rows
+observatory (observatory-design.md — hypotheses, questions, allocation;
+the grounded exit waits for A4's Assay); the choice ceremony; signal
+threads with flight rendering; the Docket in list form with
+probe-mission rows
 (missions-design.md, § v1 slice); the Ledger with basic drift ghosts;
 sleep, tripwires, wake
 report, push. Deferred with their systems: the mask/performance surfaces,

@@ -20,7 +20,7 @@
 // straight into the volume.
 //
 // Text stays in the DOM overlay (canvas for places, DOM for prose): the
-// caption and the tracking HOME label.
+// tracking HOME label.
 
 import { Application, Container, Graphics, Sprite, Texture } from "pixi.js";
 import type { DetectedSource, SelfView, Star, Vec3Ly } from "@holos/protocol";
@@ -45,9 +45,16 @@ const HOME_EL = 0.1;
 const ORBIT_SPEED = 0.006; // radians per screen pixel dragged
 const EL_LIMIT = 1.35; // clamp elevation so the view never flips
 
-const TAP_MOVE_PX = 10; // a drag beyond this is not a tap
-const TAP_MS = 400;
-const THUMB_PX = 32; // tap hit radius for source selection
+// Tap tolerances, set for a thumb rather than a mouse. Movement — not
+// duration — is what separates a tap from an orbit: aiming carefully at a
+// distant smudge takes real time, and discarding those taps made sources
+// feel inert (every near-miss became a small rotation instead).
+const TAP_MOVE_PX = 16; // a drag beyond this is not a tap
+const TAP_MS = 900;
+/** Floor for the tap hit radius; a smudge drawn larger is tappable to its
+ *  full drawn radius (see sourceScreen) — what looks like the source IS the
+ *  target, and an uncertain source is a big soft one. */
+const THUMB_PX = 32;
 
 const STAR_TEX_SIZE = 48;
 const GLOW_TEX_SIZE = 128;
@@ -190,7 +197,10 @@ export class Model {
   private selectedStarId: string | null = null;
   private selectCb: SelectSourceCallback | null = null;
 
-  private readonly sourceScreen = new Map<string, { x: number; y: number }>();
+  // Screen position AND drawn radius per source, refreshed every frame: the
+  // hit test reads the radius so the tappable area is exactly what the player
+  // can see (smudges range from 8 to 92 px).
+  private readonly sourceScreen = new Map<string, { x: number; y: number; r: number }>();
   private readonly proj: Projected = { ok: false, x: 0, y: 0, depth: 0 };
 
   constructor(container: HTMLElement, catalog: readonly Star[]) {
@@ -203,16 +213,12 @@ export class Model {
     this.overlay = document.createElement("div");
     this.overlay.className = "model-overlay";
 
-    const caption = document.createElement("div");
-    caption.className = "model-caption holos-caps";
-    caption.textContent = "THE MODEL — WHAT WE BELIEVE";
-
     this.homeLabel = document.createElement("div");
     this.homeLabel.className = "model-home-label holos-caps";
     this.homeLabel.textContent = "HOME";
     this.homeLabel.style.opacity = "0";
 
-    this.overlay.append(this.homeLabel, caption);
+    this.overlay.append(this.homeLabel);
     this.root.append(this.overlay);
     this.container.append(this.root);
 
@@ -512,7 +518,11 @@ export class Model {
       item.sprite.scale.set(radiusPx / (GLOW_TEX_SIZE / 2));
       item.sprite.alpha = 0.22 + conf * 0.5; // core brightens as belief firms
       item.sprite.zIndex = -this.proj.depth;
-      this.sourceScreen.set(item.source.starId, { x: this.proj.x, y: this.proj.y });
+      this.sourceScreen.set(item.source.starId, {
+        x: this.proj.x,
+        y: this.proj.y,
+        r: radiusPx,
+      });
     }
 
     this.drawOrrery(cx, cy, focal);
@@ -626,7 +636,10 @@ export class Model {
     if (this.selectedStarId === null) return;
     const at = this.sourceScreen.get(this.selectedStarId);
     if (at === undefined) return;
-    g.circle(at.x, at.y, THUMB_PX * 0.9).stroke({ width: 1, color: COLOR_SELECT, alpha: 0.7 });
+    // Ring the smudge at its drawn size, so the selection reads as "this
+    // source" rather than a fixed badge floating over a larger blot.
+    const ring = Math.max(THUMB_PX, at.r) * 0.9;
+    g.circle(at.x, at.y, ring).stroke({ width: 1, color: COLOR_SELECT, alpha: 0.7 });
   }
 
   // ── Interaction ───────────────────────────────────────────────────────
@@ -735,12 +748,16 @@ export class Model {
   }
 
   private selectAt(x: number, y: number): void {
+    // Nearest source whose DRAWN extent contains the tap, scored by how far
+    // into it the tap fell — so overlapping smudges resolve to the one the
+    // player was actually aiming at, not merely the nearest center.
     let bestId: string | null = null;
-    let bestDist = THUMB_PX;
+    let bestScore = 1;
     for (const [starId, at] of this.sourceScreen) {
-      const d = Math.hypot(at.x - x, at.y - y);
-      if (d < bestDist) {
-        bestDist = d;
+      const reach = Math.max(THUMB_PX, at.r);
+      const score = Math.hypot(at.x - x, at.y - y) / reach;
+      if (score < bestScore) {
+        bestScore = score;
         bestId = starId;
       }
     }

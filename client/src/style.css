@@ -135,21 +135,6 @@ body {
   z-index: 1;
 }
 
-.model-caption {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: max(1.4rem, env(safe-area-inset-bottom));
-  text-align: center;
-  letter-spacing: 0.28em;
-  color: var(--holos-ink-faint);
-  font-size: var(--holos-text-xs);
-  font-weight: 500;
-  /* Overlay text sits on the starfield, not on a panel — a dark halo keeps it
-     off the stars instead of dissolving into them. */
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
-}
-
 .model-home-label {
   position: absolute;
   top: 0;
@@ -372,13 +357,13 @@ body {
   color: var(--holos-ink-faint);
 }
 
-.source-card-case-row {
+.source-card-study-row {
   display: flex;
   justify-content: center;
   padding-top: 0.15rem;
 }
 
-.source-card-case-affordance {
+.source-card-study-affordance {
   background: none;
   border: none;
   padding: 0.3rem 0.6rem;
@@ -390,21 +375,21 @@ body {
   cursor: pointer;
 }
 
-.source-card-case-affordance--active {
+.source-card-study-affordance--active {
   color: var(--holos-ink-dim);
 }
 
-/* ── Case board (the observatory Desk panel, Act 3 A2.1) ──────────────
- * List of open/shelved cases + the focused case (docs/concepts/03-03).
+/* ── The observatory (the inference workbench, a Desk panel, Act 3 A2.1) ─
+ * List of open/shelved studies + the focused study (docs/concepts/03-03).
  * Amber/ink only — never --holos-cyan; cyan is HOME-only. */
-.case-board-root {
+.study-board-root {
   position: absolute;
   inset: 0;
   z-index: 3; /* above .source-card-root */
   pointer-events: none;
 }
 
-.case-chip {
+.study-chip {
   position: absolute;
   top: max(0.9rem, env(safe-area-inset-top));
   right: max(0.9rem, env(safe-area-inset-right));
@@ -417,7 +402,7 @@ body {
   cursor: pointer;
 }
 
-.case-board-backdrop {
+.study-board-backdrop {
   position: absolute;
   inset: 0;
   background: transparent;
@@ -425,7 +410,7 @@ body {
   transition: opacity 260ms ease;
 }
 
-.case-board-sheet {
+.study-board-sheet {
   position: absolute;
   top: 0;
   left: 0;
@@ -443,27 +428,27 @@ body {
   transition: transform 320ms cubic-bezier(0.22, 0.9, 0.32, 1);
 }
 
-.case-board-root.open {
+.study-board-root.open {
   pointer-events: auto;
 }
 
-.case-board-root.open .case-board-backdrop {
+.study-board-root.open .study-board-backdrop {
   opacity: 1;
 }
 
-.case-board-root.open .case-board-sheet {
+.study-board-root.open .study-board-sheet {
   transform: translateY(0);
 }
 
 @media (min-width: 720px) {
-  .case-board-sheet {
+  .study-board-sheet {
     left: auto;
     width: 28rem;
     max-width: 28rem;
   }
 }
 
-.case-board-grabber {
+.study-board-grabber {
   align-self: center;
   width: 2.4rem;
   height: 0.28rem;
@@ -474,30 +459,30 @@ body {
   flex-shrink: 0;
 }
 
-.case-board-body {
+.study-board-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-.case-board-header {
+.study-board-header {
   padding: 0.2rem 0 0.6rem;
 }
 
-.case-board-empty,
-.case-archive-empty {
+.study-board-empty,
+.study-archive-empty {
   color: var(--holos-ink-faint);
   font-size: var(--holos-text-sm);
   padding: 0.4rem 0;
 }
 
-.case-board-divider {
+.study-board-divider {
   padding: 0.9rem 0 0.4rem;
   color: var(--holos-ink-faint);
 }
 
-.case-row {
+.study-row {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -511,27 +496,27 @@ body {
   color: var(--holos-ink);
 }
 
-.case-row--dim {
+.study-row--dim {
   opacity: 0.72;
 }
 
-.case-row-top {
+.study-row-top {
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.case-row-designation {
+.study-row-designation {
   color: var(--holos-ink-dim);
 }
 
-.case-row-name {
+.study-row-name {
   font-size: var(--holos-text-lg);
   color: var(--holos-ink);
 }
 
-.case-row-bottom {
+.study-row-bottom {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -540,23 +525,23 @@ body {
   color: var(--holos-ink-dim);
 }
 
-.case-row-hyp {
+.study-row-hyp {
   display: inline-flex;
   gap: 0.3rem;
   min-width: 0;
 }
 
-.case-row-age {
+.study-row-age {
   flex-shrink: 0;
   white-space: nowrap;
 }
 
-.case-tabular {
+.study-tabular {
   font-variant-numeric: tabular-nums;
 }
 
 /* Focused view */
-.case-back {
+.study-back {
   align-self: flex-start;
   background: none;
   border: none;
@@ -565,7 +550,7 @@ body {
   cursor: pointer;
 }
 
-.case-smudge {
+.study-smudge {
   width: min(40vw, 220px);
   height: min(40vw, 180px);
   margin: 1rem auto 0.4rem;
@@ -577,7 +562,7 @@ body {
   filter: blur(22px);
 }
 
-.case-focus-header {
+.study-focus-header {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -585,38 +570,38 @@ body {
   padding: 0.2rem 0 0.7rem;
 }
 
-.case-focus-designation {
+.study-focus-designation {
   color: var(--holos-ink-dim);
 }
 
-.case-focus-name {
+.study-focus-name {
   font-size: var(--holos-text-3xl);
   line-height: 1.05;
   color: var(--holos-amber);
 }
 
-.case-focus-age {
+.study-focus-age {
   padding: 0.28rem 0.6rem;
   border: 1px solid var(--holos-gold-dim);
   border-radius: 999px;
   color: var(--holos-ink-dim);
 }
 
-.case-hairline {
+.study-hairline {
   margin: 0.3rem 0;
 }
 
-.case-section {
+.study-section {
   display: flex;
   flex-direction: column;
   padding: 0.5rem 0 0.1rem;
 }
 
-.case-section-header {
+.study-section-header {
   padding-bottom: 0.5rem;
 }
 
-.case-hyp-row {
+.study-hyp-row {
   display: grid;
   grid-template-columns: minmax(6rem, auto) 1fr auto;
   align-items: center;
@@ -624,17 +609,17 @@ body {
   padding: 0.4rem 0;
 }
 
-.case-hyp-label {
+.study-hyp-label {
   color: var(--holos-ink);
 }
 
-.case-hyp-track {
+.study-hyp-track {
   position: relative;
   height: 1px;
   background: var(--holos-gold-dim);
 }
 
-.case-hyp-fill {
+.study-hyp-fill {
   position: absolute;
   top: 0;
   left: 0;
@@ -642,14 +627,14 @@ body {
   background: rgba(211, 185, 130, 0.65);
 }
 
-.case-hyp-fill--leading {
+.study-hyp-fill--leading {
   background: var(--holos-amber);
 }
 
 /* The GLOW — a soft radial-gradient spot on the hairline track, never a
  * knob/handle: no border, no solid-fill circle, no box-shadow, nothing that
  * reads draggable. */
-.case-hyp-glow {
+.study-hyp-glow {
   position: absolute;
   top: 50%;
   width: 18px;
@@ -665,7 +650,7 @@ body {
   pointer-events: none;
 }
 
-.case-hyp-glow--leading {
+.study-hyp-glow--leading {
   background: radial-gradient(
     circle,
     rgba(217, 154, 83, 0.95) 0%,
@@ -674,12 +659,12 @@ body {
   filter: blur(1px);
 }
 
-.case-hyp-pct {
+.study-hyp-pct {
   text-align: right;
   color: var(--holos-ink);
 }
 
-.case-annotation {
+.study-annotation {
   font-family: var(--holos-font-body);
   font-style: italic;
   font-size: var(--holos-text-sm);
@@ -687,7 +672,7 @@ body {
   padding: 0.6rem 0;
 }
 
-.case-archive-row {
+.study-archive-row {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -695,42 +680,42 @@ body {
   border-bottom: 1px solid rgba(211, 185, 130, 0.24);
 }
 
-.case-archive-age {
+.study-archive-age {
   color: var(--holos-ink-faint);
 }
 
-.case-archive-text {
+.study-archive-text {
   font-size: var(--holos-text-sm);
   line-height: 1.4;
   color: var(--holos-ink);
 }
 
-.case-archive-tags {
+.study-archive-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
   margin-top: 0.15rem;
 }
 
-.case-archive-tag {
+.study-archive-tag {
   padding: 0.15rem 0.45rem;
   border: 1px solid rgba(211, 185, 130, 0.4);
   border-radius: 999px;
   color: var(--holos-ink-faint);
 }
 
-/* A2.2 fills this in — CaseSnapshot.openQuestions is always [] in A2.1, so
+/* A2.2 fills this in — StudySnapshot.openQuestions is always [] in A2.1, so
  * this container ships empty: no header, no rows, nothing buyable. */
-.case-open-questions {
+.study-open-questions {
 }
 
-.case-verb-row {
+.study-verb-row {
   display: flex;
   justify-content: center;
   padding: 0.5rem 0 0.2rem;
 }
 
-.case-verb-btn {
+.study-verb-btn {
   background: none;
   border: none;
   font-family: var(--holos-font-body);
@@ -741,7 +726,7 @@ body {
   padding: 0.3rem 0.6rem;
 }
 
-.case-verb-btn:hover {
+.study-verb-btn:hover {
   color: var(--holos-ink-dim);
 }
 
@@ -1237,7 +1222,7 @@ body {
     --holos-cyan: #a5f3f7;
   }
 
-  .case-row--dim {
+  .study-row--dim {
     opacity: 0.9;
   }
 

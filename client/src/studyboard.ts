@@ -1,15 +1,16 @@
-// THE CASE BOARD — the observatory Desk panel (Act 3, slice A2.1: read-only).
-// A DOM overlay (not canvas) that lists open/shelved cases and, per case,
+// THE OBSERVATORY — the inference workbench, a Desk panel (Act 3, slice
+// A2.1: read-only).
+// A DOM overlay (not canvas) that lists open/shelved studies and, per study,
 // shows the current hypothesis reading derived from delayed light
-// (CaseSnapshot; see server/src/protocol.ts). The visual target for the
-// focused case is docs/concepts/03-03-case-board.png.
+// (StudySnapshot; see server/src/protocol.ts). The visual target for the
+// focused study is docs/concepts/03-03-case-board.png.
 //
 // Two adopted build notes, load-bearing for this slice:
 //   - The confidence marker renders as a GLOW, never a knob/handle. The
 //     hypothesis "bars" are a view of a share, not a control — nothing here
 //     is draggable, nothing is an input.
 //   - The OPEN QUESTIONS section ships its layout (a reserved, empty
-//     container) but renders nothing in A2.1: `CaseSnapshot.openQuestions`
+//     container) but renders nothing in A2.1: `StudySnapshot.openQuestions`
 //     is always `[]` this slice, and nothing is buyable yet. The art's
 //     INSTRUMENT ALLOCATION strip is A2.2 entirely and does not appear here.
 //
@@ -18,7 +19,7 @@
 // cyan is HOME-only, this surface is all amber/ink.
 
 import type {
-  CaseSnapshot,
+  StudySnapshot,
   DetectedSource,
   Hypothesis,
   HypothesisId,
@@ -70,7 +71,7 @@ function hypothesisPercentages(
   return result;
 }
 
-export class CaseBoard {
+export class StudyBoard {
   private readonly socket: CohortSocket;
 
   private readonly root: HTMLDivElement;
@@ -80,7 +81,7 @@ export class CaseBoard {
   private readonly grabber: HTMLDivElement;
   private readonly body: HTMLDivElement;
 
-  private casesByStarId = new Map<string, CaseSnapshot>();
+  private studiesByStarId = new Map<string, StudySnapshot>();
   private sourcesByStarId = new Map<string, DetectedSource>();
   private localNames: ReadonlyMap<string, string> = new Map();
 
@@ -95,26 +96,26 @@ export class CaseBoard {
     this.socket = socket;
 
     this.root = document.createElement("div");
-    this.root.className = "case-board-root";
+    this.root.className = "study-board-root";
 
     this.chip = document.createElement("button");
     this.chip.type = "button";
-    this.chip.className = "case-chip holos-caps";
-    this.chip.textContent = "CASES · 0";
+    this.chip.className = "study-chip holos-caps";
+    this.chip.textContent = "STUDIES · 0";
     this.chip.addEventListener("click", () => this.openBoard());
 
     this.backdrop = document.createElement("div");
-    this.backdrop.className = "case-board-backdrop";
+    this.backdrop.className = "study-board-backdrop";
     this.backdrop.addEventListener("click", () => this.close());
 
     this.sheet = document.createElement("div");
-    this.sheet.className = "case-board-sheet";
+    this.sheet.className = "study-board-sheet";
 
     this.grabber = document.createElement("div");
-    this.grabber.className = "case-board-grabber";
+    this.grabber.className = "study-board-grabber";
 
     this.body = document.createElement("div");
-    this.body.className = "case-board-body";
+    this.body.className = "study-board-body";
 
     this.sheet.append(this.grabber, this.body);
     this.root.append(this.chip, this.backdrop, this.sheet);
@@ -125,20 +126,20 @@ export class CaseBoard {
   }
 
   update(
-    cases: readonly CaseSnapshot[],
+    studies: readonly StudySnapshot[],
     sources: readonly DetectedSource[],
     localNames: ReadonlyMap<string, string>,
   ): void {
-    this.casesByStarId = new Map(cases.map((c) => [c.starId, c] as const));
+    this.studiesByStarId = new Map(studies.map((s) => [s.starId, s] as const));
     this.sourcesByStarId = new Map(sources.map((s) => [s.starId, s] as const));
     this.localNames = localNames;
     this.updateChip();
 
     if (this.view === "focused" && this.focusedStarId !== null) {
-      if (this.casesByStarId.has(this.focusedStarId)) {
+      if (this.studiesByStarId.has(this.focusedStarId)) {
         this.renderFocused(this.focusedStarId);
       } else {
-        // The focused case vanished from this payload — fall back to list.
+        // The focused study vanished from this payload — fall back to list.
         this.view = "list";
         this.focusedStarId = null;
         this.renderList();
@@ -156,7 +157,7 @@ export class CaseBoard {
     this.root.classList.add("open");
   }
 
-  focusCase(starId: string): void {
+  focusStudy(starId: string): void {
     this.view = "focused";
     this.focusedStarId = starId;
     this.renderFocused(starId);
@@ -181,15 +182,15 @@ export class CaseBoard {
 
   private updateChip(): void {
     let n = 0;
-    for (const c of this.casesByStarId.values()) {
-      if (c.status === "open") n++;
+    for (const s of this.studiesByStarId.values()) {
+      if (s.status === "open") n++;
     }
-    this.chip.textContent = `CASES · ${n}`;
+    this.chip.textContent = `STUDIES · ${n}`;
   }
 
   private hairline(): HTMLHRElement {
     const hr = document.createElement("hr");
-    hr.className = "holos-hairline case-hairline";
+    hr.className = "holos-hairline study-hairline";
     return hr;
   }
 
@@ -199,84 +200,84 @@ export class CaseBoard {
     this.body.innerHTML = "";
 
     const header = document.createElement("div");
-    header.className = "case-board-header holos-caps";
-    header.textContent = "THE CASE BOARD";
+    header.className = "study-board-header holos-caps";
+    header.textContent = "THE OBSERVATORY";
     this.body.append(header);
 
-    const all = [...this.casesByStarId.values()];
+    const all = [...this.studiesByStarId.values()];
     if (all.length === 0) {
       const empty = document.createElement("div");
-      empty.className = "case-board-empty";
-      empty.textContent = "No cases open.";
+      empty.className = "study-board-empty";
+      empty.textContent = "No studies open.";
       this.body.append(empty);
       return;
     }
 
-    const open = all.filter((c) => c.status === "open");
-    const shelved = all.filter((c) => c.status === "shelved");
+    const open = all.filter((s) => s.status === "open");
+    const shelved = all.filter((s) => s.status === "shelved");
 
-    for (const c of open) {
-      const row = this.buildRow(c, false);
+    for (const s of open) {
+      const row = this.buildRow(s, false);
       if (row !== null) this.body.append(row);
     }
 
     if (shelved.length > 0) {
       const divider = document.createElement("div");
-      divider.className = "case-board-divider holos-caps";
+      divider.className = "study-board-divider holos-caps";
       divider.textContent = "SHELVED";
       this.body.append(divider);
-      for (const c of shelved) {
-        const row = this.buildRow(c, true);
+      for (const s of shelved) {
+        const row = this.buildRow(s, true);
         if (row !== null) this.body.append(row);
       }
     }
   }
 
-  /** A case with no matching DetectedSource is skipped entirely (defensive:
+  /** A study with no matching DetectedSource is skipped entirely (defensive:
    * should not happen, but there is nothing sane to render). */
-  private buildRow(c: CaseSnapshot, dimmed: boolean): HTMLButtonElement | null {
-    const source = this.sourcesByStarId.get(c.starId);
+  private buildRow(s: StudySnapshot, dimmed: boolean): HTMLButtonElement | null {
+    const source = this.sourcesByStarId.get(s.starId);
     if (source === undefined) return null;
 
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = dimmed ? "case-row case-row--dim" : "case-row";
-    btn.addEventListener("click", () => this.focusCase(c.starId));
+    btn.className = dimmed ? "study-row study-row--dim" : "study-row";
+    btn.addEventListener("click", () => this.focusStudy(s.starId));
 
     const top = document.createElement("div");
-    top.className = "case-row-top";
+    top.className = "study-row-top";
     const desig = document.createElement("span");
-    desig.className = "case-row-designation holos-caps";
+    desig.className = "study-row-designation holos-caps";
     desig.textContent = source.designation;
     top.append(desig);
 
-    const localName = this.localNames.get(c.starId);
+    const localName = this.localNames.get(s.starId);
     if (localName !== undefined && localName.length > 0) {
       const nm = document.createElement("span");
-      nm.className = "case-row-name holos-serif";
+      nm.className = "study-row-name holos-serif";
       nm.textContent = localName;
       top.append(nm);
     }
 
     const bottom = document.createElement("div");
-    bottom.className = "case-row-bottom";
+    bottom.className = "study-row-bottom";
 
     const hyp = document.createElement("span");
-    hyp.className = "case-row-hyp";
-    const leader = leadingHypothesis(c.hypotheses);
+    hyp.className = "study-row-hyp";
+    const leader = leadingHypothesis(s.hypotheses);
     if (leader !== undefined) {
-      const pcts = hypothesisPercentages(c.hypotheses);
+      const pcts = hypothesisPercentages(s.hypotheses);
       const pct = pcts.get(leader.id) ?? Math.round(leader.share * 100);
       const label = document.createElement("span");
       label.textContent = leader.label;
       const percent = document.createElement("span");
-      percent.className = "case-tabular";
+      percent.className = "study-tabular";
       percent.textContent = `${pct}%`;
       hyp.append(label, percent);
     }
 
     const age = document.createElement("span");
-    age.className = "case-row-age holos-caps";
+    age.className = "study-row-age holos-caps";
     age.textContent = `AS OF ${source.lightAgeYears.toFixed(1)} Y AGO`;
 
     bottom.append(hyp, age);
@@ -287,37 +288,37 @@ export class CaseBoard {
   // ── Render: focused view ─────────────────────────────────────────────
 
   private renderFocused(starId: string): void {
-    const c = this.casesByStarId.get(starId);
-    const source = c === undefined ? undefined : this.sourcesByStarId.get(starId);
+    const s = this.studiesByStarId.get(starId);
+    const source = s === undefined ? undefined : this.sourcesByStarId.get(starId);
     this.body.innerHTML = "";
-    if (c === undefined || source === undefined) return; // defensive; see update()
+    if (s === undefined || source === undefined) return; // defensive; see update()
 
     const back = document.createElement("button");
     back.type = "button";
-    back.className = "case-back holos-caps";
-    back.textContent = "‹ CASES";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ STUDIES";
     back.addEventListener("click", () => this.openBoard());
     this.body.append(back);
 
-    const leader = leadingHypothesis(c.hypotheses);
+    const leader = leadingHypothesis(s.hypotheses);
     const leaderShare = clamp01(leader?.share ?? 0);
     const smudge = document.createElement("div");
-    smudge.className = "case-smudge";
+    smudge.className = "study-smudge";
     smudge.style.opacity = (0.3 + leaderShare * 0.6).toFixed(2);
     this.body.append(smudge);
 
     const header = document.createElement("div");
-    header.className = "case-focus-header";
+    header.className = "study-focus-header";
     const desig = document.createElement("div");
-    desig.className = "case-focus-designation holos-caps";
+    desig.className = "study-focus-designation holos-caps";
     desig.textContent = source.designation;
     const localName = this.localNames.get(starId);
     const nameEl = document.createElement("div");
-    nameEl.className = "case-focus-name holos-serif";
+    nameEl.className = "study-focus-name holos-serif";
     nameEl.textContent =
       localName !== undefined && localName.length > 0 ? localName : source.designation;
     const ageChip = document.createElement("div");
-    ageChip.className = "case-focus-age holos-caps";
+    ageChip.className = "study-focus-age holos-caps";
     ageChip.textContent = `AS OF ${source.lightAgeYears.toFixed(1)} Y AGO`;
     header.append(desig, nameEl, ageChip);
     this.body.append(header);
@@ -326,36 +327,36 @@ export class CaseBoard {
 
     // CURRENT HYPOTHESES
     const hypSection = document.createElement("div");
-    hypSection.className = "case-section";
+    hypSection.className = "study-section";
     const hypHeader = document.createElement("div");
-    hypHeader.className = "case-section-header holos-caps";
+    hypHeader.className = "study-section-header holos-caps";
     hypHeader.textContent = "CURRENT HYPOTHESES";
     hypSection.append(hypHeader);
 
-    const pcts = hypothesisPercentages(c.hypotheses);
-    const maxShare = c.hypotheses.reduce((m, h) => Math.max(m, h.share), 0);
-    for (const h of c.hypotheses) {
+    const pcts = hypothesisPercentages(s.hypotheses);
+    const maxShare = s.hypotheses.reduce((m, h) => Math.max(m, h.share), 0);
+    for (const h of s.hypotheses) {
       const isLeading = h.share === maxShare;
       const row = document.createElement("div");
-      row.className = "case-hyp-row";
+      row.className = "study-hyp-row";
 
       const label = document.createElement("span");
-      label.className = "case-hyp-label holos-caps";
+      label.className = "study-hyp-label holos-caps";
       label.textContent = h.label;
 
       const track = document.createElement("div");
-      track.className = "case-hyp-track";
+      track.className = "study-hyp-track";
       const sharePct = clamp01(h.share) * 100;
       const fill = document.createElement("div");
-      fill.className = isLeading ? "case-hyp-fill case-hyp-fill--leading" : "case-hyp-fill";
+      fill.className = isLeading ? "study-hyp-fill study-hyp-fill--leading" : "study-hyp-fill";
       fill.style.width = `${sharePct}%`;
       const glow = document.createElement("div");
-      glow.className = isLeading ? "case-hyp-glow case-hyp-glow--leading" : "case-hyp-glow";
+      glow.className = isLeading ? "study-hyp-glow study-hyp-glow--leading" : "study-hyp-glow";
       glow.style.left = `${sharePct}%`;
       track.append(fill, glow);
 
       const pct = document.createElement("span");
-      pct.className = "case-hyp-pct case-tabular";
+      pct.className = "study-hyp-pct study-tabular";
       pct.textContent = `${pcts.get(h.id) ?? Math.round(h.share * 100)}%`;
 
       row.append(label, track, pct);
@@ -364,50 +365,50 @@ export class CaseBoard {
     this.body.append(hypSection);
 
     const annotation = document.createElement("div");
-    annotation.className = "case-annotation";
-    annotation.textContent = c.annotationLine;
+    annotation.className = "study-annotation";
+    annotation.textContent = s.annotationLine;
     this.body.append(annotation);
 
     this.body.append(this.hairline());
 
     // LIGHT ARCHIVE
     const archiveSection = document.createElement("div");
-    archiveSection.className = "case-section";
+    archiveSection.className = "study-section";
     const archiveHeader = document.createElement("div");
-    archiveHeader.className = "case-section-header holos-caps";
+    archiveHeader.className = "study-section-header holos-caps";
     archiveHeader.textContent = "LIGHT ARCHIVE";
     archiveSection.append(archiveHeader);
 
-    if (c.evidence.length === 0) {
+    if (s.evidence.length === 0) {
       const empty = document.createElement("div");
-      empty.className = "case-archive-empty";
+      empty.className = "study-archive-empty";
       empty.textContent = "No light in the record yet.";
       archiveSection.append(empty);
     } else {
-      const labelById = new Map(c.hypotheses.map((h) => [h.id, h.label] as const));
-      const sorted = [...c.evidence].sort((a, b) => b.asOfYear - a.asOfYear);
+      const labelById = new Map(s.hypotheses.map((h) => [h.id, h.label] as const));
+      const sorted = [...s.evidence].sort((a, b) => b.asOfYear - a.asOfYear);
       for (const ev of sorted) {
         const row = document.createElement("div");
-        row.className = "case-archive-row";
+        row.className = "study-archive-row";
 
         const age = document.createElement("span");
-        age.className = "case-archive-age holos-caps";
+        age.className = "study-archive-age holos-caps";
         age.textContent = `${ev.lightAgeYears.toFixed(1)} Y AGO`;
 
         const text = document.createElement("span");
-        text.className = "case-archive-text";
+        text.className = "study-archive-text";
         text.textContent = ev.annotation;
 
         row.append(age, text);
 
         if (ev.moved.length > 0) {
           const tags = document.createElement("div");
-          tags.className = "case-archive-tags";
+          tags.className = "study-archive-tags";
           for (const id of ev.moved) {
             const lbl = labelById.get(id);
-            if (lbl === undefined) continue; // not in this case's menu — skip silently
+            if (lbl === undefined) continue; // not in this study's menu — skip silently
             const tag = document.createElement("span");
-            tag.className = "case-archive-tag holos-caps";
+            tag.className = "study-archive-tag holos-caps";
             tag.textContent = lbl;
             tags.append(tag);
           }
@@ -423,26 +424,26 @@ export class CaseBoard {
     // openQuestions is always [] this slice, so this container stays empty
     // (no header, no rows). A2.2 fills it in.
     const oqSection = document.createElement("div");
-    oqSection.className = "case-open-questions";
+    oqSection.className = "study-open-questions";
     this.body.append(oqSection);
 
     this.body.append(this.hairline());
 
     // Verb row — reversible, a tap, no confirmation.
     const verbRow = document.createElement("div");
-    verbRow.className = "case-verb-row";
+    verbRow.className = "study-verb-row";
     const verbBtn = document.createElement("button");
     verbBtn.type = "button";
-    verbBtn.className = "case-verb-btn";
-    if (c.status === "open") {
-      verbBtn.textContent = "shelve the case";
+    verbBtn.className = "study-verb-btn";
+    if (s.status === "open") {
+      verbBtn.textContent = "shelve the study";
       verbBtn.addEventListener("click", () => {
-        this.socket.send({ type: "shelveCase", starId });
+        this.socket.send({ type: "shelveStudy", starId });
       });
     } else {
       verbBtn.textContent = "resume the watch";
       verbBtn.addEventListener("click", () => {
-        this.socket.send({ type: "openCase", starId });
+        this.socket.send({ type: "openStudy", starId });
       });
     }
     verbRow.append(verbBtn);

@@ -15,10 +15,10 @@ merged. Then paste the next block into the next fresh session.
 
 ---
 
-## A2.1 — The case board, read-only
+## A2.1 — The observatory, read-only
 
 ```
-Build stage A2.1 of Holos: the case board, read-only — the vigil's
+Build stage A2.1 of Holos: the observatory, read-only — the vigil's
 screen before its verbs.
 
 Orient. Read, in order: CLAUDE.md at the repo root (stack, conventions,
@@ -26,7 +26,7 @@ and § Build orchestration — you are the orchestrator; Opus for
 reasoning-heavy design, Sonnet for mechanical work; you hold the
 invariants, integrate, and commit). Then docs/build-a2.md (§ Staging and
 § A2.1 — the stage's scope and phone check), docs/observatory-design.md
-(§ The case, § Hypotheses — the spec you are building the read-only
+(§ The study, § Hypotheses — the spec you are building the read-only
 slice of), docs/ui-design.md (§ Act 3 the observatory bullet, the
 component library, the seven principles), and
 docs/concepts/03-03-case-board.png with its decision-log row in
@@ -44,42 +44,42 @@ wire), the Cohort Durable Object with clock + alarm queue
 ceremony (client/src/model.ts, sourcecard.ts, ceremony.ts).
 
 Build:
-1. Wire: openCase / shelveCase client messages (guarded parse, exactly
-   in the existing pattern) and a case snapshot in the sky/report
-   payloads. Per-player case state lives on the Cohort DO.
+1. Wire: openStudy / shelveStudy client messages (guarded parse, exactly
+   in the existing pattern) and a study snapshot in the sky/report
+   payloads. Per-player study state lives on the Cohort DO.
 2. Server: hypothesis menus per signal class as typed data
    (observatory-design.md § Hypotheses table), an initial confidence
    distribution derived from the source's ObservedSignal, and evidence
    annotations derived from lightHistory. All derivation in
-   knowledge.ts or a new cases.ts beside it — never in handlers.
-3. Client: the case board as a Desk panel (DOM, not canvas): open cases
-   as rows; the focused case shows the header (designation, local
+   knowledge.ts or a new studies.ts beside it — never in handlers.
+3. Client: the observatory as a Desk panel (DOM, not canvas): open studies
+   as rows; the focused study shows the header (designation, local
    name, AS OF n Y AGO chip), the blurred-smudge treatment per the
    adopted art, hypothesis rows as track+marker bars with tabular
    percentages, and the annotated light archive. The source card
-   gains one affordance: open a case.
+   gains one affordance: open a study.
 4. One flat annotation line under the bars in the observatory register
    (wit 0, no exclamation marks): when no hypothesis leads decisively,
    use exactly: "No hypothesis exceeds the threshold. Continue the
    watch."
 
 Do not build: buyable questions, instrument allocation, regression or
-any opponent behavior, case tripwires, called/overtaken exits, the
+any opponent behavior, study tripwires, called/overtaken exits, the
 choice ceremony, signals, missions, or the Docket. A2.1 is read-only.
 
 Invariants you personally verify in every subagent's output: nothing
-about a remote civ beyond DetectedSource + the new case shapes crosses
-the wire, and the case shapes carry beliefs, never truth; present tense
+about a remote civ beyond DetectedSource + the new study shapes crosses
+the wire, and the study shapes carry beliefs, never truth; present tense
 and cyan for HOME only, soft past tense and amber for everything else;
 every remote fact wears its light-age; strict TypeScript, no any,
 noUncheckedIndexedAccess stays on; the comms register (signals, never
 letters) in every string; npm run typecheck and npm run build green at
 every commit.
 
-First move: before building, propose (a) the case wire shapes — case,
+First move: before building, propose (a) the study wire shapes — study,
 hypothesis, evidence entry — with a sketch of where A2.2–A2.6's
-messages will hang so nothing needs reshaping later, and (b) the case
-board's screen layout against the adopted art. Get a go, then decompose
+messages will hang so nothing needs reshaping later, and (b) the
+observatory's screen layout against the adopted art. Get a go, then decompose
 and build.
 
 Finish: small single-purpose commits on a feature branch; open a PR
@@ -87,7 +87,7 @@ Finish: small single-purpose commits on a feature branch; open a PR
 preview URL if Workers Builds produced one (test only against a dev
 cohort room — previews share production DO state), and this phone
 checklist for the user: flag the nearest DARK NODE candidate on a
-phone; a case opens; read its hypotheses with confidence shares and
+phone; a study opens; read its hypotheses with confidence shares and
 the evidence so far; confirm nothing is buyable.
 ```
 
@@ -104,14 +104,14 @@ Orient. Read, in order: CLAUDE.md at the repo root (stack, conventions,
 Sonnet for mechanical work). Then docs/build-a2.md (§ Staging, § A2.2),
 docs/observatory-design.md (§ Questions — the six question types, costs
 as instrument time, sequencing, "which hypotheses it separates"; § The
-design target — portfolio pacing is settled: dry spells per case are
+design target — portfolio pacing is settled: dry spells per study are
 normal, the board must always offer a decision), docs/economy-design.md
 (questions are Compute-heavy Investments; no capacity slots — budget
 and time are the only limits), and docs/ui-design.md (clock pair rule:
 real time and game time together, everywhere).
 
-What exists. A2.1 shipped the read-only case board: case state on the
-Cohort DO, hypothesis menus, guarded openCase/shelveCase wire, the Desk
+What exists. A2.1 shipped the read-only observatory: study state on the
+Cohort DO, hypothesis menus, guarded openStudy/shelveStudy wire, the Desk
 panel, and the adopted visual language (docs/concepts/README.md's
 03-03-case-board row — note its build fixes: the confidence marker is a
 glow, never a knob; a question's hours are stated once, with the clock
@@ -124,26 +124,26 @@ Build:
    over time, read its lines, time its shadows, catch its edges,
    listen off-axis), each with an instrument-time cost, an
    integration-time clock, and which hypothesis pairs it separates.
-   Instrument-time income per civilization; allocation across cases.
+   Instrument-time income per civilization; allocation across studies.
    Answers resolve server-side against emission truth through the
-   knowledge layer (never in handlers) and update the case's
+   knowledge layer (never in handlers) and update the study's
    distribution — sharpen or plateau only; no opponent yet.
 2. Wire: buyQuestion and setAllocation messages (guarded); scheduled
    answer delivery through the alarm queue at light-honest times;
-   answers arrive as report entries and case updates.
-3. Client: the case's open-questions list with cost, clock pair, and
+   answers arrive as report entries and study updates.
+3. Client: the study's open-questions list with cost, clock pair, and
    which-hypotheses-it-separates; bought questions on the strip's
    cooking clocks; the report renders landed answers and the bars
    move. A plateau is labeled honestly in the observatory register
    (wit 0): consistent with everything, informative about nothing.
 
-Do not build: regression or mask spend (A2.3), case tripwires (A2.3),
+Do not build: regression or mask spend (A2.3), study tripwires (A2.3),
 called/overtaken exits (A2.3), the choice ceremony (A2.4), signals
 (A2.5+), missions, or the Docket surface (A4) — bought questions ride
 the existing strip clocks.
 
 Invariants you personally verify: answer content is derived in
-knowledge.ts/cases.ts from delayed truth only — a question's answer can
+knowledge.ts/studies.ts from delayed truth only — a question's answer can
 never reveal more than the light the observer holds; DetectedSource
 discipline unchanged; clock pairs on every duration; no capacity slots
 anywhere (income and time are the only limiters); strict TS; comms
@@ -156,21 +156,21 @@ plateaus) in one short note; get a go, then build.
 Finish: small commits, feature branch, open a PR (do not merge); report
 the PR link, the preview URL if any (dev cohort room only), and this
 phone checklist: in the evening, buy an overnight question on an open
-case; next morning the report shows the answer and the case's bars have
+study; next morning the report shows the answer and the study's bars have
 visibly moved — or a plateau, honestly labeled.
 ```
 
 ---
 
-## A2.3 — The contest, and case tripwires
+## A2.3 — The contest, and study tripwires
 
 ```
-Build stage A2.3 of Holos: the contest and case tripwires — the other
-side starts spending, and the case lifecycle completes.
+Build stage A2.3 of Holos: the contest and study tripwires — the other
+side starts spending, and the study lifecycle completes.
 
 Orient. Read, in order: CLAUDE.md at the repo root (§ Build
 orchestration — this stage carries one of A2's two double-Opus calls:
-run the case/confidence model past Opus twice with different framings —
+run the study/confidence model past Opus twice with different framings —
 e.g. "honest Bayesian, coarse" vs "authored curves that cannot lie" —
 and synthesize before building). Then docs/build-a2.md (§ A2.3),
 docs/observatory-design.md (§ The contest — sharpen/plateau/regress;
@@ -181,7 +181,7 @@ docs/economy-design.md (the mask-versus-instrument contest is opposed
 open-ended spending, never stealth stats), and docs/prose-style.md
 (observatory deadpan, wit 0, for the tell).
 
-What exists. A2.1–A2.2 shipped cases with hypothesis distributions and
+What exists. A2.1–A2.2 shipped studies with hypothesis distributions and
 bought questions answering through the alarm queue against delayed
 truth. Seeded civs carry archetypes and emission histories
 (server/src/civseed.ts, minds.ts); their mask behavior is this stage's
@@ -196,27 +196,27 @@ Build:
    regresses — and regression fires ONLY when the target actually
    spent against the look in the relevant window. An earned tell,
    never a scripted jump-scare.
-2. The tell: when a case regresses, the board says why in one flat
+2. The tell: when a study regresses, the board says why in one flat
    observatory-deadpan sentence stating the implication (this does not
    happen naturally; something is working against the look). Plain,
    settled; no drama in the type, all the drama in the fact.
-3. Case tripwires: per-case standing conditions (wake this case if
+3. Study tripwires: per-study standing conditions (wake this study if
    confidence regresses; if the leakage stops; if confidence crosses
    N%) firing in-app on next open — no push notifications in this
    stage.
-4. Exits: called (player accepts the leading belief; the case closes
+4. Exits: called (player accepts the leading belief; the study closes
    and STAYS closed — later light accrues to the archive but never
    auto-reopens, never warns, never penalizes; reopening is always the
    player's own act) and overtaken (the source's own change of state
-   converts the case). Shelve already exists; grounded does not ship
+   converts the study). Shelve already exists; grounded does not ship
    (A4).
 
 Do not build: the choice ceremony (A2.4), signals (A2.5+), push
 notifications, missions, the player's own mask UI beyond what exists
 (their dark-project upkeep already stands in).
 
-Invariants you personally verify: regression is earned (test: a case on
-a never-masking target can plateau but never regress); called cases are
+Invariants you personally verify: regression is earned (test: a study on
+a never-masking target can plateau but never regress); called studies are
 immutable except by explicit player reopen; the tell renders wit-0 with
 no exclamation marks; DetectedSource discipline; strict TS; typecheck
 and build green.
@@ -229,7 +229,7 @@ into one short design note. Get a go, then build.
 Finish: small commits, feature branch, PR open (not merged); report the
 PR link, preview URL if any (dev cohort room only), and this phone
 checklist: run a vigil on a masked target until an answer regresses and
-the board says why in one flat sentence; call a different case and
+the board says why in one flat sentence; call a different study and
 confirm it closes and stays closed.
 ```
 
@@ -260,7 +260,7 @@ can write truth freely: nothing leaks early by construction.
 
 Build:
 1. Wire: a choice message (hail target / broadcast / stay dark),
-   guarded; server validates the player holds a case or detection on
+   guarded; server validates the player holds a study or detection on
    the target for a hail. Hail and broadcast write emission truth
    (a directed-beam event toward one target; a broadcast epoch touching
    the civ's emission history) with the clock's now — the knowledge
@@ -405,7 +405,7 @@ settled), and docs/roadmap.md (§ Open build decisions — durable
 identity in Durable Objects' native SQLite storage, decided).
 
 What exists. A2.1–A2.5: the full vigil, the choice ceremony, and
-freeform traffic with AI counterparts on real clocks. Called cases
+freeform traffic with AI counterparts on real clocks. Called studies
 produce dossiers server-side (belief, confidence, evidence chain,
 light-ages). Identity is still the A1 per-run token.
 
@@ -417,11 +417,11 @@ Build:
    texture between strangers; constrained enough that no free text
    ever crosses between humans. The composer UI builds a signal from
    parts in the Voice, one-thumb.
-2. Dossier payloads: attach a called case's dossier to a signal; it
-   arrives as a readable case summary wearing BOTH its original
+2. Dossier payloads: attach a called study's dossier to a signal; it
+   arrives as a readable study summary wearing BOTH its original
    light-ages and the transit aging (stale by construction). Received
    dossiers land in the observatory as foreign findings, marked by
-   provenance, never auto-merged into the player's own cases.
+   provenance, never auto-merged into the player's own studies.
 3. Durable identity: an accounts table in the Cohort DO's SQLite
    storage; claim flow upgrades the A1 anonymous token to an account;
    second-device sign-in by account token; the old anonymous token is
@@ -434,7 +434,7 @@ Build:
 
 Do not build: moderation tooling beyond the composed constraint (that
 constraint IS the moderation posture), dossier brokering or forgery,
-joint cases, missions, push notifications.
+joint studies, missions, push notifications.
 
 Invariants you personally verify: byte-level wire inspection shows
 human and AI threads identical in shape and cadence class; no freeform

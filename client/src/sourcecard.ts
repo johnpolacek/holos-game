@@ -16,7 +16,7 @@
 import {
   MAX_NAME_LEN,
   validateName,
-  type CaseStatus,
+  type StudyStatus,
   type CohortServerMessage,
   type DetectedSource,
   type EmissionEpoch,
@@ -88,17 +88,17 @@ export class SourceCard {
   private readonly confEl: HTMLSpanElement;
   private readonly canvas: HTMLCanvasElement;
   private readonly axisEl: HTMLDivElement;
-  private readonly caseBtn: HTMLButtonElement;
+  private readonly studyBtn: HTMLButtonElement;
 
   private onCloseCb: (() => void) | null = null;
-  private onCaseActionCb: ((starId: string) => void) | null = null;
+  private onStudyActionCb: ((starId: string) => void) | null = null;
 
   private source: DetectedSource | null = null;
   private localNames: ReadonlyMap<string, string> = new Map();
   private editing = false;
   private pendingSend = false;
   private nameOverride: NameOverride | null = null;
-  private caseStatus: CaseStatus | null = null;
+  private studyStatus: StudyStatus | null = null;
 
   private dragStartY: number | null = null;
   private dragDy = 0;
@@ -172,18 +172,18 @@ export class SourceCard {
     this.axisEl.className = "source-card-axis";
     chartWrap.append(this.canvas, this.axisEl);
 
-    const caseRow = document.createElement("div");
-    caseRow.className = "source-card-case-row";
-    this.caseBtn = document.createElement("button");
-    this.caseBtn.type = "button";
-    this.caseBtn.className = "source-card-case-affordance";
-    this.caseBtn.textContent = "OPEN A CASE";
-    this.caseBtn.addEventListener("click", () => {
-      if (this.source !== null) this.onCaseActionCb?.(this.source.starId);
+    const studyRow = document.createElement("div");
+    studyRow.className = "source-card-study-row";
+    this.studyBtn = document.createElement("button");
+    this.studyBtn.type = "button";
+    this.studyBtn.className = "source-card-study-affordance";
+    this.studyBtn.textContent = "OPEN A STUDY";
+    this.studyBtn.addEventListener("click", () => {
+      if (this.source !== null) this.onStudyActionCb?.(this.source.starId);
     });
-    caseRow.append(this.caseBtn);
+    studyRow.append(this.studyBtn);
 
-    this.sheet.append(this.grabber, header, hr, beliefRow, chartWrap, caseRow);
+    this.sheet.append(this.grabber, header, hr, beliefRow, chartWrap, studyRow);
     this.root.append(this.backdrop, this.sheet);
     container.append(this.root);
 
@@ -198,12 +198,12 @@ export class SourceCard {
     this.onCloseCb = cb;
   }
 
-  /** Fired when the case-affordance row is tapped, with the open source's
+  /** Fired when the study-affordance row is tapped, with the open source's
    * starId. The card does not send wire messages itself and does not know
-   * what happens next — that is the App's call (open a case vs. focus the
+   * what happens next — that is the App's call (open a study vs. focus the
    * existing one). */
-  onCaseAction(cb: (starId: string) => void): void {
-    this.onCaseActionCb = cb;
+  onStudyAction(cb: (starId: string) => void): void {
+    this.onStudyActionCb = cb;
   }
 
   isOpen(): boolean {
@@ -220,17 +220,17 @@ export class SourceCard {
     this.editing = false;
     this.pendingSend = false;
     this.nameOverride = null;
-    this.caseStatus = null;
+    this.studyStatus = null;
     this.renderAll();
-    this.renderCaseRow();
+    this.renderStudyRow();
     this.root.classList.add("open");
   }
 
-  /** The case for the currently open source, or null if none exists yet.
+  /** The study for the currently open source, or null if none exists yet.
    * The App calls this right after open() (and again on every later sky). */
-  setCaseStatus(status: CaseStatus | null): void {
-    this.caseStatus = status;
-    this.renderCaseRow();
+  setStudyStatus(status: StudyStatus | null): void {
+    this.studyStatus = status;
+    this.renderStudyRow();
   }
 
   /** A later `sky` for the currently open source: refresh belief/age/chart.
@@ -258,7 +258,7 @@ export class SourceCard {
     this.editing = false;
     this.pendingSend = false;
     this.nameOverride = null;
-    this.caseStatus = null;
+    this.studyStatus = null;
   }
 
   /** Route sourceNamed/error while this card is open. `error` lacks a
@@ -330,16 +330,18 @@ export class SourceCard {
       `rgba(217,154,83,${alpha * 0.35}) 45%, transparent 75%)`;
   }
 
-  private renderCaseRow(): void {
-    if (this.caseStatus === "open") {
-      this.caseBtn.textContent = "CASE OPEN · VIEW";
-      this.caseBtn.className = "source-card-case-affordance source-card-case-affordance--active";
-    } else if (this.caseStatus === "shelved") {
-      this.caseBtn.textContent = "CASE SHELVED · VIEW";
-      this.caseBtn.className = "source-card-case-affordance source-card-case-affordance--active";
+  private renderStudyRow(): void {
+    if (this.studyStatus === "open") {
+      this.studyBtn.textContent = "STUDY OPEN · VIEW";
+      this.studyBtn.className =
+        "source-card-study-affordance source-card-study-affordance--active";
+    } else if (this.studyStatus === "shelved") {
+      this.studyBtn.textContent = "STUDY SHELVED · VIEW";
+      this.studyBtn.className =
+        "source-card-study-affordance source-card-study-affordance--active";
     } else {
-      this.caseBtn.textContent = "OPEN A CASE";
-      this.caseBtn.className = "source-card-case-affordance";
+      this.studyBtn.textContent = "OPEN A STUDY";
+      this.studyBtn.className = "source-card-study-affordance";
     }
   }
 

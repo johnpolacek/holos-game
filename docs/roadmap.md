@@ -210,9 +210,9 @@ screen at a time in six stages** (build-a2.md § Staging), each stage a
 small PR merged to `main` and phone-checked on the deployed URL before
 the next begins.
 
-- [ ] **The vigil**: a flagged source becomes a case — hypotheses,
+- [ ] **The vigil**: a flagged source becomes a study — hypotheses,
       buyable questions, instrument-time allocation, the
-      sharpen/plateau/regress contest, case tripwires, and the
+      sharpen/plateau/regress contest, study tripwires, and the
       called/shelved/overtaken exits
       ([observatory-design.md](./observatory-design.md) is the spec;
       the grounded exit — the Assay — lands with A4).
@@ -377,7 +377,7 @@ plus the adopted style tile): the Sky + source card (7), the choice
 ceremony (8), signals in flight (9), the Ledger (10), sleep/wake (11–12),
 and the Model set (13–15, echo shell = poster). The inheritance-ceremony
 ask from this plan shipped with A1 (concepts 03-00, 03-00b). **Current
-ask (A2.1): the case board** — ui-image-brief.md screen 7b, the
+ask (A2.1): the observatory** — ui-image-brief.md screen 7b, the
 observatory desk with hypotheses, open questions, and the allocation
 strip. Phase B's screens (world reveal variants, beat, roll, pivot
 reveal) wait.

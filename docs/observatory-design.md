@@ -2,9 +2,9 @@
 ### The Observatory — the vigil as an activity
 
 *The quiet half of the contact loop, designed as gameplay. A vigil is not
-a wait-state with a percentage on it; it is a detective case run against a
+a wait-state with a percentage on it; it is a detective study run against a
 budget, a clock, and — when the target is somebody — an opponent who is
-spending too. This document specifies the case, the questions a player
+spending too. This document specifies the study, the questions a player
 buys, the contest that can push knowledge backward, and the dossier the
 whole activity produces.*
 
@@ -20,7 +20,7 @@ optimal play collapses toward inaction"*); this is that design.
 economy-design.md's mask-versus-instrument rule (opposed, open-ended
 investments; never certainty) is the contest's economics, unchanged.
 ui-design.md's observatory panel is the surface this fills in.
-[missions-design.md](./missions-design.md) supplies the case's escape
+[missions-design.md](./missions-design.md) supplies the study's escape
 hatch — the Assay — and the Docket rows every bought question lives on.
 
 Six calls were settled in design review (2026-07) and are marked
@@ -29,8 +29,8 @@ range, the plain regression tell, wrong calls playing out, creativity by
 composition, and tradeable dossiers.
 
 **The design target, stated once (settled):** the observatory is played
-as a **portfolio**. Any single case may go quiet for sessions at a
-stretch — dry spells are common, and honest — but the case *load* must
+as a **portfolio**. Any single study may go quiet for sessions at a
+stretch — dry spells are common, and honest — but the study *load* must
 always offer a real decision: something to buy, hold, probe, shelve,
 call, or re-aim. If the whole board's best play is ever "do nothing and
 wait," this document has failed and gets revised. The fun is breadth
@@ -39,10 +39,10 @@ toolset that combines in ways this document does not enumerate.
 
 ---
 
-## The case
+## The study
 
-Flagging a source opens a **case** — the observatory desk's unit of work,
-one per source under active vigil. A case holds:
+Flagging a source opens a **study** — the observatory desk's unit of work,
+one per source under active vigil. A study holds:
 
 - **The record so far.** Everything your instruments have ever received
   from the source — the light archive the source card already scrubs —
@@ -53,10 +53,10 @@ one per source under active vigil. A case holds:
   each answer costs.
 - **The contest state.** Whether the answers are getting sharper or
   stranger (see *The contest*, below).
-- **The case tripwires.** Standing wake conditions scoped to this source.
+- **The study tripwires.** Standing wake conditions scoped to this source.
 
-The case board (the observatory Desk panel) is the set of open cases with
-their confidence bars and next checkpoints — the sky as a case load, which
+The observatory (the Desk panel) is the set of open studies with
+their confidence bars and next checkpoints — the sky as a study load, which
 is exactly the session texture playstyles.md promises the Silence lean.
 
 ## Hypotheses
@@ -84,9 +84,9 @@ players do not author free-text theories — their creativity lives in how
 the tools compose (below), which is buildable, honest, and ships sooner.
 
 Hypotheses interlock with the wider game: *somebody's heart* at high
-confidence is a contact case in waiting; *construction under way* feeds
+confidence is a contact study in waiting; *construction under way* feeds
 the forecast desk's arrival spreads; *biosphere in crisis* is a Custodian
-beat with a clock on it. Calling a case reprices everything, which is why
+beat with a clock on it. Calling a study reprices everything, which is why
 the activity matters while changing no stat.
 
 ## Questions — the verb
@@ -120,16 +120,16 @@ arrives in a report, moving the distribution when it lands.
 
 **Instrument time is a budget, not a slot.** The observatory has an
 income (raised by instrument-family projects; the gravitational-lens
-observatory is the deep end), and the player allocates it across cases.
-Scarcity does the design work: with three live cases and income for one
-deep question, *which question, on which case* is a real decision every
-session. There is no cap on open cases — only on how fast any of them can
+observatory is the deep end), and the player allocates it across studies.
+Scarcity does the design work: with three live studies and income for one
+deep question, *which question, on which study* is a real decision every
+session. There is no cap on open studies — only on how fast any of them can
 move.
 
 **Sequencing is the skill.** A cheap question that halves the hypothesis
-space beats an expensive one that polishes the leader. The case board
+space beats an expensive one that polishes the leader. The observatory
 surfaces this by showing, per question, *which hypotheses it separates* —
-the player learns to read a case like a bracket, and the learning is the
+the player learns to read a study like a bracket, and the learning is the
 gameplay deepening.
 
 ## The toolset composes
@@ -138,21 +138,21 @@ Creativity lives in combination (**settled**), and the pieces are built
 to combine — none of the following is a feature; each is a consequence
 the design must preserve:
 
-- **Watch the neighbors.** Suspect a quiet mass? Open cheap cases on the
+- **Watch the neighbors.** Suspect a quiet mass? Open cheap studies on the
   systems around it — construction shadows, probe traffic, and beam
   sidelobes show up *near* a hider before the hider does.
 - **Calibrate by grounding.** Ground one look-alike (an Assay to a
-  boring brown-dwarf candidate) and every case of that class sharpens —
+  boring brown-dwarf candidate) and every study of that class sharpens —
   spending a probe on a nobody to buy confidence about a somebody.
-- **Instrument the calendar.** Chain holds and case tripwires into a
-  self-running program: *hold this case for the conjunction; if the
+- **Instrument the calendar.** Chain holds and study tripwires into a
+  self-running program: *hold this study for the conjunction; if the
   answer regresses, wake me; if it sharpens, auto-buy the follow-up
   question* (a standing order, missions-design.md).
 - **Breadth as strategy.** Run wide and shallow to map a neighborhood,
   or narrow and deep to break one mask — the instrument budget prices
   the choice; nothing else constrains it.
 - **Bait the light.** Your own visible acts are evidence *you* control:
-  go briefly loud, or launch something watchable, and see which cases
+  go briefly loud, or launch something watchable, and see which studies
   flinch — the Daybreak lesson from the walkthrough, weaponized.
 
 The list is illustrative, not exhaustive — the parity test is that
@@ -165,7 +165,7 @@ Against a live opponent, the vigil is a duel of budgets
 instrument spend against their mask upkeep, open-ended on both sides,
 certainty never reached.
 
-What the case board shows of it — three shapes an answer can take:
+What the observatory shows of it — three shapes an answer can take:
 
 - **Sharpen.** The question landed; the distribution moves; fuzz on the
   Model condenses. Nature mostly sharpens.
@@ -176,12 +176,12 @@ What the case board shows of it — three shapes an answer can take:
 - **Regress.** The signature moment. A confidence that *retreats* — the
   thermal profile that was steady last month and is noisy now, the lines
   that got cleaner in the wrong way. **Nature does not get better at
-  hiding.** A regression is evidence of spending, and the case board
+  hiding.** A regression is evidence of spending, and the observatory
   says so plainly (**settled**) — not a wobble left for experts to
   notice, but the implication stated in the observatory's deadpan: *this
   does not happen naturally; something is working against the look.* The
-  mind reclassifies the case from *what is it* toward *why does it mind
-  being looked at*. Losing ground on a case is the moment a vigil
+  mind reclassifies the study from *what is it* toward *why does it mind
+  being looked at*. Losing ground on a study is the moment a vigil
   becomes a thriller, and it is information no honest sharpening could
   have bought.
 
@@ -193,44 +193,44 @@ Beacon never does), and a human's is their own "Masks (dark)" row.
 
 Some discrimination cannot be bought, only awaited. Events — a flare
 backlighting the neighborhood, an occultation by a known body, a
-conjunction that lends a natural lens — hand every case in the right
-geometry a free question. The case board renders these as **holds**: *the
+conjunction that lends a natural lens — hand every study in the right
+geometry a free question. The observatory renders these as **holds**: *the
 conjunction in 9 h · ≈110 y would weigh this for free.* Patience becomes
 a priced strategy with a date on it, not a default. (v1 ships holds as
-authored content on seeded cases; systemic event generation arrives with
+authored content on seeded studies; systemic event generation arrives with
 A5's living galaxy.)
 
 ## The exits
 
-A case ends four ways, all of them choices or events — never a bar
+A study ends four ways, all of them choices or events — never a bar
 filling to 100:
 
-- **Called.** The player accepts the leading belief and closes the case
+- **Called.** The player accepts the leading belief and closes the study
   at whatever confidence they can live with. Calling is a real act:
   priorities reprice against the called belief, beats key off it, and a
-  wrongly called case is a story the game is allowed to tell. **A called
-  case stays called** (**settled**): later light accrues to the archive
-  but never auto-reopens the case, never warns of contradiction, and
+  wrongly called study is a story the game is allowed to tell. **A called
+  study stays called** (**settled**): later light accrues to the archive
+  but never auto-reopens the study, never warns of contradiction, and
   never charges a penalty — the wrong belief just sits there shaping
   choices until reality corrects it, as an event, maybe years later.
-  The player can always reopen a case on their own suspicion; the game
+  The player can always reopen a study on their own suspicion; the game
   will not do their doubting for them.
 - **Grounded.** The Assay — a probe goes and looks
   (missions-design.md). Ground truth for the price of a mission and the
-  years it takes; the case's escape hatch, and the observatory's
+  years it takes; the study's escape hatch, and the observatory's
   standing advertisement for the Docket.
-- **Shelved.** The vigil goes passive: allocation drops to zero, case
-  tripwires stay armed (*wake this case if the leakage stops; if
-  confidence regresses; if a beam*). Shelving is how a case load stays
-  finite without ever quite letting go — and a shelved case waking
+- **Shelved.** The vigil goes passive: allocation drops to zero, study
+  tripwires stay armed (*wake this study if the leakage stops; if
+  confidence regresses; if a beam*). Shelving is how a study load stays
+  finite without ever quite letting go — and a shelved study waking
   itself is a beat.
 - **Overtaken.** The source acts first — it hails, goes dark, moves, or
-  stops existing. The case converts into whatever the event demands: a
+  stops existing. The study converts into whatever the event demands: a
   contact choice, a mourning, a threat assessment.
 
 ## The dossier
 
-A called or grounded case yields a **dossier**: the belief, its
+A called or grounded study yields a **dossier**: the belief, its
 confidence, the evidence chain, and the light-ages it rests on — the
 observatory's finished good. Dossiers are:
 
@@ -261,10 +261,10 @@ forged dossiers and their unmasking — not the existence of the trade.
 
 A vigil session, five to fifteen minutes, phone, and it is a *portfolio*
 session: read the new light across the whole board (which questions
-landed, what moved, anything regress, which cases said nothing at all —
+landed, what moved, anything regress, which studies said nothing at all —
 nothing is a normal answer), buy one or two questions wherever they buy
 the most, set or adjust a hold, maybe call or shelve something, and
-leave with the next checkpoints visible on the strip. A single case may
+leave with the next checkpoints visible on the strip. A single study may
 be mid-dry-spell for a week; the board never is. The observatory speaks its register throughout — instrument
 deadpan, beliefs with ages, no adjectives — and the one flourish it is
 allowed stays true: the light you are reading left before you were
@@ -275,13 +275,13 @@ watching.
 ## v1 scope
 
 The hypothesis menus above (2–4 per signal class); the six question
-types; instrument-time income + allocation on the case board; sharpen /
+types; instrument-time income + allocation on the observatory; sharpen /
 plateau / regress with archetype-rule opponent spend, the regression
-tell stated plainly; case tripwires; called / shelved / overtaken exits
+tell stated plainly; study tripwires; called / shelved / overtaken exits
 (grounded arrives with A4's Assay); dossiers produced, consumed, and
 **tradeable as signal payloads**; holds as authored content. Deferred:
 systemic event evidence (A5), dossier-market depth (brokering, forgery —
-with the compensation menu), multi-observer joint cases (with joint
+with the compensation menu), multi-observer joint studies (with joint
 missions). Free-text hypotheses are not deferred; they are declined
 (creativity by composition, settled).
 
@@ -292,12 +292,12 @@ missions). Free-text hypotheses are not deferred; they are declined
   must be *earned* by the opponent's actual spend either way, or it
   becomes a scripted jump-scare. Leaning honest-but-coarse: few
   hypotheses, few evidence channels, real arithmetic.
-- **Pacing constants.** Questions per case before the cheap ones are
-  exhausted; how often a case *should* plateau; how rare regression must
+- **Pacing constants.** Questions per study before the cheap ones are
+  exhausted; how often a study *should* plateau; how rare regression must
   stay to keep its charge. Tuning targets for A2's fun gate, not
   specifiable here.
-- **Shared cases, formally.** Dossier exchange ships in v1 (settled);
-  the open half is the *joint case* — two civilizations pooling
+- **Shared studies, formally.** Dossier exchange ships in v1 (settled);
+  the open half is the *joint study* — two civilizations pooling
   instrument time on one source with a shared board, which needs joint
   missions' co-authorship machinery. Design when joint nodes ship.
 - **Forged dossiers.** If dossiers trade, dossiers can lie — a forged
