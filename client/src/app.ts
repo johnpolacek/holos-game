@@ -9,12 +9,14 @@
 
 import type {
   CohortServerMessage,
+  CaseSnapshot,
   CivCard,
   DetectedSource,
   SelfView,
   Star,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
+import { CaseBoard } from "./caseboard";
 import { clearPendingBecome, hasPendingBecome, renderCeremony } from "./ceremony";
 import { Model } from "./model";
 import { SourceCard } from "./sourcecard";
@@ -30,6 +32,18 @@ export class App {
   private catalog: readonly Star[] = [];
   private model: Model | null = null;
   private sourceCard: SourceCard | null = null;
+  private caseBoard: CaseBoard | null = null;
+
+  // Latest `sky` payload's cases/sources, kept for the case board (mounted
+  // separately from the Model/SourceCard's own copies) and for looking up a
+  // source's case by starId (setCaseStatus, the pending-focus handoff).
+  private cases: readonly CaseSnapshot[] = [];
+  private sources: readonly DetectedSource[] = [];
+
+  // Set when the source card fires onCaseAction for a source with no case
+  // yet: we've sent `openCase` and are waiting for the confirming `sky` to
+  // carry it, at which point the case board opens focused on it.
+  private pendingCaseFocus: string | null = null;
 
   // The canonical client-side store of the player's private source labels —
   // one Map instance, mutated in place from `sky` (wholesale replace) and
@@ -66,6 +80,8 @@ export class App {
         for (const [starId, name] of Object.entries(message.localNames)) {
           this.localNames.set(starId, name);
         }
+        this.cases = message.cases;
+        this.sources = message.sources;
         this.showSky(message.self, message.sources);
         break;
       case "sourceNamed":
@@ -95,7 +111,26 @@ export class App {
     this.mountedScreen = "ceremony";
     this.model = null;
     this.sourceCard = null;
+    this.caseBoard = null;
     this.mount(() => renderCeremony(this.root, candidates, this.socket));
+  }
+
+  /** The case for `starId` in the latest sky payload, or undefined if none
+   * is open/shelved for it. */
+  private findCase(starId: string): CaseSnapshot | undefined {
+    return this.cases.find((c) => c.starId === starId);
+  }
+
+  /** If a case was just requested (onCaseAction, no prior case) and the
+   * confirming sky has now arrived carrying it, hand focus to the case
+   * board — the phone-checklist beat "flag a source; a case opens". */
+  private maybeFocusPendingCase(): void {
+    const starId = this.pendingCaseFocus;
+    if (starId === null || this.findCase(starId) === undefined) return;
+    this.sourceCard?.close();
+    this.model?.clearSelection();
+    this.caseBoard?.focusCase(starId);
+    this.pendingCaseFocus = null;
   }
 
   private showSky(self: SelfView, sources: readonly DetectedSource[]): void {
@@ -107,37 +142,61 @@ export class App {
       const openId = this.sourceCard?.currentStarId() ?? null;
       if (openId !== null) {
         const updated = sources.find((s) => s.starId === openId);
-        if (updated !== undefined) this.sourceCard?.setSource(updated);
+        if (updated !== undefined) {
+          this.sourceCard?.setSource(updated);
+          this.sourceCard?.setCaseStatus(this.findCase(openId)?.status ?? null);
+        }
         // else: the Model's setSky above already fired onSelectSource(null)
         // for a selection that no longer corresponds to a live source.
       }
+      this.caseBoard?.update(this.cases, this.sources, this.localNames);
+      this.maybeFocusPendingCase();
       return;
     }
 
     // First sky this session: decide the opening beat before clearing the
-    // marker, then mount the Model + its source card.
+    // marker, then mount the Model + its source card + the case board.
     const mode: "pullback" | "resume" = hasPendingBecome() ? "pullback" : "resume";
     this.mountedScreen = "sky";
     this.mount(() => {
       const model = new Model(this.root, this.catalog);
       const sourceCard = new SourceCard(this.root, this.socket);
+      const caseBoard = new CaseBoard(this.root, this.socket);
       this.model = model;
       this.sourceCard = sourceCard;
+      this.caseBoard = caseBoard;
 
       model.onSelectSource((source) => {
-        if (source === null) sourceCard.close();
-        else sourceCard.open(source, this.localNames);
+        if (source === null) {
+          sourceCard.close();
+        } else {
+          sourceCard.open(source, this.localNames);
+          sourceCard.setCaseStatus(this.findCase(source.starId)?.status ?? null);
+        }
       });
       sourceCard.onClose(() => model.clearSelection());
+      sourceCard.onCaseAction((starId) => {
+        if (this.findCase(starId) !== undefined) {
+          sourceCard.close();
+          model.clearSelection();
+          caseBoard.focusCase(starId);
+        } else {
+          this.socket.send({ type: "openCase", starId });
+          this.pendingCaseFocus = starId;
+        }
+      });
 
       model.setSky(self, sources);
+      caseBoard.update(this.cases, this.sources, this.localNames);
       model.enter(mode);
       clearPendingBecome();
       return () => {
         model.destroy();
         sourceCard.destroy();
+        caseBoard.destroy();
         if (this.model === model) this.model = null;
         if (this.sourceCard === sourceCard) this.sourceCard = null;
+        if (this.caseBoard === caseBoard) this.caseBoard = null;
       };
     });
   }

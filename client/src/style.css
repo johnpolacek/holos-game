@@ -332,6 +332,379 @@ body {
   color: var(--holos-ink-faint);
 }
 
+.source-card-case-row {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.15rem;
+}
+
+.source-card-case-affordance {
+  background: none;
+  border: none;
+  padding: 0.3rem 0.6rem;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.68rem;
+  color: var(--holos-ink-faint);
+  cursor: pointer;
+}
+
+.source-card-case-affordance--active {
+  color: var(--holos-ink-dim);
+}
+
+/* ── Case board (the observatory Desk panel, Act 3 A2.1) ──────────────
+ * List of open/shelved cases + the focused case (docs/concepts/03-03).
+ * Amber/ink only — never --holos-cyan; cyan is HOME-only. */
+.case-board-root {
+  position: absolute;
+  inset: 0;
+  z-index: 3; /* above .source-card-root */
+  pointer-events: none;
+}
+
+.case-chip {
+  position: absolute;
+  top: max(0.9rem, env(safe-area-inset-top));
+  right: max(0.9rem, env(safe-area-inset-right));
+  pointer-events: auto;
+  background: var(--holos-bg-raised);
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.38rem 0.75rem;
+  color: var(--holos-ink-dim);
+  cursor: pointer;
+}
+
+.case-board-backdrop {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.case-board-sheet {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: max(0.6rem, env(safe-area-inset-top)) 1.1rem
+    max(1rem, env(safe-area-inset-bottom));
+  background: var(--holos-bg-raised);
+  border-left: 1px solid var(--holos-gold-dim);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.55);
+  transform: translateY(100%);
+  transition: transform 320ms cubic-bezier(0.22, 0.9, 0.32, 1);
+}
+
+.case-board-root.open {
+  pointer-events: auto;
+}
+
+.case-board-root.open .case-board-backdrop {
+  opacity: 1;
+}
+
+.case-board-root.open .case-board-sheet {
+  transform: translateY(0);
+}
+
+@media (min-width: 720px) {
+  .case-board-sheet {
+    left: auto;
+    width: 28rem;
+    max-width: 28rem;
+  }
+}
+
+.case-board-grabber {
+  align-self: center;
+  width: 2.4rem;
+  height: 0.28rem;
+  border-radius: 999px;
+  background: var(--holos-gold-dim);
+  touch-action: none;
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.case-board-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.case-board-header {
+  padding: 0.2rem 0 0.6rem;
+}
+
+.case-board-empty,
+.case-archive-empty {
+  color: var(--holos-ink-faint);
+  font-size: 0.85rem;
+  padding: 0.4rem 0;
+}
+
+.case-board-divider {
+  padding: 0.9rem 0 0.4rem;
+  color: var(--holos-ink-faint);
+}
+
+.case-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(183, 155, 99, 0.15);
+  padding: 0.6rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--holos-ink);
+}
+
+.case-row--dim {
+  opacity: 0.5;
+}
+
+.case-row-top {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.case-row-designation {
+  color: var(--holos-ink-dim);
+}
+
+.case-row-name {
+  font-size: 1rem;
+  color: var(--holos-ink);
+}
+
+.case-row-bottom {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--holos-ink-dim);
+}
+
+.case-row-hyp {
+  display: inline-flex;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.case-row-age {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.case-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Focused view */
+.case-back {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0.3rem 0;
+  color: var(--holos-ink-dim);
+  cursor: pointer;
+}
+
+.case-smudge {
+  width: min(40vw, 220px);
+  height: min(40vw, 180px);
+  margin: 1rem auto 0.4rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 44% 58%, rgba(217, 154, 83, 0.6) 0%, transparent 62%),
+    radial-gradient(circle at 58% 42%, rgba(217, 154, 83, 0.4) 0%, transparent 68%),
+    radial-gradient(circle at 50% 50%, rgba(217, 154, 83, 0.25) 0%, transparent 78%);
+  filter: blur(22px);
+}
+
+.case-focus-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.2rem 0 0.7rem;
+}
+
+.case-focus-designation {
+  color: var(--holos-ink-dim);
+}
+
+.case-focus-name {
+  font-size: 2.2rem;
+  line-height: 1.05;
+  color: var(--holos-amber);
+}
+
+.case-focus-age {
+  padding: 0.28rem 0.6rem;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  color: var(--holos-ink-dim);
+}
+
+.case-hairline {
+  margin: 0.3rem 0;
+}
+
+.case-section {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0 0.1rem;
+}
+
+.case-section-header {
+  padding-bottom: 0.5rem;
+}
+
+.case-hyp-row {
+  display: grid;
+  grid-template-columns: minmax(6rem, auto) 1fr auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.4rem 0;
+}
+
+.case-hyp-label {
+  color: var(--holos-ink);
+}
+
+.case-hyp-track {
+  position: relative;
+  height: 1px;
+  background: var(--holos-gold-dim);
+}
+
+.case-hyp-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(183, 155, 99, 0.55);
+}
+
+.case-hyp-fill--leading {
+  background: var(--holos-amber);
+}
+
+/* The GLOW — a soft radial-gradient spot on the hairline track, never a
+ * knob/handle: no border, no solid-fill circle, no box-shadow, nothing that
+ * reads draggable. */
+.case-hyp-glow {
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(217, 154, 83, 0.5) 0%,
+    rgba(217, 154, 83, 0) 70%
+  );
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.case-hyp-glow--leading {
+  background: radial-gradient(
+    circle,
+    rgba(217, 154, 83, 0.95) 0%,
+    rgba(217, 154, 83, 0) 72%
+  );
+  filter: blur(1px);
+}
+
+.case-hyp-pct {
+  text-align: right;
+  color: var(--holos-ink);
+}
+
+.case-annotation {
+  font-family: var(--holos-font-body);
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--holos-ink-dim);
+  padding: 0.6rem 0;
+}
+
+.case-archive-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(183, 155, 99, 0.12);
+}
+
+.case-archive-age {
+  color: var(--holos-ink-faint);
+}
+
+.case-archive-text {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--holos-ink);
+}
+
+.case-archive-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.case-archive-tag {
+  padding: 0.15rem 0.45rem;
+  border: 1px solid rgba(183, 155, 99, 0.25);
+  border-radius: 999px;
+  color: var(--holos-ink-faint);
+}
+
+/* A2.2 fills this in — CaseSnapshot.openQuestions is always [] in A2.1, so
+ * this container ships empty: no header, no rows, nothing buyable. */
+.case-open-questions {
+}
+
+.case-verb-row {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0 0.2rem;
+}
+
+.case-verb-btn {
+  background: none;
+  border: none;
+  font-family: var(--holos-font-body);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--holos-ink-faint);
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+}
+
+.case-verb-btn:hover {
+  color: var(--holos-ink-dim);
+}
+
 /* ── Ceremony carousel ───────────────────────────────────────────────── */
 .ceremony {
   position: relative;

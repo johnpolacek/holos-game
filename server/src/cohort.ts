@@ -42,10 +42,13 @@ import { emissionAt, observeCiv, observeSky, visibleSky } from "./knowledge";
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
+import { buildCaseSnapshot } from "./cases";
 import {
   parseCohortClientMessage,
   toWireSource,
   validateName,
+  type CaseSnapshot,
+  type CaseStatus,
   type CivCard,
   type ClockWire,
   type CohortServerMessage,
@@ -88,6 +91,24 @@ interface RunRecord {
   readonly civId: string;
   readonly starId: string;
   readonly localNames: Record<string, string>;
+}
+
+/**
+ * A player's case-board state, stored SEPARATELY from RunRecord: RunRecord is
+ * rewritten wholesale on every nameSource, while cases accrete A2.2+ state
+ * and must not ride along on that rewrite. In A2.1 only `status` is stored —
+ * the distribution and evidence are pure functions of the current
+ * ObservedSignal (persisting them would only risk staleness); from A2.2, when
+ * bought answers make the distribution path-dependent, it moves in here
+ * additively.
+ */
+interface StoredCase {
+  readonly starId: string;
+  readonly status: CaseStatus;
+}
+interface CaseState {
+  readonly version: 1;
+  readonly cases: Record<string, StoredCase>; // keyed by starId
 }
 
 /** Live connection tracking: the socket, its token, and (once placed) civ. */
@@ -177,6 +198,12 @@ export class Cohort extends Server<CohortEnv> {
         return;
       case "requestSky":
         await this.onRequestSky(conn);
+        return;
+      case "openCase":
+        await this.onOpenCase(conn, msg.starId);
+        return;
+      case "shelveCase":
+        await this.onShelveCase(conn, msg.starId);
         return;
     }
   }
@@ -355,6 +382,69 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
+   * openCase: open a case on a currently visible detected source (also
+   * resumes a shelved case — the one verb serves both). No derivation here:
+   * status flip and persistence only, then a fresh sky.
+   */
+  private async onOpenCase(conn: Connection, starId: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    // A case may only attach to a source this observer currently sees: bounds
+    // the stored value AND enforces that cases only ever attach to detected
+    // sources.
+    const galaxy = this.requireGalaxy();
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    const visible = visibleSky(galaxy, state.civId, nowYear);
+    if (!visible.some((o) => o.starId === starId)) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
+      return;
+    }
+    const caseState = await this.loadCaseState(state.token);
+    const cases: Record<string, StoredCase> = {
+      ...caseState.cases,
+      [starId]: { starId, status: "open" },
+    };
+    await this.saveCaseState(state.token, { version: 1, cases });
+    await this.sendSky(conn, state.token, state.civId);
+  }
+
+  /**
+   * shelveCase: shelve an existing case. No visibility check — a source may
+   * have faded, but the case remains theirs. No derivation here: status flip
+   * and persistence only, then a fresh sky.
+   */
+  private async onShelveCase(conn: Connection, starId: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    const caseState = await this.loadCaseState(state.token);
+    if (caseState.cases[starId] === undefined) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no case there" });
+      return;
+    }
+    const cases: Record<string, StoredCase> = {
+      ...caseState.cases,
+      [starId]: { starId, status: "shelved" },
+    };
+    await this.saveCaseState(state.token, { version: 1, cases });
+    await this.sendSky(conn, state.token, state.civId);
+  }
+
+  private async loadCaseState(token: string): Promise<CaseState> {
+    const stored = await this.ctx.storage.get<CaseState>(`cases:${token}`);
+    return stored ?? { version: 1, cases: {} };
+  }
+
+  private async saveCaseState(token: string, state: CaseState): Promise<void> {
+    await this.ctx.storage.put(`cases:${token}`, state);
+  }
+
+  /**
    * Seed a fresh production cohort on first contact. Idempotent (returns if
    * already seeded); the DO is single-threaded so no lock is needed. Mirrors
    * devSeed with no request body.
@@ -400,7 +490,19 @@ export class Cohort extends Server<CohortEnv> {
     const sources: DetectedSource[] = visibleSky(galaxy, civId, nowYear).map(toWireSource);
     const run = await this.ctx.storage.get<RunRecord>(`run:${token}`);
     const localNames = run?.localNames ?? {};
-    this.sendMsg(conn, { type: "sky", nowYear, self, sources, localNames });
+    // Join this player's stored cases against the currently visible sources:
+    // a stored case whose source isn't visible right now is simply omitted
+    // (forward-safe default for A2.3's overtaken). Sorted by starId for a
+    // deterministic payload order.
+    const caseState = await this.loadCaseState(token);
+    const cases: CaseSnapshot[] = Object.values(caseState.cases)
+      .map((stored) => {
+        const source = sources.find((s) => s.starId === stored.starId);
+        return source === undefined ? null : buildCaseSnapshot(source, stored.status, nowYear);
+      })
+      .filter((c): c is CaseSnapshot => c !== null)
+      .sort((a, b) => a.starId.localeCompare(b.starId));
+    this.sendMsg(conn, { type: "sky", nowYear, self, sources, localNames, cases });
   }
 
   /**

@@ -68,7 +68,7 @@ export function parseServerMessage(raw: string): ServerMessage | null {
 // ── Act 3 / Cohort wire (A1) ────────────────────────────────────────────
 // Type-only imports → erased from the client bundle (no truth code ships).
 import type { CivSeed } from "./civseed";
-import type { ObservedCiv, ObservedSignal } from "./knowledge";
+import type { ObservedCiv, ObservedSignal, SignalClass } from "./knowledge";
 import type { Star, Vec3Ly } from "./galaxy";
 
 // Re-exports the client needs to render. Types are erased; DIAL_AXES is the
@@ -137,12 +137,76 @@ export interface SelfView {
   readonly position: Vec3Ly;      // HOME mote location in the Model
 }
 
+// ── A2.1: the vigil's case board ────────────────────────────────────────
+// Belief shapes only — everything below is derived from delayed light
+// (cases.ts), never truth. A case attaches to a DetectedSource by starId.
+
+/** The full A2 hypothesis catalog (all five signal classes' menus). */
+export type HypothesisId =
+  | "brown-dwarf" | "rogue-world" | "cooled-remnant" | "somebodys-heart"
+  | "debris-and-rings" | "natural-transits" | "construction-under-way"
+  | "young-and-sloppy" | "deliberate-shine" | "a-performance"
+  | "stable-biosphere" | "biosphere-in-crisis" | "pre-industrial" | "industrial-rise"
+  | "meant-for-us" | "meant-for-someone-near-us" | "a-repeat";
+
+/** One reading on the case board. share is a proper distribution over the
+ *  case's menu (sums to 1); each share sits strictly inside (0,1) — watching
+ *  alone never settles a hypothesis. */
+export interface Hypothesis {
+  readonly id: HypothesisId;
+  readonly label: string;
+  readonly share: number;
+}
+
+/**
+ * One light arrival's read. Derived ONLY from the source's lightHistory —
+ * a belief, never truth. `moved` is descriptive attribution in A2.1 (which
+ * stories this arrival spoke to); it does not feed shares until A2.2's
+ * bought answers do.
+ */
+export interface EvidenceEntry {
+  readonly id: string;
+  readonly asOfYear: number;
+  readonly lightAgeYears: number;
+  readonly annotation: string;
+  readonly moved: readonly HypothesisId[];
+}
+
+/** "called" | "overtaken" join in A2.3. */
+export type CaseStatus = "open" | "shelved";
+
+/** Reserved for A2.2 — always [] in A2.1. */
+export interface OpenQuestion {
+  readonly id: string;
+  readonly label: string;
+  readonly costInstrumentHours: number;
+  readonly integrationHours: number;
+  readonly separates: readonly HypothesisId[];
+}
+
+/**
+ * The vigil's case for one source, keyed by starId. Adds nothing about the
+ * remote civ beyond these belief shapes — signalClass mirrors the source's
+ * classification, the rest is the board (cases.ts derives it all).
+ */
+export interface CaseSnapshot {
+  readonly starId: string;
+  readonly status: CaseStatus;
+  readonly signalClass: SignalClass;
+  readonly hypotheses: readonly Hypothesis[];
+  readonly evidence: readonly EvidenceEntry[];
+  readonly openQuestions: readonly OpenQuestion[];
+  readonly annotationLine: string;
+}
+
 // client → server (UNTRUSTED — every field guarded on parse)
 export type CohortClientMessage =
   | { type: "hello"; token: string | null }
   | { type: "become"; candidateId: string; name: string }
   | { type: "nameSource"; starId: string; name: string } // "" = delete
-  | { type: "requestSky" };
+  | { type: "requestSky" }
+  | { type: "openCase"; starId: string }
+  | { type: "shelveCase"; starId: string };
 
 // server → client
 export type CohortServerMessage =
@@ -151,7 +215,8 @@ export type CohortServerMessage =
   | { type: "offer"; candidates: readonly CivCard[] }
   | { type: "sky"; nowYear: number; self: SelfView;
       sources: readonly DetectedSource[];
-      localNames: Readonly<Record<string, string>> }
+      localNames: Readonly<Record<string, string>>;
+      cases: readonly CaseSnapshot[] }
   | { type: "sourceNamed"; starId: string; name: string }
   | { type: "error"; code: CohortErrorCode; message: string };
 
@@ -223,6 +288,14 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
     typeof msg["name"] === "string"
   ) {
     return { type: "nameSource", starId: msg["starId"], name: msg["name"] };
+  }
+
+  if (msg["type"] === "openCase" && typeof msg["starId"] === "string") {
+    return { type: "openCase", starId: msg["starId"] };
+  }
+
+  if (msg["type"] === "shelveCase" && typeof msg["starId"] === "string") {
+    return { type: "shelveCase", starId: msg["starId"] };
   }
 
   if (msg["type"] === "requestSky") {
