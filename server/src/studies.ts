@@ -1,8 +1,8 @@
-// The vigil's case board — derivation module for A2.1.
+// The vigil's observatory — derivation module for A2.1.
 //
 // This module owns the hypothesis menus (observatory-design.md §
 // Hypotheses), the initial confidence distribution, and the evidence
-// annotations. ALL case derivation lives here, never in handlers.
+// annotations. ALL study derivation lives here, never in handlers.
 //
 // Everything this module produces is belief derived from delayed light
 // (ObservedSignal/lightHistory) — never truth. It reads the same shapes
@@ -11,8 +11,8 @@
 
 import type { EmissionEpoch } from "./civseed";
 import type {
-  CaseSnapshot,
-  CaseStatus,
+  StudySnapshot,
+  StudyStatus,
   DetectedSource,
   EvidenceEntry,
   Hypothesis,
@@ -23,15 +23,15 @@ import type { ObservedSignal, SignalClass } from "./knowledge";
 
 /** Shares never fall below this — even the least-favored reading stays live. */
 export const SHARE_FLOOR = 0.02;
-/** Shares never rise above this — watching alone never fully settles a case. */
+/** Shares never rise above this — watching alone never fully settles a study. */
 export const SHARE_CEIL = 0.9;
 /**
- * Above this, a case's board names a lead in its annotation. Deliberately
+ * Above this, a study's board names a lead in its annotation. Deliberately
  * above the typical headline confidence (confidenceFor caps at 0.95, shares
- * clamp at SHARE_CEIL), so most read-only cases show WATCH_LINE — watching
+ * clamp at SHARE_CEIL), so most read-only studies show WATCH_LINE — watching
  * alone rarely crowns a leader.
  */
-export const CASE_LEAD_THRESHOLD = 0.75;
+export const STUDY_LEAD_THRESHOLD = 0.75;
 /** Adopted verbatim from concepts/03-03 (decision log); wit 0. */
 export const WATCH_LINE = "No hypothesis exceeds the threshold. Continue the watch.";
 
@@ -201,7 +201,7 @@ export function annotationFor(hypotheses: readonly Hypothesis[]): string {
   for (const h of hypotheses) {
     if (leader === undefined || h.share > leader.share) leader = h;
   }
-  if (leader === undefined || leader.share < CASE_LEAD_THRESHOLD) {
+  if (leader === undefined || leader.share < STUDY_LEAD_THRESHOLD) {
     return WATCH_LINE;
   }
   return `The reading leaned ${leader.label}. Hold the designation lightly.`;
@@ -300,15 +300,15 @@ export function deriveEvidence(
 }
 
 /**
- * Assembles the full case for a detected source: the board, the evidence
+ * Assembles the full study for a detected source: the board, the evidence
  * trail, and the headline. openQuestions is reserved — A2.2 populates it
  * from the question catalog.
  */
-export function buildCaseSnapshot(
+export function buildStudySnapshot(
   source: DetectedSource,
-  status: CaseStatus,
+  status: StudyStatus,
   nowYear: number,
-): CaseSnapshot {
+): StudySnapshot {
   const hypotheses = initialDistribution(source.signal);
   const openQuestions: OpenQuestion[] = [];
   return {

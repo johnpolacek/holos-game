@@ -42,13 +42,13 @@ import { emissionAt, observeCiv, observeSky, visibleSky } from "./knowledge";
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
-import { buildCaseSnapshot } from "./cases";
+import { buildStudySnapshot } from "./studies";
 import {
   parseCohortClientMessage,
   toWireSource,
   validateName,
-  type CaseSnapshot,
-  type CaseStatus,
+  type StudySnapshot,
+  type StudyStatus,
   type CivCard,
   type ClockWire,
   type CohortServerMessage,
@@ -94,21 +94,21 @@ interface RunRecord {
 }
 
 /**
- * A player's case-board state, stored SEPARATELY from RunRecord: RunRecord is
- * rewritten wholesale on every nameSource, while cases accrete A2.2+ state
+ * A player's observatory state, stored SEPARATELY from RunRecord: RunRecord is
+ * rewritten wholesale on every nameSource, while studies accrete A2.2+ state
  * and must not ride along on that rewrite. In A2.1 only `status` is stored —
  * the distribution and evidence are pure functions of the current
  * ObservedSignal (persisting them would only risk staleness); from A2.2, when
  * bought answers make the distribution path-dependent, it moves in here
  * additively.
  */
-interface StoredCase {
+interface StoredStudy {
   readonly starId: string;
-  readonly status: CaseStatus;
+  readonly status: StudyStatus;
 }
-interface CaseState {
+interface StudyState {
   readonly version: 1;
-  readonly cases: Record<string, StoredCase>; // keyed by starId
+  readonly studies: Record<string, StoredStudy>; // keyed by starId
 }
 
 /** Live connection tracking: the socket, its token, and (once placed) civ. */
@@ -199,11 +199,11 @@ export class Cohort extends Server<CohortEnv> {
       case "requestSky":
         await this.onRequestSky(conn);
         return;
-      case "openCase":
-        await this.onOpenCase(conn, msg.starId);
+      case "openStudy":
+        await this.onOpenStudy(conn, msg.starId);
         return;
-      case "shelveCase":
-        await this.onShelveCase(conn, msg.starId);
+      case "shelveStudy":
+        await this.onShelveStudy(conn, msg.starId);
         return;
     }
   }
@@ -382,18 +382,18 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
-   * openCase: open a case on a currently visible detected source (also
-   * resumes a shelved case — the one verb serves both). No derivation here:
+   * openStudy: open a study on a currently visible detected source (also
+   * resumes a shelved study — the one verb serves both). No derivation here:
    * status flip and persistence only, then a fresh sky.
    */
-  private async onOpenCase(conn: Connection, starId: string): Promise<void> {
+  private async onOpenStudy(conn: Connection, starId: string): Promise<void> {
     const state = this.conns.get(conn.id);
     if (state === undefined || state.civId === null) {
       this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
       return;
     }
-    // A case may only attach to a source this observer currently sees: bounds
-    // the stored value AND enforces that cases only ever attach to detected
+    // A study may only attach to a source this observer currently sees: bounds
+    // the stored value AND enforces that studies only ever attach to detected
     // sources.
     const galaxy = this.requireGalaxy();
     const nowYear = gameYearAt(this.requireClock(), Date.now());
@@ -402,46 +402,49 @@ export class Cohort extends Server<CohortEnv> {
       this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
       return;
     }
-    const caseState = await this.loadCaseState(state.token);
-    const cases: Record<string, StoredCase> = {
-      ...caseState.cases,
+    const studyState = await this.loadStudyState(state.token);
+    const studies: Record<string, StoredStudy> = {
+      ...studyState.studies,
       [starId]: { starId, status: "open" },
     };
-    await this.saveCaseState(state.token, { version: 1, cases });
+    await this.saveStudyState(state.token, { version: 1, studies });
     await this.sendSky(conn, state.token, state.civId);
   }
 
   /**
-   * shelveCase: shelve an existing case. No visibility check — a source may
-   * have faded, but the case remains theirs. No derivation here: status flip
+   * shelveStudy: shelve an existing study. No visibility check — a source may
+   * have faded, but the study remains theirs. No derivation here: status flip
    * and persistence only, then a fresh sky.
    */
-  private async onShelveCase(conn: Connection, starId: string): Promise<void> {
+  private async onShelveStudy(conn: Connection, starId: string): Promise<void> {
     const state = this.conns.get(conn.id);
     if (state === undefined || state.civId === null) {
       this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
       return;
     }
-    const caseState = await this.loadCaseState(state.token);
-    if (caseState.cases[starId] === undefined) {
-      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no case there" });
+    const studyState = await this.loadStudyState(state.token);
+    if (studyState.studies[starId] === undefined) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no study there" });
       return;
     }
-    const cases: Record<string, StoredCase> = {
-      ...caseState.cases,
+    const studies: Record<string, StoredStudy> = {
+      ...studyState.studies,
       [starId]: { starId, status: "shelved" },
     };
-    await this.saveCaseState(state.token, { version: 1, cases });
+    await this.saveStudyState(state.token, { version: 1, studies });
     await this.sendSky(conn, state.token, state.civId);
   }
 
-  private async loadCaseState(token: string): Promise<CaseState> {
-    const stored = await this.ctx.storage.get<CaseState>(`cases:${token}`);
-    return stored ?? { version: 1, cases: {} };
+  private async loadStudyState(token: string): Promise<StudyState> {
+    // Key changed from `cases:${token}` at the case→study rename (A2.1 had
+    // just shipped and the tap bug meant no studies were ever opened in
+    // production, so no migration shim is needed).
+    const stored = await this.ctx.storage.get<StudyState>(`studies:${token}`);
+    return stored ?? { version: 1, studies: {} };
   }
 
-  private async saveCaseState(token: string, state: CaseState): Promise<void> {
-    await this.ctx.storage.put(`cases:${token}`, state);
+  private async saveStudyState(token: string, state: StudyState): Promise<void> {
+    await this.ctx.storage.put(`studies:${token}`, state);
   }
 
   /**
@@ -490,19 +493,19 @@ export class Cohort extends Server<CohortEnv> {
     const sources: DetectedSource[] = visibleSky(galaxy, civId, nowYear).map(toWireSource);
     const run = await this.ctx.storage.get<RunRecord>(`run:${token}`);
     const localNames = run?.localNames ?? {};
-    // Join this player's stored cases against the currently visible sources:
-    // a stored case whose source isn't visible right now is simply omitted
+    // Join this player's stored studies against the currently visible sources:
+    // a stored study whose source isn't visible right now is simply omitted
     // (forward-safe default for A2.3's overtaken). Sorted by starId for a
     // deterministic payload order.
-    const caseState = await this.loadCaseState(token);
-    const cases: CaseSnapshot[] = Object.values(caseState.cases)
+    const studyState = await this.loadStudyState(token);
+    const studies: StudySnapshot[] = Object.values(studyState.studies)
       .map((stored) => {
         const source = sources.find((s) => s.starId === stored.starId);
-        return source === undefined ? null : buildCaseSnapshot(source, stored.status, nowYear);
+        return source === undefined ? null : buildStudySnapshot(source, stored.status, nowYear);
       })
-      .filter((c): c is CaseSnapshot => c !== null)
+      .filter((s): s is StudySnapshot => s !== null)
       .sort((a, b) => a.starId.localeCompare(b.starId));
-    this.sendMsg(conn, { type: "sky", nowYear, self, sources, localNames, cases });
+    this.sendMsg(conn, { type: "sky", nowYear, self, sources, localNames, studies });
   }
 
   /**

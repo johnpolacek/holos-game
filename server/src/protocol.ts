@@ -137,9 +137,9 @@ export interface SelfView {
   readonly position: Vec3Ly;      // HOME mote location in the Model
 }
 
-// ── A2.1: the vigil's case board ────────────────────────────────────────
+// ── A2.1: the vigil's observatory ───────────────────────────────────────
 // Belief shapes only — everything below is derived from delayed light
-// (cases.ts), never truth. A case attaches to a DetectedSource by starId.
+// (studies.ts), never truth. A study attaches to a DetectedSource by starId.
 
 /** The full A2 hypothesis catalog (all five signal classes' menus). */
 export type HypothesisId =
@@ -149,8 +149,8 @@ export type HypothesisId =
   | "stable-biosphere" | "biosphere-in-crisis" | "pre-industrial" | "industrial-rise"
   | "meant-for-us" | "meant-for-someone-near-us" | "a-repeat";
 
-/** One reading on the case board. share is a proper distribution over the
- *  case's menu (sums to 1); each share sits strictly inside (0,1) — watching
+/** One reading on the observatory. share is a proper distribution over the
+ *  study's menu (sums to 1); each share sits strictly inside (0,1) — watching
  *  alone never settles a hypothesis. */
 export interface Hypothesis {
   readonly id: HypothesisId;
@@ -173,7 +173,7 @@ export interface EvidenceEntry {
 }
 
 /** "called" | "overtaken" join in A2.3. */
-export type CaseStatus = "open" | "shelved";
+export type StudyStatus = "open" | "shelved";
 
 /** Reserved for A2.2 — always [] in A2.1. */
 export interface OpenQuestion {
@@ -185,13 +185,13 @@ export interface OpenQuestion {
 }
 
 /**
- * The vigil's case for one source, keyed by starId. Adds nothing about the
+ * The vigil's study for one source, keyed by starId. Adds nothing about the
  * remote civ beyond these belief shapes — signalClass mirrors the source's
- * classification, the rest is the board (cases.ts derives it all).
+ * classification, the rest is the board (studies.ts derives it all).
  */
-export interface CaseSnapshot {
+export interface StudySnapshot {
   readonly starId: string;
-  readonly status: CaseStatus;
+  readonly status: StudyStatus;
   readonly signalClass: SignalClass;
   readonly hypotheses: readonly Hypothesis[];
   readonly evidence: readonly EvidenceEntry[];
@@ -205,8 +205,8 @@ export type CohortClientMessage =
   | { type: "become"; candidateId: string; name: string }
   | { type: "nameSource"; starId: string; name: string } // "" = delete
   | { type: "requestSky" }
-  | { type: "openCase"; starId: string }
-  | { type: "shelveCase"; starId: string };
+  | { type: "openStudy"; starId: string }
+  | { type: "shelveStudy"; starId: string };
 
 // server → client
 export type CohortServerMessage =
@@ -216,7 +216,7 @@ export type CohortServerMessage =
   | { type: "sky"; nowYear: number; self: SelfView;
       sources: readonly DetectedSource[];
       localNames: Readonly<Record<string, string>>;
-      cases: readonly CaseSnapshot[] }
+      studies: readonly StudySnapshot[] }
   | { type: "sourceNamed"; starId: string; name: string }
   | { type: "error"; code: CohortErrorCode; message: string };
 
@@ -290,12 +290,12 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
     return { type: "nameSource", starId: msg["starId"], name: msg["name"] };
   }
 
-  if (msg["type"] === "openCase" && typeof msg["starId"] === "string") {
-    return { type: "openCase", starId: msg["starId"] };
+  if (msg["type"] === "openStudy" && typeof msg["starId"] === "string") {
+    return { type: "openStudy", starId: msg["starId"] };
   }
 
-  if (msg["type"] === "shelveCase" && typeof msg["starId"] === "string") {
-    return { type: "shelveCase", starId: msg["starId"] };
+  if (msg["type"] === "shelveStudy" && typeof msg["starId"] === "string") {
+    return { type: "shelveStudy", starId: msg["starId"] };
   }
 
   if (msg["type"] === "requestSky") {
