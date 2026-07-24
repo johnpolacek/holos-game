@@ -13,7 +13,8 @@
     "build": "npm run build --workspaces",
     "art:manifest": "node scripts/build-art-manifest.mjs",
     "icons": "node scripts/build-icons.mjs",
-    "og": "node scripts/build-og.mjs"
+    "og": "node scripts/build-og.mjs",
+    "audit:names": "node scripts/audit-names.mjs"
   },
   "devDependencies": {
     "sharp": "^0.34.5",

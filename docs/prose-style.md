@@ -276,8 +276,13 @@ Worked examples (char counts include spaces and punctuation):
 | `Terms And Conditions` | 20 | Engine — bureaucratic deadpan |
 
 **Pool audit (script).** Whenever `NAME_PHRASES`, `NAME_HEADS`, or
-`NAME_TAILS` changes: every phrase must pass `validateName` at ≤ 24 chars,
-and the longest head+tail pairing must stay ≤ 24.
+`NAME_TAILS` changes, run `npm run audit:names`
+(`scripts/audit-names.mjs`). It enforces: every phrase passes
+`validateName` at ≤ `MAX_NAME_LEN` chars; the longest head+tail pairing
+stays ≤ `MAX_NAME_LEN`; heads are single Title Case words and tails are
+single lowercase plurals; no duplicates within a pool; nothing trips the
+§6 banned terms. **N-4 (originality) is not scriptable** — it stays a
+human read.
 
 ---
 

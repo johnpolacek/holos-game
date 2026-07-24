@@ -8,7 +8,13 @@
 //
 // Register: short, concrete, evocative English — earth, water, weather, fire,
 // growth, bone, stone, sign. Heads are nouns; tails are plural agentive
-// callings (what a people does). 377 heads x 229 tails.
+// callings (what a people does). 664 heads x 398 tails = 264,272 pairings.
+//
+// Both lists are append-only in spirit: the pools are what a cohort's names
+// are drawn from, so a removal changes names already inherited. Run
+// `npm run audit:names` after any edit — it enforces the shape rules, the
+// no-duplicates rule, and the constraint that binds: the longest possible
+// pairing must still fit MAX_NAME_LEN.
 
 import type { Rng } from "./rng";
 
@@ -61,6 +67,42 @@ export const NAME_HEADS = [
   "Murmur", "Knell", "Toll", "Chime", "Bell", "Peal", "Dream", "Vigil",
   "Watch", "Ward", "Relic", "Shard", "Trace", "Omen", "Rite", "Creed",
   "Psalm",
+  "Crust", "Strata", "Bedrock", "Cavern", "Grotto", "Quarry", "Furrow", "Terrace",
+  "Talus", "Moraine", "Mesa", "Butte", "Steppe", "Tundra", "Dune", "Karst",
+  "Fissure", "Crevice", "Rubble", "Shingle", "Pebble", "Cobble", "Hillock", "Knoll",
+  "Trench", "Shaft", "Basin", "Hummock", "Summit", "Saddle", "Crater", "Caldera",
+  "Fault", "Nickel", "Zinc", "Pewter", "Ingot", "Billet", "Gilt", "Verdigris",
+  "Patina", "Ochre", "Umber", "Cinnabar", "Malachite", "Jasper", "Agate", "Opal",
+  "Topaz", "Beryl", "Garnet", "Amethyst", "Alabaster", "Porphyry", "Feldspar", "Mica",
+  "Talc", "Gypsum", "Nitre", "Sulfur", "Bitumen", "Naphtha", "Ocean", "Wash",
+  "Sluice", "Weir", "Levee", "Channel", "Estuary", "Firth", "Skerry", "Atoll",
+  "Islet", "Cape", "Headland", "Strand", "Shore", "Coast", "Cascade", "Cataract",
+  "Whirlpool", "Maelstrom", "Billow", "Breaker", "Crest", "Trough", "Ebb", "Neap",
+  "Freshet", "Runnel", "Culvert", "Cistern", "Blizzard", "Flurry", "Cyclone", "Typhoon",
+  "Vortex", "Downpour", "Cloudburst", "Stratus", "Cumulus", "Cirrus", "Nimbus", "Lightning",
+  "Rainbow", "Corona", "Solstice", "Equinox", "Meridian", "Horizon", "Firmament", "Sirocco",
+  "Mistral", "Thermal", "Updraft", "Downdraft", "Chill", "Bonfire", "Pyre", "Brazier",
+  "Furnace", "Crucible", "Bellows", "Foundry", "Cauldron", "Smoke", "Fume", "Glare",
+  "Dazzle", "Sheen", "Luster", "Radiance", "Candle", "Taper", "Wick", "Fuse",
+  "Firelight", "Scintilla", "Afterglow", "Phosphor", "Lumen", "Glint", "Quasar", "Pulsar",
+  "Nebula", "Perigee", "Apogee", "Parallax", "Ecliptic", "Cluster", "Penumbra", "Radiant",
+  "Zodiac", "Starfall", "Lodestar", "Polestar", "Aphelion", "Ellipse", "Sundial", "Daybreak",
+  "Nightfall", "Gloaming", "Orchard", "Meadow", "Pasture", "Harvest", "Tendril", "Rootstock",
+  "Taproot", "Seedling", "Sapling", "Timber", "Heartwood", "Sapwood", "Driftwood", "Willow",
+  "Alder", "Birch", "Rowan", "Aspen", "Cedar", "Hazel", "Holly", "Juniper",
+  "Laurel", "Myrtle", "Sorrel", "Clover", "Thistle", "Heather", "Gorse", "Furze",
+  "Nectar", "Chestnut", "Tendon", "Vertebra", "Skull", "Spine", "Femur", "Gullet",
+  "Artery", "Ligament", "Cartilage", "Fleece", "Bristle", "Quill", "Whisker", "Mane",
+  "Hackle", "Clutch", "Brood", "Swarm", "Flock", "Herd", "Molt", "Pupa",
+  "Larva", "Nymph", "Carapace", "Mandible", "Cellar", "Sanctum", "Reliquary", "Ossuary",
+  "Catacomb", "Rotunda", "Portico", "Colonnade", "Buttress", "Lintel", "Cornice", "Gable",
+  "Eaves", "Rafter", "Truss", "Girder", "Joist", "Plinth", "Frieze", "Alcove",
+  "Niche", "Corridor", "Stairwell", "Turret", "Parapet", "Battlement", "Palisade", "Stockade",
+  "Bulwark", "Redoubt", "Citadel", "Aqueduct", "Causeway", "Viaduct", "Litany", "Canticle",
+  "Requiem", "Elegy", "Refrain", "Cadence", "Antiphon", "Benison", "Blessing", "Charm",
+  "Talisman", "Amulet", "Effigy", "Icon", "Emblem", "Banner", "Standard", "Pennant",
+  "Cipher", "Codex", "Tablet", "Scroll", "Archive", "Chronicle", "Legend", "Fable",
+  "Parable", "Proverb", "Riddle", "Lament", "Threnody", "Paean", "Anthem",
 ] as const;
 
 export const NAME_TAILS = [
@@ -93,6 +135,28 @@ export const NAME_TAILS = [
   "riddlers", "harpers", "bards", "skalds", "mystics", "ascetics", "anchorites", "penitents",
   "supplicants", "celebrants", "fullers", "dyers", "chandlers", "wainwrights", "cordwainers", "thatchers",
   "hedgers", "warreners", "foresters", "verderers", "stewards",
+  "shipwrights", "wheelwrights", "millwrights", "ropers", "riveters", "solderers", "platers", "finishers",
+  "polishers", "lacquerers", "varnishers", "enamelers", "inlayers", "veneerers", "planers", "chiselers",
+  "sculptors", "modelers", "founders", "blowers", "bakers", "brewers", "distillers", "millers",
+  "maltsters", "vintners", "curers", "salters", "smokers", "picklers", "preservers", "nurturers",
+  "rearers", "cradlers", "swaddlers", "comforters", "consolers", "solacers", "easers", "restorers",
+  "renewers", "revivers", "quickeners", "sustainers", "providers", "nourishers", "shelterers", "harborers",
+  "welcomers", "greeters", "ushers", "custodians", "curators", "marshals", "rangers", "scouts",
+  "outriders", "pickets", "lookouts", "beaconers", "signalers", "warners", "patrollers", "gatekeepers",
+  "firekeepers", "lampkeepers", "voyagers", "crossers", "traversers", "pathmakers", "roadmakers", "bridgers",
+  "circlers", "returners", "homecomers", "sojourners", "nomads", "trekkers", "ramblers", "learners",
+  "teachers", "questioners", "ponderers", "wonderers", "musers", "thinkers", "reasoners", "calculators",
+  "counters", "numberers", "measurers", "gaugers", "surveyors", "sounders", "probers", "testers",
+  "provers", "verifiers", "doubters", "skeptics", "debaters", "arrangers", "composers", "patterners",
+  "planners", "drafters", "sketchers", "tracers", "balancers", "levelers", "aligners", "tuners",
+  "tighteners", "fasteners", "fishers", "fowlers", "trappers", "snarers", "netters", "beekeepers",
+  "goatherds", "swineherds", "cowherds", "milkers", "shearers", "grazers", "orchardists", "vinedressers",
+  "gardeners", "weeders", "mulchers", "waterers", "irrigators", "terracers", "drainers", "lighters",
+  "brighteners", "roasters", "firers", "scorchers", "searers", "glowers", "sparkers", "forgetters",
+  "buriers", "entombers", "enshriners", "honorers", "venerators", "blessers", "anointers", "consecrators",
+  "absolvers", "atoners", "pardoners", "forgivers", "redeemers", "ransomers", "swimmers", "waders",
+  "dredgers", "bailers", "paddlers", "anchorers", "moorers", "launchers", "wreckers", "salvagers",
+  "rescuers",
 ] as const;
 
 // Phrase names (prose-style.md §5): witty phrase-length proper names, a
