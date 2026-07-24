@@ -175,6 +175,13 @@ export class App {
         }
       });
       sourceCard.onClose(() => model.clearSelection());
+      studyBoard.onInspect((starId) => {
+        const source = this.sources.find((s) => s.starId === starId);
+        if (source === undefined) return;
+        model.selectStar(starId);
+        sourceCard.open(source, this.localNames);
+        sourceCard.setStudyStatus(this.findStudy(starId)?.status ?? null);
+      });
       sourceCard.onStudyAction((starId) => {
         if (this.findStudy(starId) !== undefined) {
           sourceCard.close();

@@ -353,6 +353,16 @@ export class Model {
     this.selectedStarId = null;
   }
 
+  /** Select without a tap — the observatory's explore list picks a source by
+   * id, and the sky's ring should agree with what the player just chose.
+   * Does not fire onSelectSource, for the same reason clearSelection doesn't:
+   * the caller is the one driving. */
+  selectStar(starId: string): void {
+    this.selectedStarId = this.sources.some((s) => s.source.starId === starId)
+      ? starId
+      : null;
+  }
+
   resize(): void {
     if (this.ready) this.app.resize();
   }

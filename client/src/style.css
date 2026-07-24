@@ -389,16 +389,18 @@ body {
   pointer-events: none;
 }
 
+/* The chip is the game's single action verb ("+ START") and always reads as
+ * the amber call-to-action — it opens the hub menu, never varies by state. */
 .study-chip {
   position: absolute;
   top: max(0.9rem, env(safe-area-inset-top));
   right: max(0.9rem, env(safe-area-inset-right));
   pointer-events: auto;
   background: var(--holos-bg-raised);
-  border: 1px solid var(--holos-gold-dim);
+  border: 1px solid var(--holos-amber);
   border-radius: 999px;
   padding: 0.38rem 0.75rem;
-  color: var(--holos-ink-dim);
+  color: var(--holos-amber);
   cursor: pointer;
 }
 
@@ -538,6 +540,74 @@ body {
 
 .study-tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* Hub view — the "+ START" chip's menu, one glance at everything the game
+ * lets you start. Rows are sentence case (not holos-caps): this is a list of
+ * verbs, not designations. */
+.study-hub-row {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  width: 100%;
+  min-height: 52px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.5rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.study-hub-label {
+  font-size: var(--holos-text-md);
+  color: var(--holos-ink);
+}
+
+.study-hub-sub {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-faint);
+}
+
+/* Inert rows (not yet built) — visible, legible, not tappable. */
+.study-hub-row--inert {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.study-hub-row--inert .study-hub-label {
+  color: var(--holos-ink-faint);
+}
+
+/* Explore view — an UNDER STUDY marker on a picker-style row for a source
+ * that already has a study open or shelved. */
+.study-explore-flag {
+  align-self: flex-start;
+  margin-top: 0.2rem;
+  color: var(--holos-amber);
+}
+
+/* Picker view — the discoverable "start a study" list. */
+.study-picker-subtitle {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  padding: 0 0 0.4rem;
+}
+
+.study-picker-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  min-height: 44px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.6rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--holos-ink);
 }
 
 /* Focused view */
