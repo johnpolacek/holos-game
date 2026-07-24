@@ -41,9 +41,9 @@
      a hierarchy; the dim/faint steps just never fall below what sunlight
      leaves resolvable. Do not push them back down for "mood": the mood is
      carried by the near-black stage and the gold rules, not by dim prose. */
-  --holos-ink: #f6f3ea;
-  --holos-ink-dim: rgba(246, 243, 234, 0.82);
-  --holos-ink-faint: rgba(246, 243, 234, 0.62);
+  --holos-ink: #efe9db;
+  --holos-ink-dim: rgba(239, 233, 219, 0.8);
+  --holos-ink-faint: rgba(239, 233, 219, 0.6);
   --holos-gold: #d3b982;
   --holos-gold-dim: rgba(211, 185, 130, 0.55);
   --holos-amber: #f0ac66;
@@ -957,7 +957,7 @@ body {
   position: relative;
   height: 0.4rem;
   border-radius: 999px;
-  background: rgba(246, 243, 234, 0.14);
+  background: rgba(239, 233, 219, 0.14);
 }
 
 .dial-range {
@@ -1109,7 +1109,9 @@ body {
   background-repeat: repeat, no-repeat, no-repeat;
   background-position: center;
   background-blend-mode: overlay, normal, normal;
-  color: #fff;
+  /* Warm white, not pure — the only text on a lit surface in the whole UI,
+     and pure #fff on the ember stone glares where a warm white doesn't. */
+  color: #fdf7ee;
   cursor: pointer;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
@@ -1223,8 +1225,8 @@ body {
  * game-specific toggle. */
 @media (prefers-contrast: more) {
   :root {
-    --holos-ink-dim: rgba(246, 243, 234, 0.95);
-    --holos-ink-faint: rgba(246, 243, 234, 0.85);
+    --holos-ink-dim: rgba(239, 233, 219, 0.95);
+    --holos-ink-faint: rgba(239, 233, 219, 0.85);
     --holos-gold: #e8d3a2;
     --holos-gold-dim: rgba(232, 211, 162, 0.8);
     --holos-amber: #ffc078;
