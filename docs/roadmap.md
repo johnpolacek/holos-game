@@ -82,7 +82,9 @@ player civ, placing the chosen civ at inheritance time
 
 **→ Next to build: A2 — Contact.** Launch brief:
 [build-a2.md](./build-a2.md), with
-[observatory-design.md](./observatory-design.md) as the vigil's spec.
+[observatory-design.md](./observatory-design.md) as the vigil's spec and
+[build-a2-stages.md](./build-a2-stages.md) as the per-stage handoff
+prompts.
 
 Each slice gets a just-in-time **launch brief** — a thin `build-*.md` wrapper
 (read-list, task, done-when, guardrails) that points back here for spec.

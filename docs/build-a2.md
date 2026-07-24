@@ -103,6 +103,10 @@ Durable Object migration (the 10211 caveat does not apply) — but note a
 preview version shares production DO state, so run pre-merge checks
 against a dev cohort room name, never the live cohort.
 
+**Per-stage launch prompts:** [build-a2-stages.md](./build-a2-stages.md)
+carries a paste-ready handoff prompt for each stage — self-contained
+blocks for starting each stage in a fresh session.
+
 **The stage discipline:** each stage = one screen (plus only the
 substrate it needs), one PR, one phone check written below as its gate.
 A stage does not start until the previous stage's phone check passed on
