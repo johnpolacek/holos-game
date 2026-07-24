@@ -979,22 +979,26 @@ body {
   transform: translate(-50%, -50%);
 }
 
-/* ── Archetype / charter ─────────────────────────────────────────────── */
-.archetype-name {
+/* ── Civ name / charter ──────────────────────────────────────────────── */
+.civ-name {
   font-family: var(--holos-font-display);
   font-size: var(--holos-text-2xl);
   letter-spacing: 0.06em;
   text-align: center;
   color: var(--holos-ink);
+  /* Follows the name field live, so it must not reflow the card as it grows. */
+  overflow-wrap: anywhere;
 }
 
+/* The founding document you accept — one of the three things carrying the
+   ownership beat, so it reads at full ink rather than as a caption. */
 .charter {
   font-family: var(--holos-font-body);
   font-style: italic;
   text-align: center;
-  font-size: var(--holos-text-md);
-  line-height: 1.5;
-  color: var(--holos-ink-dim);
+  font-size: var(--holos-text-lg);
+  line-height: 1.55;
+  color: var(--holos-ink);
   transition: opacity 700ms ease;
 }
 

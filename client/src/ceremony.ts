@@ -153,6 +153,7 @@ function renderDialBand(axis: DialAxis, setting: DialSetting): HTMLElement {
 interface CardState {
   readonly card: CivCard;
   readonly el: HTMLElement;
+  readonly title: HTMLElement;
   readonly nameInput: HTMLInputElement;
   readonly nameHint: HTMLElement;
   readonly becomeButton: HTMLButtonElement;
@@ -194,8 +195,8 @@ function buildCard(card: CivCard): CardState {
   body.className = "card-body";
 
   // Always visible (peek + focused): the identity read — cradle + lineage
-  // lines of the chronicle, plus the archetype name/first-read. Everything
-  // else lives in .detail-extra, hidden for unfocused neighbors.
+  // lines of the chronicle, the civilization's own name, and its first read.
+  // Everything else lives in .detail-extra, hidden for unfocused neighbors.
   const identity = document.createElement("div");
   identity.className = "chronicle chronicle-identity";
   for (const line of card.seed.chronicle.slice(0, 2)) {
@@ -204,9 +205,15 @@ function buildCard(card: CivCard): CardState {
     identity.append(p);
   }
 
-  const archetypeName = document.createElement("div");
-  archetypeName.className = "archetype-name holos-serif";
-  archetypeName.textContent = card.archetypeName;
+  // The card's title is the name this civilization already bears — not its
+  // archetype. Archetype is a nearest-fit region of dial-space (minds.ts):
+  // designer vocabulary, and two candidates can share one, which would title
+  // two cards identically. The archetype's first read says the same thing in
+  // the game's own voice, so that line carries it and the label stays
+  // internal (act2-design.md leaves "archetypes named in-game" open).
+  const title = document.createElement("div");
+  title.className = "civ-name holos-serif";
+  title.textContent = card.seed.name;
 
   const archetypeFirstRead = document.createElement("div");
   archetypeFirstRead.className = "chronicle";
@@ -248,18 +255,27 @@ function buildCard(card: CivCard): CardState {
   nameField.className = "name-field";
   const nameCaption = document.createElement("div");
   nameCaption.className = "holos-caps";
-  nameCaption.textContent = "Name your civilization";
+  nameCaption.textContent = "Keep its name or choose another";
   const nameInput = document.createElement("input");
   nameInput.type = "text";
   nameInput.maxLength = MAX_NAME_LEN * 2; // allow raw typing; validateName trims/collapses
   nameInput.autocomplete = "off";
   nameInput.spellcheck = false;
+  // Prefilled with the name it already bears: the act here is renaming
+  // something inherited, which claims it harder than filling a blank does
+  // (roadmap.md's "inherited ≠ owned" risk). The title above follows what
+  // you type, so a rename lands on the card while you make it.
+  nameInput.value = card.seed.name;
+  nameInput.addEventListener("input", () => {
+    const typed = nameInput.value.trim();
+    title.textContent = typed.length > 0 ? typed : card.seed.name;
+  });
   const nameHint = document.createElement("div");
   nameHint.className = "name-hint";
 
-  // Suggested names: the name this civilization already bore, plus fresh
-  // pairings from the shared lexicon. Tapping a chip fills the field (still
-  // editable); the field starts empty — naming stays the deliberate act.
+  // Suggested names: the name this civilization already bore (tap to undo a
+  // rename), plus fresh pairings from the shared lexicon. Tapping a chip
+  // fills the field, still editable.
   const chipsRow = document.createElement("div");
   chipsRow.className = "name-chips";
   const composeSuggestion = (taken: ReadonlySet<string>): string => {
@@ -327,13 +343,14 @@ function buildCard(card: CivCard): CardState {
   becomeWrap.append(becomeButton);
   detailExtra.append(becomeWrap);
 
-  body.append(identity, archetypeName, archetypeFirstRead, detailExtra);
+  body.append(identity, title, archetypeFirstRead, detailExtra);
   scroll.append(worldPanel, body);
   el.append(scroll);
 
   return {
     card,
     el,
+    title,
     nameInput,
     nameHint,
     becomeButton,
@@ -435,6 +452,7 @@ export function renderCeremony(
       if (state !== undefined) {
         state.committed = true;
         state.nameInput.value = pending.name;
+        state.title.textContent = pending.name;
         state.becomeButton.disabled = true;
         state.el.classList.add("committing");
         state.becomeButton.classList.add("committing");
