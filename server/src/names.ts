@@ -95,14 +95,18 @@ export const NAME_TAILS = [
   "hedgers", "warreners", "foresters", "verderers", "stewards",
 ] as const;
 
-// A second naming flavor that joins the compound pool: witty phrase-length
-// proper names in the *pattern* of Culture ship-naming — a self-contained
-// quip as a name — with zero borrowed names (prose-style.md §5). Every entry
-// passes N-1..N-5: ≤ MAX_NAME_LEN (24) chars including spaces, Title Case,
+// Phrase names (prose-style.md §5): witty phrase-length proper names, a
+// self-contained quip as a name, with zero borrowed names. Every entry passes
+// N-1..N-5: ≤ MAX_NAME_LEN (24) chars including spaces, Title Case,
 // letters/spaces/comma/apostrophe only, original in words and cadence, reads
-// as a name and not an error string. Registers are spread deliberately:
-// polite menace, bureaucratic deadpan, deep-time shrug, understatement,
-// committee humor, cheerful appetite, self-deprecation.
+// as a name and not an error string.
+//
+// NOT a civilization-name flavor. A civilization is a people across deep
+// time, and a quip reads as a joke told once rather than a name a species
+// carries for ten thousand years — the compound lexicon above is the whole
+// civ pool. This list is kept for *instance* names: ships and structures
+// (technology.md — "a beam battery called `Louder Than Necessary` is exactly
+// the register"), where a one-off quip is the point. Unused until that lands.
 export const NAME_PHRASES = [
   // Polite menace (M7)
   "Politely Enormous", "Do Sit Down", "After You, Truly",
@@ -160,8 +164,6 @@ export const NAME_PHRASES = [
 ] as const;
 
 export function generateCivName(rng: Rng): string {
-  // Two flavors share one pool: with probability 0.2 a self-contained phrase
-  // name, otherwise a head+tail compound. Deterministic by seed via rng.
-  if (rng.chance(0.2)) return rng.pick(NAME_PHRASES);
+  // One pool: a head+tail compound. Deterministic by seed via rng.
   return `${rng.pick(NAME_HEADS)}${rng.pick(NAME_TAILS)}`;
 }

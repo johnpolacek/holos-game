@@ -233,10 +233,18 @@ physics: *"The light you are reading left before you existed."*
 ## §5 — Phrase-name spec
 
 Holos generates civilization names from a compound lexicon (`names.ts`,
-head + tail → *Stonebinders*). That system stays. This section specifies a
-**second flavor** that joins the pool: witty phrase-length proper names in
-the *pattern* of Culture ship-naming — a self-contained quip as a name —
-with **zero borrowed names**.
+head + tail → *Stonebinders*). **That is the whole civilization-name pool.**
+
+This section specifies a separate flavor for **instance names — ships and
+structures** (technology.md): witty phrase-length proper names, a
+self-contained quip as a name, with **zero borrowed names**.
+
+**Phrase names are not civilization names** (working decision, 2026-07).
+A civilization is a people across deep time, and a quip reads as a joke
+told once, not as a name a species carries for ten thousand years — the
+register undercuts the thing being named. `NAME_PHRASES` stays in
+`names.ts` unused until ship and structure naming lands; `generateCivName`
+and the ceremony's suggestion chips draw from the compound lexicon only.
 
 A phrase name PASSES only if all hold:
 - **N-1** ≤ 24 characters **including spaces**, post-trim (`MAX_NAME_LEN`
