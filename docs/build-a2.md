@@ -17,7 +17,7 @@ Per [CLAUDE.md § Build orchestration](../CLAUDE.md): run this slice with
 lean. Send **reasoning-heavy work to Opus** (deep-reasoner) and
 **mechanical work to Sonnet** (fast-worker). The **high-stakes calls** —
 run Opus twice with different framings and synthesize — are: the
-**case/confidence model** (honest-but-coarse updating vs authored curves;
+**study/confidence model** (honest-but-coarse updating vs authored curves;
 the regression tell must be earned by real opponent spend), the
 **composed-signal grammar** (the parts, and what deception and tone they
 allow), and the **delivery wire design** (signals and question-answers
@@ -41,9 +41,9 @@ Three decisions are already made for you (do not reopen them):
   signals are **composed from structured parts**; traffic with AI
   counterparts may be freeform. Design the parts; don't ship a chat box.
 - **The vigil spec exists**:
-  [observatory-design.md](./observatory-design.md) — cases, hypotheses,
+  [observatory-design.md](./observatory-design.md) — studies, hypotheses,
   buyable questions, instrument-time allocation, sharpen/plateau/regress,
-  case tripwires, called/shelved/overtaken exits. Build that, thin.
+  study tripwires, called/shelved/overtaken exits. Build that, thin.
 - **Durable identity lives in DO SQLite** (roadmap § Open build
   decisions): the A1 per-run token becomes a claimable account in the
   Durable Object's native SQLite storage; multi-device by carrying the
@@ -60,12 +60,12 @@ Three decisions are already made for you (do not reopen them):
   scheduled event `distanceLy` years out), the A1 join/become flow, and
   per-player state.
 - `server/src/protocol.ts` — the guarded-parse pattern and the A1
-  message set you extend (cases, questions, the choice, signals).
+  message set you extend (studies, questions, the choice, signals).
 - `server/src/civseed.ts` / `minds.ts` — archetype registers (charter,
   first read, voices) that AI counterpart replies are generated from;
   `emissionHistory` feeds what any vigil can actually see.
 - `client/src/model.ts`, `sourcecard.ts`, `ceremony.ts` — the Model, the
-  source card (grows the *open case* affordance), and the
+  source card (grows the *open study* affordance), and the
   hold-to-commit ceremony pattern (reused for the choice screen).
 
 ## Read first (docs)
@@ -73,19 +73,19 @@ Three decisions are already made for you (do not reopen them):
 - [roadmap.md](./roadmap.md) — § A2 (authoritative scope), § Open build
   decisions (A2 entries now marked decided).
 - [observatory-design.md](./observatory-design.md) — the vigil, whole.
-  Its § v1 scope is your build list for the case board.
+  Its § v1 scope is your build list for the observatory.
 - [act3-design.md](./act3-design.md) — § Contact (the four stages;
   what signals carry), § The Sky, § Sleep/tripwires/absence charter
   (the presence rule binds this slice).
-- [ui-design.md](./ui-design.md) — § Act 3 (the observatory/case board,
+- [ui-design.md](./ui-design.md) — § Act 3 (the observatory,
   the choice screen, Signals-as-threads), principles 3–5 (ages,
   beliefs, reversible-vs-ceremony).
 - [economy-design.md](./economy-design.md) — the mask-versus-instrument
   contest as opposed open-ended spends; questions are Compute-heavy
   Investments; no capacity slots anywhere.
 - [prose-style.md](./prose-style.md) — the comms register (signals,
-  never letters — grep-checkable), observatory deadpan for the case
-  board, archetype voices (§4) for AI counterpart replies.
+  never letters — grep-checkable), observatory deadpan for the
+  observatory, archetype voices (§4) for AI counterpart replies.
 - [walkthrough.md](./walkthrough.md) — Days 1–3 and Week 2 are this
   slice's acceptance scenes (the anthem, the stay-dark resistance beat,
   the whisper, the evening exchange).
@@ -112,21 +112,21 @@ substrate it needs), one PR, one phone check written below as its gate.
 A stage does not start until the previous stage's phone check passed on
 the deployed URL. Wire rules hold at every stage: guarded parsing per
 the protocol pattern, and nothing about a remote civ beyond
-`DetectedSource` + what the case/evidence shapes explicitly add — those
+`DetectedSource` + what the study/evidence shapes explicitly add — those
 shapes derived in `knowledge.ts`, never in handlers.
 
 ## The stages — A2 (roadmap § A2 is authoritative for scope)
 
-### A2.1 — The case board, read-only
+### A2.1 — The observatory, read-only
 
-The vigil's screen, before its verbs. Wire: open/shelve a case; case
+The vigil's screen, before its verbs. Wire: open/shelve a study; study
 state on the Cohort DO; hypothesis menus per signal class seeded from
-`ObservedSignal`. Screen: the observatory Desk panel — open cases as
-rows, the focused case showing its hypotheses as confidence bars, the
+`ObservedSignal`. Screen: the observatory Desk panel — open studies as
+rows, the focused study showing its hypotheses as confidence bars, the
 light archive annotated with what moved what. The source card grows one
-affordance: *open a case*.
+affordance: *open a study*.
 
-**Phone check:** flag the nearest `DARK NODE` candidate → a case opens
+**Phone check:** flag the nearest `DARK NODE` candidate → a study opens
 → read its hypotheses with confidence shares and the evidence so far.
 Nothing buyable yet.
 
@@ -134,29 +134,29 @@ Nothing buyable yet.
 
 The vigil's verb. Wire: buy a question; instrument-time income and
 allocation; answers scheduled through the alarm queue on real clocks.
-Screen: the case's open questions with costs, clock pairs, and
+Screen: the study's open questions with costs, clock pairs, and
 which-hypotheses-it-separates; bought questions on the strip's cooking
 clocks; answers landing in the report and moving the bars (sharpen and
 plateau only — no opponent yet).
 
 **Phone check:** buy an overnight question in the evening; the next
-morning's report shows the answer and the case's bars visibly moved —
+morning's report shows the answer and the study's bars visibly moved —
 or a plateau, honestly labeled.
 
-### A2.3 — The contest, and case tripwires
+### A2.3 — The contest, and study tripwires
 
 The other side spends. Archetype-rule mask upkeep for seeded civs (a
 Cloister pays forever; a young Beacon never does), resolved
 budget-vs-budget per economy-design.md — no stealth stats, no
 certainty. Regression joins the answer shapes, its tell stated plainly
-in the observatory deadpan (observatory-design.md, **settled**). Case
-tripwires (*wake this case if confidence regresses; if the leakage
+in the observatory deadpan (observatory-design.md, **settled**). Study
+tripwires (*wake this study if confidence regresses; if the leakage
 stops*) fire in-app on next open. Called/shelved/overtaken exits
-complete the case lifecycle — a called case stays called. **No
+complete the study lifecycle — a called study stays called. **No
 grounded exit** — the Assay is A4; the board simply does not offer it.
 
 **Phone check:** a vigil on a masked target regresses and the board
-says why in one flat sentence; a called case closes and stays closed.
+says why in one flat sentence; a called study closes and stays closed.
 
 ### A2.4 — The choice ceremony
 
@@ -208,7 +208,7 @@ a belief, one hails, and they exchange composed signals across real
 light-lag inside an evening — **and the exchange is worth
 screenshotting**. The same arc runs human-vs-AI, indistinguishable at
 the wire level. The no-leak check still holds byte-for-byte: nothing
-beyond `DetectedSource` + the case's own evidence shapes about any
+beyond `DetectedSource` + the study's own evidence shapes about any
 remote civ. One account works from two devices. If the loop isn't fun,
 tune here — nothing else builds until this gate passes (roadmap, § A2).
 
@@ -225,7 +225,7 @@ tune here — nothing else builds until this gate passes (roadmap, § A2).
 - **The comms register**: signals, tight beams, traffic, payloads —
   never letters, never email furniture (prose-style.md § 8; the ban is
   grep-checkable and CI-greppable).
-- **Registers**: case board and physics stamps in observatory deadpan
+- **Registers**: the observatory and physics stamps in observatory deadpan
   (wit 0); AI counterpart replies in their archetype's voice (§4);
   no exclamation marks anywhere.
 - **Calm by design**: no badges, no unread counts; deliveries wait in
@@ -237,12 +237,12 @@ tune here — nothing else builds until this gate passes (roadmap, § A2).
 ## First move
 
 Read the code and docs above, then **propose before building A2.1: the
-case wire shapes (case, hypothesis, evidence) and the case board's
+study wire shapes (study, hypothesis, evidence) and the observatory's
 screen layout** — plus a sketch of where the later stages' messages will
 hang, so A2.1's shapes don't need reshaping. Each subsequent stage opens
 the same way: a short proposal (its wire additions and its screen), the
 go, then build. The two proposals that warrant the double-Opus treatment
-when their stages arrive: the case/confidence model with earned
+when their stages arrive: the study/confidence model with earned
 regression (A2.3) and the composed-signal part grammar (A2.6). After
 each go, decompose into subagent tasks (see *Orchestration*), and
 integrate + verify the invariants yourself before each commit — every

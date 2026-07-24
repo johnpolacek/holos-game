@@ -167,7 +167,7 @@ mechanics live in act2-design.md; the Act 3 shadows in act2-minds.md.)
   intelligence** — the information economy is the quiet civilization's
   offense, and third-party coordinates are its currency
   (act3-design.md, *what signals carry*).
-- **Texture:** detective sessions; the sky as a case board; knowing
+- **Texture:** detective sessions; the sky as the observatory; knowing
   things about civilizations that do not know you exist.
 - **Fails as:** paranoid solitude; knowing everything and mattering to
   no one.
@@ -277,7 +277,7 @@ are the work this document exists to direct:
   instrument allocation, payoffs) and the intelligence economy made
   mechanical — otherwise its optimal play collapses toward inaction,
   violating rule 5. *(Answered:
-  [observatory-design.md](./observatory-design.md) — cases, buyable
+  [observatory-design.md](./observatory-design.md) — studies, buyable
   questions, the regression tell, and dossiers as the intelligence
   good; dossier trading matures with traffic.)*
 - **Instrumental** is under-verbed until the conflict layer ships;

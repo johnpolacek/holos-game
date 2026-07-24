@@ -72,7 +72,7 @@ Any undertaking can spawn undertakings:
 - **A project spawns a mission.** Build the gravitational-lens instrument
   (project, at home) → ferry it to the solar focal line (mission, a
   flight with a clock) → the emplaced instrument then feeds a vigil
-  (a case on the observatory desk). Three nodes, one purpose.
+  (a study on the observatory desk). Three nodes, one purpose.
 - **A mission spawns a project.** Send a builder to a partner system
   (mission) → it raises a receiver there (project, executed at the far
   end under the charter) → the finished receiver unlocks transmission as

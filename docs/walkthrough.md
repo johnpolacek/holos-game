@@ -309,11 +309,11 @@ his verb is choosing. He decides *what for*; the mind owns *how*.
 
 What he says yes to, this week:
 
-- **The vigil on Hearth.** Flagging the source turns it into a case on
+- **The vigil on Hearth.** Flagging the source turns it into a study on
   the observatory desk: hypotheses listed (someone's heart; a brown
   dwarf; a rogue world), instrument time allocated between them — a
   purpose-level choice, *which question*, never which telescope setting.
-  The case lands on the Docket as a parent with a child already
+  The study lands on the Docket as a parent with a child already
   drafted: build the deep-inspection instrument (a project, an
   Investment, ~14 real hours), then ferry it out to the solar focal
   line (a mission, a short flight with a clock). Two rows, one purpose,
@@ -345,7 +345,7 @@ What he says yes to, this week:
 
 On Day 3, first light from the deep instrument lands, and the
 classification arc — the act's detective gameplay — turns over in the
-case file:
+study file:
 
 > *Mass revised downward. Too light for a brown dwarf, too warm for a
 > rogue world of its age. Thermal profile steady in a way nature rarely
@@ -357,7 +357,7 @@ changed; every priority did. There is a mature, deliberately silent
 civilization **6.8 light-years away** — close enough that traffic would
 run inside an evening — and it has had Longlight's light, all of it,
 flare and turn both, for as long as it has cared to look. The confidence
-will not climb further this week: past 71% the case notes report the
+will not climb further this week: past 71% the study notes report the
 target's own counter-investment, a mask maintained against exactly this
 kind of instrument, and the contest between his sharpening and their
 quiet is a running economy, not a die roll (technology.md; the game
@@ -368,7 +368,7 @@ Theo does not hail. Neither, apparently, does Hearth. Two quiet things,
 6.8 light-years apart, each reading the other's intent from old light.
 The dark forest, at conversational range, played for real.
 
-One more thing happens on Day 3, quietly, in the case notes — the beat
+One more thing happens on Day 3, quietly, in the study notes — the beat
 the design gives away for free and this season keeps because of what it
 does to an heir in particular. Calibrating the new instrument against a
 K-class star nineteen light-years out, the observatory finds the geometry
@@ -566,7 +566,7 @@ flagged — never had reason to — goes *quieter*: an infrared floor he had
 taken for background dims by a fraction his instruments only caught
 because they were pointed nearby. Something had been idling there,
 unremarked, and the broadcast made it hold its breath. He flags it. The
-case file opens at 12% `DARK NODE`, and his map of the neighborhood is
+study file opens at 12% `DARK NODE`, and his map of the neighborhood is
 suddenly one source larger — knowledge bought for him by someone else's
 choice ceremony, read out of the *responses*.
 

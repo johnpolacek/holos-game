@@ -272,16 +272,16 @@ and can wait.*
 > only hold light that has already arrived). The screen must feel almost
 > empty; the emptiness is the point.
 
-#### 7b — Act 3: the case board (the observatory desk; A2.1's screen)
+#### 7b — Act 3: the observatory (the observatory desk; A2.1's screen)
 
-> A case file over the dark ground, typography-led, calm and forensic —
+> A study file over the dark ground, typography-led, calm and forensic —
 > a well-kept observatory record, not a dashboard. The upper fifth of
 > the screen, behind the header, is the instrument's honest best image
 > of the subject: a single soft, out-of-focus ember-amber smudge on
 > near-black — a blurred warm glow with faint diffraction softness, no
 > surface detail, no planet, no stars, no flare; the blur is deliberate,
 > because the page is about not yet knowing what this is. Over it, the
-> case header: designation "HOL-0031" in small grotesque, the player's
+> study header: designation "HOL-0031" in small grotesque, the player's
 > name "HEARTH" large in serif, a chip reading "AS OF 7 Y AGO". Below,
 > four hypothesis rows — small-caps serif phrases ("BROWN DWARF",
 > "ROGUE WORLD", "COOLED REMNANT", "SOMEBODY'S HEART") — each with a
@@ -294,9 +294,9 @@ and can wait.*
 > small cost in instrument hours ("12 H INSTRUMENT"), and a paired
 > clock that varies with the cost ("12 H · ≈140 Y", "20 H · ≈230 Y",
 > "31 H · ≈370 Y") — never a points currency. At the bottom edge, a
-> thin allocation strip dividing instrument time between two cases,
+> thin allocation strip dividing instrument time between two studies,
 > the strip's fill in moonlight cyan (your own instrument time) but
-> both case names in slate grotesque — never cyan, which belongs to
+> both study names in slate grotesque — never cyan, which belongs to
 > the player's civilization alone. Generous spacing, few words, no
 > charts, no graphs, no dashboard density; the page reads like typeset
 > evidence.

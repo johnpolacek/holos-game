@@ -446,7 +446,7 @@ information beats; they are how the sky stops being wallpaper.
   approaches. The instrument is small and cold; the lens was free.
 - **In play.** Instrument; the observatory's deep-inspection mode. This is
   how a warm mass resolves into a `DARK NODE` classification — or into a
-  brown dwarf, closing the case — without building anything bright. Each
+  brown dwarf, closing the study — without building anything bright. Each
   observatory is a *question*: aimed at one system, deliberately, for
   years. Commissioning one is a statement of interest.
 - **In the sky.** Effectively nothing — a speck on a focal line. (The
