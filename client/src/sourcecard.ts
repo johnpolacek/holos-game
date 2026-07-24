@@ -16,6 +16,7 @@
 import {
   MAX_NAME_LEN,
   validateName,
+  type CaseStatus,
   type CohortServerMessage,
   type DetectedSource,
   type EmissionEpoch,
@@ -24,7 +25,7 @@ import {
 import type { CohortSocket } from "./net";
 
 /** In-world display labels for the five v1 signal classes (act3-design.md). */
-const CLASS_LABEL: Readonly<Record<SignalClass, string>> = {
+export const CLASS_LABEL: Readonly<Record<SignalClass, string>> = {
   "infrared-excess": "DARK NODE",
   "transit-shadows": "TRANSIT SHADOWS",
   "directed-beam": "DIRECTED BEAM",
@@ -87,14 +88,17 @@ export class SourceCard {
   private readonly confEl: HTMLSpanElement;
   private readonly canvas: HTMLCanvasElement;
   private readonly axisEl: HTMLDivElement;
+  private readonly caseBtn: HTMLButtonElement;
 
   private onCloseCb: (() => void) | null = null;
+  private onCaseActionCb: ((starId: string) => void) | null = null;
 
   private source: DetectedSource | null = null;
   private localNames: ReadonlyMap<string, string> = new Map();
   private editing = false;
   private pendingSend = false;
   private nameOverride: NameOverride | null = null;
+  private caseStatus: CaseStatus | null = null;
 
   private dragStartY: number | null = null;
   private dragDy = 0;
@@ -168,7 +172,18 @@ export class SourceCard {
     this.axisEl.className = "source-card-axis";
     chartWrap.append(this.canvas, this.axisEl);
 
-    this.sheet.append(this.grabber, header, hr, beliefRow, chartWrap);
+    const caseRow = document.createElement("div");
+    caseRow.className = "source-card-case-row";
+    this.caseBtn = document.createElement("button");
+    this.caseBtn.type = "button";
+    this.caseBtn.className = "source-card-case-affordance";
+    this.caseBtn.textContent = "OPEN A CASE";
+    this.caseBtn.addEventListener("click", () => {
+      if (this.source !== null) this.onCaseActionCb?.(this.source.starId);
+    });
+    caseRow.append(this.caseBtn);
+
+    this.sheet.append(this.grabber, header, hr, beliefRow, chartWrap, caseRow);
     this.root.append(this.backdrop, this.sheet);
     container.append(this.root);
 
@@ -181,6 +196,14 @@ export class SourceCard {
    * a null-selection close (the caller already knows in that case). */
   onClose(cb: () => void): void {
     this.onCloseCb = cb;
+  }
+
+  /** Fired when the case-affordance row is tapped, with the open source's
+   * starId. The card does not send wire messages itself and does not know
+   * what happens next — that is the App's call (open a case vs. focus the
+   * existing one). */
+  onCaseAction(cb: (starId: string) => void): void {
+    this.onCaseActionCb = cb;
   }
 
   isOpen(): boolean {
@@ -197,8 +220,17 @@ export class SourceCard {
     this.editing = false;
     this.pendingSend = false;
     this.nameOverride = null;
+    this.caseStatus = null;
     this.renderAll();
+    this.renderCaseRow();
     this.root.classList.add("open");
+  }
+
+  /** The case for the currently open source, or null if none exists yet.
+   * The App calls this right after open() (and again on every later sky). */
+  setCaseStatus(status: CaseStatus | null): void {
+    this.caseStatus = status;
+    this.renderCaseRow();
   }
 
   /** A later `sky` for the currently open source: refresh belief/age/chart.
@@ -226,6 +258,7 @@ export class SourceCard {
     this.editing = false;
     this.pendingSend = false;
     this.nameOverride = null;
+    this.caseStatus = null;
   }
 
   /** Route sourceNamed/error while this card is open. `error` lacks a
@@ -295,6 +328,19 @@ export class SourceCard {
     this.thumb.style.background =
       `radial-gradient(circle at 50% 50%, rgba(217,154,83,${alpha}) 0%, ` +
       `rgba(217,154,83,${alpha * 0.35}) 45%, transparent 75%)`;
+  }
+
+  private renderCaseRow(): void {
+    if (this.caseStatus === "open") {
+      this.caseBtn.textContent = "CASE OPEN · VIEW";
+      this.caseBtn.className = "source-card-case-affordance source-card-case-affordance--active";
+    } else if (this.caseStatus === "shelved") {
+      this.caseBtn.textContent = "CASE SHELVED · VIEW";
+      this.caseBtn.className = "source-card-case-affordance source-card-case-affordance--active";
+    } else {
+      this.caseBtn.textContent = "OPEN A CASE";
+      this.caseBtn.className = "source-card-case-affordance";
+    }
   }
 
   private renderName(): void {
