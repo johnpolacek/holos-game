@@ -154,7 +154,7 @@ system already named in act3-design.md:
 | **Holocore** — compact energy mesostructure, dense not sprawling | dark-energy | the integration path's power source: an energy *core*, not a star-enclosing shell (vision.md's phrase exactly) |
 | **Computronium Kernel** — the civilization's thinking heart | dark | the compute core; where a single world-model is held across millennia; presents as a Dark Node |
 | **Chrono Vault** — stores *identity*, not information | dark | the Vault of act2-design.md; the Curator's instrument and the answer to *"if we wake in 100,000 years, who are we?"*; **defense-by-preservation** in act3-design.md's conflict layer |
-| **Phase-Coherent Beam** — collimated optical payloads | instrument / contact | the **directed hail** and **correspondence** carrier; invisible unless you are aligned in space, time, and frequency |
+| **Phase-Coherent Beam** — collimated optical payloads | instrument / contact | the **directed hail** and **traffic** carrier — the tight beam itself; invisible unless you are aligned in space, time, and frequency |
 | **Sentinel Probes** — compact, autonomous, quiescent | expansion / instrument | the patient watcher; H3's *"exploration scales through patience"*; the probe that finds someone |
 | **Gravitational-Lens Observatory** — natural lenses for extreme resolution | instrument | the observatory's deep-inspection mode; how you resolve a warm mass into a Dark Node without building anything bright |
 
@@ -197,8 +197,8 @@ last two are this tier's contribution and are what give drift a direction:
    resource-rich system drifts toward Reach; one drowned or buried drifts
    toward Depth and One Mind. **Divergence has a compass, and the new
    world holds it.**
-4. **Contact.** Correspondence *changes you* — act3-design.md lists culture
-   (dial nudges) among what letters carry. A fork in dialogue with an alien
+4. **Contact.** Traffic *changes you* — act3-design.md lists culture
+   (dial nudges) among what signals carry. A fork in dialogue with an alien
    character drifts toward or against it; a fork that stays dark drifts only
    under pressures 1–3.
 
@@ -322,12 +322,12 @@ space**, never a fixed roster — the same discipline act2-minds.md keeps.
   (act2-minds.md). Low-Signature expansion; you find it by catching one
   seedship, not by seeing the whole.
 
-#### The Congress-grown — *the natural correspondent*
+#### The Congress-grown — *the natural interlocutor*
 - **From:** the Congress, symbiotic composites (act1-lifeforms.md S14).
 - **In the sky:** a plurality of negotiated selves; enters contact
   *expecting* other minds and knowing how to treat with them. The
   contact-friendliest civilization in the galaxy, and the safest first
-  correspondent for a nervous newcomer — once its several selves settle on
+  counterpart for a nervous newcomer — once its several selves settle on
   what to say.
 
 ### The recursion — young worlds, elders, and grave worlds
@@ -366,7 +366,7 @@ Custodian↔Instrumental).
 | **Cloister-grown** | Cloister · Engine | Integration H4 (→ asleep) | near-invisible; sleeper | resists transmission (One Mind) | stays dark |
 | **Herald / Beam-sender** | Herald | Integration, Signature-positive | dark + a directed beam | transmission to known endpoints | broadcasts a message, then silence |
 | **Sowing-grown** | Sowing | Energy, dark | quiet seedships everywhere | seedships (Chorus, cheap forks) | spreads; does not announce |
-| **Congress-grown** | Congress · composite | mixed | plural, mid-Signature | transmission (Chorus) | corresponds readily |
+| **Congress-grown** | Congress · composite | mixed | plural, mid-Signature | transmission (Chorus) | answers readily |
 | **Young world** | *(pre-singularity)* | — (biosignature) | living world, no tech | none yet | cannot; is observed |
 | **Elder** | *(ancient any)* | H4–H5 or bright-relic | deep Dark Node; old light | — | may never answer |
 | **Grave world** | *(an elder's vigil)* | Integration H4–H5 (elder) | dead world kept; warm watcher | — | quarantines; does not answer |
@@ -388,7 +388,7 @@ passing the observed-silence test rather than engineering it.
 ## Contact as a meeting of characters
 
 act3-design.md specifies the contact *protocol* — detect, vigil, choice,
-correspondence — and insists nothing across light-years is enforceable. This
+traffic — and insists nothing across light-years is enforceable. This
 section supplies what the protocol is *about*: the collision of two dial
 sheets. The drama is between value systems, not tech tiers (vision.md, *A
 galaxy of many kinds of mind*), so the same protocol reads completely
@@ -407,7 +407,7 @@ A few load-bearing pairings, keyed to the dials:
 - **Curator meets Shedder.** The Curator offers Vault contents as trade
   goods (deep history, preserved identity) and expects promises to hold. The
   Shedder's promises belong to a self it has already shed — *some
-  correspondents can't be trusted across the light-years* because yesterday's
+  counterparts can't be trusted across the light-years* because yesterday's
   treaty was made by a mind that no longer exists (act2-minds.md, the
   Phoenix). Curator↔Shedder is the dial of whether a treaty means anything.
 - **One Mind meets Chorus.** The Chorus civilization forks cheerfully and
@@ -465,7 +465,7 @@ machinery act3-design.md already scopes for v1. The discipline (vision.md,
 - **v1 needs only a handful of these regions populated.** The seeded AI
   spectrum can be rule-based (light-lag hides shallowness), so a Beacon, a
   Tide, a Monument/Dark Node, a young world, and one Congress-style
-  correspondent are enough to prove the contact loop against varied
+  counterpart are enough to prove the contact loop against varied
   characters. The full ten-region catalog is a later-content target, exactly
   as act2-minds.md's six neighbors are.
 - **The Holosian-Scale mapping is free.** It re-labels the integration

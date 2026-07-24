@@ -111,7 +111,7 @@ civilization holds together as it grows. They usually correlate but can cross:
 a **hive** is emphatically *One Mind* on the dial yet climbs the **Energy**
 ladder happily, swarming its star with expendable castes. Likewise a *Chorus*
 mind can still pursue Integration by keeping its many selves in tight
-correspondence. Read the two independently, or the mappings below look
+synchrony. Read the two independently, or the mappings below look
 contradictory when they are not.
 
 ---
@@ -181,7 +181,7 @@ new v1 obligations). Every lineage below resolves to one of these ten.
 - **First read:** A plurality still negotiating itself; the one mind glad to meet another.
 - **Charter:** Another mind is indispensable; on this, remarkably, we all agree.
 - **Act 2 play:** neither ladder dominates; tolerant of distributed projects; dilemmas surface as *internal debate* more than anywhere else, because the self already argues.
-- **Act 3 shadow:** the natural correspondent — enters contact expecting other minds and knowing how to treat with them.
+- **Act 3 shadow:** the natural interlocutor — enters contact expecting other minds and knowing how to treat with them.
 
 #### The Phoenix — *Depth · Shedder · One Mind*
 - **First read:** It reinvents itself endlessly; each past self is read once, then discarded.
@@ -530,7 +530,7 @@ catalog — the personality-rigidity principle at full strength.*
 - **Range & spread:** cold hydrocarbon worlds are Brutal; narrow ranges,
   Curator effectively pinned.
 - **What Act 1 decides:** coherence across its sparse, slow selves; a
-  history of tight correspondence drifts it to **the Cloister**.
+  history of tight synchrony drifts it to **the Cloister**.
 
 #### S18 · Radiation-hardened extremophile → The Sowing
 - **Why it wakes here:** a sky that hurts (**Silence**), a body built on
@@ -637,7 +637,7 @@ The waking mind is also the seed of the diverged descendants of Act 3. The
 - **Custodian ↔ Instrumental** becomes what you do when a probe finds someone —
   the Shepherd watches over, the Engine consumes.
 - **Curator ↔ Shedder** becomes what your descendants inherit and what contact
-  can trade — and the Phoenix's shed promises are why some correspondents can't
+  can trade — and the Phoenix's shed promises are why some counterparts can't
   be trusted across the light-years.
 
 That divergence tier — one waking mind becoming a family of related-but-alien

@@ -55,7 +55,7 @@ import {
 
 /**
  * A clock-scheduled event, driven by the Durable Object alarm. A0 proves
- * the plumbing with dev pings; arrivals, deliveries, and letters (A2+)
+ * the plumbing with dev pings; arrivals, deliveries, and signals (A2+)
  * ride the same queue.
  */
 interface ScheduledEvent {

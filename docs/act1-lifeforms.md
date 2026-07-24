@@ -6,9 +6,9 @@ before the singularity. It is the bridge between [act1-cradles.md](./act1-cradle
 (the worlds) and the post-singularity minds of Acts 2–3.*
 
 > Related design: [act1-cradles.md](./act1-cradles.md) (the 40 worlds these species
-> evolve on), [vision.md](./vision.md) (§ Act 1 — the cradle's fingerprint),
-> [gameplay-walkthrough.md](./gameplay-walkthrough.md) (§ Act 1 — the climb),
-> [act2-design.md](./act2-design.md) (the dials these species seed).
+> evolve on), [vision.md](./vision.md) (§ The arc, Act 1 — the climb and the
+> cradle's fingerprint), [act2-design.md](./act2-design.md) (the dials these
+> species seed).
 
 ---
 
@@ -409,7 +409,7 @@ branching history and the seed of the Act 2 dials.
 - **A cradle breeds several candidates.** The mapping table below gives each of
   the 40 cradles its plausible lineages. Early Act 1 beats are, in part, the
   story of **which lineage inherits the world** — and the bottleneck beats
-  (gameplay-walkthrough.md, *"the two kinds of choice"*) are where you back one
+  (ui-design.md § Act 1 — the garden and intervene cards) are where you back one
   and let another fall, or shelter a doomed lineage through the gap.
 - **The losers write the winner's values.** Whether you *sheltered* rival
   lineages or *spent* them feeds **Custodian ↔ Instrumental**; whether you

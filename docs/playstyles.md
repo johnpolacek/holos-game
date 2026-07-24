@@ -36,8 +36,8 @@ choices in it.
 > [act2-design.md](./act2-design.md) (dials, ladders, resistance),
 > [act3-design.md](./act3-design.md) (the mechanics these verbs run on),
 > [act3-civilizations.md](./act3-civilizations.md) (the flavor space at
-> galaxy scale), [act3-walkthrough.md](./act3-walkthrough.md) (one flavor,
-> played — and a standing invitation to write the others).
+> galaxy scale), [walkthrough.md](./walkthrough.md) (one flavor, played —
+> and a standing invitation to write the others).
 
 ---
 
@@ -67,7 +67,7 @@ because dark is what tends to survive deep time. That is the environment.
 The player is free to be any exception the physics allows: a
 million-year-old Beacon, a bright Curator, a loud Custodian empire lit up
 across fifty systems. The galaxy answers with physics — bright means
-found sooner, which means more contact, more correspondence, more
+found sooner, which means more contact, more traffic, more
 deterrence theater, more risk — and **being found is not losing; it is a
 different game**. The framework predicts the crowd. It has no authority
 over the player.
@@ -152,8 +152,8 @@ mechanics live in act2-design.md; the Act 3 shadows in act2-minds.md.)
   house.
 
 #### Voice — *to exist is to be heard*
-- **Verbs:** hail, broadcast, compose culture-carrying letters, run a
-  correspondence network, perform identity on the sky, deter by display,
+- **Verbs:** hail, broadcast, compose culture-carrying signals, run a
+  network of tight beams, perform identity on the sky, deter by display,
   become a signal (the Herald's whole existence).
 - **Texture:** an inbox-and-outbox game with centuries in it; authored
   relationships as the primary content.
@@ -166,7 +166,7 @@ mechanics live in act2-design.md; the Act 3 shadows in act2-minds.md.)
   hypotheses), classify, intercept, set tripwires, build masks, **broker
   intelligence** — the information economy is the quiet civilization's
   offense, and third-party coordinates are its currency
-  (act3-design.md, *what letters carry*).
+  (act3-design.md, *what signals carry*).
 - **Texture:** detective sessions; the sky as a case board; knowing
   things about civilizations that do not know you exist.
 - **Fails as:** paranoid solitude; knowing everything and mattering to
@@ -276,10 +276,14 @@ are the work this document exists to direct:
 - **Silence** needs the vigil designed as an *activity* (hypotheses,
   instrument allocation, payoffs) and the intelligence economy made
   mechanical — otherwise its optimal play collapses toward inaction,
-  violating rule 5.
+  violating rule 5. *(Answered:
+  [observatory-design.md](./observatory-design.md) — cases, buyable
+  questions, the regression tell, and dossiers as the intelligence
+  good; dossier trading matures with traffic.)*
 - **Instrumental** is under-verbed until the conflict layer ships;
-  interim verbs (extraction economics, hard bargaining in
-  correspondence) should land earlier so the flavor exists in v1 as more
+  interim verbs (extraction economics, hard bargaining in signal
+  traffic, the Working mission family — missions-design.md) should land
+  earlier so the flavor exists in v1 as more
   than a dilemma-colorer. *(Partly answered: forecast play —
   act3-design.md, The forecast — lands the appraisal-and-timing set with
   A4's survey.)*
@@ -337,8 +341,8 @@ Three commitments follow for the beat and report systems:
   ladder's stage list it is useful; if playtesters read H-numbers as a
   global rank rather than one ladder's rungs, rule 1 is being violated
   by UI, and the fix is presentation, not mechanics.
-- **A bright season of the walkthrough.** act3-walkthrough.md plays a
-  Monument. The strongest test of verb parity is to write (and
+- **A bright season of the walkthrough.** walkthrough.md plays a Monument
+  inheritance. The strongest test of verb parity is to write (and
   eventually play) the same six weeks as a Tide or a Beacon and check it
   is equally dense with choices — different in texture, equal in
   agency. If that document is hard to write, this document has found a

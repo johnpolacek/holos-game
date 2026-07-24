@@ -50,7 +50,7 @@ below.
 v1 still exists to prove two things — now in this order:
 
 1. **The contact loop** (Phase A): detection, the irreversible choice, and
-   stale-light correspondence between real minds.
+   stale-light signal traffic between real minds.
 2. **The pivot** (Phase B): a played history becoming a superintelligent
    character — which then *replaces* the seed generator as the way
    characters are born.
@@ -80,15 +80,17 @@ player civ, placing the chosen civ at inheritance time
 (`client/src/ceremony.ts`), and the observatory/source card
 (`client/src/sourcecard.ts`).
 
-**→ Next to build: A2 — Contact.** Its launch brief doesn't exist yet
-(the just-in-time model: `build-a2.md` is written when the slice starts,
-shaped by what A1 taught).
+**→ Next to build: A2 — Contact.** Launch brief:
+[build-a2.md](./build-a2.md), with
+[observatory-design.md](./observatory-design.md) as the vigil's spec and
+[build-a2-stages.md](./build-a2-stages.md) as the per-stage handoff
+prompts.
 
 Each slice gets a just-in-time **launch brief** — a thin `build-*.md` wrapper
 (read-list, task, done-when, guardrails) that points back here for spec.
-`build-a0.md` and `build-a1.md` are both done and kept as record; the next
-(`build-a2.md`) is written when its slice starts, shaped by what the last
-one taught. Slices are built with **Fable orchestrating Opus (deep-reasoner) and Sonnet
+`build-a0.md` and `build-a1.md` are both done and kept as record;
+`build-a2.md` opens the current slice; the next is written when its slice
+starts, shaped by what the last one taught. Slices are built with **Fable orchestrating Opus (deep-reasoner) and Sonnet
 (fast-worker) subagents** (CLAUDE.md § Build orchestration).
 
 ---
@@ -167,7 +169,7 @@ Everything invisible that the Sky stands on. No player-facing change yet.
       civilizations from the catalog chain; per-run persistence (thin)
       stores the player's civ.
 - [ ] **Protocol growth**: new guarded wire messages per slice
-      (sky snapshot, source detail, letters, launches), added to
+      (sky snapshot, source detail, signals, launches), added to
       `protocol.ts` as each lands.
 
 **Done when:** a dev command creates a galaxy with N seeded AI civs and one
@@ -203,12 +205,17 @@ remote fact aged and no remote fact certain.
 
 ### A2 — Contact *(north-star proof #1)*
 
-The soul of the game, reached as directly as possible.
+The soul of the game, reached as directly as possible — built **one
+screen at a time in six stages** (build-a2.md § Staging), each stage a
+small PR merged to `main` and phone-checked on the deployed URL before
+the next begins.
 
-- [ ] **The vigil**: a flagged source becomes a case — watch, refine
-      confidence, decide nothing. (Design note: make the vigil an
-      *activity* — hypotheses and instrument allocation — per
-      playstyles.md's Silence gap.)
+- [ ] **The vigil**: a flagged source becomes a case — hypotheses,
+      buyable questions, instrument-time allocation, the
+      sharpen/plateau/regress contest, case tripwires, and the
+      called/shelved/overtaken exits
+      ([observatory-design.md](./observatory-design.md) is the spec;
+      the grounded exit — the Assay — lands with A4).
 - [ ] **The mask contest (thin)**: sharpening with instrument time
       against the target's mask — the live mask-versus-instrument
       contest (technology.md § Working decisions), moved here from A1
@@ -217,19 +224,19 @@ The soul of the game, reached as directly as possible.
 - [ ] **The choice ceremony**: directed hail / broadcast / stay dark —
       irreversible, hold-to-commit, consequences rendered on the Model
       (ui-design.md § the choice screen).
-- [ ] **Correspondence on real clocks**: letters travel at c; delivery via
-      the clock/alarm infrastructure; threads with in-flight rendering.
-      **Decide the letter format here** (freeform vs composed — the
-      vision's open player-language question; v1 can ship AI-contact with
-      freeform and human-to-human composed, then loosen).
-- [ ] **Rule-based AI correspondents** (thin): enough behavior for a
+- [ ] **Traffic on real clocks**: tight-beam signals travel at c;
+      delivery via the clock/alarm infrastructure; threads with in-flight
+      rendering. Signal format decided (2026-07): **composed from
+      structured parts for human pairs, freeform for AI counterparts**
+      (vision.md, § Decisions).
+- [ ] **Rule-based AI counterparts** (thin): enough behavior for a
       complete contact arc against a seeded civ — detect, be detected,
-      answer letters in its archetype's register. Single-player-testable.
-- [ ] **Human contact**: two players in one cohort detect and correspond,
-      indistinguishable from the AI path at the wire level.
+      answer signals in its archetype's register. Single-player-testable.
+- [ ] **Human contact**: two players in one cohort detect and exchange
+      signals, indistinguishable from the AI path at the wire level.
 
 **Done when:** two humans (and one human + one AI, indistinguishably)
-complete detect → vigil → hail → correspondence across real light-lag, and
+complete detect → vigil → hail → traffic across real light-lag, and
 the exchange is *worth screenshotting* — this is the fun gate; if it fails,
 we tune here before building anything else.
 
@@ -245,8 +252,21 @@ record of that past — rides this same light echo and knowledge layer; thin.)
 - [ ] The Model's **echo shell** rendering (the poster feature,
       act3-map.md § moment 2).
 
-### A4 — Expansion
+### A4 — Missions & expansion
 
+Every launch is a mission from here on: a Docket node with a charter, a
+clock, and an outcome ([missions-design.md](./missions-design.md) —
+working decision 2026-07, missions into v1 thin).
+
+- [ ] **The Docket (list form)**: one surface for every undertaking —
+      projects and missions as one work graph, class chips, clock pairs,
+      physics-derived states, one level of nesting
+      (missions-design.md, § The Docket).
+- [ ] **Probe-class missions**: the Assay (go and know — the
+      observatory's closing verb) and the emplaced Sentinel; charters
+      with 2–3 contingency slots; silence-at-deadline beats.
+- [ ] **Standing orders (thin)**: one or two armable order-classes
+      (*on warm movement, launch sentinel*), priced at fire time.
 - [ ] **Seedships**: launches with real flight clocks; the **forecast
       survey** — information age at landfall (light-age + transit years)
       and an honest arrival spread per target class; landfall reports
@@ -279,7 +299,7 @@ record of that past — rides this same light echo and knowledge layer; thin.)
 
 **Phase A ships** as the v1 galaxy: inherit a mind, read the sky, meet
 someone, launch a child, sleep. The whole loop of the walkthrough's season
-(act3-walkthrough.md) minus the origin acts.
+(walkthrough.md).
 
 ---
 
@@ -311,9 +331,10 @@ Resolve each before the slice that needs it; record the call here.
   **Decided (A0, 2026-07):** one `Cohort` Durable Object per cohort holds
   truth + clock + light-delay computation (`server/src/cohort.ts`); all
   observer reads go through the knowledge layer.
-- **Letter format (A2):** freeform vs composed for human pairs — the
-  vision's open moderation/deception question; must be decided when
-  correspondence ships.
+- **Signal format (A2):** freeform vs composed for human pairs — the
+  vision's open moderation/deception question.
+  **Decided (2026-07):** composed from structured parts for human pairs;
+  freeform permitted with AI counterparts (vision.md, § Decisions).
 - **Sky data budget (A1):** how much star field streams to a phone first
   render (act3-map.md § Under the hood). Note A0's real cohort field is
   small (~260 stars at 25 ly) — the 50–150k-star *cosmetic* backdrop can
@@ -322,6 +343,13 @@ Resolve each before the slice that needs it; record the call here.
   point-sprite pass? Decide at A1 start, before the pull-back is built.
 - **Player identity (A1, thin):** how a browser session maps to its civ in
   the cohort (a per-run token in DO storage is enough for v1).
+  **Decided (A2, 2026-07): durable identity lives in the platform's
+  SQLite** — Durable Objects' native SQLite storage backs accounts (the
+  A1 token becomes claimable; multi-device by carrying the account
+  token; recovery flow later). No external backend: Convex was
+  considered and declined, because the one-Worker architecture and the
+  knowledge layer's server authority are the design's spine and an
+  external state store would fork them.
 - **Player placement (A1):** A0's `generateGalaxy` pre-places one player
   civ at seed time; the inheritance flow replaces this — candidates are
   offered on join and the chosen civ is placed then. Reconcile in A1.
@@ -346,12 +374,13 @@ Resolve each before the slice that needs it; record the call here.
 
 The image brief's **Act 3 groups are the active shot list** (screens 7–15,
 plus the adopted style tile): the Sky + source card (7), the choice
-ceremony (8), letters in flight (9), the Ledger (10), sleep/wake (11–12),
-and the Model set (13–15, echo shell = poster). New ask from this plan:
-**the inheritance ceremony** — a session-zero card presenting a generated
-civilization (world fingerprint + lineage + dial sheet + charter) to
-accept and name. Phase B's screens (world reveal variants, beat, roll,
-pivot reveal) wait.
+ceremony (8), signals in flight (9), the Ledger (10), sleep/wake (11–12),
+and the Model set (13–15, echo shell = poster). The inheritance-ceremony
+ask from this plan shipped with A1 (concepts 03-00, 03-00b). **Current
+ask (A2.1): the case board** — ui-image-brief.md screen 7b, the
+observatory desk with hypotheses, open questions, and the allocation
+strip. Phase B's screens (world reveal variants, beat, roll, pivot
+reveal) wait.
 
 ## Explicitly out of v1
 

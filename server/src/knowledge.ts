@@ -102,7 +102,7 @@ const DETECTION_FLOOR = 0.015;
 
 /**
  * Thin A0 classification of delayed truth. Static emitters only —
- * directed beams arrive with correspondence (A2) and are never produced
+ * directed beams arrive with signal traffic (A2) and are never produced
  * here; the class is in the type so the record doesn't reshape.
  */
 function classify(truth: CivTruth, seed: CivSeed): SignalClass {

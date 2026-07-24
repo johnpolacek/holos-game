@@ -323,7 +323,7 @@ catalog's extensions, built under the same discipline.
   canonical constraints, decision histories with their justifications,
   the material to reboot a culture after dormancy, collapse, or
   fragmentation. Mechanically: the Memory pole's project family, the
-  contents letters can trade, the third defense in the conflict layer
+  contents signals can trade, the third defense in the conflict layer
   (destruction without erasure), and the object the open Restoration
   question turns on — a grave world is where a dead civilization's Vault
   might still be keeping.
@@ -700,10 +700,10 @@ depend on shared present time. This layer is the contact loop's hardware.
 
 ### Phase-coherent beams
 
-- **What it is.** The interstellar letter: a long-duration, phase-coherent
+- **What it is.** The tight beam itself: a long-duration, phase-coherent
   optical channel carrying compressed, self-describing payloads between
   known or inferred endpoints. The carrier of the directed hail, all
-  correspondence, and self-transmission itself.
+  signal traffic, and self-transmission itself.
 - **The physics.** Diffraction-limited collimation, long integration
   times, heavy forward error correction referenced to invariant physical
   structures. Photons offer maximum speed and arbitrarily large total
@@ -711,7 +711,7 @@ depend on shared present time. This layer is the contact loop's hardware.
   space, time, and frequency, the transmission is effectively invisible —
   privacy by geometry, not encryption.
 - **In play.** Instrument/contact family. A directed hail reveals your
-  existence and position *to the aimed party alone*; correspondence runs
+  existence and position *to the aimed party alone*; traffic runs
   on real clocks (5 real minutes ≈ 1 game year; a 20 ly neighbor is a
   ~3.3-hour round trip). Nothing carried is enforceable — a beam can
   carry a treaty, but only minds hold one up.
@@ -754,7 +754,7 @@ depend on shared present time. This layer is the contact loop's hardware.
   physical constants, the structure both ends share by living in one
   universe) is what makes a payload interpretable centuries out of sync
   with no shared context and no reply channel worth waiting on.
-- **In play.** The content grammar of correspondence: what letters carry
+- **In play.** The content grammar of traffic: what signals carry
   — knowledge (tech and ladder modifiers), culture (dial nudges — contact
   changes you), Vault contents (the Curator's trade goods), verification
   challenges, and coordinates of third parties, the currency of betrayal.
@@ -787,8 +787,8 @@ above already casts a shadow on this shelf.
   terminal guidance against a target position centuries stale. Defense
   in kind is nearly impossible; defense in *shape* — dispersal, darkness,
   preservation — is the integration ladder's whole payoff.
-- **In play.** Deferred. War is a letter you cannot unsend, addressed to
-  someone you knew centuries ago; the design intends dread, not tempo.
+- **In play.** Deferred. War is a message that cannot be unsent, addressed
+  to someone you knew centuries ago; the design intends dread, not tempo.
 - **In the sky.** Launch is a drive flare aimed *somewhere*; arrival
   outruns diplomacy but not light. The strike's grammar is public — which
   is what makes restraint legible, and deterrence possible at all.
@@ -940,7 +940,7 @@ not omissions; they are pillars with the shape of holes.
 | Refused | Why physics refuses it | What the refusal buys the game |
 |---|---|---|
 | **FTL travel & signaling** | causality; no known loophole survives scrutiny | light-lag as the strategic unit; the entire Act 3 design |
-| **The ansible** | same coin, other face | correspondence with real weight; treaties as unenforceable promises |
+| **The ansible** | same coin, other face | signal traffic with real weight; treaties as unenforceable promises |
 | **Reactionless drives** | conservation of momentum | the travel menu's honest price list; launches as commitments |
 | **Perfect stealth** | thermodynamics; heat must go somewhere | the Teeming Dark is *hard-won* quiet, not a cloak; masks as craft |
 | **Perfect prediction** | chaos, incomplete information, other minds | the observatory outputs beliefs, never facts; inference stays gameplay |
@@ -1048,8 +1048,8 @@ draws directly from these shelves:
 - **Act 3 v1 additions:** seedships with charters; **relativistic ships**
   (bold-scope addition — coherent colony founding on real flight clocks,
   onboard-fuel and beam-pushed variants, the battery bright by design;
-  the seat still does not travel in v1); directed hail / correspondence
-  (phase-coherent beams and the payload stack as fiction over the
+  the seat still does not travel in v1); directed hail / tight-beam
+  traffic (phase-coherent beams and the payload stack as fiction over the
   existing message mechanics); sleep with tripwires; and the
   mask-versus-instrument contest running classification confidence from
   day one — thin, but a live economy, never fixed stealth grades.
@@ -1095,7 +1095,7 @@ can be made honest, the catalog includes it rather than designing it out.
   power in the game — with no ownership, sharing, or exclusivity
   mechanic layered on top. When two lineages want the same drain, the
   existing systems are the resolution: a fed disk publishes its feeding
-  schedule to every watcher, letters carry the promises, nothing
+  schedule to every watcher, signals carry the promises, nothing
   enforces them, and the deterrence layer eventually prices the greed.
   Emergence over architecture — deliberately under-built. If play
   produces recurring patterns (de facto sharing etiquette, tap

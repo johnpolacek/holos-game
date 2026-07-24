@@ -94,7 +94,7 @@ sent ahead as advertisement, dowry, and glue. The founder's insight, and
 the book's, is that the only polity that can span stars is a *brand with
 customs*, renewed at every rendezvous.
 
-**Already in Holos.** Coalitions without enforcement; letters carrying
+**Already in Holos.** Coalitions without enforcement; signals carrying
 knowledge and culture; the payload stack; the Beacon and Herald leans,
 which want exactly this economy and do not yet have it.
 
@@ -105,7 +105,7 @@ tracks: it writes a permanent bright band into the emission history, and
 the light echo publishes it forever. In exchange, every listener inside
 the expanding shell reads ladder modifiers from it, and — the deeper
 mechanic — listeners who begin *answering in the broadcaster's formats*
-have adopted its protocols. Protocol-sharers correspond better:
+have adopted its protocols. Protocol-sharers converse better:
 more payload per exchange, lower misread risk, faster verification. Soft
 power becomes a physical thing: a measure of how much of the sky speaks
 your language because you shouted it at them for a thousand years. This
@@ -143,8 +143,8 @@ arrival*, with the uncertainty cone the projection deserves. Launching at
 a young world becomes timing play: arrive too early and there is nothing
 to meet; too late and someone else's protocols are already in its sky.
 This gives the Instrumental civilization its interim verb set — appraise,
-time, arbitrage across civilizational cycles, bargain hard in
-correspondence — commerce as the peacetime face of appetite. And it
+time, arbitrage across civilizational cycles, bargain hard in signal
+traffic — commerce as the peacetime face of appetite. And it
 supplies a ready-made beat class for when the cone misses: the market
 that wasn't — the arrival report from a system that did not become what
 the launch was priced against.
@@ -342,7 +342,7 @@ light comes back. Thin version lands with A4's launches (roadmap.md).
 **In the book.** After years of courteous lightspeed negotiation, two
 fleets finally share one sky — and the ambush comes in the first hour of
 the first meeting. The book's structural lesson: distance *is* the
-safety in this universe. Correspondence cannot be betrayed, only
+safety in this universe. Traffic cannot be betrayed, only
 disappointed; co-location is where treachery becomes physically possible
 again, because a rendezvous is the one place two civilizations briefly
 share a present.
@@ -385,7 +385,7 @@ battles decided by broadcast lies arriving on schedule.
 **Already in Holos.** The light echo already makes deception native and
 physical — others see only your emissions, and you choose what to emit;
 sustained performance is priced through the Voice ↔ Silence resistance
-rule. Letters can carry verification challenges. What is missing is the
+rule. Signals can carry verification challenges. What is missing is the
 *counterfeiting of identity* — and its detection.
 
 **Take: light-cone authentication.** If protocol adoption (steal 1)
@@ -397,7 +397,7 @@ supernova, flare, or transit look like from where you claim to have
 been, when you claim to have been there? Only a civilization whose
 worldline actually passed through that light can answer. The forged
 identity fails not against a database but against the sky itself, and
-the interrogation is a correspondence mini-game: each challenge round
+the interrogation is a signal-traffic mini-game: each challenge round
 trips at lightspeed, so unmasking an impostor is a project measured in
 years and worth a season of play. The knowledge layer can adjudicate
 this today — "what has this observer's light included?" is the question
@@ -424,7 +424,7 @@ dry annalist voice with dated entries.
 **Take: calendars as character** *(content-only)*. Each civilization's
 Chronicle should date from its own epoch — the waking, the Refusal, the
 first summer of a dormancy world — so that reading a foreign Chronicle
-means converting between calendars, and *adopting* a correspondent's
+means converting between calendars, and *adopting* a counterpart's
 calendar is part of protocol adoption. One wry Chronicle line per
 lineage about what the epoch actually commemorates (versus what the
 founding myth says) is exactly the biographer's-deadpan register the

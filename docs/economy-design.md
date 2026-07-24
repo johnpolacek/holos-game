@@ -168,7 +168,7 @@ age).
 
 | Class | Relative burden | Rhythm of payment | Typical of |
 |---|---|---|---|
-| **Ambient** | Under the income line. | Standing income covers it; no decision required. | A probe, a letter, a survey sweep, a nudge to an instrument. |
+| **Ambient** | Under the income line. | Standing income covers it; no decision required. | A probe, a signal, a survey sweep, a nudge to an instrument. |
 | **Investment** | A sitting's directed saving. | You steer this session's income at it; it lands within a sitting or two. | A mission's agent, an instrument tier, a modest dark project. |
 | **Endeavor** | An era's saving. | Budgeted across many sessions; the thing the civilization is *working toward*. | A swarm stage, the compute heart, the deep Vault, a relativistic ship. |
 | **Epochal** | A once-in-an-age commitment. | The civilization reorganizes its budget to afford it, and often cannot repeat it. | Completing an axis of the energy ladder; forcing a hard directive against nature; later, a relativistic strike. |

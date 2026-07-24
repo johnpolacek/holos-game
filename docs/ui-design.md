@@ -11,24 +11,23 @@ player's altitude.*
 
 ## About this document
 
-The [walkthroughs](./gameplay-walkthrough.md) describe what playing feels
-like and [act3-walkthrough.md](./act3-walkthrough.md) plays a season of it
-in detail — but both *imply* an interface without specifying one. This
-document is that specification. The walkthrough scenes double as its
-acceptance tests: every scene in Mara's season must be assemblable from
-the screens and components below. Where this document and the vision or a
+The [walkthrough](./walkthrough.md) plays a season of the designed
+experience in day-by-day detail — but it *implies* an interface without
+specifying one. This document is that specification. The walkthrough
+scenes double as its acceptance tests: every scene in Theo's season must
+be assemblable from the screens and components below. Where this document and the vision or a
 design doc disagree, they win and this document is what needs fixing.
 
 **Inherited constraints**, from the stack and the design:
 
 - **The game is a URL.** Browser, no installer; first meaningful render
-  must be fast on a phone (vision, walkthrough § Session zero).
+  must be fast on a phone (vision; walkthrough § Day 1).
 - **Mobile-first.** Touch/pointer input, responsive full-screen canvas
   (CLAUDE.md). Real sessions are a phone at breakfast and a laptop in the
   evening; the phone is the primary device for *reading and deciding*,
   the desktop for *surveying*.
 - **Pixi.js canvas + DOM.** The renderer draws worlds, systems, and sky;
-  decisions, reports, and letters are text. The split is architectural
+  decisions, reports, and signals are text. The split is architectural
   *and* aesthetic: **canvas for places, prose for the will** (below).
 - **The altitude principle** (act2-design.md): the lowest decision the UI
   ever offers is *which purpose*, never *how*. If a screen has a queue,
@@ -62,7 +61,7 @@ invented to dramatize a singularity.
 
 The Pixi canvas renders what exists: the cradle, the home system, the
 sky. The DOM overlay renders what is thought and decided: reports, beats,
-letters, sheets. Nothing decision-critical lives only in canvas pixels
+signals, sheets. Nothing decision-critical lives only in canvas pixels
 (accessibility, screen readers, localization), and the canvas is never a
 control surface — it is **a view that transforms** (act2-design.md, *"a
 view, not a control surface"*). You watch the swarm fill in or the star
@@ -112,7 +111,7 @@ to make closing the tab feel like a move, not a lapse.
 Remote sources have catalog designations (`IR-2214`); the player may
 assign a local name ("Ember"). Names are **local knowledge**: they exist
 only in your interface, are never transmitted, and two civilizations'
-names for each other never sync. Even a correspondent is known by the
+names for each other never sync. Even a counterpart is known by the
 name *you* gave their warmth. The UI enforcing this epistemics is what
 makes first exchange of true names — if the fiction ever allows it — an
 event.
@@ -130,10 +129,11 @@ the center with the Voice and Desk docked beside it.
   scales in Act 3 — home system zooms out into the sky, seamlessly, so
   the player *feels* the scale change rather than switching modes.
 - **The Voice** (overlay): the reading surface — reports, beats,
-  letters. Typographic, vertical, one-thumb. This is where a phone
+  signals. Typographic, vertical, one-thumb. This is where a phone
   session mostly lives.
 - **The Desk** (panels): the reference surfaces — character sheet,
-  ladders and projects, the Ledger, the observatory catalog, the Vault.
+  ladders and projects, the Docket (the work graph of undertakings —
+  missions-design.md), the Ledger, the observatory catalog, the Vault.
   Dense, glanceable, and *never required mid-beat*: any number a
   decision needs is embedded in the decision's own card.
 
@@ -152,14 +152,14 @@ color, its gravity in the set of the horizon, its defining pressure
 rendered before any text. Then one card: the world's name-slot (yours to
 fill), its profile in the catalog's plain fields, and its tier stated
 without euphemism. No menu precedes it; the URL opens into the world
-(walkthrough § Session zero). Difficulty dial and a Tier I–II guaranteed
+(vision § The arc, Act 1). Difficulty dial and a Tier I–II guaranteed
 first draw live behind a single "this world or an easier start?" choice,
 not a settings screen.
 
 ### Act 1 — the beat frame
 
 The whole act is one repeating screen, the **beat frame**, in three
-movements (gameplay-walkthrough.md § The beat):
+movements (vision.md § The arc, Act 1 — scene, decision, roll):
 
 1. **Vignette** — full-bleed scene on the Stage with sparse caption
    prose. The world has changed since last beat; the render shows it.
@@ -231,26 +231,34 @@ allowed to be this theatrical.
   everything your instruments have ever received from it. Scrubbing a
   source's past is how "the map is the past" becomes something the
   player's fingers know.
-- **The observatory** (Desk): the inference workbench. Active vigils as
-  cases: hypotheses listed, instrument time allocated between them (a
-  purpose-level choice — *which question*, never *which telescope
-  setting*), confidence shifting as light arrives. This is Silence's
-  verb set (playstyles.md) given a surface.
+- **The observatory** (Desk): the inference workbench — the case board.
+  Active vigils as cases: hypotheses with confidence shares, buyable
+  questions priced in instrument time (a purpose-level choice — *which
+  question*, never *which telescope setting*), answers that sharpen,
+  plateau, or regress, and per-case tripwires
+  ([observatory-design.md](./observatory-design.md) is the spec). This
+  is Silence's verb set (playstyles.md) given a surface.
 - **The choice screen**: contact's irreversible stage gets the full
   ceremony — hail renders a thread of light to one source; broadcast
   renders the expanding shell touching source after source with arrival
   dates; stay dark simply returns you to the vigil, the only option
   that is a tap.
-- **Letters** (Voice): correspondence as threads. An in-flight letter
-  renders on the Stage as a moving point on a line between stars — the
-  wait made visible — and the thread shows both clocks (`arrives in
-  37 min · 7.3 y`). Every received signal wears its physics: transit
-  years, distance, received strength, relay path, degradation — set as
-  an instrument's measurements attached to the message, in the
-  observatory's register. The texture is astronomy, never email
-  headers. Composition UI is deliberately unspecified here
+- **Signals** (Voice): traffic as threads, one thread per tight-beam
+  channel. An in-flight signal renders on the Stage as a moving point on
+  a line between stars — the wait made visible — and the thread shows
+  both clocks (`arrives in 37 min · 7.3 y`). Every received signal wears
+  its physics: transit years, distance, received strength, relay path,
+  degradation — set as an instrument's measurements attached to the
+  payload, in the observatory's register. The texture is astronomy,
+  never mail. Composition UI is deliberately unspecified here
   pending the player-language decision (vision, § Still open); the
   thread and flight rendering hold regardless of what fills them.
+- **The Docket** (Desk): the work graph — every undertaking, project or
+  mission, as a row with its class chip, clock pair, physics-derived
+  state, and one level of nesting; a node awaiting light shows its
+  countdown, and a `silent` node fires a beat, never a badge
+  (missions-design.md, § The Docket). Purpose altitude throughout: the
+  smallest visible unit is a thing worth deciding.
 - **The Ledger** (Desk): the lineage as a tree. Each fork's row shows
   its charter, last-known state, staleness chip, and its dial sheet
   **ghosted against yours** — your notches faint behind theirs, so
@@ -260,7 +268,7 @@ allowed to be this theatrical.
 - **Sleep**: entering it visibly dims the whole interface to embers.
   The tripwire editor speaks the design's own grammar — *wake me if
   anything warm moves within N light-years; if a beam touches us; if a
-  fork misses two correspondences; after T years regardless* — as
+  fork misses two scheduled reports; after T years regardless* — as
   composable plain-language rows, not a settings form. The **wake
   report** is a distinct triaged layout (the walkthrough's Week 6):
   bombshells first, then the sky digest, then the queue — built for the
@@ -291,7 +299,7 @@ document is designed at phone width first — one column, one thumb,
 bottom-sheet decisions, the Voice as the primary surface — and must be
 complete there: no decision, reading, or ceremony may require a larger
 screen. The typical session (5–20 min: read the report, resolve beats,
-answer letters, tap a vigil's new light) is a phone session by default.
+answer signals, tap a vigil's new light) is a phone session by default.
 
 Desktop is the same surfaces given room, not a different design: the
 Stage becomes a place to *dwell* — survey the sky, scrub light archives,
@@ -310,9 +318,12 @@ both transformations, dial sheet, ladder/project columns with clock
 pairs; the Sky as the 3D Model in its v1 form (continuous camera, pull-back
 beat, point-cloud backdrop, the player's own echo shell — act3-map.md
 § Scope) with source cards and the five signal classes; the
-observatory in its basic form (beliefs and confidence, without the full
-case-board vigil UI); the choice ceremony; letter threads with flight
-rendering; the Ledger with basic drift ghosts; sleep, tripwires, wake
+observatory as the case board (observatory-design.md — hypotheses,
+questions, allocation; the grounded exit waits for A4's Assay); the
+choice ceremony; signal threads with flight
+rendering; the Docket in list form with probe-mission rows
+(missions-design.md, § v1 slice); the Ledger with basic drift ghosts;
+sleep, tripwires, wake
 report, push. Deferred with their systems: the mask/performance surfaces,
 strike ceremonies, seat-transfer UI, the intelligence-brokering desk.
 
@@ -374,12 +385,12 @@ The full shot lists live in the content-art briefs:
   contact) only.
 - **Accessibility of the canvas.** The prose surfaces are DOM and
   screen-reader-clean by construction; the Stage needs an audit — every
-  Stage-only signal (halo, quieting star, in-flight letters) must have a
+  Stage-only signal (halo, quieting star, in-flight signals) must have a
   Voice/Desk equivalent.
 - **Archetype names in-game** (open in act2-design.md) becomes a UI
   question here: the reveal sequence works with or without a name at the
   end; shipping v1 *without* naming keeps the question open cheaply.
-- **The letter composer** waits on the player-language decision; the
+- **The signal composer** waits on the player-language decision; the
   thread/flight rendering above is deliberately agnostic to it.
 - **Onboarding density.** The principles replace tutorials with rules
   (tense, age chips, clock pairs) that teach by consistency. Whether

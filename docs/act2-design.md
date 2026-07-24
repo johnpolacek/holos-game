@@ -9,7 +9,7 @@ from the altitude of a value function.*
 ## About this document
 
 The [vision](./vision.md) says what Holos is and why. The
-[walkthrough](./gameplay-walkthrough.md) says what it feels like to play.
+[walkthrough](./walkthrough.md) says what it feels like to play.
 This document sits beneath both and specifies how Act 2 actually works: the
 state it tracks, the dials it exposes, and how the strategy layer and the
 cinematic beats interlock. The **choice economy** it runs on — how the four
