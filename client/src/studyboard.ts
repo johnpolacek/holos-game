@@ -25,6 +25,7 @@ import type {
   HypothesisId,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
+import { CLASS_LABEL } from "./sourcecard";
 
 const SWIPE_CLOSE_PX = 56;
 
@@ -86,8 +87,11 @@ export class StudyBoard {
   private localNames: ReadonlyMap<string, string> = new Map();
 
   private openFlag = false;
-  private view: "list" | "focused" = "list";
+  private view: "hub" | "list" | "focused" | "picker" | "explore" = "list";
   private focusedStarId: string | null = null;
+  private openStudyCount = 0;
+
+  private onInspectCb: ((starId: string) => void) | null = null;
 
   private dragStartY: number | null = null;
   private dragDy = 0;
@@ -101,8 +105,8 @@ export class StudyBoard {
     this.chip = document.createElement("button");
     this.chip.type = "button";
     this.chip.className = "study-chip holos-caps";
-    this.chip.textContent = "STUDIES · 0";
-    this.chip.addEventListener("click", () => this.openBoard());
+    this.chip.textContent = "+ START";
+    this.chip.addEventListener("click", () => this.openHub());
 
     this.backdrop = document.createElement("div");
     this.backdrop.className = "study-board-backdrop";
@@ -144,6 +148,13 @@ export class StudyBoard {
         this.focusedStarId = null;
         this.renderList();
       }
+    } else if (this.view === "picker") {
+      // Re-render so a row disappears the moment its study exists.
+      this.renderPicker();
+    } else if (this.view === "hub") {
+      this.renderHub();
+    } else if (this.view === "explore") {
+      this.renderExplore();
     } else {
       this.renderList();
     }
@@ -153,6 +164,22 @@ export class StudyBoard {
     this.view = "list";
     this.focusedStarId = null;
     this.renderList();
+    this.openFlag = true;
+    this.root.classList.add("open");
+  }
+
+  openHub(): void {
+    this.view = "hub";
+    this.focusedStarId = null;
+    this.renderHub();
+    this.openFlag = true;
+    this.root.classList.add("open");
+  }
+
+  openPicker(): void {
+    this.view = "picker";
+    this.focusedStarId = null;
+    this.renderPicker();
     this.openFlag = true;
     this.root.classList.add("open");
   }
@@ -178,20 +205,198 @@ export class StudyBoard {
     this.root.remove();
   }
 
+  /** Registers the callback fired when a row in the explore view is tapped,
+   * with the tapped source's starId. */
+  onInspect(cb: (starId: string) => void): void {
+    this.onInspectCb = cb;
+  }
+
   // ── Render: chrome ──────────────────────────────────────────────────
 
+  /** The chip's text never changes now (always "+ START"); this still runs
+   * on every update() to keep the open-study count fresh for the hub's
+   * "Your studies · n" row. */
   private updateChip(): void {
     let n = 0;
     for (const s of this.studiesByStarId.values()) {
       if (s.status === "open") n++;
     }
-    this.chip.textContent = `STUDIES · ${n}`;
+    this.openStudyCount = n;
   }
 
   private hairline(): HTMLHRElement {
     const hr = document.createElement("hr");
     hr.className = "holos-hairline study-hairline";
     return hr;
+  }
+
+  // ── Render: hub view ──────────────────────────────────────────────────
+
+  private renderHub(): void {
+    this.body.innerHTML = "";
+
+    const header = document.createElement("div");
+    header.className = "study-board-header holos-caps";
+    header.textContent = "START";
+    this.body.append(header);
+
+    const subtitle = document.createElement("div");
+    subtitle.className = "study-picker-subtitle";
+    subtitle.textContent = "What your civilization can begin now.";
+    this.body.append(subtitle);
+
+    this.body.append(this.hairline());
+
+    this.body.append(
+      this.buildHubRow(
+        "Start a study",
+        "Watch a source and work out what it is.",
+        true,
+        () => this.openPicker(),
+      ),
+    );
+    this.body.append(
+      this.buildHubRow("Start a project", "Arrives with Act 2.", false, () => {
+        /* inert */
+      }),
+    );
+    this.body.append(
+      this.buildHubRow("Start a mission", "Arrives with the Docket.", false, () => {
+        /* inert */
+      }),
+    );
+    this.body.append(
+      this.buildHubRow(
+        "Explore the sky",
+        "Everything your instruments can see.",
+        true,
+        () => {
+          this.view = "explore";
+          this.renderExplore();
+        },
+      ),
+    );
+
+    this.body.append(this.hairline());
+
+    if (this.studiesByStarId.size > 0) {
+      this.body.append(
+        this.buildHubRow(
+          `Your studies · ${this.openStudyCount}`,
+          "Open and shelved.",
+          true,
+          () => this.openBoard(),
+        ),
+      );
+    }
+  }
+
+  private buildHubRow(
+    label: string,
+    sublabel: string,
+    active: boolean,
+    onClick: () => void,
+  ): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = active ? "study-hub-row" : "study-hub-row study-hub-row--inert";
+    if (active) {
+      btn.addEventListener("click", onClick);
+    } else {
+      btn.disabled = true;
+    }
+
+    const labelEl = document.createElement("div");
+    labelEl.className = "study-hub-label";
+    labelEl.textContent = label;
+
+    const subEl = document.createElement("div");
+    subEl.className = "study-hub-sub";
+    subEl.textContent = sublabel;
+
+    btn.append(labelEl, subEl);
+    return btn;
+  }
+
+  // ── Render: explore view ─────────────────────────────────────────────
+
+  private renderExplore(): void {
+    this.body.innerHTML = "";
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => this.openHub());
+    this.body.append(back);
+
+    const header = document.createElement("div");
+    header.className = "study-board-header holos-caps";
+    header.textContent = "THE SKY";
+    this.body.append(header);
+
+    const subtitle = document.createElement("div");
+    subtitle.className = "study-picker-subtitle";
+    subtitle.textContent = "Everything your instruments have found. Tap one to look closer.";
+    this.body.append(subtitle);
+
+    this.body.append(this.hairline());
+
+    const sources = [...this.sourcesByStarId.values()].sort(
+      (a, b) => a.lightAgeYears - b.lightAgeYears,
+    );
+
+    for (const source of sources) {
+      this.body.append(this.buildExploreRow(source));
+    }
+  }
+
+  private buildExploreRow(source: DetectedSource): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "study-picker-row";
+    btn.addEventListener("click", () => {
+      this.onInspectCb?.(source.starId);
+      this.close();
+    });
+
+    const top = document.createElement("div");
+    top.className = "study-row-top";
+    const desig = document.createElement("span");
+    desig.className = "study-row-designation holos-caps";
+    desig.textContent = source.designation;
+    top.append(desig);
+
+    const localName = this.localNames.get(source.starId);
+    if (localName !== undefined && localName.length > 0) {
+      const nm = document.createElement("span");
+      nm.className = "study-row-name holos-serif";
+      nm.textContent = localName;
+      top.append(nm);
+    }
+
+    const bottom = document.createElement("div");
+    bottom.className = "study-row-bottom";
+
+    const belief = document.createElement("span");
+    belief.className = "study-row-hyp";
+    belief.textContent = `${CLASS_LABEL[source.signal.classification]} · ${Math.round(source.signal.confidence * 100)}%`;
+
+    const age = document.createElement("span");
+    age.className = "study-row-age holos-caps";
+    age.textContent = `AS OF ${source.lightAgeYears.toFixed(1)} Y AGO`;
+
+    bottom.append(belief, age);
+    btn.append(top, bottom);
+
+    if (this.studiesByStarId.has(source.starId)) {
+      const flag = document.createElement("span");
+      flag.className = "study-explore-flag holos-caps";
+      flag.textContent = "UNDER STUDY";
+      btn.append(flag);
+    }
+
+    return btn;
   }
 
   // ── Render: list view ────────────────────────────────────────────────
@@ -210,6 +415,7 @@ export class StudyBoard {
       empty.className = "study-board-empty";
       empty.textContent = "No studies open.";
       this.body.append(empty);
+      this.body.append(this.buildStartStudyButton());
       return;
     }
 
@@ -231,6 +437,20 @@ export class StudyBoard {
         if (row !== null) this.body.append(row);
       }
     }
+
+    this.body.append(this.buildStartStudyButton());
+  }
+
+  private buildStartStudyButton(): HTMLDivElement {
+    const row = document.createElement("div");
+    row.className = "study-verb-row";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "study-verb-btn";
+    btn.textContent = "+ START A STUDY";
+    btn.addEventListener("click", () => this.openPicker());
+    row.append(btn);
+    return row;
   }
 
   /** A study with no matching DetectedSource is skipped entirely (defensive:
@@ -281,6 +501,86 @@ export class StudyBoard {
     age.textContent = `AS OF ${source.lightAgeYears.toFixed(1)} Y AGO`;
 
     bottom.append(hyp, age);
+    btn.append(top, bottom);
+    return btn;
+  }
+
+  // ── Render: picker view ──────────────────────────────────────────────
+
+  private renderPicker(): void {
+    this.body.innerHTML = "";
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => this.openHub());
+    this.body.append(back);
+
+    const header = document.createElement("div");
+    header.className = "study-board-header holos-caps";
+    header.textContent = "START A STUDY";
+    this.body.append(header);
+
+    const subtitle = document.createElement("div");
+    subtitle.className = "study-picker-subtitle";
+    subtitle.textContent = "Sources your instruments have found. Tap one to begin.";
+    this.body.append(subtitle);
+
+    this.body.append(this.hairline());
+
+    const candidates = [...this.sourcesByStarId.values()]
+      .filter((source) => !this.studiesByStarId.has(source.starId))
+      .sort((a, b) => a.lightAgeYears - b.lightAgeYears);
+
+    if (candidates.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "study-board-empty";
+      empty.textContent = "Nothing new in reach. Every source found is already under study.";
+      this.body.append(empty);
+      return;
+    }
+
+    for (const source of candidates) {
+      this.body.append(this.buildPickerRow(source));
+    }
+  }
+
+  private buildPickerRow(source: DetectedSource): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "study-picker-row";
+    btn.addEventListener("click", () => {
+      this.socket.send({ type: "openStudy", starId: source.starId });
+    });
+
+    const top = document.createElement("div");
+    top.className = "study-row-top";
+    const desig = document.createElement("span");
+    desig.className = "study-row-designation holos-caps";
+    desig.textContent = source.designation;
+    top.append(desig);
+
+    const localName = this.localNames.get(source.starId);
+    if (localName !== undefined && localName.length > 0) {
+      const nm = document.createElement("span");
+      nm.className = "study-row-name holos-serif";
+      nm.textContent = localName;
+      top.append(nm);
+    }
+
+    const bottom = document.createElement("div");
+    bottom.className = "study-row-bottom";
+
+    const belief = document.createElement("span");
+    belief.className = "study-row-hyp";
+    belief.textContent = `${CLASS_LABEL[source.signal.classification]} · ${Math.round(source.signal.confidence * 100)}%`;
+
+    const age = document.createElement("span");
+    age.className = "study-row-age holos-caps";
+    age.textContent = `AS OF ${source.lightAgeYears.toFixed(1)} Y AGO`;
+
+    bottom.append(belief, age);
     btn.append(top, bottom);
     return btn;
   }
