@@ -92,6 +92,12 @@ branch builds in the Workers Builds project settings.)
   gameplay logic belongs in the Room.
 - Keep dependencies minimal; prefer the platform (pointer events, etc.)
   over libraries.
+- **Type and ink come from the tokens in `client/src/style.css`** — the
+  `--holos-text-*` scale and the `--holos-ink{,-dim,-faint}` tiers. Never
+  hard-code a `font-size` or a raw ink color in a component rule. The scale
+  bottoms out at `--holos-text-xs` and the ink tiers stay above the alpha
+  where a phone screen in daylight loses them; something that needs to feel
+  quieter goes down a tier, not below the floor.
 
 ## Build orchestration
 

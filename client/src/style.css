@@ -33,21 +33,41 @@
 
 :root {
   --holos-bg: #07060a;
-  --holos-bg-raised: #0c0a10;
-  --holos-ink: #e9e4d6;
-  --holos-ink-dim: rgba(233, 228, 214, 0.55);
-  --holos-ink-faint: rgba(233, 228, 214, 0.3);
-  --holos-gold: #b79b63;
-  --holos-gold-dim: rgba(183, 155, 99, 0.4);
-  --holos-amber: #d99a53;
-  --holos-cyan: #5fe0e6;
-  --holos-cyan-dim: rgba(95, 224, 230, 0.35);
-  --holos-error: #d9694f;
+  --holos-bg-raised: #100d15;
+
+  /* Ink tiers. The stage is near-black, so these are tuned for the worst
+     case — a phone screen outdoors in daylight, where screen glare lifts the
+     black floor and low-alpha text disappears. The three tiers still read as
+     a hierarchy; the dim/faint steps just never fall below what sunlight
+     leaves resolvable. Do not push them back down for "mood": the mood is
+     carried by the near-black stage and the gold rules, not by dim prose. */
+  --holos-ink: #f6f3ea;
+  --holos-ink-dim: rgba(246, 243, 234, 0.82);
+  --holos-ink-faint: rgba(246, 243, 234, 0.62);
+  --holos-gold: #d3b982;
+  --holos-gold-dim: rgba(211, 185, 130, 0.55);
+  --holos-amber: #f0ac66;
+  --holos-cyan: #7ee9ef;
+  --holos-cyan-dim: rgba(126, 233, 239, 0.45);
+  --holos-error: #f0836a;
 
   /* Cinzel is a titling face: caps only, no italic. Use it for display
      headings; run all prose (incl. the italic charter) in Source Sans. */
   --holos-font-display: "Cinzel", Georgia, "Palatino Linotype", serif;
   --holos-font-body: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+
+  /* Type scale. One ladder for the whole UI — never hard-code a font-size in
+     a component rule. The floor is --holos-text-xs (0.8rem ≈ 13px): small
+     enough to stay subordinate, large enough to read in sunlight. Anything
+     that wants to feel quieter than xs must do it with color or letterspacing,
+     not by going smaller. */
+  --holos-text-xs: 0.8rem;
+  --holos-text-sm: 0.9rem;
+  --holos-text-md: 1rem;
+  --holos-text-lg: 1.12rem;
+  --holos-text-xl: 1.35rem;
+  --holos-text-2xl: 1.75rem;
+  --holos-text-3xl: 2.3rem;
 }
 
 * {
@@ -59,6 +79,12 @@ body {
   background: var(--holos-bg);
   color: var(--holos-ink);
   font-family: var(--holos-font-body);
+  font-size: var(--holos-text-md);
+  line-height: 1.45;
+  /* Source Sans is a variable face; 400 hairlines out against a near-black
+     stage in daylight. 450 thickens the stems without reading as bold. */
+  font-weight: 450;
+  -webkit-text-size-adjust: 100%;
 }
 
 #app {
@@ -67,8 +93,11 @@ body {
 
 .holos-caps {
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  font-size: var(--holos-text-xs);
+  /* Letterspaced caps lose more to glare than lowercase prose does — carry
+     them a weight step heavier than surrounding text. */
+  font-weight: 600;
   color: var(--holos-ink-dim);
 }
 
@@ -114,7 +143,11 @@ body {
   text-align: center;
   letter-spacing: 0.28em;
   color: var(--holos-ink-faint);
-  font-size: 0.66rem;
+  font-size: var(--holos-text-xs);
+  font-weight: 500;
+  /* Overlay text sits on the starfield, not on a panel — a dark halo keeps it
+     off the stars instead of dissolving into them. */
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
 }
 
 .model-home-label {
@@ -122,8 +155,10 @@ body {
   top: 0;
   left: 0;
   color: var(--holos-cyan);
-  font-size: 0.6rem;
+  font-size: var(--holos-text-xs);
+  font-weight: 600;
   letter-spacing: 0.22em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
   white-space: nowrap;
   will-change: transform, opacity;
   transition: opacity 320ms ease;
@@ -150,8 +185,13 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  max-height: 42vh;
-  max-height: 42dvh;
+  /* Taller than the A1 sheet was: at the daylight type scale the header,
+     belief line and chart no longer fit in 42dvh on a short phone. The
+     overflow guard is a floor, not the plan — the sheet should still fit. */
+  max-height: 52vh;
+  max-height: 52dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
@@ -223,7 +263,7 @@ body {
   border: none;
   padding: 0;
   color: var(--holos-ink);
-  font-size: 1.15rem;
+  font-size: var(--holos-text-lg);
   letter-spacing: 0.02em;
   cursor: pointer;
   text-align: left;
@@ -235,7 +275,7 @@ body {
   padding: 0;
   font-family: var(--holos-font-body);
   font-style: italic;
-  font-size: 0.85rem;
+  font-size: var(--holos-text-sm);
   color: var(--holos-ink-faint);
   cursor: pointer;
   text-align: left;
@@ -247,7 +287,7 @@ body {
   border-bottom: 1px solid var(--holos-cyan-dim);
   color: var(--holos-ink);
   font-family: var(--holos-font-body);
-  font-size: 0.95rem;
+  font-size: var(--holos-text-md);
   padding: 0.1rem 0;
   min-width: 8rem;
   max-width: 12rem;
@@ -259,7 +299,7 @@ body {
 }
 
 .source-card-name-hint {
-  font-size: 0.62rem;
+  font-size: var(--holos-text-xs);
   color: var(--holos-error);
   visibility: hidden;
 }
@@ -295,7 +335,7 @@ body {
 }
 
 .source-card-belief {
-  font-size: 0.8rem;
+  font-size: var(--holos-text-sm);
   letter-spacing: 0.08em;
 }
 
@@ -327,7 +367,7 @@ body {
 .source-card-axis {
   display: flex;
   justify-content: space-between;
-  font-size: 0.58rem;
+  font-size: var(--holos-text-xs);
   letter-spacing: 0.04em;
   color: var(--holos-ink-faint);
 }
@@ -345,7 +385,7 @@ body {
   font-family: inherit;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  font-size: 0.68rem;
+  font-size: var(--holos-text-xs);
   color: var(--holos-ink-faint);
   cursor: pointer;
 }
@@ -448,7 +488,7 @@ body {
 .case-board-empty,
 .case-archive-empty {
   color: var(--holos-ink-faint);
-  font-size: 0.85rem;
+  font-size: var(--holos-text-sm);
   padding: 0.4rem 0;
 }
 
@@ -464,7 +504,7 @@ body {
   width: 100%;
   background: none;
   border: none;
-  border-bottom: 1px solid rgba(183, 155, 99, 0.15);
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
   padding: 0.6rem 0.1rem;
   text-align: left;
   cursor: pointer;
@@ -472,7 +512,7 @@ body {
 }
 
 .case-row--dim {
-  opacity: 0.5;
+  opacity: 0.72;
 }
 
 .case-row-top {
@@ -487,7 +527,7 @@ body {
 }
 
 .case-row-name {
-  font-size: 1rem;
+  font-size: var(--holos-text-lg);
   color: var(--holos-ink);
 }
 
@@ -496,7 +536,7 @@ body {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.5rem;
-  font-size: 0.78rem;
+  font-size: var(--holos-text-sm);
   color: var(--holos-ink-dim);
 }
 
@@ -550,7 +590,7 @@ body {
 }
 
 .case-focus-name {
-  font-size: 2.2rem;
+  font-size: var(--holos-text-3xl);
   line-height: 1.05;
   color: var(--holos-amber);
 }
@@ -599,7 +639,7 @@ body {
   top: 0;
   left: 0;
   height: 100%;
-  background: rgba(183, 155, 99, 0.55);
+  background: rgba(211, 185, 130, 0.65);
 }
 
 .case-hyp-fill--leading {
@@ -642,7 +682,7 @@ body {
 .case-annotation {
   font-family: var(--holos-font-body);
   font-style: italic;
-  font-size: 0.85rem;
+  font-size: var(--holos-text-sm);
   color: var(--holos-ink-dim);
   padding: 0.6rem 0;
 }
@@ -652,7 +692,7 @@ body {
   flex-direction: column;
   gap: 0.25rem;
   padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(183, 155, 99, 0.12);
+  border-bottom: 1px solid rgba(211, 185, 130, 0.24);
 }
 
 .case-archive-age {
@@ -660,7 +700,7 @@ body {
 }
 
 .case-archive-text {
-  font-size: 0.82rem;
+  font-size: var(--holos-text-sm);
   line-height: 1.4;
   color: var(--holos-ink);
 }
@@ -674,7 +714,7 @@ body {
 
 .case-archive-tag {
   padding: 0.15rem 0.45rem;
-  border: 1px solid rgba(183, 155, 99, 0.25);
+  border: 1px solid rgba(211, 185, 130, 0.4);
   border-radius: 999px;
   color: var(--holos-ink-faint);
 }
@@ -694,7 +734,7 @@ body {
   background: none;
   border: none;
   font-family: var(--holos-font-body);
-  font-size: 0.78rem;
+  font-size: var(--holos-text-sm);
   letter-spacing: 0.04em;
   color: var(--holos-ink-faint);
   cursor: pointer;
@@ -806,7 +846,7 @@ body {
 }
 
 .chronicle {
-  font-size: 0.72rem;
+  font-size: var(--holos-text-sm);
   line-height: 1.5;
   color: var(--holos-ink-dim);
 }
@@ -835,7 +875,9 @@ body {
 
 .dial-row {
   display: grid;
-  grid-template-columns: 3.6rem 1fr 3.6rem;
+  /* Wide enough that the longest in-world pole label (CURATOR) stays on one
+     line at the daylight type scale. */
+  grid-template-columns: 4.6rem 1fr 4.6rem;
   align-items: center;
   gap: 0.5rem;
   padding: 0.2rem 0.3rem;
@@ -848,7 +890,7 @@ body {
 
 .dial-row:hover,
 .dial-item.open > .dial-row {
-  background: rgba(183, 155, 99, 0.07);
+  background: rgba(211, 185, 130, 0.1);
 }
 
 .dial-row:focus-visible {
@@ -870,14 +912,14 @@ body {
 .dial-question {
   font-family: var(--holos-font-body);
   font-style: italic;
-  font-size: 0.8rem;
+  font-size: var(--holos-text-sm);
   text-align: center;
   color: var(--holos-ink);
   margin: 0.5rem 0 0.55rem;
 }
 
 .dial-reading {
-  font-size: 0.78rem;
+  font-size: var(--holos-text-sm);
   line-height: 1.45;
   color: var(--holos-ink-dim);
   margin: 0 0.3rem 0.4rem;
@@ -887,13 +929,13 @@ body {
   color: var(--holos-gold);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  font-size: 0.62rem;
+  font-size: var(--holos-text-xs);
   margin-right: 0.45rem;
 }
 
 .dial-hint {
   font-family: var(--holos-font-body);
-  font-size: 0.62rem;
+  font-size: var(--holos-text-xs);
   letter-spacing: 0.05em;
   text-align: center;
   color: var(--holos-ink-faint);
@@ -901,7 +943,7 @@ body {
 }
 
 .dial-pole {
-  font-size: 0.6rem;
+  font-size: var(--holos-text-xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--holos-ink-dim);
@@ -915,7 +957,7 @@ body {
   position: relative;
   height: 0.4rem;
   border-radius: 999px;
-  background: rgba(233, 228, 214, 0.08);
+  background: rgba(246, 243, 234, 0.14);
 }
 
 .dial-range {
@@ -940,7 +982,7 @@ body {
 /* ── Archetype / charter ─────────────────────────────────────────────── */
 .archetype-name {
   font-family: var(--holos-font-display);
-  font-size: 1.6rem;
+  font-size: var(--holos-text-2xl);
   letter-spacing: 0.06em;
   text-align: center;
   color: var(--holos-ink);
@@ -950,7 +992,7 @@ body {
   font-family: var(--holos-font-body);
   font-style: italic;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: var(--holos-text-md);
   line-height: 1.5;
   color: var(--holos-ink-dim);
   transition: opacity 700ms ease;
@@ -971,7 +1013,7 @@ body {
   border-bottom: 1px solid var(--holos-gold-dim);
   color: var(--holos-ink);
   font-family: var(--holos-font-display);
-  font-size: 1rem;
+  font-size: var(--holos-text-lg);
   text-align: center;
   padding: 0.4rem 0.2rem;
   letter-spacing: 0.04em;
@@ -998,7 +1040,7 @@ body {
   padding: 4px 12px;
   color: var(--holos-ink-dim);
   font-family: var(--holos-font-body);
-  font-size: 0.78rem;
+  font-size: var(--holos-text-sm);
   letter-spacing: 0.03em;
   cursor: pointer;
   transition: border-color 200ms ease, color 200ms ease;
@@ -1013,7 +1055,7 @@ body {
   padding: 4px 9px;
   border-color: transparent;
   color: var(--holos-ink-faint);
-  font-size: 0.85rem;
+  font-size: var(--holos-text-md);
 }
 
 .committing .name-chips {
@@ -1022,7 +1064,7 @@ body {
 }
 
 .name-hint {
-  font-size: 0.65rem;
+  font-size: var(--holos-text-xs);
   color: var(--holos-error);
   min-height: 1em;
   visibility: hidden;
@@ -1045,10 +1087,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 16rem;
+  min-width: 17rem;
   max-width: 100%;
   height: 4.4rem;
-  padding: 0 2rem;
+  padding: 0 1.6rem;
   border: 1px solid #ffb35c;
   border-radius: 999px;
   /* Molten orange stone: veined marble on top for a mythic, carved surface,
@@ -1090,10 +1132,14 @@ body {
 }
 
 .become-button:disabled {
-  opacity: 0.4;
-  border-color: rgba(183, 155, 99, 0.18);
-  color: rgba(255, 255, 255, 0.7);
-  filter: saturate(0.35);
+  /* Reads as "not yet" without going invisible — a disabled BECOME still has
+     to be legible enough to tell you what you're waiting on. */
+  opacity: 0.55;
+  border-color: rgba(211, 185, 130, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  /* Keep some of the ember hue: fully desaturating a lifted-opacity stone
+     turns it into a flat tan slab rather than a banked fire. */
+  filter: saturate(0.5) brightness(0.8);
   cursor: default;
   box-shadow: none;
 }
@@ -1104,7 +1150,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  font-size: 1.6rem;
+  font-size: var(--holos-text-2xl);
   padding-left: 0.3em; /* optical centering against the tracking */
   /* Dark translucent stroke around the white text — painted behind the
      fill so it hugs the glyph edges rather than thinning them. */
@@ -1165,5 +1211,31 @@ body {
   }
   100% {
     opacity: 0.3;
+  }
+}
+
+/* ── Glare / high-contrast escalation ────────────────────────────────────
+ * The tokens above are already sized and lit for daylight. This block is the
+ * next step up, for a screen the sun is actually washing out: it flattens the
+ * ink hierarchy to full-strength ink, solidifies the hairlines, and drops the
+ * decorative opacity cuts. Fires on the OS "increase contrast" setting, so a
+ * user who has already asked their phone for this gets it here without a
+ * game-specific toggle. */
+@media (prefers-contrast: more) {
+  :root {
+    --holos-ink-dim: rgba(246, 243, 234, 0.95);
+    --holos-ink-faint: rgba(246, 243, 234, 0.85);
+    --holos-gold: #e8d3a2;
+    --holos-gold-dim: rgba(232, 211, 162, 0.8);
+    --holos-amber: #ffc078;
+    --holos-cyan: #a5f3f7;
+  }
+
+  .case-row--dim {
+    opacity: 0.9;
+  }
+
+  .civ-card:not(.focused) {
+    opacity: 0.7;
   }
 }
