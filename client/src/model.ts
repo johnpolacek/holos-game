@@ -20,7 +20,7 @@
 // straight into the volume.
 //
 // Text stays in the DOM overlay (canvas for places, DOM for prose): the
-// caption and the tracking HOME label.
+// tracking HOME label.
 
 import { Application, Container, Graphics, Sprite, Texture } from "pixi.js";
 import type { DetectedSource, SelfView, Star, Vec3Ly } from "@holos/protocol";
@@ -203,16 +203,12 @@ export class Model {
     this.overlay = document.createElement("div");
     this.overlay.className = "model-overlay";
 
-    const caption = document.createElement("div");
-    caption.className = "model-caption holos-caps";
-    caption.textContent = "THE MODEL — WHAT WE BELIEVE";
-
     this.homeLabel = document.createElement("div");
     this.homeLabel.className = "model-home-label holos-caps";
     this.homeLabel.textContent = "HOME";
     this.homeLabel.style.opacity = "0";
 
-    this.overlay.append(this.homeLabel, caption);
+    this.overlay.append(this.homeLabel);
     this.root.append(this.overlay);
     this.container.append(this.root);
 

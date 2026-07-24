@@ -135,21 +135,6 @@ body {
   z-index: 1;
 }
 
-.model-caption {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: max(1.4rem, env(safe-area-inset-bottom));
-  text-align: center;
-  letter-spacing: 0.28em;
-  color: var(--holos-ink-faint);
-  font-size: var(--holos-text-xs);
-  font-weight: 500;
-  /* Overlay text sits on the starfield, not on a panel — a dark halo keeps it
-     off the stars instead of dissolving into them. */
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
-}
-
 .model-home-label {
   position: absolute;
   top: 0;
