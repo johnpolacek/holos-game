@@ -14,12 +14,15 @@ import type {
   DetectedSource,
   SelfView,
   Star,
+  ProjectSnapshot,
+  InstrumentBudget,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { StudyBoard } from "./studyboard";
 import { clearPendingBecome, hasPendingBecome, renderCeremony } from "./ceremony";
 import { Model } from "./model";
 import { SourceCard } from "./sourcecard";
+import { setClockAnchor } from "./clock";
 
 type ScreenCleanup = () => void;
 
@@ -39,6 +42,8 @@ export class App {
   // source's study by starId (setStudyStatus, the pending-focus handoff).
   private studies: readonly StudySnapshot[] = [];
   private sources: readonly DetectedSource[] = [];
+  private projects: readonly ProjectSnapshot[] = [];
+  private budget: InstrumentBudget = { hours: 0, ratePerYear: 0, asOfYear: 0 };
 
   // Set when the source card fires onStudyAction for a source with no study
   // yet: we've sent `openStudy` and are waiting for the confirming `sky` to
@@ -71,6 +76,7 @@ export class App {
         // star's position. A placed welcome is followed immediately by `sky`,
         // which is what actually mounts the Model.
         this.catalog = message.catalog;
+        setClockAnchor(message.clock);
         break;
       case "offer":
         this.showCeremony(message.candidates);
@@ -82,6 +88,8 @@ export class App {
         }
         this.studies = message.studies;
         this.sources = message.sources;
+        this.projects = message.projects;
+        this.budget = message.budget;
         this.showSky(message.self, message.sources);
         break;
       case "sourceNamed":
@@ -149,7 +157,13 @@ export class App {
         // else: the Model's setSky above already fired onSelectSource(null)
         // for a selection that no longer corresponds to a live source.
       }
-      this.studyBoard?.update(this.studies, this.sources, this.localNames);
+      this.studyBoard?.update(
+        this.studies,
+        this.sources,
+        this.localNames,
+        this.projects,
+        this.budget,
+      );
       this.maybeFocusPendingStudy();
       return;
     }
@@ -194,7 +208,13 @@ export class App {
       });
 
       model.setSky(self, sources);
-      studyBoard.update(this.studies, this.sources, this.localNames);
+      studyBoard.update(
+        this.studies,
+        this.sources,
+        this.localNames,
+        this.projects,
+        this.budget,
+      );
       model.enter(mode);
       clearPendingBecome();
       return () => {

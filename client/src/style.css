@@ -647,6 +647,55 @@ body {
   color: var(--holos-ink);
 }
 
+/* Hub + projects view — the banked-hours line, ticked live once a second
+ * while the panel is open (see StudyBoard's startTicking). */
+.study-budget-line {
+  padding: 0.1rem 0 0.5rem;
+}
+
+/* Projects view — one row per buildable project. */
+.study-project-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  min-height: 44px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.6rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--holos-ink);
+}
+
+.study-project-label {
+  font-size: var(--holos-text-lg);
+  color: var(--holos-ink);
+}
+
+.study-project-line {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+}
+
+.study-project-meta {
+  color: var(--holos-ink-faint);
+}
+
+/* The amber STANDING marker on a completed project's row. */
+.study-project-flag {
+  align-self: flex-start;
+  color: var(--holos-amber);
+}
+
+/* Inert rows — unaffordable or already running/standing: visible, legible,
+ * not tappable. */
+.study-project-row--disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
 /* Focused view */
 .study-back {
   align-self: flex-start;
