@@ -85,6 +85,9 @@ body {
      stage in daylight. 450 thickens the stems without reading as bold. */
   font-weight: 450;
   -webkit-text-size-adjust: 100%;
+  /* Prose is the inherited default (see the wrapping block below): running
+     text never ends on an orphan. Headings opt out into `balance`. */
+  text-wrap: pretty;
 }
 
 #app {
@@ -110,6 +113,81 @@ body {
 
 .holos-serif {
   font-family: var(--holos-font-display);
+}
+
+/* ── Wrapping ─────────────────────────────────────────────────────────────
+ * One policy for the whole UI, kept here rather than scattered through the
+ * component rules so "is this covered?" is answerable by reading one block.
+ *
+ * Titles, subtitles, headers and the short label lines BALANCE. These are
+ * lines you read as a shape, not a paragraph: a display-face name that drops
+ * one word onto a second line, or a letterspaced caps header that leaves a
+ * lone "SKY" under it, reads as a layout fault rather than a heading. Balance
+ * evens the measure instead.
+ *
+ * Everything else — running prose — is PRETTY, inherited from `body` above,
+ * so a chronicle, a charter, a gloss or an annotation never closes on an
+ * orphan. The prose block below restates it on the classes that carry actual
+ * sentences: those are the ones that must not pick up `balance` by
+ * inheritance if any of them ever move under a heading container.
+ *
+ * Both properties degrade to normal wrapping where unsupported — nothing
+ * here is load-bearing for layout, only for how a line breaks. */
+
+/* Balance — titles, subtitles, headers, labels. Includes the two type
+   utilities (`.holos-caps` is label voice, `.holos-serif` is the titling
+   face), which covers the places those are applied to a bare div. */
+.holos-caps,
+.holos-serif,
+/* The observatory: panel titles, section heads, dividers, row names. */
+.study-board-header,
+.study-picker-subtitle,
+.study-section-header,
+.study-board-divider,
+.study-hub-label,
+.study-hub-sub,
+.study-row-name,
+.study-row-class,
+.study-focus-designation,
+.study-focus-name,
+.study-project-label,
+.study-hyp-label,
+.study-archive-tag,
+/* Tend: row titles and a report's headline. */
+.tend-row-label,
+.tend-report-headline,
+/* The chips and the one-word verbs — a pill must never break mid-phrase. */
+.study-chip,
+.study-verb-btn,
+.source-card-study-affordance,
+.source-card-mission-affordance,
+/* The source card's header. */
+.source-card-name,
+.source-card-belief,
+/* The ceremony: the civ's name, and the dial band's question and hint. */
+.civ-name,
+.dial-question,
+.dial-hint,
+.dial-pole {
+  text-wrap: balance;
+}
+
+/* Pretty — running prose. */
+.chronicle,
+.charter,
+.dial-reading,
+.study-brief-body,
+.study-hyp-gloss,
+.study-annotation,
+.study-archive-text,
+.study-focus-lightage,
+.study-board-empty,
+.study-archive-empty,
+.study-project-line,
+.tend-row-sub,
+.name-hint,
+.source-card-name-hint {
+  text-wrap: pretty;
 }
 
 /* ── The Model (the 3D sky) ──────────────────────────────────────────── */
@@ -939,7 +1017,6 @@ body {
   letter-spacing: 0.07em;
   line-height: 1.15;
   color: var(--holos-amber);
-  text-wrap: balance;
 }
 
 .study-row-conf {

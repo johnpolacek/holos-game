@@ -98,6 +98,14 @@ branch builds in the Workers Builds project settings.)
   bottoms out at `--holos-text-xs` and the ink tiers stay above the alpha
   where a phone screen in daylight loses them; something that needs to feel
   quieter goes down a tier, not below the floor.
+- **Line breaking is a policy, not a per-component decision.** The
+  "Wrapping" block near the top of `client/src/style.css` owns it: titles,
+  subtitles, headers and short label lines get `text-wrap: balance`; running
+  prose gets `text-wrap: pretty` (inherited from `body`, so it is the
+  default). A new heading or prose class joins the matching selector list in
+  that block — never a `text-wrap` declaration in the component rule. The
+  block sits above every component so a later `white-space: nowrap` still
+  wins (both set `text-wrap-mode`).
 
 ## Build orchestration
 
