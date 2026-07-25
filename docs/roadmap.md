@@ -80,8 +80,49 @@ player civ, placing the chosen civ at inheritance time
 (`client/src/ceremony.ts`), and the observatory/source card
 (`client/src/sourcecard.ts`).
 
-**→ Next to build: A2 — Contact.** Launch brief:
-[build-a2.md](./build-a2.md), with
+**A2.1 and A2.2 are merged and deployed.** A2.1 shipped the read-only
+observatory (PR #12): per-player studies on the Cohort DO, hypothesis
+boards seeded from `ObservedSignal`, the annotated light archive, and
+the board itself as a Desk panel (`client/src/studyboard.ts`). PRs
+#13–#17 grew it before A2.2 proper — tappable sources, the `+ START`
+hub and its source picker, the instrument-time economy, smudges on the
+source lists, and a study made legible enough for the evidence to pick
+the belief in plain words. A2.2 shipped the work engine —
+`questions.ts` (the six bought questions, priced in compute, integrating
+over game-years, answered from deterministic finding tables keyed to
+occupancy, with plateau gates where the instrument honestly cannot say),
+`projects.ts` (thirteen instrument projects in five effect kinds, each
+effect frozen at purchase time), and the causal gate all three knowledge
+channels now read through: `LightCone` / `peekTruth` / `occupancyAt` in
+`knowledge.ts`, which makes the light-cone ceiling a capability token
+instead of a per-callsite check. No answer can push a hypothesis share
+past 0.9: watching never delivers certainty, structurally.
+
+**Part of A4 came forward with it.** The same session shipped the *other*
+price of knowing: probe-class missions (`missions.ts` — the Assay and the
+Sentinel, charters of 2–3 pre-authorized clauses resolved against truth
+at arrival, silence as the subtraction of two schedules rather than a die
+roll) and **the Docket** (`docket.ts` — one derived list of undertakings
+with class chips, physics-derived states, and one level of study
+parentage), with their client surfaces. This overran build-a2.md's "no
+missions, no launches" guardrail, which is now amended rather than
+pretended away; A4 below is struck to match what actually landed.
+
+**Known gap:** the shipped A2.2 modules cite three documents that were
+never committed — `systems-a.md` (27 references), `synthesis.md` (14) and
+`content.md` (14), working specs from that build session. Until they are
+recovered or rewritten as-built, **the code is the spec of record** for
+question tables, charter clauses, project effects, and the alarm
+liveness rule; a session that reads those citations will not find the
+files.
+
+**→ Next to build: the grounded exit**, then **A2.3 — the contest and
+study tripwires**. The grounded exit is a small standalone slice: probe
+reports already move a study's board (`deriveStudyMoves`), but no report
+can yet *close* one, and the Assay is the observatory's closing verb.
+Doing it before A2.3 keeps the study lifecycle a single later edit and
+leaves A2.3's double-Opus session on the confidence model alone. Launch
+brief: [build-a2.md](./build-a2.md), with
 [observatory-design.md](./observatory-design.md) as the vigil's spec and
 [build-a2-stages.md](./build-a2-stages.md) as the per-stage handoff
 prompts.
@@ -210,29 +251,37 @@ screen at a time in six stages** (build-a2.md § Staging), each stage a
 small PR merged to `main` and phone-checked on the deployed URL before
 the next begins.
 
-- [ ] **The vigil**: a flagged source becomes a study — hypotheses,
-      buyable questions, compute allocation, the
-      sharpen/plateau/regress contest, study tripwires, and the
-      called/shelved/overtaken exits
-      ([observatory-design.md](./observatory-design.md) is the spec;
-      the grounded exit — the Assay — lands with A4).
-- [ ] **The mask contest (thin)**: sharpening with compute
-      against the target's mask — the live mask-versus-instrument
-      contest (technology.md § Working decisions), moved here from A1
-      because this is the slice where the other side first has behavior
-      worth masking.
-- [ ] **The choice ceremony**: directed hail / broadcast / stay dark —
+- [x] **The vigil's board (A2.1)**: a flagged source becomes a study —
+      hypotheses as belief with confidence, the annotated light archive,
+      open/shelved ([observatory-design.md](./observatory-design.md) is
+      the spec).
+- [x] **Buyable questions and the compute economy (A2.2)**: the six
+      questions as Investment-priced inferences over light already in
+      hand, integrating on real clocks and answered through the light
+      cone; instrument projects as the shelf that prices them.
+- [ ] **The grounded exit**: a returned Assay closes the study it was
+      launched from — the observatory's closing verb, buildable now that
+      probe missions exist (moved out of A4, 2026-07).
+- [ ] **The contest, tripwires, and the remaining exits (A2.3)**:
+      archetype-rule mask upkeep for seeded civs against the observer's
+      instrument spend — the live mask-versus-instrument contest
+      (technology.md § Working decisions), moved here from A1 because
+      this is the slice where the other side first has behavior worth
+      masking — deciding sharpen / plateau / **regress** with the tell
+      earned, never scripted; per-study tripwires firing in-app; the
+      called and overtaken exits.
+- [ ] **The choice ceremony (A2.4)**: directed hail / broadcast / stay dark —
       irreversible, hold-to-commit, consequences rendered on the Model
       (ui-design.md § the choice screen).
-- [ ] **Traffic on real clocks**: tight-beam signals travel at c;
+- [ ] **Traffic on real clocks (A2.5)**: tight-beam signals travel at c;
       delivery via the clock/alarm infrastructure; threads with in-flight
       rendering. Signal format decided (2026-07): **composed from
       structured parts for human pairs, freeform for AI counterparts**
       (vision.md, § Decisions).
-- [ ] **Rule-based AI counterparts** (thin): enough behavior for a
+- [ ] **Rule-based AI counterparts (A2.5, thin)**: enough behavior for a
       complete contact arc against a seeded civ — detect, be detected,
       answer signals in its archetype's register. Single-player-testable.
-- [ ] **Human contact**: two players in one cohort detect and exchange
+- [ ] **Human contact (A2.6)**: two players in one cohort detect and exchange
       signals, indistinguishable from the AI path at the wire level.
 
 **Done when:** two humans (and one human + one AI, indistinguishably)
@@ -258,15 +307,25 @@ Every launch is a mission from here on: a Docket node with a charter, a
 clock, and an outcome ([missions-design.md](./missions-design.md) —
 working decision 2026-07, missions into v1 thin).
 
-- [ ] **The Docket (list form)**: one surface for every undertaking —
-      projects and missions as one work graph, class chips, clock pairs,
-      physics-derived states, one level of nesting
-      (missions-design.md, § The Docket).
-- [ ] **Probe-class missions**: the Assay (go and know — the
-      observatory's closing verb) and the emplaced Sentinel; charters
-      with 2–3 contingency slots; silence-at-deadline beats.
+**Three of this slice's items shipped early**, with A2.2's work engine
+(see *Where the build is today*) — the probe half of A4 is done, and what
+remains here is the *travel* half: seedships, relativistic ships,
+charters as a written value function, and the Ledger.
+
+- [x] **The Docket (list form)** *(shipped with A2.2)*: one surface for
+      every undertaking — projects and missions as one derived work
+      list, class chips, clock pairs, physics-derived states, one level
+      of study parentage (missions-design.md, § The Docket). Nothing to
+      groom: an undertaking not yet undertaken is not a row.
+- [x] **Probe-class missions** *(shipped with A2.2)*: the Assay (go and
+      know) and the emplaced Sentinel; charters with 2–3 contingency
+      slots resolved against truth at arrival; silence-at-deadline as
+      the subtraction of two schedules. The Assay's *closing* of a study
+      — the grounded exit — moved up to A2 (see § A2).
 - [ ] **Standing orders (thin)**: one or two armable order-classes
-      (*on warm movement, launch sentinel*), priced at fire time.
+      (*on warm movement, launch sentinel*), priced at fire time. Not
+      shipped — the Docket's `standing` state is a Sentinel on cadence,
+      not an armed order awaiting a trigger.
 - [ ] **Seedships**: launches with real flight clocks; the **forecast
       survey** — information age at landfall (light-age + transit years)
       and an honest arrival spread per target class; landfall reports
@@ -276,13 +335,15 @@ working decision 2026-07, missions into v1 thin).
       flight clocks — the second v1 travel method (bold-scope decision,
       2026-07); onboard-fuel and beam-pushed variants, the beam battery
       bright by design; the seat stays home.
-- [ ] **The mission clock (thin)**: every launch compiles its expected
-      light events — arrival, earliest confirmation, first report — into
-      visible countdowns; silence at a deadline fires a beat
-      (act3-design.md § Missions, *The mission clock*).
+- [x] **The mission clock (thin)** *(shipped with A2.2)*: every launch
+      compiles its expected light events — arrival, earliest
+      confirmation, first report — into visible countdowns derived from
+      three stored stamps plus constants; silence at a deadline reads as
+      itself (act3-design.md § Missions, *The mission clock*).
 - [ ] **Charters**: the launch-time value function (dial sheet + directives
       + contingencies) — the same `CivSeed` shape, written by the player;
-      the recursion made literal.
+      the recursion made literal. A probe's 2–3 clauses (shipped) are the
+      thin end of this; a seedship's charter is the full shape.
 - [ ] **The Ledger**: lineage view, staleness chips, drift (magnitude-only
       in v1).
 
@@ -335,6 +396,12 @@ Resolve each before the slice that needs it; record the call here.
   vision's open moderation/deception question.
   **Decided (2026-07):** composed from structured parts for human pairs;
   freeform permitted with AI counterparts (vision.md, § Decisions).
+- **The grounded exit (A2/A4 boundary):** the Assay was specced to land
+  with A4, so A2.3's brief told the board not to offer *grounded*. A2.2
+  shipped probe missions early, which makes the exit buildable now.
+  **Decided (2026-07): grounded ships as its own small slice, before
+  A2.3** — the study lifecycle is then opened once, and A2.3's
+  double-Opus session stays on the confidence model.
 - **Sky data budget (A1):** how much star field streams to a phone first
   render (act3-map.md § Under the hood). Note A0's real cohort field is
   small (~260 stars at 25 ly) — the 50–150k-star *cosmetic* backdrop can
@@ -376,11 +443,13 @@ The image brief's **Act 3 groups are the active shot list** (screens 7–15,
 plus the adopted style tile): the Sky + source card (7), the choice
 ceremony (8), signals in flight (9), the Ledger (10), sleep/wake (11–12),
 and the Model set (13–15, echo shell = poster). The inheritance-ceremony
-ask from this plan shipped with A1 (concepts 03-00, 03-00b). **Current
-ask (A2.1): the observatory** — ui-image-brief.md screen 7b, the
-observatory desk with hypotheses, open questions, and the allocation
-strip. Phase B's screens (world reveal variants, beat, roll, pivot
-reveal) wait.
+ask from this plan shipped with A1 (concepts 03-00, 03-00b), and the
+observatory ask (screen 7b) shipped as A2.1's adopted target
+(concepts 03-03). **Current ask (A2.4): the choice ceremony** —
+ui-image-brief.md screen 8, the hail thread and the broadcast shell
+staged on the Model. A2.3 needs no new art: the contest renders inside
+the board that already exists. Phase B's screens (world reveal variants,
+beat, roll, pivot reveal) wait.
 
 ## Explicitly out of v1
 
