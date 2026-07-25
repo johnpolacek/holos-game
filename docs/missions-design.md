@@ -340,6 +340,14 @@ observe whether it is winning).
 
 ## v1 slice (thin)
 
+*Status (2026-07): the first three items below are **shipped**, earlier
+than the roadmap placed them — they landed with A2.2's work engine
+(`server/src/missions.ts`, `docket.ts`, the launch sheet in
+`client/src/studyboard.ts`), on the argument that a bought question and
+a launched probe are the same verb at two prices. Standing orders and
+the colony-class families remain A4. The Assay's close of a study — the
+grounded exit — is stage A2.2b (roadmap.md § A2).*
+
 - **The Docket, list form**: every undertaking (project and mission) as
   rows with class chip, clock pair, state, and one level of
   parent–child indentation. Full graph rendering, dead-reckoned far-side

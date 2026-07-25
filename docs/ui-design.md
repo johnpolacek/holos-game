@@ -318,8 +318,9 @@ both transformations, dial sheet, ladder/project columns with clock
 pairs; the Sky as the 3D Model in its v1 form (continuous camera, pull-back
 beat, point-cloud backdrop, the player's own echo shell — act3-map.md
 § Scope) with source cards and the five signal classes; the
-observatory (observatory-design.md — hypotheses, questions, allocation;
-the grounded exit waits for A4's Assay); the choice ceremony; signal
+observatory (observatory-design.md — hypotheses, questions, allocation,
+and the grounded exit, which moved into A2 with the Assay); the choice
+ceremony; signal
 threads with flight rendering; the Docket in list form with
 probe-mission rows
 (missions-design.md, § v1 slice); the Ledger with basic drift ghosts;

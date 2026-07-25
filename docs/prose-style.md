@@ -70,7 +70,7 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | Lineage fingerprint | `lineages.ts` fingerprint | Body's voice: plain, biological, dry edge; fact-preserving | 1 |
 | Chronicle template | `civseed.ts` chronicleFor | Biographer's deadpan (Act 1); dry annalist's appendix — dated entries, past tense — for Act 3, same deadpan family | 2 |
 | UI chrome / captions | `model.ts`, `sourcecard.ts` | Observatory deadpan | 0 |
-| Docket rows / states | *(A4)* | Observatory deadpan | 0 |
+| Docket rows / states | `docket.ts`, `studyboard.ts` | Observatory deadpan | 0 |
 | Ceremony microcopy | `ceremony.ts` labels/hints | Observatory deadpan | 1 |
 | Docs narration | `docs/*.md` prose | Essayist, analytical | 1 |
 | In-doc quoted interface prose | walkthrough scene quotes | The quoted archetype's own voice | 3 |

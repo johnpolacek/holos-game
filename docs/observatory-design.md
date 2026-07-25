@@ -289,8 +289,10 @@ watching.
 The hypothesis menus above (2–4 per signal class); the six question
 types; compute income + allocation on the observatory; sharpen /
 plateau / regress with archetype-rule opponent spend, the regression
-tell stated plainly; study tripwires; called / shelved / overtaken exits
-(grounded arrives with A4's Assay); dossiers produced, consumed, and
+tell stated plainly; study tripwires; called / shelved / overtaken /
+grounded exits (grounded moved *into* A2 — 2026-07 — once the Assay
+shipped early with A2.2's work engine; it lands as stage A2.2b, ahead of
+the contest); dossiers produced, consumed, and
 **tradeable as signal payloads**; holds as authored content. Deferred:
 systemic event evidence (A5), dossier-market depth (brokering, forgery —
 with the compensation menu), multi-observer joint studies (with joint
