@@ -747,9 +747,14 @@ body {
   cursor: pointer;
 }
 
+/* Hub labels share the panel title's voice — display face, amber — a size
+   down. Cinzel sets lowercase as small caps, so sentence case comes out as
+   engraved titling rather than shouting full-size caps. */
 .study-hub-label {
-  font-size: var(--holos-text-md);
-  color: var(--holos-ink);
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-lg);
+  letter-spacing: 0.05em;
+  color: var(--holos-amber);
 }
 
 .study-hub-sub {
@@ -764,7 +769,9 @@ body {
 }
 
 .study-hub-row--inert .study-hub-label {
-  color: var(--holos-ink-faint);
+  /* Dim within the amber family — a switch to faint ink would read as a
+     different kind of row, not a quieter one. */
+  color: rgba(240, 172, 102, 0.5);
 }
 
 /* Explore view — an UNDER STUDY marker on a picker-style row for a source
