@@ -181,7 +181,7 @@ plateau only — no opponent yet).
 morning's report shows the answer and the study's bars visibly moved —
 or a plateau, honestly labeled.
 
-### A2.2b — The grounded exit *(next)*
+### A2.2b — The grounded exit ✅ *shipped, with the Docket's tracks*
 
 Added 2026-07, after probe missions shipped early with A2.2. The Assay
 is the observatory's closing verb — *go and know* — and its reports
@@ -199,6 +199,16 @@ states, and A2.3's double-Opus session stays on the confidence model.
 **Phone check:** launch an Assay from an open study, wait out its
 flight, and on the report's arrival the study closes as grounded,
 naming the probe as the source of the belief.
+
+*Shipped 2026-07 with the Docket's progress tracks (roadmap § A4's
+Docket row), which were built alongside it because both are small and
+both touch surfaces that already exist. The tracks were checked on a
+phone-sized viewport against a live cohort on an accelerated local
+clock — and that check found a real bug in A2.2's silence detection: a
+Sentinel that had kept every appointment read SILENT, because promised
+and actual arrivals were matched by exact float equality (systems-a.md
+§3.4, fixed). Run the app and look at the screen; it says things the
+types cannot.*
 
 ### A2.3 — The contest, and study tripwires
 

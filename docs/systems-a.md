@@ -280,6 +280,47 @@ equivalent to a per-hypothesis one, and it is why a finding needs no
 hypothesis-id vocabulary of its own. A menu that ever gives one class two
 `mundane` entries would silently make every question asked on it coarser.
 
+### §2.6 The grounded exit (A2.2b)
+
+Added after the rest of this document, when the observatory's closing
+verb finally closed something.
+
+A study **grounds** when a mission report reaches home *strictly after*
+the study was last opened. `StoredStudy.openedYear` is stamped on every
+open and every reopen, and that comparison is the whole design:
+
+- The report that closed a study can never close it again, so reopening
+  is a real act rather than a button that undoes itself on the next sky.
+- One rule covers the first open too. A probe that reported *before* the
+  study existed still appears in the evidence trail and still moves the
+  board — it just does not close a vigil the player only now decided to
+  keep.
+
+The decision lives in **cohort.ts, not studies.ts**: that module still
+cannot tell an answer from a report (§11.3), and the place that knows a
+move came from a probe is the place that built it from missions.ts. It
+is a **persisted transition**, not a derivation — derived grounding would
+re-close the study the instant it was reopened, because the report never
+goes away.
+
+`StudyMove` gained `arrivedYear` for this: the home-side twin of
+`asOfYear` (an answer's integration completing, a report's light
+landing). Both it and `openedYear` are home years; `asOfYear` is a year
+at the target, and comparing across those axes would be a category error.
+
+A grounded study is closed: the server refuses a question bought on any
+study that is not open (which also closed the same hole for shelved
+studies), and the board renders the menu inert rather than offering a tap
+that would error. Its annotation names the probe and its provenance,
+because a report is not fresher than the light, only nearer:
+*"The Assay closed this study: construction under way, something is
+being built there. The finding came back from the ground. It is no newer
+than the light, only nearer."*
+
+`StudyStatus` is therefore `open | shelved | grounded`; `called` and
+`overtaken` still join in A2.3, and inherit grounded's closed-state and
+reopen rules rather than inventing their own.
+
 ---
 
 ## §3 Probe-class missions
@@ -368,9 +409,17 @@ Dice-free, by construction:
   truth itself. Emission years, not arrival years.
 
 A mission reads **silent** when some promised arrival's grace window has
-closed (`SILENCE_GRACE_YEARS = 2`) and no actual arrival matches it. The
-player wrote the charter that causes this, which is the whole point: the
-silence carries information without the game ever stating it.
+closed (`SILENCE_GRACE_YEARS = 2`) and no actual arrival matches it —
+*matches* meaning **within `EPS`**, not exact equality. The two schedules
+are the same arithmetic associated differently (`launched + f·d + k·c +
+d` against `launched + (f+1)·d + k·c`); they agree exactly for the first
+two cadences and diverge in the last bits thereafter, so an exact match
+test marked every long-standing Sentinel permanently silent (fixed
+2026-07, A2.2b). `missionDocketState` returns the **first** unkept
+promise, which is the one date a silence has.
+
+The player wrote the charter that causes a real silence, which is the
+whole point: it carries information without the game ever stating it.
 
 ### §3.5 The report — a shape that cannot leak
 
@@ -479,6 +528,28 @@ study open is a top-level row.
 Mission dates by state: in-flight and beyond-horizon → `arrivalYear` /
 **ARRIVES**; awaiting-light → `firstWordYear` / **FIRST WORD**; standing
 → `nextWordYear` / **NEXT WORD**; returned and silent → none.
+
+**The span** (A2.2b). A row also carries `fromYear` and `markYear` — the
+other end of the wait, and any physics event inside it — so the client
+can draw a track without reaching into three other collections by id:
+
+| state | `fromYear` | `markYear` |
+| --- | --- | --- |
+| project running | `startedYear` | — |
+| question pending | `boughtYear` | — |
+| mission in-flight / beyond-horizon | `launchedYear` | `horizonYear` |
+| mission awaiting-light | `launchedYear` | `horizonYear` (behind the tip; the amendment window is closed, and saying so is the point) |
+| mission standing | `nextWordYear − 25` | — |
+| mission silent | `launchedYear` | `missedWordYear` |
+| study | mirrors the soonest child, span included | mirrors |
+
+A standing sentinel's span is **one cadence**, not the decades since
+launch — the wait that is actually running is the wait for the next word,
+and a launch-anchored track would sit at 99% forever. A silent mission
+has no end to run toward, so the client ends the rail at *now*: the fill
+stops at `markYear` and the gap after it is the silence, widening every
+year nothing comes. Returned and landed rows get no track: nothing is
+under way, and an empty rail invites a reading that is not there.
 
 **Sort:** group by `parentId ?? id`; a group's key is the minimum
 non-null `nextYear` within it (`+∞` when all null), tiebroken by group id;

@@ -7,9 +7,10 @@ propose, and build — without this file open beside it. The prompts point
 at specs rather than duplicating them; [build-a2.md](./build-a2.md) and
 the docs each prompt names stay the source of truth.*
 
-**Status (2026-07):** A2.1 and A2.2 are shipped — their blocks stay
-below as record. **A2.2b, the grounded exit, is the open stage**, added
-after probe missions landed early with A2.2; A2.3 follows. Every block
+**Status (2026-07):** A2.1, A2.2 and A2.2b are shipped — their blocks
+stay below as record. **A2.3 is the open stage.** A2.2b also shipped the
+Docket's progress tracks alongside the grounded exit, and fixed an A2.2
+silence bug that only showed up on screen (systems-a.md §3.4). Every block
 from A2.3 on describes a tree that now also contains missions, the
 Docket, and the light-cone gate — each block's *What exists* paragraph
 has been brought up to date, but read `roadmap.md` § Where the build is
@@ -174,7 +175,7 @@ visibly moved — or a plateau, honestly labeled.
 
 ---
 
-## A2.2b — The grounded exit ← *next*
+## A2.2b — The grounded exit ✅ *shipped — kept as record*
 
 ```
 Build stage A2.2b of Holos: the grounded exit — a returned probe closes

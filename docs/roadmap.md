@@ -119,12 +119,15 @@ code cites them for a tuning call ("priced at 2100 per synthesis.md §4"),
 that provenance is now recorded in systems-a.md as a fact about the
 citation, and the number itself lives only in the code.
 
-**→ Next to build: the grounded exit**, then **A2.3 — the contest and
-study tripwires**. The grounded exit is a small standalone slice: probe
-reports already move a study's board (`deriveStudyMoves`), but no report
-can yet *close* one, and the Assay is the observatory's closing verb.
-Doing it before A2.3 keeps the study lifecycle a single later edit and
-leaves A2.3's double-Opus session on the confidence model alone. Launch
+**A2.2b shipped** (2026-07): the grounded exit, plus the Docket's
+progress tracks, built alongside it. Every row now carries the span it is
+waiting across (`fromYear` / `markYear` join `nextYear`), a probe's
+amendment horizon is a tick on its rail, and a silence is drawn as a
+break that widens. Running it on a phone-sized viewport is also what
+caught a real A2.2 bug — a Sentinel that had kept every appointment read
+SILENT, on exact float equality between two identical schedules.
+
+**→ Next to build: A2.3 — the contest and study tripwires.** Launch
 brief: [build-a2.md](./build-a2.md), with
 [observatory-design.md](./observatory-design.md) as the vigil's spec and
 [build-a2-stages.md](./build-a2-stages.md) as the per-stage handoff
@@ -262,9 +265,11 @@ the next begins.
       questions as Investment-priced inferences over light already in
       hand, integrating on real clocks and answered through the light
       cone; instrument projects as the shelf that prices them.
-- [ ] **The grounded exit**: a returned Assay closes the study it was
-      launched from — the observatory's closing verb, buildable now that
-      probe missions exist (moved out of A4, 2026-07).
+- [x] **The grounded exit (A2.2b)**: a returned probe closes the study it
+      was launched from — the observatory's closing verb, moved out of A4
+      once missions shipped early. A study grounds on a report that
+      arrives after it was last opened, so reopening is a real act; a
+      closed study buys nothing.
 - [ ] **The contest, tripwires, and the remaining exits (A2.3)**:
       archetype-rule mask upkeep for seeded civs against the observer's
       instrument spend — the live mask-versus-instrument contest
