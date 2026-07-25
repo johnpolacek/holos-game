@@ -211,8 +211,28 @@ export interface EvidenceEntry {
   readonly kind: "arrival" | "answer" | "report";
 }
 
-/** "called" | "overtaken" join in A2.3. */
-export type StudyStatus = "open" | "shelved";
+/** "called" | "overtaken" join in A2.3. `grounded` is A2.2b's: a mission
+ *  report that arrived after the study was last opened closed it, and the
+ *  belief it settled came back from the ground rather than from the light. */
+export type StudyStatus = "open" | "shelved" | "grounded";
+
+/**
+ * What grounded a study, for the board to name. Ids and dates only — the
+ * report itself is already in the evidence trail (kind: "report"), and the
+ * mission is already on the wire as a MissionSnapshot; this says which
+ * report of which mission closed the study, and how old that reading is.
+ */
+export interface StudyGrounding {
+  readonly missionId: string;
+  readonly reportId: string;
+  /** Sentence-case mission name for prose: "The Assay" / "The Sentinel". */
+  readonly missionName: string;
+  /** The target year the report speaks to — never newer than the sky. */
+  readonly asOfYear: number;
+  readonly lightAgeYears: number;
+  /** The year the report reached home: asOfYear + distanceLy. */
+  readonly arrivedYear: number;
+}
 
 /** One reading a study could tell apart, before any study exists — the same
  *  label and plain-language gloss Hypothesis carries, without the share. */
@@ -285,6 +305,8 @@ export interface StudySnapshot {
   readonly evidence: readonly EvidenceEntry[];
   readonly openQuestions: readonly OpenQuestion[];
   readonly annotationLine: string;
+  /** Non-null iff `status === "grounded"` (A2.2b). */
+  readonly grounding: StudyGrounding | null;
 }
 
 // ── A2.2: the compute economy ───────────────────────────────────────────

@@ -138,6 +138,16 @@ export function missionKindById(kind: string): MissionKindDef | undefined {
   return MISSION_KINDS.find((k) => k.kind === kind);
 }
 
+/**
+ * The mission's name as it reads inside a sentence — `label` is chrome
+ * (ALL CAPS) and cannot be dropped into prose. studies.ts's grounded
+ * annotation names the probe that closed a study, and mission wording
+ * belongs to this module, so the sentence-case form lives here.
+ */
+export function missionProseName(kind: MissionKind): string {
+  return kind === "assay" ? "The Assay" : "The Sentinel";
+}
+
 // ---------------------------------------------------------------------------
 // Charters — pre-authorized contingencies (systems-a.md §3.3)
 // ---------------------------------------------------------------------------
@@ -635,6 +645,7 @@ export function deriveStudyMoves(
     id: `${m.id}/r/${c.ordinal}`,
     kind: "report",
     asOfYear: c.aboutYear,
+    arrivedYear: c.arrivedYear,
     annotation: c.detail,
     shift: c.shift,
   }));

@@ -769,6 +769,10 @@ export class StudyBoard {
     }
 
     const open = all.filter((s) => s.status === "open");
+    // Closed studies keep their own sections, and grounded comes first: a
+    // study a probe settled is a finding, and a shelved one is only a vigil
+    // put down.
+    const grounded = all.filter((s) => s.status === "grounded");
     const shelved = all.filter((s) => s.status === "shelved");
 
     for (const s of open) {
@@ -776,12 +780,16 @@ export class StudyBoard {
       if (row !== null) this.body.append(row);
     }
 
-    if (shelved.length > 0) {
+    for (const [label, group] of [
+      ["GROUNDED", grounded],
+      ["SHELVED", shelved],
+    ] as const) {
+      if (group.length === 0) continue;
       const divider = document.createElement("div");
       divider.className = "study-board-divider holos-caps";
-      divider.textContent = "SHELVED";
+      divider.textContent = label;
       this.body.append(divider);
-      for (const s of shelved) {
+      for (const s of group) {
         const row = this.buildRow(s, true);
         if (row !== null) this.body.append(row);
       }
@@ -1159,6 +1167,7 @@ export class StudyBoard {
     starId: string,
     q: OpenQuestion,
     evidenceIds: ReadonlySet<string>,
+    buyable: boolean,
   ): HTMLElement {
     if (q.state === "offered") {
       const btn = document.createElement("button");
@@ -1182,7 +1191,13 @@ export class StudyBoard {
       const affordable = free >= q.costCompute;
       const base = `${q.costCompute} COMPUTE · ANSWERS IN ${formatClockPair(q.integrationYears)}`;
 
-      if (isPending) {
+      if (!buyable) {
+        // A closed study buys nothing (the server refuses it too): the menu
+        // still reads, so the player can see what reopening would cost.
+        btn.disabled = true;
+        btn.classList.add("study-project-row--disabled");
+        meta.textContent = base;
+      } else if (isPending) {
         btn.disabled = true;
         btn.classList.add("study-project-row--disabled");
         meta.textContent = base;
@@ -1895,7 +1910,7 @@ export class StudyBoard {
 
     const evidenceIds = new Set(s.evidence.map((e) => e.id));
     for (const q of s.openQuestions) {
-      oqSection.append(this.buildQuestionRow(starId, q, evidenceIds));
+      oqSection.append(this.buildQuestionRow(starId, q, evidenceIds, s.status === "open"));
     }
     this.body.append(oqSection);
 
@@ -1913,7 +1928,13 @@ export class StudyBoard {
         this.socket.send({ type: "shelveStudy", starId });
       });
     } else {
-      verbBtn.textContent = "resume the watch";
+      // Grounded and shelved both reopen through openStudy, but they are not
+      // the same act: resuming a shelved vigil picks the watch back up, while
+      // reopening a grounded one is doubting a probe that was there. The
+      // reopen stamps a new openedYear server-side, so the report that closed
+      // this study can never close it again — only the next word can.
+      verbBtn.textContent =
+        s.status === "grounded" ? "reopen the study" : "resume the watch";
       verbBtn.addEventListener("click", () => {
         this.socket.send({ type: "openStudy", starId });
       });

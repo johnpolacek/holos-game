@@ -39,6 +39,7 @@ import type {
   HypothesisMenuEntry,
   OpenQuestion,
   QuestionFinding,
+  StudyGrounding,
 } from "./protocol";
 import type { LightCone, ObservedSignal, SignalClass } from "./knowledge";
 import {
@@ -68,10 +69,21 @@ export interface StoredStudy {
    *  (questions.ts's resolveQuestion), so a finding cannot go stale and
    *  cannot be forged by editing storage. */
   readonly bought: readonly BoughtQuestion[];
+  /**
+   * A2.2b: the year this study was last opened — set on the first open AND
+   * on every reopen. The grounded exit fires only on a mission report that
+   * reached home STRICTLY AFTER this year, which is what makes reopening a
+   * real act: the report that already closed the study cannot close it
+   * again, and only the next word can. One rule, no special case for the
+   * first open (a probe that reported before the study existed still shows
+   * in the evidence trail and still moves the board — it just does not
+   * close a vigil the player only now decided to keep).
+   */
+  readonly openedYear: number;
 }
 
 export interface StudyState {
-  readonly version: 2;
+  readonly version: 3;
   readonly studies: Record<string, StoredStudy>; // keyed by starId
 }
 
@@ -81,26 +93,55 @@ interface StudyStateV1 {
   readonly studies: Record<string, { readonly starId: string; readonly status: StudyStatus }>;
 }
 
-export type StoredStudyState = StudyState | StudyStateV1;
+/** The A2.2 shape, before `openedYear`. Retained solely for migration. */
+interface StudyStateV2 {
+  readonly version: 2;
+  readonly studies: Record<
+    string,
+    {
+      readonly starId: string;
+      readonly status: StudyStatus;
+      readonly bought: readonly BoughtQuestion[];
+    }
+  >;
+}
 
-/** A fresh v2 state: no studies yet. */
+export type StoredStudyState = StudyState | StudyStateV2 | StudyStateV1;
+
+/** A fresh v3 state: no studies yet. */
 export function newStudyState(): StudyState {
-  return { version: 2, studies: {} };
+  return { version: 3, studies: {} };
 }
 
 /**
- * Bring a persisted state up to the current shape: every study gains an
- * empty purchase list. Nothing else changes; callers persist the result so
- * the migration happens once (loadStudyState's exact idiom in cohort.ts,
- * matching loadProjectState).
+ * Bring a persisted state up to the current shape: v1 studies gain an empty
+ * purchase list, and every pre-v3 study gains `openedYear`. Callers persist
+ * the result so the migration happens once (loadStudyState's exact idiom in
+ * cohort.ts, matching loadProjectState).
+ *
+ * `nowYear` is what a migrated study's `openedYear` becomes — as if it were
+ * opened at the moment of the migration. That is the conservative reading:
+ * a probe that reported BEFORE the upgrade does not reach back and close a
+ * study the player has been watching for weeks; only the next word does.
  */
-export function migrateStudyState(stored: StoredStudyState): StudyState {
-  if (stored.version === 2) return stored;
+export function migrateStudyState(stored: StoredStudyState, nowYear: number): StudyState {
+  if (stored.version === 3) return stored;
   const studies: Record<string, StoredStudy> = {};
-  for (const [starId, s] of Object.entries(stored.studies)) {
-    studies[starId] = { starId: s.starId, status: s.status, bought: [] };
+  if (stored.version === 2) {
+    for (const [starId, s] of Object.entries(stored.studies)) {
+      studies[starId] = {
+        starId: s.starId,
+        status: s.status,
+        bought: s.bought,
+        openedYear: nowYear,
+      };
+    }
+  } else {
+    for (const [starId, s] of Object.entries(stored.studies)) {
+      studies[starId] = { starId: s.starId, status: s.status, bought: [], openedYear: nowYear };
+    }
   }
-  return { version: 2, studies };
+  return { version: 3, studies };
 }
 
 /** Shares never fall below this — even the least-favored reading stays live. */
@@ -381,6 +422,12 @@ export interface StudyMove {
   readonly id: string; // stable evidence id
   readonly kind: "answer" | "report";
   readonly asOfYear: number; // the target year this claim speaks to
+  /** The year this claim reached HOME — an answer's integration completing,
+   *  a report's light landing (asOfYear + distanceLy). Never the same axis
+   *  as `asOfYear`, which is a year at the TARGET; cohort.ts's grounded
+   *  exit compares this against the study's `openedYear`, and both of those
+   *  are home years. */
+  readonly arrivedYear: number;
   readonly annotation: string;
   readonly shift: RoleShift;
 }
@@ -592,6 +639,24 @@ export function annotationFor(hypotheses: readonly Hypothesis[]): string {
     return WATCH_LINE;
   }
   return `So far the light leans toward ${lead.label}: ${lead.gloss}. ${trustLine(lead.share)}`;
+}
+
+/**
+ * The grounded board's headline (A2.2b). A probe was there, so the hedging
+ * the watch line does is no longer honest in either direction: it names the
+ * reading plainly, and it says where the reading came from — because a
+ * report is not fresher than the light, only nearer to what it describes.
+ * No threshold applies: the study is closed, and this is what closed it.
+ */
+export function groundedAnnotationFor(
+  hypotheses: readonly Hypothesis[],
+  grounding: StudyGrounding,
+): string {
+  const { lead } = topTwo(hypotheses);
+  const provenance =
+    "The finding came back from the ground. It is no newer than the light, only nearer.";
+  if (lead === undefined) return provenance;
+  return `${grounding.missionName} closed this study: ${lead.label}, ${lead.gloss}. ${provenance}`;
 }
 
 type TransitionKind = "first" | "rose" | "fell" | "held";
@@ -832,6 +897,7 @@ function assembleQuestion(
           id: `${starId}/q/${def.id}`,
           kind: "answer",
           asOfYear,
+          arrivedYear: answersYear,
           annotation: finding.annotation,
           shift: finding.shift,
         };
@@ -869,6 +935,7 @@ export function buildStudySnapshot(
   nowYear: number,
   projectState: ProjectState,
   missionMoves: readonly StudyMove[],
+  grounding: StudyGrounding | null,
 ): StudySnapshot {
   const signal = source.signal;
   const catalog = questionsFor(signal.classification);
@@ -901,6 +968,10 @@ export function buildStudySnapshot(
     hypotheses,
     evidence: mergeEvidence(signal, nowYear, source.starId, moves),
     openQuestions,
-    annotationLine: annotationFor(hypotheses),
+    annotationLine:
+      grounding !== null
+        ? groundedAnnotationFor(hypotheses, grounding)
+        : annotationFor(hypotheses),
+    grounding,
   };
 }

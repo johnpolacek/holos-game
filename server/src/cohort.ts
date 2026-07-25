@@ -75,6 +75,7 @@ import {
   missionArrivalYear,
   missionFirstWordYear,
   missionKindById,
+  missionProseName,
   deriveStudyMoves,
   migrateMissionState,
   newMissionState,
@@ -102,6 +103,7 @@ import {
   parseCohortClientMessage,
   toWireSource,
   validateName,
+  type StudyGrounding,
   type StudySnapshot,
   type CivCard,
   type ClockWire,
@@ -140,6 +142,11 @@ interface FiredEvent extends ScheduledEvent {
 
 /** Bounds the stored queue, dropping the farthest-future first. */
 const MAX_PENDING_EVENTS = 256;
+
+/** Slop on year comparisons, so a float-adjacent stamp never decides a
+ *  lifecycle question (A2.2b's grounded exit compares arrival against the
+ *  year a study was opened). */
+const YEAR_EPS = 1e-6;
 
 interface GalaxyMeta {
   readonly seedKey: string;
@@ -487,16 +494,27 @@ export class Cohort extends Server<CohortEnv> {
       this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
       return;
     }
-    const studyState = await this.loadStudyState(state.token);
+    const studyState = await this.loadStudyState(state.token, nowYear);
     // synthesis.md §2 (the reopen bug): SPREAD the existing record rather
     // than writing a fresh `{starId, status}` — a shelved study's `bought[]`
     // must survive a reopen, or every purchase on it would be discarded.
+    //
+    // A2.2b: `openedYear` is stamped on EVERY open, first or re-. It is what
+    // the grounded exit measures a report's arrival against, so reopening a
+    // grounded study genuinely reopens it — the report that closed it has
+    // already arrived and can never close it again.
     const existing = studyState.studies[starId];
     const studies: Record<string, StoredStudy> = {
       ...studyState.studies,
-      [starId]: { ...existing, starId, status: "open", bought: existing?.bought ?? [] },
+      [starId]: {
+        ...existing,
+        starId,
+        status: "open",
+        bought: existing?.bought ?? [],
+        openedYear: nowYear,
+      },
     };
-    await this.saveStudyState(state.token, { version: 2, studies });
+    await this.saveStudyState(state.token, { version: 3, studies });
     await this.sendSky(conn, state.token, state.civId);
   }
 
@@ -511,7 +529,8 @@ export class Cohort extends Server<CohortEnv> {
       this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
       return;
     }
-    const studyState = await this.loadStudyState(state.token);
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    const studyState = await this.loadStudyState(state.token, nowYear);
     const existing = studyState.studies[starId];
     if (existing === undefined) {
       this.sendMsg(conn, { type: "error", code: "bad-message", message: "no study there" });
@@ -521,7 +540,7 @@ export class Cohort extends Server<CohortEnv> {
       ...studyState.studies,
       [starId]: { ...existing, status: "shelved" },
     };
-    await this.saveStudyState(state.token, { version: 2, studies });
+    await this.saveStudyState(state.token, { version: 3, studies });
     await this.sendSky(conn, state.token, state.civId);
   }
 
@@ -544,10 +563,21 @@ export class Cohort extends Server<CohortEnv> {
       this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
       return;
     }
-    const studyState = await this.loadStudyState(state.token);
+    const studyState = await this.loadStudyState(state.token, nowYear);
     const existing = studyState.studies[starId];
     if (existing === undefined) {
       this.sendMsg(conn, { type: "error", code: "bad-message", message: "no study there" });
+      return;
+    }
+    // A2.2b: a closed study buys nothing. Grounded is closed until the player
+    // reopens it, and a shelved vigil is passive by definition — allocation
+    // drops to zero (observatory-design.md § The exits).
+    if (existing.status !== "open") {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "question-unavailable",
+        message: "the study is not open",
+      });
       return;
     }
     const def = questionById(questionId);
@@ -581,7 +611,7 @@ export class Cohort extends Server<CohortEnv> {
       ...studyState.studies,
       [starId]: { ...existing, bought: [...existing.bought, bought] },
     };
-    await this.saveStudyState(state.token, { version: 2, studies });
+    await this.saveStudyState(state.token, { version: 3, studies });
 
     const updatedProjectState = commitCompute(projectState, cost);
     await this.saveProjectState(state.token, updatedProjectState);
@@ -753,11 +783,11 @@ export class Cohort extends Server<CohortEnv> {
    * a real v1→v2 migration (studies.ts's migrateStudyState, loadProjectState's
    * exact idiom): every study gains an empty `bought[]`.
    */
-  private async loadStudyState(token: string): Promise<StudyState> {
+  private async loadStudyState(token: string, nowYear: number): Promise<StudyState> {
     const stored = await this.ctx.storage.get<StoredStudyState>(`studies:${token}`);
     if (stored === undefined) return newStudyState();
-    if (stored.version === 2) return stored;
-    const migrated = migrateStudyState(stored);
+    if (stored.version === 3) return stored;
+    const migrated = migrateStudyState(stored, nowYear);
     await this.ctx.storage.put(`studies:${token}`, migrated);
     return migrated;
   }
@@ -883,26 +913,75 @@ export class Cohort extends Server<CohortEnv> {
     // questions.ts's resolveQuestion) and this star's mission-report
     // StudyMoves (missions.ts's deriveStudyMoves — studies.ts never imports
     // missions.ts, so those moves are built here and handed in).
-    const studyState = await this.loadStudyState(token);
+    const studyState = await this.loadStudyState(token, nowYear);
+    // A2.2b: a study grounds when a mission report reaches home after the
+    // study was last opened. The decision lives HERE, not in studies.ts —
+    // that module still cannot tell an answer from a report (systems-a.md
+    // §2.5, §11), so the one place that knows a move came from a probe is
+    // the place that built it from missions.ts. The transition is a write:
+    // derived grounding would re-close the study the instant it was
+    // reopened, since the report never goes away.
+    let groundedWrites: Record<string, StoredStudy> | null = null;
     const studies: StudySnapshot[] = Object.values(studyState.studies)
       .map((stored) => {
         const source = sources.find((s) => s.starId === stored.starId);
         const targetCiv = civAtStar(galaxy, stored.starId);
         if (source === undefined || targetCiv === undefined) return null;
         const cone = lightConeFor(galaxy, civId, targetCiv.seed.id, nowYear);
-        const missionMoves: StudyMove[] = missionState.missions
-          .filter((m) => m.starId === stored.starId)
-          .flatMap((m) => {
-            const mCone = lightConeFor(galaxy, civId, m.targetCivId, nowYear);
-            const plan = resolveMissionPlan(galaxy, mCone, m, nowYear);
-            return plan === null
-              ? []
-              : deriveStudyMoves(galaxy, mCone, m, plan, missionArrivalYear(m), nowYear);
-          });
-        return buildStudySnapshot(galaxy, cone, source, stored, nowYear, projectState, missionMoves);
+        const missionMoves: StudyMove[] = [];
+        let grounding: StudyGrounding | null = null;
+        for (const m of missionState.missions) {
+          if (m.starId !== stored.starId) continue;
+          const mCone = lightConeFor(galaxy, civId, m.targetCivId, nowYear);
+          const plan = resolveMissionPlan(galaxy, mCone, m, nowYear);
+          if (plan === null) continue;
+          const moves = deriveStudyMoves(
+            galaxy,
+            mCone,
+            m,
+            plan,
+            missionArrivalYear(m),
+            nowYear,
+          );
+          missionMoves.push(...moves);
+          for (const move of moves) {
+            if (move.arrivedYear <= stored.openedYear + YEAR_EPS) continue;
+            if (grounding !== null && move.arrivedYear <= grounding.arrivedYear) continue;
+            grounding = {
+              missionId: m.id,
+              reportId: move.id,
+              missionName: missionProseName(m.kind),
+              asOfYear: move.asOfYear,
+              lightAgeYears: nowYear - move.asOfYear,
+              arrivedYear: move.arrivedYear,
+            };
+          }
+        }
+
+        // Only an OPEN study grounds: a shelved vigil is passive, and an
+        // already-grounded one keeps the grounding it has.
+        const grounds = stored.status === "open" && grounding !== null;
+        const settled: StoredStudy = grounds ? { ...stored, status: "grounded" } : stored;
+        if (grounds) {
+          groundedWrites = { ...(groundedWrites ?? studyState.studies), [stored.starId]: settled };
+        }
+        return buildStudySnapshot(
+          galaxy,
+          cone,
+          source,
+          settled,
+          nowYear,
+          projectState,
+          missionMoves,
+          settled.status === "grounded" ? grounding : null,
+        );
       })
       .filter((s): s is StudySnapshot => s !== null)
       .sort((a, b) => a.starId.localeCompare(b.starId));
+
+    if (groundedWrites !== null) {
+      await this.saveStudyState(token, { version: 3, studies: groundedWrites });
+    }
 
     const missions: MissionSnapshot[] = missionState.missions
       .map((m) => {
