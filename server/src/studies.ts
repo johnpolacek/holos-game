@@ -1,13 +1,26 @@
-// The vigil's observatory — derivation module for A2.1.
+// The vigil's observatory — derivation module for A2.1, extended in A2.2
+// with bought questions (questions.ts) and mission reports (missions.ts,
+// arriving here only as the neutral `StudyMove`).
 //
 // This module owns the hypothesis menus (observatory-design.md §
-// Hypotheses), the initial confidence distribution, and the evidence
-// annotations. ALL study derivation lives here, never in handlers.
+// Hypotheses), the confidence distribution, the evidence trail, and — as
+// of A2.2 — the study's persisted purchase record (`StoredStudy` /
+// `StudyState`, moved in from cohort.ts to match projects.ts's precedent)
+// and the OpenQuestion snapshot assembly. ALL study derivation lives here,
+// never in handlers.
 //
 // Everything this module produces is belief derived from delayed light
-// (ObservedSignal/lightHistory) — never truth. It reads the same shapes
-// knowledge.ts already serves and reshapes them into the board the client
-// renders; it does not touch CivTruth or anything server-truth-side.
+// (ObservedSignal/lightHistory) plus delivered inferences (StudyMove) —
+// never truth directly. It reads the same shapes knowledge.ts already
+// serves and reshapes them into the board the client renders; it does not
+// touch CivTruth or anything server-truth-side. `resolveQuestion`
+// (questions.ts) is the one function in this pipeline that DOES read truth,
+// gated by a LightCone it is handed — this module never mints one itself.
+//
+// STUDIES.TS NEVER IMPORTS MISSIONS.TS. A mission report reaches a study
+// only as a `StudyMove` (kind: "report") that cohort.ts builds via
+// missions.ts and hands in — this module cannot tell a bought answer from
+// a probe report and does not need to (systems-a.md §2.5, §11).
 //
 // Player-facing register: observatory deadpan, wit 0. Every string here is
 // written to be understood by someone who has read no design doc: plain
@@ -15,6 +28,7 @@
 // in for meaning.
 
 import type { EmissionEpoch } from "./civseed";
+import type { Galaxy } from "./galaxy";
 import type {
   StudySnapshot,
   StudyStatus,
@@ -24,8 +38,70 @@ import type {
   HypothesisId,
   HypothesisMenuEntry,
   OpenQuestion,
+  QuestionFinding,
 } from "./protocol";
-import type { ObservedSignal, SignalClass } from "./knowledge";
+import type { LightCone, ObservedSignal, SignalClass } from "./knowledge";
+import {
+  answersYearFor,
+  effectiveCostFor,
+  effectiveIntegrationYearsFor,
+  possibleShiftsFor,
+  questionsFor,
+  resolveQuestion,
+  QUESTION_COST_CLASS,
+  type BoughtQuestion,
+  type QuestionDef,
+  type RoleShift,
+} from "./questions";
+import type { ProjectState } from "./projects";
+
+// ---------------------------------------------------------------------------
+// Persistence — `studies:${token}`, v1 → v2 (moved in from cohort.ts to
+// match projects.ts's precedent: the module that derives from a stored
+// shape owns its migration).
+// ---------------------------------------------------------------------------
+
+export interface StoredStudy {
+  readonly starId: string;
+  readonly status: StudyStatus;
+  /** A2.2: the purchases, in buy order. NOT the answer — that derives
+   *  (questions.ts's resolveQuestion), so a finding cannot go stale and
+   *  cannot be forged by editing storage. */
+  readonly bought: readonly BoughtQuestion[];
+}
+
+export interface StudyState {
+  readonly version: 2;
+  readonly studies: Record<string, StoredStudy>; // keyed by starId
+}
+
+/** The pre-A2.2 shape. Retained solely for migrateStudyState. */
+interface StudyStateV1 {
+  readonly version: 1;
+  readonly studies: Record<string, { readonly starId: string; readonly status: StudyStatus }>;
+}
+
+export type StoredStudyState = StudyState | StudyStateV1;
+
+/** A fresh v2 state: no studies yet. */
+export function newStudyState(): StudyState {
+  return { version: 2, studies: {} };
+}
+
+/**
+ * Bring a persisted state up to the current shape: every study gains an
+ * empty purchase list. Nothing else changes; callers persist the result so
+ * the migration happens once (loadStudyState's exact idiom in cohort.ts,
+ * matching loadProjectState).
+ */
+export function migrateStudyState(stored: StoredStudyState): StudyState {
+  if (stored.version === 2) return stored;
+  const studies: Record<string, StoredStudy> = {};
+  for (const [starId, s] of Object.entries(stored.studies)) {
+    studies[starId] = { starId: s.starId, status: s.status, bought: [] };
+  }
+  return { version: 2, studies };
+}
 
 /** Shares never fall below this — even the least-favored reading stays live. */
 export const SHARE_FLOOR = 0.02;
@@ -48,7 +124,7 @@ export const WATCH_LINE = "No hypothesis exceeds the threshold. Continue the wat
  * working), and one quiet reading (it used to be more than this); "open" is
  * the standing alternative a menu keeps live regardless of the numbers.
  */
-type HypothesisRole = "mundane" | "built" | "quiet" | "open";
+export type HypothesisRole = "mundane" | "built" | "quiet" | "open";
 
 /** One menu entry: id, display label, plain gloss, evidence role. */
 interface MenuEntry {
@@ -192,6 +268,15 @@ const MENUS: Record<SignalClass, Menu> = {
   },
 };
 
+// INVARIANT (questions.ts's whole update channel depends on this): every
+// menu above has PAIRWISE-DISTINCT roles — no class has two entries sharing
+// a role. That is what makes a RoleShift's per-role multiplier equivalent to
+// a per-hypothesis multiplier (movedFromShift / distributionFor below), and
+// it is why a bought question's finding needs no hypothesis-id vocabulary
+// of its own. A future menu that gives one class two `mundane` entries (say)
+// would silently make every question asked on it coarser — check this
+// invariant again before adding a fifth entry to any menu.
+
 /**
  * The opening menu for every signal class, in menu order — what a study on a
  * source of that class would be able to tell apart, each reading carrying the
@@ -282,8 +367,88 @@ const SHARPNESS_PEAKED = 2.4;
 const CONFIDENCE_MIN = 0.2;
 const CONFIDENCE_MAX = 0.95;
 
+// ---------------------------------------------------------------------------
+// StudyMove — the seam between "an inference landed" and "the board moved"
+// ---------------------------------------------------------------------------
+
 /**
- * The initial confidence distribution for a freshly-observed signal.
+ * One delivered inference that moves a study. Bought answers
+ * (questions.ts's Finding) and mission reports (missions.ts's deriveReports
+ * — via a parallel, shift-bearing internal producer) both arrive as this;
+ * this module cannot tell them apart and does not need to.
+ */
+export interface StudyMove {
+  readonly id: string; // stable evidence id
+  readonly kind: "answer" | "report";
+  readonly asOfYear: number; // the target year this claim speaks to
+  readonly annotation: string;
+  readonly shift: RoleShift;
+}
+
+const ROLE_KEYS: readonly HypothesisRole[] = ["mundane", "built", "quiet", "open"];
+
+/**
+ * The readings a move supports on ONE class: every menu entry whose role
+ * multiplier is greater than 1. A plateau (`shift: {}`) moves nothing and
+ * returns []. Exact because every v1 menu has pairwise-distinct roles (see
+ * the invariant comment above MENUS).
+ */
+export function movedFromShift(
+  shift: RoleShift,
+  signalClass: SignalClass,
+): readonly HypothesisId[] {
+  const ids: HypothesisId[] = [];
+  for (const entry of MENUS[signalClass].entries) {
+    const mult = shift[entry.role];
+    if (mult !== undefined && mult > 1) ids.push(entry.id);
+  }
+  return ids;
+}
+
+/**
+ * Every hypothesis, across ALL FIVE MENUS, whose role has a multiplier > 1
+ * in `shift`. Mission reports do not know which signal class (if any)
+ * their target currently studies under — a probe's ground truth outlives
+ * its source's visibility — so missions.ts reads this class-agnostic
+ * superset instead of `movedFromShift`'s single-class form.
+ */
+export function movedFromShiftAnyClass(shift: RoleShift): readonly HypothesisId[] {
+  const ids: HypothesisId[] = [];
+  for (const menu of Object.values(MENUS)) {
+    for (const entry of menu.entries) {
+      const mult = shift[entry.role];
+      if (mult !== undefined && mult > 1) ids.push(entry.id);
+    }
+  }
+  return ids;
+}
+
+/**
+ * Every reading a question COULD move on `signalClass`, before any purchase
+ * has picked a specific occupancy branch — the union of `movedFromShift`
+ * over every shift `questions.ts`'s `possibleShiftsFor` names for the
+ * question. Class-shaped, not source-shaped, so it leaks nothing about any
+ * particular study.
+ */
+function separatesFor(def: QuestionDef, signalClass: SignalClass): readonly HypothesisId[] {
+  const seen = new Set<HypothesisId>();
+  const ids: HypothesisId[] = [];
+  for (const shift of possibleShiftsFor(def.id)) {
+    for (const id of movedFromShift(shift, signalClass)) {
+      if (!seen.has(id)) {
+        seen.add(id);
+        ids.push(id);
+      }
+    }
+  }
+  return ids;
+}
+
+/**
+ * The board, given the light and every delivered inference. Shifts multiply
+ * the role weights BEFORE sharpening; `settleShares` then clamps every
+ * share into [SHARE_FLOOR, SHARE_CEIL]. Honesty is therefore structural: no
+ * finding, and no probe report, can push any share past 0.9.
  *
  * THE MODEL, in short: the EVIDENCE picks the leader and the CONFIDENCE
  * only decides how sharp the picture is. The light history gives four
@@ -294,10 +459,15 @@ const CONFIDENCE_MAX = 0.95;
  * belief about any one reading (it is mostly a function of distance: a near,
  * clean look), so it is applied as a temperature: a clean read raises the
  * weights to a power above 1 and the board comes to a point, a far or
- * marginal read flattens everything toward an even spread. Deterministic,
- * no RNG, and every share stays strictly inside (SHARE_FLOOR, SHARE_CEIL).
+ * marginal read flattens everything toward an even spread. `moves` folds in
+ * multiplicatively — order-independent, which matters because the move
+ * list is rebuilt from scratch on every sky. Deterministic, no RNG, and
+ * every share stays strictly inside (SHARE_FLOOR, SHARE_CEIL).
  */
-export function initialDistribution(signal: ObservedSignal): Hypothesis[] {
+export function distributionFor(
+  signal: ObservedSignal,
+  moves: readonly StudyMove[],
+): Hypothesis[] {
   const menu = MENUS[signal.classification];
   const reading = readLight(signal);
 
@@ -306,9 +476,22 @@ export function initialDistribution(signal: ObservedSignal): Hypothesis[] {
     (SHARPNESS_PEAKED - SHARPNESS_FLAT) *
       clamp01((signal.confidence - CONFIDENCE_MIN) / (CONFIDENCE_MAX - CONFIDENCE_MIN));
 
-  const weights = menu.entries.map((entry) =>
-    Math.pow(Math.max(weightForRole(entry.role, reading), 1e-6), sharpness),
-  );
+  const combinedShift: Partial<Record<HypothesisRole, number>> = {};
+  for (const move of moves) {
+    for (const role of ROLE_KEYS) {
+      const mult = move.shift[role];
+      if (mult === undefined) continue;
+      combinedShift[role] = (combinedShift[role] ?? 1) * mult;
+    }
+  }
+
+  const weights = menu.entries.map((entry) => {
+    const shiftMult = combinedShift[entry.role] ?? 1;
+    return Math.pow(
+      Math.max(weightForRole(entry.role, reading) * shiftMult, 1e-6),
+      sharpness,
+    );
+  });
   const shares = settleShares(weights);
 
   return menu.entries.map((entry, i) => {
@@ -523,30 +706,200 @@ export function deriveEvidence(
       lightAgeYears: nowYear - epoch.fromYear,
       annotation: annotationForTransition(kind, epoch.level, change),
       moved: movedFor(kind, signal.classification),
+      kind: "arrival",
     });
   }
 
   return entries;
 }
 
+/** Sort key used when merging arrival/move evidence: asOfYear ascending,
+ *  arrivals before moves at the same year, then id — a deterministic
+ *  payload order (systems-a.md §2.5). */
+function evidenceSortKey(e: EvidenceEntry): readonly [number, number, string] {
+  return [e.asOfYear, e.kind === "arrival" ? 0 : 1, e.id];
+}
+
+function compareEvidence(a: EvidenceEntry, b: EvidenceEntry): number {
+  const [ay, ak, aid] = evidenceSortKey(a);
+  const [by, bk, bid] = evidenceSortKey(b);
+  if (ay !== by) return ay - by;
+  if (ak !== bk) return ak - bk;
+  return aid.localeCompare(bid);
+}
+
+/**
+ * Merges the light-arrival trail with every delivered `StudyMove` into one
+ * evidence trail: sorted by `asOfYear` (arrivals before moves at a tie,
+ * then by id), then renumbered 1..n with `latest` set on the last.
+ */
+function mergeEvidence(
+  signal: ObservedSignal,
+  nowYear: number,
+  starId: string,
+  moves: readonly StudyMove[],
+): EvidenceEntry[] {
+  const arrivals = deriveEvidence(signal, nowYear, starId);
+  const moveEntries: EvidenceEntry[] = moves.map((move) => ({
+    id: move.id,
+    ordinal: 0,
+    latest: false,
+    asOfYear: move.asOfYear,
+    lightAgeYears: nowYear - move.asOfYear,
+    annotation: move.annotation,
+    moved: movedFromShift(move.shift, signal.classification),
+    kind: move.kind,
+  }));
+  const merged = [...arrivals, ...moveEntries].sort(compareEvidence);
+  return merged.map((e, i) => ({ ...e, ordinal: i + 1, latest: i === merged.length - 1 }));
+}
+
+/**
+ * One question's wire snapshot: offered (with a LIVE discount/haste
+ * preview), pending (frozen at `boughtYear`, no finding yet), or answered
+ * (frozen, with the finding). Also returns the `StudyMove` an answered
+ * question contributes, so the caller can fold it into `distributionFor`
+ * and the evidence trail without a second pass over `bought`.
+ */
+function assembleQuestion(
+  galaxy: Galaxy,
+  cone: LightCone,
+  starId: string,
+  def: QuestionDef,
+  signal: ObservedSignal,
+  bought: BoughtQuestion | undefined,
+  nowYear: number,
+  projectState: ProjectState,
+): { readonly wire: OpenQuestion; readonly move: StudyMove | null } {
+  const separates = separatesFor(def, signal.classification);
+
+  if (bought === undefined) {
+    return {
+      wire: {
+        id: def.id,
+        label: def.label,
+        line: def.line,
+        costClass: QUESTION_COST_CLASS,
+        costCompute: effectiveCostFor(def, nowYear, projectState),
+        integrationYears: effectiveIntegrationYearsFor(def, nowYear, projectState),
+        separates,
+        state: "offered",
+        boughtYear: null,
+        answersYear: null,
+        finding: null,
+      },
+      move: null,
+    };
+  }
+
+  const answersYear = answersYearFor(def, bought, projectState);
+  const costCompute = effectiveCostFor(def, bought.boughtYear, projectState);
+  const integrationYears = effectiveIntegrationYearsFor(def, bought.boughtYear, projectState);
+  const finding = resolveQuestion(galaxy, cone, def, bought, signal, projectState);
+
+  if (finding === null) {
+    return {
+      wire: {
+        id: def.id,
+        label: def.label,
+        line: def.line,
+        costClass: QUESTION_COST_CLASS,
+        costCompute,
+        integrationYears,
+        separates,
+        state: "pending",
+        boughtYear: bought.boughtYear,
+        answersYear,
+        finding: null,
+      },
+      move: null,
+    };
+  }
+
+  const asOfYear = answersYear - cone.distanceLy;
+  const wireFinding: QuestionFinding = {
+    id: finding.id,
+    asOfYear,
+    lightAgeYears: nowYear - asOfYear,
+    annotation: finding.annotation,
+    moved: movedFromShift(finding.shift, signal.classification),
+    shape: finding.shape,
+  };
+  const move: StudyMove | null =
+    finding.shape === "plateau"
+      ? null
+      : {
+          id: `${starId}/q/${def.id}`,
+          kind: "answer",
+          asOfYear,
+          annotation: finding.annotation,
+          shift: finding.shift,
+        };
+
+  return {
+    wire: {
+      id: def.id,
+      label: def.label,
+      line: def.line,
+      costClass: QUESTION_COST_CLASS,
+      costCompute,
+      integrationYears,
+      separates,
+      state: "answered",
+      boughtYear: bought.boughtYear,
+      answersYear,
+      finding: wireFinding,
+    },
+    move,
+  };
+}
+
 /**
  * Assembles the full study for a detected source: the board, the evidence
- * trail, and the headline. openQuestions is reserved — A2.2 populates it
- * from the question catalog.
+ * trail, the open-question menu, and the headline. `cone` gates every
+ * question's truth read (questions.ts's resolveQuestion); `missionMoves`
+ * are this star's mission-report StudyMoves, built by cohort.ts via
+ * missions.ts and handed in — this module never imports missions.ts.
  */
 export function buildStudySnapshot(
+  galaxy: Galaxy,
+  cone: LightCone,
   source: DetectedSource,
-  status: StudyStatus,
+  stored: StoredStudy,
   nowYear: number,
+  projectState: ProjectState,
+  missionMoves: readonly StudyMove[],
 ): StudySnapshot {
-  const hypotheses = initialDistribution(source.signal);
+  const signal = source.signal;
+  const catalog = questionsFor(signal.classification);
+
   const openQuestions: OpenQuestion[] = [];
+  const answerMoves: StudyMove[] = [];
+  for (const def of catalog) {
+    const bought = stored.bought.find((b) => b.id === def.id);
+    const { wire, move } = assembleQuestion(
+      galaxy,
+      cone,
+      source.starId,
+      def,
+      signal,
+      bought,
+      nowYear,
+      projectState,
+    );
+    openQuestions.push(wire);
+    if (move !== null) answerMoves.push(move);
+  }
+
+  const moves = [...answerMoves, ...missionMoves];
+  const hypotheses = distributionFor(signal, moves);
+
   return {
     starId: source.starId,
-    status,
-    signalClass: source.signal.classification,
+    status: stored.status,
+    signalClass: signal.classification,
     hypotheses,
-    evidence: deriveEvidence(source.signal, nowYear, source.starId),
+    evidence: mergeEvidence(signal, nowYear, source.starId, moves),
     openQuestions,
     annotationLine: annotationFor(hypotheses),
   };

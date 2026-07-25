@@ -28,6 +28,7 @@ import {
   type ClockState,
 } from "./clock";
 import {
+  civAtStar,
   civById,
   DEFAULT_GALAXY_CONFIG,
   distanceLy,
@@ -39,15 +40,27 @@ import {
   type PlacedCiv,
   type Star,
 } from "./galaxy";
-import { emissionAt, observeCiv, observeSky, visibleSky } from "./knowledge";
+import { emissionAt, lightConeFor, observeCiv, observeSky, visibleSky } from "./knowledge";
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
-import { buildStudySnapshot, hypothesisMenus } from "./studies";
 import {
+  buildStudySnapshot,
+  hypothesisMenus,
+  migrateStudyState,
+  newStudyState,
+  type StoredStudy,
+  type StudyMove,
+  type StudyState,
+  type StoredStudyState,
+} from "./studies";
+import {
+  confidenceLiftAt,
   freeComputeAt,
   hasLanded,
+  landedProbeCruiseFractionAt,
   landedYear,
+  commitCompute,
   migrateProjectState,
   newProjectState,
   projectById,
@@ -58,35 +71,75 @@ import {
   type StoredProjectState,
 } from "./projects";
 import {
+  expectedArrivals,
+  missionArrivalYear,
+  missionFirstWordYear,
+  missionKindById,
+  deriveStudyMoves,
+  migrateMissionState,
+  newMissionState,
+  resolveMissionPlan,
+  toMissionSnapshot,
+  validateCharter,
+  CHARTER_CLAUSES,
+  MAX_MISSIONS_PER_TOKEN,
+  MIN_CHARTER_CLAUSES,
+  MAX_CHARTER_CLAUSES,
+  MISSION_KINDS,
+  PROBE_C_FRACTION,
+  SENTINEL_CADENCE_YEARS,
+  type MissionState,
+  type StoredMission,
+} from "./missions";
+import {
+  answersYearFor,
+  effectiveCostFor,
+  questionById,
+  type BoughtQuestion,
+} from "./questions";
+import { buildDocket } from "./docket";
+import {
   parseCohortClientMessage,
   toWireSource,
   validateName,
   type StudySnapshot,
-  type StudyStatus,
   type CivCard,
   type ClockWire,
   type CohortServerMessage,
   type DetectedSource,
   type ComputeBudget,
+  type MissionCatalog,
+  type MissionSnapshot,
   type ProjectSnapshot,
   type SelfView,
 } from "./protocol";
 
 /**
- * A clock-scheduled event, driven by the Durable Object alarm. A0 proves
- * the plumbing with dev pings; arrivals, deliveries, and signals (A2+)
- * ride the same queue.
+ * A clock-scheduled event, driven by the Durable Object alarm. A0 proved
+ * the plumbing with dev pings; A2.2 adds "wake": a bought question's
+ * answer or a mission's first word, landing while nobody is necessarily
+ * connected. `onAlarm`'s ONLY job for a wake is to resend the sky to every
+ * placed connection — the alarm queue is not a source of truth and cannot
+ * become one (systems-a.md §7). If the DO sleeps through a wake or the
+ * queue is wiped, the only consequence is a connected client not being
+ * PUSHED a sky it would compute correctly on its next `requestSky`.
+ * Nothing fires, nothing lands, nothing is recorded here.
  */
 interface ScheduledEvent {
   readonly id: string;
   readonly atYear: number;
-  readonly kind: string;
+  readonly kind: "dev-ping" | "wake";
   readonly note: string;
+  readonly token?: string; // wake only
+  readonly missionId?: string; // wake only, so a sentinel can re-arm
 }
 
 interface FiredEvent extends ScheduledEvent {
   readonly firedAtYear: number;
 }
+
+/** Bounds the stored queue, dropping the farthest-future first. */
+const MAX_PENDING_EVENTS = 256;
 
 interface GalaxyMeta {
   readonly seedKey: string;
@@ -109,23 +162,11 @@ interface RunRecord {
   readonly localNames: Record<string, string>;
 }
 
-/**
- * A player's observatory state, stored SEPARATELY from RunRecord: RunRecord is
- * rewritten wholesale on every nameSource, while studies accrete A2.2+ state
- * and must not ride along on that rewrite. In A2.1 only `status` is stored —
- * the distribution and evidence are pure functions of the current
- * ObservedSignal (persisting them would only risk staleness); from A2.2, when
- * bought answers make the distribution path-dependent, it moves in here
- * additively.
- */
-interface StoredStudy {
-  readonly starId: string;
-  readonly status: StudyStatus;
-}
-interface StudyState {
-  readonly version: 1;
-  readonly studies: Record<string, StoredStudy>; // keyed by starId
-}
+// A player's observatory state (StoredStudy/StudyState) is stored SEPARATELY
+// from RunRecord — RunRecord is rewritten wholesale on every nameSource,
+// while studies accrete A2.2 purchases and must not ride along on that
+// rewrite. The shape and its migration now live in studies.ts (matching
+// projects.ts's precedent); this module only reads/writes the DO key.
 
 /** Live connection tracking: the socket, its token, and (once placed) civ. */
 interface ConnState {
@@ -144,6 +185,21 @@ function json(data: unknown, status = 200): Response {
 /** Dev endpoints exist only where wrangler dev serves: local hosts. */
 function isLocalDev(url: URL): boolean {
   return ["localhost", "127.0.0.1", "0.0.0.0", "[::1]"].includes(url.hostname);
+}
+
+/**
+ * The CURRENT effective probe cruise speed, in flight-years-per-light-year:
+ * the reciprocal of the fastest LANDED probe-haste project's
+ * cruiseFractionOfC at `atYear`, or the canonical 10 y/ly if none has
+ * landed (synthesis.md §4 — probe-haste projects take the MAXIMUM across
+ * landed projects, never the sum). A mission launched at `atYear` freezes
+ * this value into `StoredMission.flightYearsPerLy`; the sky message also
+ * carries the live value so the launch sheet can preview a clock before
+ * committing.
+ */
+function effectiveFlightYearsPerLy(state: ProjectState, atYear: number): number {
+  const fraction = landedProbeCruiseFractionAt(state, atYear) ?? PROBE_C_FRACTION;
+  return 1 / fraction;
 }
 
 function numberField(body: Record<string, unknown>, key: string): number | undefined {
@@ -224,6 +280,12 @@ export class Cohort extends Server<CohortEnv> {
       case "startProject":
         await this.onStartProject(conn, msg.projectId);
         return;
+      case "buyQuestion":
+        await this.onBuyQuestion(conn, msg.starId, msg.questionId);
+        return;
+      case "launchMission":
+        await this.onLaunchMission(conn, msg.starId, msg.kind, msg.charter);
+        return;
     }
   }
 
@@ -248,6 +310,7 @@ export class Cohort extends Server<CohortEnv> {
         clock: this.toClockWire(),
         catalog: galaxy.stars,
         menus: hypothesisMenus(),
+        missionCatalog: this.missionCatalog(),
       });
       await this.sendSky(conn, token, run.civId);
       return;
@@ -260,6 +323,7 @@ export class Cohort extends Server<CohortEnv> {
       clock: this.toClockWire(),
       catalog: galaxy.stars,
       menus: hypothesisMenus(),
+      missionCatalog: this.missionCatalog(),
     });
     const offerYear = await this.getOfferYear(token);
     this.sendMsg(conn, { type: "offer", candidates: this.makeCandidates(token, offerYear) });
@@ -424,11 +488,15 @@ export class Cohort extends Server<CohortEnv> {
       return;
     }
     const studyState = await this.loadStudyState(state.token);
+    // synthesis.md §2 (the reopen bug): SPREAD the existing record rather
+    // than writing a fresh `{starId, status}` — a shelved study's `bought[]`
+    // must survive a reopen, or every purchase on it would be discarded.
+    const existing = studyState.studies[starId];
     const studies: Record<string, StoredStudy> = {
       ...studyState.studies,
-      [starId]: { starId, status: "open" },
+      [starId]: { ...existing, starId, status: "open", bought: existing?.bought ?? [] },
     };
-    await this.saveStudyState(state.token, { version: 1, studies });
+    await this.saveStudyState(state.token, { version: 2, studies });
     await this.sendSky(conn, state.token, state.civId);
   }
 
@@ -444,15 +512,189 @@ export class Cohort extends Server<CohortEnv> {
       return;
     }
     const studyState = await this.loadStudyState(state.token);
-    if (studyState.studies[starId] === undefined) {
+    const existing = studyState.studies[starId];
+    if (existing === undefined) {
       this.sendMsg(conn, { type: "error", code: "bad-message", message: "no study there" });
       return;
     }
     const studies: Record<string, StoredStudy> = {
       ...studyState.studies,
-      [starId]: { starId, status: "shelved" },
+      [starId]: { ...existing, status: "shelved" },
     };
-    await this.saveStudyState(state.token, { version: 1, studies });
+    await this.saveStudyState(state.token, { version: 2, studies });
+    await this.sendSky(conn, state.token, state.civId);
+  }
+
+  /**
+   * buyQuestion: commission one inference on an open study, against free
+   * compute. Requires a visible source (so the class is known) and an
+   * existing study on it (systems-a.md §5.4).
+   */
+  private async onBuyQuestion(conn: Connection, starId: string, questionId: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    const galaxy = this.requireGalaxy();
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    const visible = visibleSky(galaxy, state.civId, nowYear);
+    const source = visible.find((o) => o.starId === starId);
+    if (source === undefined) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
+      return;
+    }
+    const studyState = await this.loadStudyState(state.token);
+    const existing = studyState.studies[starId];
+    if (existing === undefined) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no study there" });
+      return;
+    }
+    const def = questionById(questionId);
+    if (def === undefined) {
+      this.sendMsg(conn, { type: "error", code: "unknown-question", message: "no such question" });
+      return;
+    }
+    const alreadyBought = existing.bought.some((b) => b.id === def.id);
+    if (!def.appliesTo.includes(source.signal.classification) || alreadyBought) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "question-unavailable",
+        message: "question not available",
+      });
+      return;
+    }
+    const projectState = await this.loadProjectState(state.token, state.civId, nowYear);
+    const cost = effectiveCostFor(def, nowYear, projectState);
+    const free = freeComputeAt(projectState, nowYear);
+    if (free < cost) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "insufficient-compute",
+        message: "not enough free compute",
+      });
+      return;
+    }
+
+    const bought: BoughtQuestion = { id: def.id, boughtYear: nowYear };
+    const studies: Record<string, StoredStudy> = {
+      ...studyState.studies,
+      [starId]: { ...existing, bought: [...existing.bought, bought] },
+    };
+    await this.saveStudyState(state.token, { version: 2, studies });
+
+    const updatedProjectState = commitCompute(projectState, cost);
+    await this.saveProjectState(state.token, updatedProjectState);
+
+    const answersYear = answersYearFor(def, bought, projectState);
+    await this.pushWakeEvent({
+      token: state.token,
+      atYear: answersYear,
+      key: `q/${starId}/${def.id}`,
+    });
+
+    await this.sendSky(conn, state.token, state.civId);
+  }
+
+  /**
+   * launchMission: commit a probe-class mission to a visible source under a
+   * charter written now and never patchable again (systems-a.md §5.4).
+   */
+  private async onLaunchMission(
+    conn: Connection,
+    starId: string,
+    kind: string,
+    charter: readonly string[],
+  ): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    const galaxy = this.requireGalaxy();
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    const visible = visibleSky(galaxy, state.civId, nowYear);
+    const source = visible.find((o) => o.starId === starId);
+    if (source === undefined) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
+      return;
+    }
+    const kindDef = missionKindById(kind);
+    if (kindDef === undefined) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "unknown-mission-kind",
+        message: "no such mission kind",
+      });
+      return;
+    }
+    const resolvedCharter = validateCharter(kindDef.kind, charter);
+    if (resolvedCharter === null) {
+      this.sendMsg(conn, { type: "error", code: "bad-charter", message: "invalid charter" });
+      return;
+    }
+
+    const missionState = await this.loadMissionState(state.token);
+    const civId = state.civId;
+    const conflict = missionState.missions.some((m) => {
+      if (m.starId !== starId || m.kind !== kindDef.kind) return false;
+      const cone = lightConeFor(galaxy, civId, m.targetCivId, nowYear);
+      const snapshot = toMissionSnapshot(galaxy, cone, m, nowYear);
+      return (
+        snapshot.state === "in-flight" ||
+        snapshot.state === "beyond-horizon" ||
+        snapshot.state === "awaiting-light" ||
+        snapshot.state === "standing"
+      );
+    });
+    if (conflict || missionState.missions.length >= MAX_MISSIONS_PER_TOKEN) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "mission-unavailable",
+        message: "a live mission of this kind already runs on this star",
+      });
+      return;
+    }
+
+    const projectState = await this.loadProjectState(state.token, state.civId, nowYear);
+    const free = freeComputeAt(projectState, nowYear);
+    if (free < kindDef.costCompute) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "insufficient-compute",
+        message: "not enough free compute",
+      });
+      return;
+    }
+
+    const flightYearsPerLy = effectiveFlightYearsPerLy(projectState, nowYear);
+    const mission: StoredMission = {
+      id: `m-${missionState.nextOrdinal}`,
+      kind: kindDef.kind,
+      starId,
+      targetCivId: source.targetId,
+      launchedYear: nowYear,
+      distanceLy: source.distanceLy,
+      flightYearsPerLy,
+      charter: resolvedCharter,
+    };
+    const updatedMissionState: MissionState = {
+      version: 1,
+      missions: [...missionState.missions, mission],
+      nextOrdinal: missionState.nextOrdinal + 1,
+    };
+    await this.saveMissionState(state.token, updatedMissionState);
+
+    const updatedProjectState = commitCompute(projectState, kindDef.costCompute);
+    await this.saveProjectState(state.token, updatedProjectState);
+
+    await this.pushWakeEvent({
+      token: state.token,
+      atYear: missionFirstWordYear(mission),
+      missionId: mission.id,
+      key: `m/${mission.id}/0`,
+    });
+
     await this.sendSky(conn, state.token, state.civId);
   }
 
@@ -504,16 +746,35 @@ export class Cohort extends Server<CohortEnv> {
     await this.sendSky(conn, state.token, state.civId);
   }
 
+  /**
+   * Key changed from `cases:${token}` at the case→study rename (A2.1 had
+   * just shipped and the tap bug meant no studies were ever opened in
+   * production, so no migration shim is needed for THAT rename). A2.2 adds
+   * a real v1→v2 migration (studies.ts's migrateStudyState, loadProjectState's
+   * exact idiom): every study gains an empty `bought[]`.
+   */
   private async loadStudyState(token: string): Promise<StudyState> {
-    // Key changed from `cases:${token}` at the case→study rename (A2.1 had
-    // just shipped and the tap bug meant no studies were ever opened in
-    // production, so no migration shim is needed).
-    const stored = await this.ctx.storage.get<StudyState>(`studies:${token}`);
-    return stored ?? { version: 1, studies: {} };
+    const stored = await this.ctx.storage.get<StoredStudyState>(`studies:${token}`);
+    if (stored === undefined) return newStudyState();
+    if (stored.version === 2) return stored;
+    const migrated = migrateStudyState(stored);
+    await this.ctx.storage.put(`studies:${token}`, migrated);
+    return migrated;
   }
 
   private async saveStudyState(token: string, state: StudyState): Promise<void> {
     await this.ctx.storage.put(`studies:${token}`, state);
+  }
+
+  /** A run placed before A2.2 has no stored mission state: lazily create one. */
+  private async loadMissionState(token: string): Promise<MissionState> {
+    const stored = await this.ctx.storage.get<MissionState>(`missions:${token}`);
+    if (stored === undefined) return newMissionState();
+    return migrateMissionState(stored);
+  }
+
+  private async saveMissionState(token: string, state: MissionState): Promise<void> {
+    await this.ctx.storage.put(`missions:${token}`, state);
   }
 
   /**
@@ -578,7 +839,14 @@ export class Cohort extends Server<CohortEnv> {
    * The player's whole sky in one message: their own present-tense SelfView,
    * plus the ONLY other-civ data on the wire — visibleSky mapped through
    * toWireSource, so the client sky is byte-identical to /dev/observe for the
-   * same pair (same code path). localNames are the owner's private labels.
+   * same pair (same code path), except for the confidence-lift step below.
+   * localNames are the owner's private labels.
+   *
+   * A2.2 additions: `missions`, `docket`, and `probeFlightYearsPerLy`, and a
+   * confidence-lift pass over every source's signal BEFORE it feeds
+   * studies/questions/wire — landed `confidence-lift` projects raise the
+   * FLOOR under `confidenceFor`'s output, never the value, and the lift is
+   * still clamped to ≤0.95 (synthesis.md §4). This is the one call site.
    */
   private async sendSky(conn: Connection, token: string, civId: string): Promise<void> {
     const galaxy = this.requireGalaxy();
@@ -593,25 +861,59 @@ export class Cohort extends Server<CohortEnv> {
       designation: star.designation,
       position: star.position,
     };
-    const sources: DetectedSource[] = visibleSky(galaxy, civId, nowYear).map(toWireSource);
+
+    const projectState = await this.loadProjectState(token, civId, nowYear);
+    const confidenceLift = confidenceLiftAt(projectState, nowYear);
+    const sources: DetectedSource[] = visibleSky(galaxy, civId, nowYear).map((o) =>
+      toWireSource(
+        confidenceLift > 0
+          ? { ...o, signal: { ...o.signal, confidence: Math.min(0.95, o.signal.confidence + confidenceLift) } }
+          : o,
+      ),
+    );
     const run = await this.ctx.storage.get<RunRecord>(`run:${token}`);
     const localNames = run?.localNames ?? {};
+
+    const missionState = await this.loadMissionState(token);
+
     // Join this player's stored studies against the currently visible sources:
     // a stored study whose source isn't visible right now is simply omitted
     // (forward-safe default for A2.3's overtaken). Sorted by starId for a
-    // deterministic payload order.
+    // deterministic payload order. Each study needs a LightCone (for
+    // questions.ts's resolveQuestion) and this star's mission-report
+    // StudyMoves (missions.ts's deriveStudyMoves — studies.ts never imports
+    // missions.ts, so those moves are built here and handed in).
     const studyState = await this.loadStudyState(token);
     const studies: StudySnapshot[] = Object.values(studyState.studies)
       .map((stored) => {
         const source = sources.find((s) => s.starId === stored.starId);
-        return source === undefined ? null : buildStudySnapshot(source, stored.status, nowYear);
+        const targetCiv = civAtStar(galaxy, stored.starId);
+        if (source === undefined || targetCiv === undefined) return null;
+        const cone = lightConeFor(galaxy, civId, targetCiv.seed.id, nowYear);
+        const missionMoves: StudyMove[] = missionState.missions
+          .filter((m) => m.starId === stored.starId)
+          .flatMap((m) => {
+            const mCone = lightConeFor(galaxy, civId, m.targetCivId, nowYear);
+            const plan = resolveMissionPlan(galaxy, mCone, m, nowYear);
+            return plan === null
+              ? []
+              : deriveStudyMoves(galaxy, mCone, m, plan, missionArrivalYear(m), nowYear);
+          });
+        return buildStudySnapshot(galaxy, cone, source, stored, nowYear, projectState, missionMoves);
       })
       .filter((s): s is StudySnapshot => s !== null)
       .sort((a, b) => a.starId.localeCompare(b.starId));
 
-    const projectState = await this.loadProjectState(token, civId, nowYear);
+    const missions: MissionSnapshot[] = missionState.missions
+      .map((m) => {
+        const cone = lightConeFor(galaxy, civId, m.targetCivId, nowYear);
+        return toMissionSnapshot(galaxy, cone, m, nowYear);
+      })
+      .sort((a, b) => a.id.localeCompare(b.id));
+
     const projects: ProjectSnapshot[] = PROJECTS.map((def) => {
       const runningEntry = projectState.started.find((p) => p.id === def.id);
+      const addRatePerYear = def.effect.kind === "compute-income" ? def.effect.addRatePerYear : 0;
       if (runningEntry === undefined) {
         return {
           id: def.id,
@@ -620,7 +922,7 @@ export class Cohort extends Server<CohortEnv> {
           costClass: def.costClass,
           costCompute: def.costCompute,
           durationYears: def.durationYears,
-          addRatePerYear: def.effect.addRatePerYear,
+          addRatePerYear,
           status: "available",
           startedYear: null,
           landsYear: null,
@@ -634,7 +936,7 @@ export class Cohort extends Server<CohortEnv> {
         costClass: def.costClass,
         costCompute: def.costCompute,
         durationYears: def.durationYears,
-        addRatePerYear: def.effect.addRatePerYear,
+        addRatePerYear,
         status: landed ? "standing" : "running",
         startedYear: runningEntry.startedYear,
         landsYear: landedYear(def, runningEntry),
@@ -646,6 +948,25 @@ export class Cohort extends Server<CohortEnv> {
       asOfYear: nowYear,
     };
 
+    const relevantStarIds = new Set<string>([
+      ...studies.map((s) => s.starId),
+      ...missions.map((m) => m.starId),
+    ]);
+    const designations: Record<string, string> = {};
+    for (const starId of relevantStarIds) {
+      designations[starId] = starById(galaxy.stars, starId).designation;
+    }
+    const docket = buildDocket({
+      nowYear,
+      projectState,
+      studies,
+      missions,
+      localNames,
+      designations,
+    });
+
+    const probeFlightYearsPerLy = effectiveFlightYearsPerLy(projectState, nowYear);
+
     this.sendMsg(conn, {
       type: "sky",
       nowYear,
@@ -655,6 +976,9 @@ export class Cohort extends Server<CohortEnv> {
       studies,
       projects,
       budget,
+      missions,
+      docket,
+      probeFlightYearsPerLy,
     });
   }
 
@@ -717,6 +1041,61 @@ export class Cohort extends Server<CohortEnv> {
     };
   }
 
+  /** The launch surface's vocabulary — sent once on welcome, like `menus`,
+   *  so no mission catalog ships in the client bundle. */
+  private missionCatalog(): MissionCatalog {
+    return {
+      kinds: MISSION_KINDS,
+      clauses: CHARTER_CLAUSES,
+      minClauses: MIN_CHARTER_CLAUSES,
+      maxClauses: MAX_CHARTER_CLAUSES,
+    };
+  }
+
+  /** Builds a wake ScheduledEvent — hygiene: `wake/${token}/${key}` so a
+   *  re-push for the same purchase/launch is idempotent (same id). Pure;
+   *  callers own persistence. */
+  private buildWakeEvent(input: {
+    readonly token: string;
+    readonly atYear: number;
+    readonly key: string;
+    readonly missionId?: string;
+  }): ScheduledEvent {
+    return {
+      id: `wake/${input.token}/${input.key}`,
+      atYear: input.atYear,
+      kind: "wake",
+      note: input.key,
+      token: input.token,
+      ...(input.missionId !== undefined ? { missionId: input.missionId } : {}),
+    };
+  }
+
+  /**
+   * Push a wake event: read-modify-write the "events" queue, idempotent by
+   * id (a re-push for the same purchase/launch overwrites the entry at the
+   * same id). Bounds the queue at MAX_PENDING_EVENTS, dropping the
+   * farthest-future entry first. Used by handlers (onBuyQuestion,
+   * onLaunchMission); onAlarm appends to its own in-memory copy instead, so
+   * the two writes to "events" in one alarm turn cannot race each other.
+   */
+  private async pushWakeEvent(input: {
+    readonly token: string;
+    readonly atYear: number;
+    readonly key: string;
+    readonly missionId?: string;
+  }): Promise<void> {
+    const pending = (await this.ctx.storage.get<ScheduledEvent[]>("events")) ?? [];
+    const event = this.buildWakeEvent(input);
+    const withoutDup = pending.filter((e) => e.id !== event.id);
+    let queue = [...withoutDup, event];
+    if (queue.length > MAX_PENDING_EVENTS) {
+      queue = queue.sort((a, b) => a.atYear - b.atYear).slice(0, MAX_PENDING_EVENTS);
+    }
+    await this.ctx.storage.put("events", queue);
+    await this.armAlarm(queue);
+  }
+
   private requireGalaxy(): Galaxy {
     if (this.galaxy === null) throw new Error("cohort not seeded");
     return this.galaxy;
@@ -744,6 +1123,19 @@ export class Cohort extends Server<CohortEnv> {
     return json({ error: "not found" }, 404);
   }
 
+  /**
+   * Alarms are wake-ups only, never truth (systems-a.md §7): the ONLY thing
+   * a due "wake" does is resend the sky to every currently-live placed
+   * connection for its token. Every number in that sky is derived from the
+   * clock at read time, so a sleeping DO or a wiped queue never desyncs
+   * anything — it only delays a push the client would compute correctly
+   * itself on its next `requestSky`.
+   *
+   * synthesis.md §1 (the alarm liveness rule): when a due wake would re-arm
+   * a follow-up (a sentinel's next word), only push the fresh wake if at
+   * least one placed connection for this token is currently live. An
+   * absent player's sentinel must not re-arm forever.
+   */
   async onAlarm(): Promise<void> {
     const clock = this.clock;
     if (clock === null) return;
@@ -753,13 +1145,47 @@ export class Cohort extends Server<CohortEnv> {
 
     const due = pending.filter((e) => e.atYear <= nowYear + 1e-6);
     const rest = pending.filter((e) => e.atYear > nowYear + 1e-6);
+
     for (const event of due) {
-      // A0: firing = recording. Arrivals/deliveries will hook in here.
       log.push({ ...event, firedAtYear: nowYear });
       console.log(
         `[cohort ${this.name}] event fired at year ${nowYear.toFixed(3)}: ${event.kind} — ${event.note}`,
       );
+
+      if (event.kind !== "wake" || event.token === undefined) continue;
+      const token = event.token;
+      const liveConns = [...this.conns.values()].filter(
+        (c) => c.token === token && c.civId !== null,
+      );
+      for (const c of liveConns) {
+        if (c.civId === null) continue; // filtered above; re-checked for the type narrowing
+        await this.sendSky(c.conn, c.token, c.civId);
+      }
+
+      if (event.missionId === undefined || liveConns.length === 0) continue;
+      const missionState = await this.loadMissionState(token);
+      const mission = missionState.missions.find((m) => m.id === event.missionId);
+      if (mission === undefined) continue;
+      const nextArrivals = expectedArrivals(
+        mission.kind,
+        mission.launchedYear,
+        mission.distanceLy,
+        mission.flightYearsPerLy,
+        nowYear + SENTINEL_CADENCE_YEARS + 1,
+      );
+      const next = nextArrivals.find((e) => e > nowYear + 1e-6);
+      if (next !== undefined) {
+        rest.push(
+          this.buildWakeEvent({
+            token,
+            atYear: next,
+            missionId: mission.id,
+            key: `m/${mission.id}/${next}`,
+          }),
+        );
+      }
     }
+
     await this.ctx.storage.put("events", rest);
     await this.ctx.storage.put("eventLog", log.slice(-100));
     await this.armAlarm(rest);

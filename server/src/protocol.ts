@@ -71,6 +71,15 @@ import type { CivSeed } from "./civseed";
 import type { ObservedCiv, ObservedSignal, SignalClass } from "./knowledge";
 import type { Star, Vec3Ly } from "./galaxy";
 import type { CostClass } from "./projects";
+import type { QuestionId } from "./questions";
+import type {
+  CharterClauseDef,
+  CharterClauseId,
+  DocketState,
+  MissionKind,
+  MissionKindDef,
+} from "./missions";
+import type { DocketRow } from "./docket";
 
 // Re-exports the client needs to render. Types are erased; DIAL_AXES is the
 // ONE runtime value the client genuinely needs (in-world dial pole labels),
@@ -90,6 +99,8 @@ export type { Star, SpectralClass, Vec3Ly } from "./galaxy";
 export type { LineageId } from "./cradles";
 export type { ArchetypeId } from "./minds";
 export type { CostClass } from "./projects";
+export type { QuestionId } from "./questions";
+export type { CharterClauseId, DocketState, MissionKind } from "./missions";
 
 /** Clock anchor; the client computes nowYear locally (no time polling). */
 export interface ClockWire {
@@ -184,6 +195,11 @@ export interface EvidenceEntry {
   readonly lightAgeYears: number;
   readonly annotation: string;
   readonly moved: readonly HypothesisId[];
+  /** A2.2: which channel this entry arrived on — a light-history epoch, a
+   *  bought question's finding, or a mission report. studies.ts cannot tell
+   *  a bought answer from a probe report and does not need to; the client
+   *  can still badge them differently. */
+  readonly kind: "arrival" | "answer" | "report";
 }
 
 /** "called" | "overtaken" join in A2.3. */
@@ -207,14 +223,44 @@ export type HypothesisMenus = Readonly<
   Record<SignalClass, readonly HypothesisMenuEntry[]>
 >;
 
-/** Reserved for A2.2 — always [] in A2.1. */
-export interface OpenQuestion {
+/** offered: not yet bought. pending: bought, integration still running.
+ *  answered: the finding has landed. */
+export type QuestionState = "offered" | "pending" | "answered";
+
+/**
+ * The answer as the board shows it. Carries prose and dates only — no
+ * truth field, no level, no ladder, nothing a caller could fill from the
+ * wrong year (questions.ts's Finding is the server-side twin this derives
+ * from; Finding itself never crosses the wire).
+ */
+export interface QuestionFinding {
   readonly id: string;
+  readonly asOfYear: number; // = answersYear − distanceLy
+  readonly lightAgeYears: number; // nowYear − asOfYear
+  readonly annotation: string;
+  readonly moved: readonly HypothesisId[];
+  readonly shape: "sharpen" | "plateau";
+}
+
+/**
+ * One question on a study: what it costs, what it would separate, and —
+ * once bought — where its clock stands and what it found. `costCompute` /
+ * `integrationYears` reflect any landed discount/haste project: a LIVE
+ * preview while `offered`, frozen at `boughtYear` once bought
+ * (synthesis.md §4 — effects never apply retroactively).
+ */
+export interface OpenQuestion {
+  readonly id: QuestionId;
   readonly label: string;
-  /** Compute to run the inference. `integrationHours` is the clock it runs on. */
+  readonly line: string;
+  readonly costClass: CostClass; // "investment"
   readonly costCompute: number;
-  readonly integrationHours: number;
-  readonly separates: readonly HypothesisId[];
+  readonly integrationYears: number;
+  readonly separates: readonly HypothesisId[]; // derived per class at snapshot time
+  readonly state: QuestionState;
+  readonly boughtYear: number | null; // null iff offered
+  readonly answersYear: number | null; // null iff offered; boughtYear + integrationYears
+  readonly finding: QuestionFinding | null; // non-null iff answered
 }
 
 /**
@@ -262,6 +308,75 @@ export interface ComputeBudget {
   readonly asOfYear: number; // so the client accrues locally
 }
 
+// ── A2.2: probe-class missions and the Docket ───────────────────────────
+// Belief/prose shapes only — every truth-adjacent member is prose and
+// dates, never a number (missions.ts's whole no-leak story). A mission
+// attaches to a source by starId; it has no `targetCivId` on the wire, the
+// same drop toWireSource already makes for observerId/targetId.
+
+export interface CharterClauseWire {
+  readonly id: CharterClauseId;
+  readonly label: string;
+  readonly line: string;
+}
+
+/**
+ * One report, as received. STRUCTURAL INVARIANT (missions.ts's
+ * deriveReports, its one producer): `arrivedYear === aboutYear +
+ * distanceLy`, and a report is only ever built for `aboutYear` at or below
+ * the light cone — so `aboutYear` is never newer than the sky the
+ * telescope already shows. The payload is PROSE AND DATES ONLY: no level,
+ * no ladder, no ascension flag.
+ */
+export interface MissionReport {
+  readonly id: string; // `${missionId}/r/${n}`
+  readonly ordinal: number;
+  readonly latest: boolean;
+  readonly aboutYear: number;
+  readonly arrivedYear: number; // = aboutYear + distanceLy
+  readonly lightAgeYears: number; // nowYear − aboutYear
+  readonly headline: string; // ≤6 words, ALL-CAPS set phrase
+  readonly detail: string; // one or two plain sentences
+  readonly moved: readonly HypothesisId[];
+}
+
+/**
+ * One mission, as its owner sees it. Every field is either arithmetic on
+ * public numbers (starId and distanceLy are already public via
+ * DetectedSource) or comes from `deriveReports`. `reports` is the ONLY
+ * truth-derived member, and it has exactly one producer
+ * (missions.ts's toMissionSnapshot).
+ */
+export interface MissionSnapshot {
+  readonly id: string;
+  readonly kind: MissionKind;
+  readonly label: string;
+  readonly starId: string;
+  readonly costClass: CostClass;
+  readonly costCompute: number;
+  readonly launchedYear: number;
+  readonly distanceLy: number;
+  readonly horizonYear: number; // launchedYear + 9d (at this mission's frozen speed)
+  readonly arrivalYear: number; // launchedYear + 10d
+  readonly firstWordYear: number; // launchedYear + 11d
+  readonly nextWordYear: number | null; // next expected arrival, null if none
+  readonly charter: readonly CharterClauseWire[];
+  readonly state: DocketState;
+  readonly reports: readonly MissionReport[];
+}
+
+/**
+ * Sent once on welcome, like `menus`: the launch surface's vocabulary, so
+ * no mission catalog ships in the client bundle. Wording and constants
+ * only — nothing source-specific, nothing about any civ.
+ */
+export interface MissionCatalog {
+  readonly kinds: readonly MissionKindDef[];
+  readonly clauses: readonly CharterClauseDef[];
+  readonly minClauses: number; // 2
+  readonly maxClauses: number; // 3
+}
+
 // client → server (UNTRUSTED — every field guarded on parse)
 export type CohortClientMessage =
   | { type: "hello"; token: string | null }
@@ -270,25 +385,46 @@ export type CohortClientMessage =
   | { type: "requestSky" }
   | { type: "openStudy"; starId: string }
   | { type: "shelveStudy"; starId: string }
-  | { type: "startProject"; projectId: string };
+  | { type: "startProject"; projectId: string }
+  // ── A2.2 ──
+  | { type: "buyQuestion"; starId: string; questionId: string }
+  | { type: "launchMission"; starId: string; kind: string; charter: readonly string[] };
 
 // server → client
 export type CohortServerMessage =
   | { type: "welcome"; token: string; phase: "choosing" | "placed";
-      clock: ClockWire; catalog: readonly Star[]; menus: HypothesisMenus }
+      clock: ClockWire; catalog: readonly Star[]; menus: HypothesisMenus;
+      missionCatalog: MissionCatalog }
   | { type: "offer"; candidates: readonly CivCard[] }
   | { type: "sky"; nowYear: number; self: SelfView;
       sources: readonly DetectedSource[];
       localNames: Readonly<Record<string, string>>;
       studies: readonly StudySnapshot[];
       projects: readonly ProjectSnapshot[];
-      budget: ComputeBudget }
+      budget: ComputeBudget;
+      missions: readonly MissionSnapshot[];
+      docket: readonly DocketRow[];
+      /** The CURRENT effective probe speed (years per light-year), derived
+       *  from landed probe-haste projects at nowYear — lets the launch
+       *  sheet preview a mission's clock before committing. */
+      probeFlightYearsPerLy: number }
   | { type: "sourceNamed"; starId: string; name: string }
   | { type: "error"; code: CohortErrorCode; message: string };
 
 export type CohortErrorCode =
   | "bad-name" | "unknown-candidate" | "cohort-full" | "not-placed" | "bad-message"
-  | "unknown-project" | "already-running" | "insufficient-compute";
+  | "unknown-project" | "already-running" | "insufficient-compute"
+  // ── A2.2 ──
+  | "unknown-question" // no such question id
+  | "question-unavailable" // not offered on this class, or already bought
+  | "unknown-mission-kind" // no such mission kind
+  | "bad-charter" // wrong count, unknown clause, two from one group, wrong kind
+  | "mission-unavailable"; // a live mission of this kind already runs on this star
+
+/** Parse-time bound on the untrusted `launchMission.charter` array (a parse
+ *  concern); the 2–3 count rule and one-per-group rule are handler concerns
+ *  answered with `bad-charter`. */
+export const MAX_CHARTER_CLAUSES_ON_WIRE = 8;
 
 /** Max civilization / local-source name length (post-trim). */
 export const MAX_NAME_LEN = 24;
@@ -367,6 +503,36 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
 
   if (msg["type"] === "startProject" && typeof msg["projectId"] === "string") {
     return { type: "startProject", projectId: msg["projectId"] };
+  }
+
+  if (
+    msg["type"] === "buyQuestion" &&
+    typeof msg["starId"] === "string" &&
+    typeof msg["questionId"] === "string"
+  ) {
+    return { type: "buyQuestion", starId: msg["starId"], questionId: msg["questionId"] };
+  }
+
+  if (
+    msg["type"] === "launchMission" &&
+    typeof msg["starId"] === "string" &&
+    typeof msg["kind"] === "string"
+  ) {
+    const raw: unknown = msg["charter"];
+    if (Array.isArray(raw) && raw.length <= MAX_CHARTER_CLAUSES_ON_WIRE) {
+      const charter: string[] = [];
+      let ok = true;
+      for (const clause of raw as readonly unknown[]) {
+        if (typeof clause !== "string") {
+          ok = false;
+          break;
+        }
+        charter.push(clause);
+      }
+      if (ok) {
+        return { type: "launchMission", starId: msg["starId"], kind: msg["kind"], charter };
+      }
+    }
   }
 
   if (msg["type"] === "requestSky") {
