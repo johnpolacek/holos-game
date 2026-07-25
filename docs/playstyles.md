@@ -162,7 +162,7 @@ mechanics live in act2-design.md; the Act 3 shadows in act2-minds.md.)
 
 #### Silence — *to exist is to know and not be known*
 - **Verbs:** vigil (an active inference activity, not a wait-state —
-  choosing targets, allocating instrument time, forming and testing
+  choosing targets, allocating compute, forming and testing
   hypotheses), classify, intercept, set tripwires, build masks, **broker
   intelligence** — the information economy is the quiet civilization's
   offense, and third-party coordinates are its currency

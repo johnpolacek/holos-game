@@ -233,7 +233,7 @@ allowed to be this theatrical.
   player's fingers know.
 - **The observatory** (Desk): the inference workbench. Active vigils as
   studies: hypotheses with confidence shares, buyable questions priced
-  in instrument time (a purpose-level choice — *which question*, never
+  in compute (a purpose-level choice — *which question*, never
   *which telescope setting*), answers that sharpen, plateau, or
   regress, and per-study tripwires
   ([observatory-design.md](./observatory-design.md) is the spec). This

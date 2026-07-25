@@ -211,12 +211,12 @@ small PR merged to `main` and phone-checked on the deployed URL before
 the next begins.
 
 - [ ] **The vigil**: a flagged source becomes a study — hypotheses,
-      buyable questions, instrument-time allocation, the
+      buyable questions, compute allocation, the
       sharpen/plateau/regress contest, study tripwires, and the
       called/shelved/overtaken exits
       ([observatory-design.md](./observatory-design.md) is the spec;
       the grounded exit — the Assay — lands with A4).
-- [ ] **The mask contest (thin)**: sharpening with instrument time
+- [ ] **The mask contest (thin)**: sharpening with compute
       against the target's mask — the live mask-versus-instrument
       contest (technology.md § Working decisions), moved here from A1
       because this is the slice where the other side first has behavior

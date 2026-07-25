@@ -241,7 +241,7 @@ what the destination will have become, and the game says so with a number.
   never truth, and never certain.
 - **The timing decision.** Launch now on a wide spread, or watch to
   narrow it — the same watch-versus-act tension the vigil runs, priced in
-  instrument time and years. A launch deferred is confidence gained and a
+  compute and years. A launch deferred is confidence gained and a
   head start spent; races are lost this way, and blunders avoided.
 - **Landfall.** When the flight clock fires, the truth engine resolves
   what is actually there, and the report returns as light — the

@@ -32,7 +32,7 @@ component library, the seven principles), and
 docs/concepts/03-03-case-board.png with its decision-log row in
 docs/concepts/README.md (the adopted visual target, including its two
 build notes: the confidence marker must not read as a draggable knob,
-and a question's hours are stated once — the second note binds A2.2 but
+and a question's cost is stated once — the second note binds A2.2 but
 shape the layout for it now).
 
 What exists. A0/A1 are merged and deployed: the knowledge layer
@@ -103,7 +103,7 @@ Orient. Read, in order: CLAUDE.md at the repo root (stack, conventions,
 § Build orchestration — you orchestrate; Opus for design-heavy calls,
 Sonnet for mechanical work). Then docs/build-a2.md (§ Staging, § A2.2),
 docs/observatory-design.md (§ Questions — the six question types, costs
-as instrument time, sequencing, "which hypotheses it separates"; § The
+in compute, sequencing, "which hypotheses it separates"; § The
 design target — portfolio pacing is settled: dry spells per study are
 normal, the board must always offer a decision), docs/economy-design.md
 (questions are Compute-heavy Investments; no capacity slots — budget
@@ -114,7 +114,7 @@ What exists. A2.1 shipped the read-only observatory: study state on the
 Cohort DO, hypothesis menus, guarded openStudy/shelveStudy wire, the Desk
 panel, and the adopted visual language (docs/concepts/README.md's
 03-03-case-board row — note its build fixes: the confidence marker is a
-glow, never a knob; a question's hours are stated once, with the clock
+glow, never a knob; a question's cost is stated once, with the clock
 pair carrying the duration). The Cohort DO's alarm queue
 (server/src/cohort.ts) already schedules future events; answers ride
 it.
@@ -122,9 +122,9 @@ it.
 Build:
 1. Server: the six question types as typed data (weigh it, temperature
    over time, read its lines, time its shadows, catch its edges,
-   listen off-axis), each with an instrument-time cost, an
+   listen off-axis), each with a compute cost, an
    integration-time clock, and which hypothesis pairs it separates.
-   Instrument-time income per civilization; allocation across studies.
+   Compute income per civilization; allocation across studies.
    Answers resolve server-side against emission truth through the
    knowledge layer (never in handlers) and update the study's
    distribution — sharpen or plateau only; no opponent yet.

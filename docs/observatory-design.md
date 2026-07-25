@@ -112,19 +112,31 @@ The v1 question types, each mapping to real observational practice:
 - **Listen off-axis.** Sidelobe leakage around a directed beam — who
   else might it be meant for.
 
-Each question carries a **cost in instrument time** (Compute-heavy, an
-Investment; economy-design.md) and a **time to answer** (integration on
-real clocks, hours to days, clock pair always shown). Buying one puts a
-row on the Docket — `awaiting light`, countdown running — and the answer
-arrives in a report, moving the distribution when it lands.
+Each question carries a **cost in compute** (economy-design.md's price of
+knowing; an Investment) and a **time to answer** (integration on real
+clocks, hours to days, clock pair always shown). Buying one puts a row on
+the Docket — `awaiting light`, countdown running — and the answer arrives
+in a report, moving the distribution when it lands.
 
-**Instrument time is a budget, not a slot.** The observatory has an
-income (raised by instrument-family projects; the gravitational-lens
+**The spend is the inference, not the looking.** A civilization at this
+stage collects everything its instruments can reach, continuously; the
+photons are free and arrive whether or not anyone attends to them. What is
+finite is the capacity to *reason* about what came in — to turn a light
+curve into a claim about who lives there. That is why the currency is
+Compute and why the surface never denominates it in telescope hours: it is
+an allocation of thinking, not a rationing of sight. (Earlier drafts of
+this document called it "instrument time"; same mechanic, wrong noun.)
+
+**Compute is an allocation, not a slot — and not a bank.** The observatory
+has an income (raised by instrument-family projects, which buy the
+inference capacity to make use of themselves; the gravitational-lens
 observatory is the deep end), and the player allocates it across studies.
-Scarcity does the design work: with three live studies and income for one
-deep question, *which question, on which study* is a real decision every
-session. There is no cap on open studies — only on how fast any of them can
-move.
+It is spendable on one thing — knowing — and converts to nothing else, so
+it never becomes the universal medium economy-design.md § *No money*
+refuses. Scarcity does the design work: with three live studies and income
+for one deep question, *which question, on which study* is a real decision
+every session. There is no cap on open studies — only on how fast any of
+them can move.
 
 **Sequencing is the skill.** A cheap question that halves the hypothesis
 space beats an expensive one that polishes the leader. The observatory
@@ -275,7 +287,7 @@ watching.
 ## v1 scope
 
 The hypothesis menus above (2–4 per signal class); the six question
-types; instrument-time income + allocation on the observatory; sharpen /
+types; compute income + allocation on the observatory; sharpen /
 plateau / regress with archetype-rule opponent spend, the regression
 tell stated plainly; study tripwires; called / shelved / overtaken exits
 (grounded arrives with A4's Assay); dossiers produced, consumed, and
@@ -298,7 +310,7 @@ missions). Free-text hypotheses are not deferred; they are declined
   specifiable here.
 - **Shared studies, formally.** Dossier exchange ships in v1 (settled);
   the open half is the *joint study* — two civilizations pooling
-  instrument time on one source with a shared board, which needs joint
+  compute on one source with a shared board, which needs joint
   missions' co-authorship machinery. Design when joint nodes ship.
 - **Forged dossiers.** If dossiers trade, dossiers can lie — a forged
   finding is deception's cheapest new weapon, and light-cone

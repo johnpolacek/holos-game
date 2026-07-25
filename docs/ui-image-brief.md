@@ -301,6 +301,13 @@ and can wait.*
 > charts, no graphs, no dashboard density; the page reads like typeset
 > evidence.
 
+*Prompt kept verbatim as the record of what produced the existing plate.
+Its currency has since been renamed: the spend is **compute**, not
+instrument hours — looking is free at this stage, the inference is what
+costs (observatory-design.md § Questions). A regeneration should read
+"12 COMPUTE" for "12 H INSTRUMENT" and label the strip a compute
+allocation; everything else about the plate stands.*
+
 #### 8 — Act 3: the choice ceremony (broadcast)
 
 > Irreversible-decision screen: the same dark star field, and from the

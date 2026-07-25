@@ -314,7 +314,7 @@ The systems above make missions *possible*; these commitments make them
    on. There is no separate "expansion" pipeline; expansion is the
    colony-class mission family.
 2. **The observatory's closing verb is a dispatch.** Every classification
-   arc ends at a fork: keep watching (allocate instrument time), or *go
+   arc ends at a fork: keep watching (allocate compute), or *go
    and know* (the Assay). Ambiguity is priced in exactly two currencies —
    patience or a probe — and the source card offers both. Most warm
    masses are nobody; finding that out cheaply, overnight, by sending

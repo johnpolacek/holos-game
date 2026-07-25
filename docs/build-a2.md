@@ -42,7 +42,7 @@ Three decisions are already made for you (do not reopen them):
   counterparts may be freeform. Design the parts; don't ship a chat box.
 - **The vigil spec exists**:
   [observatory-design.md](./observatory-design.md) — studies, hypotheses,
-  buyable questions, instrument-time allocation, sharpen/plateau/regress,
+  buyable questions, compute allocation, sharpen/plateau/regress,
   study tripwires, called/shelved/overtaken exits. Build that, thin.
 - **Durable identity lives in DO SQLite** (roadmap § Open build
   decisions): the A1 per-run token becomes a claimable account in the
@@ -132,8 +132,8 @@ Nothing buyable yet.
 
 ### A2.2 — Questions, bought and answered
 
-The vigil's verb. Wire: buy a question; instrument-time income and
-allocation; answers scheduled through the alarm queue on real clocks.
+The vigil's verb. Wire: buy a question; compute income and allocation;
+answers scheduled through the alarm queue on real clocks.
 Screen: the study's open questions with costs, clock pairs, and
 which-hypotheses-it-separates; bought questions on the strip's cooking
 clocks; answers landing in the report and moving the bars (sharpen and
