@@ -9,10 +9,10 @@ the docs each prompt names stay the source of truth.*
 
 **Status (2026-07):** A2.1, A2.2 and A2.2b are shipped — their blocks
 stay below as record. **A2.3 is the open stage.** A2.2b also shipped the
-Docket's progress tracks alongside the grounded exit, and fixed an A2.2
+work list's progress tracks alongside the grounded exit, and fixed an A2.2
 silence bug that only showed up on screen (systems-a.md §3.4). Every block
 from A2.3 on describes a tree that now also contains missions, the
-Docket, and the light-cone gate — each block's *What exists* paragraph
+work list, and the light-cone gate — each block's *What exists* paragraph
 has been brought up to date, but read `roadmap.md` § Where the build is
 today before trusting any older framing.
 
@@ -74,7 +74,7 @@ Build:
 
 Do not build: buyable questions, instrument allocation, regression or
 any opponent behavior, study tripwires, called/overtaken exits, the
-choice ceremony, signals, missions, or the Docket. A2.1 is read-only.
+choice ceremony, signals, missions, or the work list. A2.1 is read-only.
 
 Invariants you personally verify in every subagent's output: nothing
 about a remote civ beyond DetectedSource + the new study shapes crosses
@@ -105,7 +105,7 @@ the evidence so far; confirm nothing is buyable.
 ## A2.2 — Questions, bought and answered ✅ *shipped — kept as record*
 
 *Shipped wider than written: the session also built probe-class missions
-and the Docket (A4 work, pulled forward). build-a2.md § Guardrails
+and the work list (A4 work, pulled forward). build-a2.md § Guardrails
 records the overrun and what stays out.*
 
 ```
@@ -152,7 +152,7 @@ Build:
 
 Do not build: regression or mask spend (A2.3), study tripwires (A2.3),
 called/overtaken exits (A2.3), the choice ceremony (A2.4), signals
-(A2.5+), missions, or the Docket surface (A4) — bought questions ride
+(A2.5+), missions, or the work list surface (A4) — bought questions ride
 the existing strip clocks.
 
 Invariants you personally verify: answer content is derived in
@@ -191,7 +191,7 @@ study stays closed exactly as a called one does), and
 docs/missions-design.md (what a returned Assay actually carries).
 
 What exists. A2.1 shipped the study board; A2.2 shipped bought questions
-AND — beyond its brief — probe-class missions and the Docket. So the
+AND — beyond its brief — probe-class missions and the work list. So the
 Assay already flies, already resolves its charter against truth at
 arrival, and already moves a study's hypothesis board: see
 deriveStudyMoves in server/src/missions.ts, which cohort.ts folds into
@@ -215,11 +215,11 @@ Build:
 2. Client: a grounded study reads as closed on the board and says why in
    one flat observatory-deadpan sentence — the belief came back with the
    probe, not out of the sky, and its date is the report's, not the
-   sky's. The Docket row for the mission gains no new state.
+   sky's. The work list row for the mission gains no new state.
 3. Leave the reopen affordance exactly as shelved studies have it.
 
 Do not build: called or overtaken (A2.3), tripwires (A2.3), the mask
-contest (A2.3), any new mission kind, any change to the Docket's states.
+contest (A2.3), any new mission kind, any change to the work list's states.
 
 Invariants you personally verify: a grounded study's belief is still a
 belief — nothing from peekTruth crosses the wire unaged; a report can
@@ -264,8 +264,8 @@ open-ended spending, never stealth stats), and docs/prose-style.md
 
 What exists. A2.1–A2.2 shipped studies with hypothesis boards and bought
 questions answering through the alarm queue against delayed truth —
-plus, beyond that brief, probe-class missions and the Docket
-(server/src/missions.ts, docket.ts) and the light-cone gate that all
+plus, beyond that brief, probe-class missions and the work list
+(server/src/missions.ts, tend.ts) and the light-cone gate that all
 three knowledge channels read through (LightCone / peekTruth /
 occupancyAt in knowledge.ts; above the cone it returns null, never a
 clamp). A2.2b added the grounded exit, so StudyStatus already carries a
@@ -348,7 +348,7 @@ ON the Model, in the volume), and client/src/ceremony.ts (the existing
 hold-to-commit pattern from BECOME — reuse its feel).
 
 What exists. A2.1–A2.3 shipped the full vigil, and A2.2 shipped probe
-missions and the Docket alongside it — so the Model already carries one
+missions and the work list alongside it — so the Model already carries one
 set of physics-derived clocks; the ceremony's renders join them rather
 than starting a second vocabulary. The Model renders the
 cohort's sky with detected sources (client/src/model.ts); emission

@@ -70,7 +70,7 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | Lineage fingerprint | `lineages.ts` fingerprint | Body's voice: plain, biological, dry edge; fact-preserving | 1 |
 | Chronicle template | `civseed.ts` chronicleFor | Biographer's deadpan (Act 1); dry annalist's appendix — dated entries, past tense — for Act 3, same deadpan family | 2 |
 | UI chrome / captions | `model.ts`, `sourcecard.ts` | Observatory deadpan | 0 |
-| Docket rows / states | `docket.ts`, `studyboard.ts` | Observatory deadpan | 0 |
+| work-list rows / states | `tend.ts`, `studyboard.ts` | Observatory deadpan | 0 |
 | Ceremony microcopy | `ceremony.ts` labels/hints | Observatory deadpan | 1 |
 | Docs narration | `docs/*.md` prose | Essayist, analytical | 1 |
 | In-doc quoted interface prose | walkthrough scene quotes | The quoted archetype's own voice | 3 |
@@ -406,7 +406,7 @@ Load-bearing literals. Style passes must not rewrite them for wit or flow.
 | Age chip | `AS OF n Y AGO` |
 | Chronicle dating | Epoch-relative — each civilization counts from its own founding event (the `year n AE` family); the cohort's global year never reaches a player surface |
 | Color rule | cyan = you / HOME (present tense); amber = other / belief. Prose must never call HOME amber or a source cyan. |
-| House coinages | `Teeming Dark`, `Dark Node`, `Signature`, `the Vault`, `the Model`, `the Ledger`, `the Docket`, `Visibility Collapse`, `cradle`, `charter`, `the Refusal` / `Refuser`, `the harness` / `harnessed intelligence`, `the Breakout`, `grave world`, `the Crossing`, `the Chronicle`, `Holocore`, `the Kernel`, `mask`, `ark`, `deep array`, `the cold berth`, `the black-hole tap`, `payload stack`, `worldhousing`, `throne world`, `the send`, `tight beam`, `undertaking`, `traffic`, `standing order` |
+| House coinages | `Teeming Dark`, `Dark Node`, `Signature`, `the Vault`, `the Model`, `the Ledger`, `the work list`, `Visibility Collapse`, `cradle`, `charter`, `the Refusal` / `Refuser`, `the harness` / `harnessed intelligence`, `the Breakout`, `grave world`, `the Crossing`, `the Chronicle`, `Holocore`, `the Kernel`, `mask`, `ark`, `deep array`, `the cold berth`, `the black-hole tap`, `payload stack`, `worldhousing`, `throne world`, `the send`, `tight beam`, `undertaking`, `traffic`, `standing order` |
 
 **Display note on the pinned dial labels.** The UI may render the pinned
 in-world dial labels in display form — all-caps with an em dash (e.g.
@@ -418,7 +418,7 @@ typography.
 **Capitalization families.** Named events and singular artifacts take a
 capital, like `the Vault` and `the Model`: `the Refusal` (and its agent, the
 `Refuser`), `the Breakout`, `the Crossing`, `the Chronicle`, `Holocore`,
-`the Kernel`, `the Docket`. Ambient common
+`the Kernel`, `the work list`. Ambient common
 nouns stay lowercase, like `cradle` and `charter`: `the harness`, `harnessed
 intelligence`, `grave world`, `mask`, `ark`, `deep array`, `the cold berth`,
 `the black-hole tap`, `payload stack`, `worldhousing`, `throne world`,

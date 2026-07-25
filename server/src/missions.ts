@@ -670,10 +670,11 @@ export function resolveMissionPlan(
 }
 
 // ---------------------------------------------------------------------------
-// Docket state (systems-a.md §3.6) and the mission wire snapshot (§3.7)
+// Work state (systems-a.md §3.6) and the mission wire snapshot (§3.7)
 // ---------------------------------------------------------------------------
 
-export type DocketState =
+export type WorkState =
+  | "watching" // a study accruing light with nothing bought on it
   | "in-hand"
   | "in-flight"
   | "beyond-horizon"
@@ -682,12 +683,12 @@ export type DocketState =
   | "silent"
   | "standing";
 
-function missionDocketState(
+function missionWorkState(
   m: StoredMission,
   plan: ResolvedPlan | null,
   reportCount: number,
   nowYear: number,
-): { readonly state: DocketState; readonly missedWordYear: number | null } {
+): { readonly state: WorkState; readonly missedWordYear: number | null } {
   const horizon = missionHorizonYear(m);
   const arrival = missionArrivalYear(m);
   const firstWord = missionFirstWordYear(m);
@@ -747,7 +748,7 @@ export function toMissionSnapshot(
   const reports: readonly MissionReport[] =
     plan !== null ? deriveReports(galaxy, cone, m, plan, arrivalYear, nowYear) : [];
 
-  const { state, missedWordYear } = missionDocketState(m, plan, reports.length, nowYear);
+  const { state, missedWordYear } = missionWorkState(m, plan, reports.length, nowYear);
   const nextWordYear =
     plan !== null && plan.standing ? nextCadenceYearAfter(firstWordYear, nowYear) : null;
 

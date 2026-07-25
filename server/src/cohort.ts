@@ -98,7 +98,7 @@ import {
   questionById,
   type BoughtQuestion,
 } from "./questions";
-import { buildDocket } from "./docket";
+import { buildTendList } from "./tend";
 import {
   parseCohortClientMessage,
   toWireSource,
@@ -872,7 +872,7 @@ export class Cohort extends Server<CohortEnv> {
    * same pair (same code path), except for the confidence-lift step below.
    * localNames are the owner's private labels.
    *
-   * A2.2 additions: `missions`, `docket`, and `probeFlightYearsPerLy`, and a
+   * A2.2 additions: `missions`, `tend`, and `probeFlightYearsPerLy`, and a
    * confidence-lift pass over every source's signal BEFORE it feeds
    * studies/questions/wire — landed `confidence-lift` projects raise the
    * FLOOR under `confidenceFor`'s output, never the value, and the lift is
@@ -1035,7 +1035,7 @@ export class Cohort extends Server<CohortEnv> {
     for (const starId of relevantStarIds) {
       designations[starId] = starById(galaxy.stars, starId).designation;
     }
-    const docket = buildDocket({
+    const tend = buildTendList({
       nowYear,
       projectState,
       studies,
@@ -1056,7 +1056,7 @@ export class Cohort extends Server<CohortEnv> {
       projects,
       budget,
       missions,
-      docket,
+      tend,
       probeFlightYearsPerLy,
     });
   }

@@ -21,7 +21,7 @@ economy-design.md's mask-versus-instrument rule (opposed, open-ended
 investments; never certainty) is the contest's economics, unchanged.
 ui-design.md's observatory panel is the surface this fills in.
 [missions-design.md](./missions-design.md) supplies the study's escape
-hatch — the Assay — and the Docket rows every bought question lives on.
+hatch — the Assay — and the work list rows every bought question lives on.
 
 Six calls were settled in design review (2026-07) and are marked
 **settled** where they land below: portfolio pacing, no certainty at
@@ -115,7 +115,7 @@ The v1 question types, each mapping to real observational practice:
 Each question carries a **cost in compute** (economy-design.md's price of
 knowing; an Investment) and a **time to answer** (integration on real
 clocks, hours to days, clock pair always shown). Buying one puts a row on
-the Docket — `awaiting light`, countdown running — and the answer arrives
+the work list — `awaiting light`, countdown running — and the answer arrives
 in a report, moving the distribution when it lands.
 
 **The spend is the inference, not the looking.** A civilization at this
@@ -230,7 +230,7 @@ filling to 100:
 - **Grounded.** The Assay — a probe goes and looks
   (missions-design.md). Ground truth for the price of a mission and the
   years it takes; the study's escape hatch, and the observatory's
-  standing advertisement for the Docket.
+  standing advertisement for the work list.
 - **Shelved.** The vigil goes passive: allocation drops to zero, study
   tripwires stay armed (*wake this study if the leakage stops; if
   confidence regresses; if a beam*). Shelving is how a study load stays

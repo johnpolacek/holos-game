@@ -1,7 +1,7 @@
-// The Docket — derivation module for A2.2 (ui-design.md's Docket panel,
+// The Tend — derivation module for A2.2 (ui-design.md's Tend panel,
 // systems-a.md §4).
 //
-// ONE DERIVED LIST. It stores nothing: `buildDocket` is assembled per sky
+// ONE DERIVED LIST. It stores nothing: `buildTendList` is assembled per sky
 // send from the three state records that already exist (studies, projects,
 // missions) plus nothing new. Every date on a row is derived from a
 // purchase-time stamp (`startedYear` / `boughtYear` / `launchedYear`) plus
@@ -9,7 +9,7 @@
 //
 // NO-BACKLOG RULE. Available projects and offered questions are not
 // undertakings — nothing has been committed to yet, so they are not rows.
-// Answered questions leave the Docket too: they have become evidence on the
+// Answered questions leave the Tend too: they have become evidence on the
 // study, which is where the player reads them. A study row appears only if
 // it has at least one child, so an idle vigil (a study with no purchase
 // under way) is not clutter.
@@ -20,22 +20,22 @@
 // is a top-level row.
 
 import { hasLanded, landedYear, projectById, type CostClass, type ProjectState } from "./projects";
-import { SENTINEL_CADENCE_YEARS, type DocketState } from "./missions";
+import { SENTINEL_CADENCE_YEARS, type WorkState } from "./missions";
 import type { MissionSnapshot, StudySnapshot } from "./protocol";
 
-export type DocketKind = "study" | "project" | "question" | "mission";
+export type TendKind = "study" | "project" | "question" | "mission";
 
 /**
  * One undertaking. `nextYear` is the ONE date the row is waiting on; the
  * client renders it as a clock pair with `nextLabel` as its caption.
  */
-export interface DocketRow {
+export interface TendRow {
   readonly id: string;
-  readonly kind: DocketKind;
+  readonly kind: TendKind;
   readonly label: string; // the purpose, mind's register
   readonly sub: string; // one line: what it is for
   readonly costClass: CostClass; // the class chip
-  readonly state: DocketState;
+  readonly state: WorkState;
   readonly nextYear: number | null;
   readonly nextLabel: string | null; // "LANDS" | "ANSWERS" | "ARRIVES" | "FIRST WORD" | "NEXT WORD"
   /**
@@ -123,7 +123,10 @@ function missionSpan(m: MissionSnapshot): RowSpan {
     case "returned":
       return { nextYear: null, nextLabel: null, fromYear: null, markYear: null };
     case "in-hand":
-      // Never applies to a mission (systems-a.md §3.6); defensive fallback.
+    case "watching":
+      // Neither ever applies to a mission (systems-a.md §3.6) — they are the
+      // states of a project or question in hand and of a study only
+      // accruing light. Defensive fallback.
       return { nextYear: null, nextLabel: null, fromYear: null, markYear: null };
   }
 }
@@ -136,8 +139,8 @@ const STUDY_PREFIX = "study/";
  * group, the parent first, then children by `nextYear` then `id`.
  * Deterministic payload, soonest-thing-first reading order.
  */
-function sortDocketRows(rows: readonly DocketRow[]): readonly DocketRow[] {
-  const groups = new Map<string, DocketRow[]>();
+function sortTendRows(rows: readonly TendRow[]): readonly TendRow[] {
+  const groups = new Map<string, TendRow[]>();
   for (const row of rows) {
     const key = row.parentId ?? row.id;
     const list = groups.get(key);
@@ -160,7 +163,7 @@ function sortDocketRows(rows: readonly DocketRow[]): readonly DocketRow[] {
     return diff !== 0 ? diff : a.localeCompare(b);
   });
 
-  const out: DocketRow[] = [];
+  const out: TendRow[] = [];
   for (const key of groupIds) {
     const list = groups.get(key);
     if (list === undefined) continue;
@@ -179,20 +182,20 @@ function sortDocketRows(rows: readonly DocketRow[]): readonly DocketRow[] {
 }
 
 /**
- * Assembles the whole Docket from the three state records that already
+ * Assembles the whole Tend from the three state records that already
  * exist plus the two new ones (studies, missions). `studies` is the
  * already-derived wire `StudySnapshot[]` for this sky send — its
  * `openQuestions` carry the state/boughtYear/answersYear this module reads,
- * so buildDocket never re-derives a question's clock itself.
+ * so buildTendList never re-derives a question's clock itself.
  */
-export function buildDocket(input: {
+export function buildTendList(input: {
   readonly nowYear: number;
   readonly projectState: ProjectState;
   readonly studies: readonly StudySnapshot[];
   readonly missions: readonly MissionSnapshot[];
   readonly localNames: Readonly<Record<string, string>>;
   readonly designations: Readonly<Record<string, string>>;
-}): readonly DocketRow[] {
+}): readonly TendRow[] {
   const { projectState, studies, missions, localNames, designations } = input;
   const openStudyStarIds = new Set(
     studies.filter((s) => s.status === "open").map((s) => s.starId),
@@ -200,7 +203,7 @@ export function buildDocket(input: {
   const parentFor = (starId: string): string | null =>
     openStudyStarIds.has(starId) ? `${STUDY_PREFIX}${starId}` : null;
 
-  const rows: DocketRow[] = [];
+  const rows: TendRow[] = [];
 
   // Project rows: running (in-hand) or standing; available is not a row.
   for (const p of projectState.started) {
@@ -263,9 +266,13 @@ export function buildDocket(input: {
     });
   }
 
-  // Study parent rows: only if they have at least one child, and their
-  // nextYear/nextLabel mirror the earliest child's.
-  const childrenByStar = new Map<string, DocketRow[]>();
+  // Study rows: EVERY open study, whether or not anything is under way on
+  // it. TEND is where a player checks on all three kinds of work at once,
+  // and a vigil with nothing bought is still a vigil — it reads `watching`,
+  // with no date and no track, which is the honest rendering of a study
+  // that is only accruing light. (Closed studies — grounded or shelved —
+  // stay out: they are finished or put down, and live on the study board.)
+  const childrenByStar = new Map<string, TendRow[]>();
   for (const row of rows) {
     if (row.parentId === null || !row.parentId.startsWith(STUDY_PREFIX)) continue;
     const starId = row.parentId.slice(STUDY_PREFIX.length);
@@ -275,9 +282,8 @@ export function buildDocket(input: {
   }
   for (const study of studies) {
     if (study.status !== "open") continue;
-    const children = childrenByStar.get(study.starId);
-    if (children === undefined || children.length === 0) continue;
-    let best: DocketRow | null = null;
+    const children = childrenByStar.get(study.starId) ?? [];
+    let best: TendRow | null = null;
     let bestNextYear = Infinity;
     for (const c of children) {
       const y = c.nextYear;
@@ -293,7 +299,7 @@ export function buildDocket(input: {
       label: nameFor(study.starId, localNames, designations),
       sub: study.annotationLine,
       costClass: "ambient",
-      state: "in-hand",
+      state: children.length > 0 ? "in-hand" : "watching",
       nextYear: best?.nextYear ?? null,
       nextLabel: best?.nextLabel ?? null,
       // The parent mirrors the soonest child whole, span included: a study
@@ -305,5 +311,5 @@ export function buildDocket(input: {
     });
   }
 
-  return sortDocketRows(rows);
+  return sortTendRows(rows);
 }

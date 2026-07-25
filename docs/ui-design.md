@@ -132,7 +132,7 @@ the center with the Voice and Desk docked beside it.
   signals. Typographic, vertical, one-thumb. This is where a phone
   session mostly lives.
 - **The Desk** (panels): the reference surfaces — character sheet,
-  ladders and projects, the Docket (the work graph of undertakings —
+  ladders and projects, the work list (the work graph of undertakings —
   missions-design.md), the Ledger, the observatory catalog, the Vault.
   Dense, glanceable, and *never required mid-beat*: any number a
   decision needs is embedded in the decision's own card.
@@ -253,11 +253,11 @@ allowed to be this theatrical.
   never mail. Composition UI is deliberately unspecified here
   pending the player-language decision (vision, § Still open); the
   thread and flight rendering hold regardless of what fills them.
-- **The Docket** (Desk): the work graph — every undertaking, project or
+- **The work list** (Desk): the work graph — every undertaking, project or
   mission, as a row with its class chip, clock pair, physics-derived
   state, and one level of nesting; a node awaiting light shows its
   countdown, and a `silent` node fires a beat, never a badge
-  (missions-design.md, § The Docket). Purpose altitude throughout: the
+  (missions-design.md, § The work list). Purpose altitude throughout: the
   smallest visible unit is a thing worth deciding.
 - **The Ledger** (Desk): the lineage as a tree. Each fork's row shows
   its charter, last-known state, staleness chip, and its dial sheet
@@ -321,7 +321,7 @@ beat, point-cloud backdrop, the player's own echo shell — act3-map.md
 observatory (observatory-design.md — hypotheses, questions, allocation,
 and the grounded exit, which moved into A2 with the Assay); the choice
 ceremony; signal
-threads with flight rendering; the Docket in list form with
+threads with flight rendering; the work list in list form with
 probe-mission rows
 (missions-design.md, § v1 slice); the Ledger with basic drift ghosts;
 sleep, tripwires, wake

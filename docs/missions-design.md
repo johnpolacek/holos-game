@@ -1,10 +1,10 @@
 # HOLOS
-### Missions & the Docket — the work graph of a civilization
+### Missions & the work list (TEND) — the work graph of a civilization
 
 *Everything a civilization does is an undertaking: a purpose, a price, a
 clock, and an outcome that arrives as light. This document unifies projects
 and missions into one nested work graph, gives that graph a surface — the
-Docket — and expands the mission possibility space so that dispatching
+work list — and expands the mission possibility space so that dispatching
 someone is the game's default verb, not its garnish.*
 
 ---
@@ -23,7 +23,7 @@ graph, how that graph is shown and touched, and how the design makes
 **Working decision (2026-07): missions move into v1, thin.** The previous
 scope held missions post-v1 with "probes and hails as the skeleton." That
 skeleton is now dressed: v1 ships probe-class missions as real missions —
-charters, clocks, outcomes — and the Docket in its list form. The full
+charters, clocks, outcomes — and the work list in its list form. The full
 system (veterans, joint missions, vignette returns) still arrives with Act
 3 beat content. act3-design.md's v1 scope section reflects this.
 
@@ -131,7 +131,7 @@ one unbreakable line, that irreversible acts require presence
 
 ---
 
-## The Docket
+## The work list — TEND on screen
 
 The graph needs a surface. Design-side, the honest joke is that this is
 the sci-fi issue tracker — epics, tickets, states, blocked-on edges — and
@@ -140,13 +140,13 @@ concurrent undertakings legible. In-world it is nothing so bureaucratic:
 it is the mind's **plan of works**, the agenda a civilization-scale
 intelligence keeps for itself, and it already has the game's dry clerical
 register (prose-style.md M8 — *precision as wit*). Surface name: **the
-Docket**, a Desk panel beside the Ledger and the observatory
+work list**, a Desk panel beside the Ledger and the observatory
 (ui-design.md).
 
 What a row shows — and the altitude guard that keeps it honest:
 
 - **The purpose**, in the mind's register. Never a task. The smallest
-  unit the Docket ever displays is *a thing worth deciding*; the mind's
+  unit the work list ever displays is *a thing worth deciding*; the mind's
   logistics beneath it are executed flawlessly off-screen and are not in
   the data model, let alone the UI (economy-design.md, *price purposes,
   never logistics*).
@@ -169,16 +169,16 @@ What a row shows — and the altitude guard that keeps it honest:
 | **independent / disowned** | the node left the lineage — by drift, or by your denial |
 
 - **Its edges** — parent, children, blocked-on — drawn as a thread the
-  player can follow. In v1 the Docket is a list with indentation; the
+  player can follow. In v1 the work list is a list with indentation; the
   full graph rendering (and the dead-reckoned far side) can arrive with
   the deeper layers.
 
-Two disciplines keep the Docket from becoming homework. **The survey desk
+Two disciplines keep the work list from becoming homework. **The survey desk
 proposes; the player disposes** — there is no backlog to groom, because
 the mind drafts candidate undertakings from state (the observatory's
 unexplained sources, the forecast desk's ranked targets, beats that
 resolve into options) and the player's verb is choosing, not filing. And
-**no capacity slots, still** (economy-design.md): the Docket never caps
+**no capacity slots, still** (economy-design.md): the work list never caps
 concurrent work. What limits it is income, real session time, and the
 Coherence strain of running many distributed endeavors — the graph's
 natural work-in-progress limit is the mind's unity, which is to say the
@@ -243,14 +243,14 @@ is *presence*, whose reports arrive on a cadence, and whose charters need
 a different kind of writing: not "do X then return" but "be there, and
 here is who you are while you are there." Standing missions are the
 natural parents of drama: every one of them is a tripwire with a soul,
-and a standing mission's **silence** is the loudest thing the Docket can
+and a standing mission's **silence** is the loudest thing the work list can
 say.
 
 ### Pattern: the campaign
 
 A parent purpose that spawns children over deep time, by trigger rather
 than by plan — survey campaigns, uplift programs, a diaspora's rolling
-wavefront of seedships. Campaigns are how the Docket stays alive across
+wavefront of seedships. Campaigns are how the work list stays alive across
 eras without the player re-deciding the same intent: the orientation is
 chosen once; the instances fire as the sky provides them; the player
 tunes or retires the campaign as a purpose, not its instances.
@@ -275,7 +275,7 @@ aimed home at where home *will be*), and the silence protocol — what the
 absence of a scheduled report should be read as, and what the mission
 will assume if home goes quiet. The mission clock (act3-design.md) is the
 signal plan compiled into countdowns; **silence at a deadline is an
-event, not an absence**, and it is the Docket's `silent` state firing its
+event, not an absence**, and it is the work list's `silent` state firing its
 beat.
 
 Traffic with other civilizations rides the same physics in the other
@@ -310,7 +310,7 @@ The systems above make missions *possible*; these commitments make them
 *common*:
 
 1. **Every launch is a mission.** Seedships, probes, ferries, colony
-   ships — all of them are Docket nodes with charters and clocks from A4
+   ships — all of them are work-list nodes with charters and clocks from A4
    on. There is no separate "expansion" pipeline; expansion is the
    colony-class mission family.
 2. **The observatory's closing verb is a dispatch.** Every classification
@@ -320,7 +320,7 @@ The systems above make missions *possible*; these commitments make them
    masses are nobody; finding that out cheaply, overnight, by sending
    something, should be a beginner's habit by their third session.
 3. **Beats resolve into nodes.** When a dilemma's answer is an action,
-   the action lands on the Docket as a drafted undertaking — the beat
+   the action lands on the work list as a drafted undertaking — the beat
    engine is a mission generator, not just a text generator.
 4. **The forecast desk always has a slate.** Ranked destinations, each
    with its information-age figure and arrival spread, each one tap from
@@ -333,7 +333,7 @@ The systems above make missions *possible*; these commitments make them
 The counterweight is already designed: mission spam self-limits through
 real session time and the Coherence cost of heavy distribution, with no
 attention pool added unless play proves it necessary (economy-design.md,
-open questions — the bet stands, and the Docket makes it easier to
+open questions — the bet stands, and the work list makes it easier to
 observe whether it is winning).
 
 ---
@@ -342,13 +342,13 @@ observe whether it is winning).
 
 *Status (2026-07): the first three items below are **shipped**, earlier
 than the roadmap placed them — they landed with A2.2's work engine
-(`server/src/missions.ts`, `docket.ts`, the launch sheet in
+(`server/src/missions.ts`, `tend.ts`, the launch sheet in
 `client/src/studyboard.ts`), on the argument that a bought question and
 a launched probe are the same verb at two prices. Standing orders and
 the colony-class families remain A4. The Assay's close of a study — the
 grounded exit — is stage A2.2b (roadmap.md § A2).*
 
-- **The Docket, list form**: every undertaking (project and mission) as
+- **The work list, list form**: every undertaking (project and mission) as
   rows with class chip, clock pair, state, and one level of
   parent–child indentation. Full graph rendering, dead-reckoned far-side
   nodes, and campaign UI: later.
@@ -376,16 +376,18 @@ grounded exit — is stage A2.2b (roadmap.md § A2).*
   altitude principle. Candidate answer: player-named parents are labels
   over system-shaped children — organization without new mechanics.
 - **How much tracker is too much?** States and edges earn their keep;
-  the failure mode is the Docket becoming homework — assignees to
+  the failure mode is the work list becoming homework — assignees to
   shuffle, stale rows to groom. The no-backlog rule and
   propose/dispose split are the guardrails; playtest whether they hold.
 - **Standing-order scope.** Pre-authorized dispatches while the player
   sleeps are powerful and dangerous (a griefing surface later, a
   surprise-spend surface now). v1 keeps the armable set tiny and the
   costs Ambient–Investment; where the ceiling sits is a tuning question.
-- **Docket vs. Ledger seam.** A rooted colony is a Docket outcome that
+- **Work-list vs. Ledger seam.** A rooted colony is a work-list outcome that
   becomes a Ledger row. Where exactly the handoff happens (at rooting?
   at first report?) — decide in A4 when both surfaces exist.
-- **The name.** *The Docket* is design-side until playtest says it reads
-  in-world; the fallback is that the surface is simply *the plan*,
-  unnamed, the way the Model may stay *the sky*.
+- **The name.** ~~*The Docket*~~ **Settled (2026-07): TEND.** The surface
+  is a verb on screen — `+ Start` begins something, `Tend` checks on what
+  is already going — and *the work list* is what these docs call the thing
+  itself. The old name was the last of a legal vocabulary the game had
+  already dropped once, when a *case* became a *study*.

@@ -79,13 +79,13 @@ re-invent:
 - `server/src/questions.ts` / `projects.ts` — the six bought questions
   and the instrument shelf, priced in compute with effects frozen at
   purchase.
-- `server/src/missions.ts` / `docket.ts` — Assay and Sentinel probes,
-  charters, the mission clock, and the derived Docket. `deriveStudyMoves`
+- `server/src/missions.ts` / `tend.ts` — Assay and Sentinel probes,
+  charters, the mission clock, and the derived work list. `deriveStudyMoves`
   is the seam A2.2b closes a study through.
 - `server/src/knowledge.ts` — now also `LightCone` / `peekTruth` /
   `occupancyAt`: every channel that reads another civ's truth mints a
   cone first, and above it `peekTruth` returns `null`, never a clamp.
-- `client/src/studyboard.ts` — the board, the Docket, and the launch
+- `client/src/studyboard.ts` — the board, the work list, and the launch
   sheet. It is the largest client module; new panels join it.
 
 **A note for any session reading those modules:** their comments cite
@@ -93,7 +93,7 @@ re-invent:
 none of the three was ever committed.
 [systems-a.md](./systems-a.md) now exists as a **reconstruction from the
 code**, numbered to match its citations — read it for the tables (the
-question catalog, the finding rows, the charter resolution, the Docket's
+question catalog, the finding rows, the charter resolution, the work list's
 states), but treat the code as the spec of record where they differ.
 `synthesis.md` and `content.md` are still missing; do not add new
 citations to them.
@@ -149,7 +149,7 @@ shapes derived in `knowledge.ts`, never in handlers.
 
 **Where the stages stand (2026-07):** A2.1 and A2.2 are merged and
 deployed; the grounded-exit slice is next, then A2.3. A2.2 also shipped
-probe missions and the Docket — A4 work, pulled forward, against this
+probe missions and the work list — A4 work, pulled forward, against this
 brief's guardrail (see § Guardrails, which now records the overrun
 rather than pretending it away). roadmap.md § Where the build is today
 carries the full account, including the three uncommitted spec docs the
@@ -181,7 +181,7 @@ plateau only — no opponent yet).
 morning's report shows the answer and the study's bars visibly moved —
 or a plateau, honestly labeled.
 
-### A2.2b — The grounded exit ✅ *shipped, with the Docket's tracks*
+### A2.2b — The grounded exit ✅ *shipped, with the work list's tracks*
 
 Added 2026-07, after probe missions shipped early with A2.2. The Assay
 is the observatory's closing verb — *go and know* — and its reports
@@ -200,8 +200,8 @@ states, and A2.3's double-Opus session stays on the confidence model.
 flight, and on the report's arrival the study closes as grounded,
 naming the probe as the source of the belief.
 
-*Shipped 2026-07 with the Docket's progress tracks (roadmap § A4's
-Docket row), which were built alongside it because both are small and
+*Shipped 2026-07 with the work list's progress tracks (roadmap § A4's
+work-list row), which were built alongside it because both are small and
 both touch surfaces that already exist. The tracks were checked on a
 phone-sized viewport against a live cohort on an accelerated local
 clock — and that check found a real bug in A2.2's silence detection: a
@@ -287,14 +287,14 @@ tune here — nothing else builds until this gate passes (roadmap, § A2).
   while the player is away (act3-design.md, § the presence rule).
 - ~~**No missions, no launches.**~~ **Amended 2026-07 — overrun, and
   kept.** A2.2 shipped probe-class missions (Assay, Sentinel, charters)
-  and the Docket alongside the questions layer, on the argument that a
+  and the work list alongside the questions layer, on the argument that a
   bought question and a launched probe are the same verb at two prices
   and wanted one work engine between them. That is now the shipped
   architecture and this brief follows it rather than the other way
   round. What stays out of A2 is still real: **no seedships, no
   relativistic ships, no standing orders, no Ledger** — the travel half
   of A4 (roadmap.md § A4). New work in the remaining stages hangs off
-  the Docket that exists; it does not grow it.
+  the work list that exists; it does not grow it.
 - **`ObservedCiv`/`DetectedSource` discipline is absolute**, extended
   only through `knowledge.ts`.
 - **The comms register**: signals, tight beams, traffic, payloads —

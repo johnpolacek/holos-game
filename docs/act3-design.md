@@ -376,7 +376,7 @@ undecidable by design, and the uncertainty is the game.
 
 *(This section defines the mission anatomy and remains canonical for it;
 [missions-design.md](./missions-design.md) builds the work graph on top —
-undertakings, nesting, the Docket, and the prevalence commitments.)*
+undertakings, nesting, the work list, and the prevalence commitments.)*
 
 The player is a civilization-scale mind, but it can act in the world at
 small scale by dispatching **agents**. Agents span the full range of what
@@ -904,7 +904,7 @@ call is borderline, take the bolder inclusion; the slice must still ship.
   narrative only
 - Missions in v1, thin (working decision 2026-07 — see
   [missions-design.md](./missions-design.md)): every launch is a mission
-  on the Docket; probe-class missions (the Assay, the emplaced Sentinel)
+  on the work list; probe-class missions (the Assay, the emplaced Sentinel)
   with real charters, mission clocks, and silence-at-deadline beats. The
   full system (veterans, joint missions, vignette returns) arrives with
   Act 3 beat content

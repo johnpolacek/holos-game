@@ -19,8 +19,8 @@ import type {
   HypothesisMenus,
   MissionSnapshot,
   MissionCatalog,
-  DocketState,
-  DocketRow,
+  WorkState,
+  TendRow,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { StudyBoard } from "./studyboard";
@@ -29,10 +29,10 @@ import { Model } from "./model";
 import { SourceCard, type MissionCardState } from "./sourcecard";
 import { setClockAnchor } from "./clock";
 
-/** Docket states that mean a mission is still under way — everything but a
- *  terminal returned/silent (missions.ts's missionDocketState never emits
+/** Tend states that mean a mission is still under way — everything but a
+ *  terminal returned/silent (missions.ts's missionWorkState never emits
  *  "in-hand" for a mission; that branch is defensive only there too). */
-function isLiveMissionState(state: DocketState): boolean {
+function isLiveMissionState(state: WorkState): boolean {
   return (
     state === "in-flight" ||
     state === "beyond-horizon" ||
@@ -68,7 +68,7 @@ export class App {
   private projects: readonly ProjectSnapshot[] = [];
   private budget: ComputeBudget = { free: 0, ratePerYear: 0, asOfYear: 0 };
   private missions: readonly MissionSnapshot[] = [];
-  private docket: readonly DocketRow[] = [];
+  private tend: readonly TendRow[] = [];
   private probeFlightYearsPerLy = 10;
 
   // Set when the source card fires onStudyAction for a source with no study
@@ -119,7 +119,7 @@ export class App {
         this.projects = message.projects;
         this.budget = message.budget;
         this.missions = message.missions;
-        this.docket = message.docket;
+        this.tend = message.tend;
         this.probeFlightYearsPerLy = message.probeFlightYearsPerLy;
         this.showSky(message.self, message.sources);
         break;
@@ -213,7 +213,7 @@ export class App {
         this.projects,
         this.budget,
         this.missions,
-        this.docket,
+        this.tend,
         this.probeFlightYearsPerLy,
       );
       this.maybeFocusPendingStudy();
@@ -279,7 +279,7 @@ export class App {
         this.projects,
         this.budget,
         this.missions,
-        this.docket,
+        this.tend,
         this.probeFlightYearsPerLy,
       );
       model.enter(mode);

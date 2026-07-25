@@ -75,11 +75,11 @@ import type { QuestionId } from "./questions";
 import type {
   CharterClauseDef,
   CharterClauseId,
-  DocketState,
+  WorkState,
   MissionKind,
   MissionKindDef,
 } from "./missions";
-import type { DocketRow } from "./docket";
+import type { TendRow } from "./tend";
 
 // Re-exports the client needs to render. Types are erased; DIAL_AXES is the
 // ONE runtime value the client genuinely needs (in-world dial pole labels),
@@ -103,13 +103,13 @@ export type { QuestionId } from "./questions";
 export type {
   CharterClauseDef,
   CharterClauseId,
-  DocketState,
+  WorkState,
   MissionKind,
   MissionKindDef,
 } from "./missions";
-// The Docket row shape rides inside `sky`; the client renders it directly, so
+// The work-list row shape rides inside `sky`; the client renders it directly, so
 // it is named here rather than reached for through the message union.
-export type { DocketRow } from "./docket";
+export type { TendRow } from "./tend";
 
 /** Clock anchor; the client computes nowYear locally (no time polling). */
 export interface ClockWire {
@@ -339,7 +339,7 @@ export interface ComputeBudget {
   readonly asOfYear: number; // so the client accrues locally
 }
 
-// ── A2.2: probe-class missions and the Docket ───────────────────────────
+// ── A2.2: probe-class missions and the Tend ───────────────────────────
 // Belief/prose shapes only — every truth-adjacent member is prose and
 // dates, never a number (missions.ts's whole no-leak story). A mission
 // attaches to a source by starId; it has no `targetCivId` on the wire, the
@@ -396,7 +396,7 @@ export interface MissionSnapshot {
    *  schedule broke. What broke it is not knowable from here. */
   readonly missedWordYear: number | null;
   readonly charter: readonly CharterClauseWire[];
-  readonly state: DocketState;
+  readonly state: WorkState;
   readonly reports: readonly MissionReport[];
 }
 
@@ -438,7 +438,7 @@ export type CohortServerMessage =
       projects: readonly ProjectSnapshot[];
       budget: ComputeBudget;
       missions: readonly MissionSnapshot[];
-      docket: readonly DocketRow[];
+      tend: readonly TendRow[];
       /** The CURRENT effective probe speed (years per light-year), derived
        *  from landed probe-haste projects at nowYear — lets the launch
        *  sheet preview a mission's clock before committing. */

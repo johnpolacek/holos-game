@@ -464,6 +464,26 @@ body {
     inset 0 0 14px rgba(240, 172, 102, 0.18);
 }
 
+/* The second chip: same pill, other corner. It carries no glint — the
+   travelling highlight is the sky's one standing invitation, and this chip
+   is a destination, not an offer. Slightly quieter in the rim, so + Start
+   still reads as the brighter of the two. */
+.study-chip--tend {
+  right: auto;
+  left: max(0.9rem, env(safe-area-inset-left));
+  border-color: rgba(211, 185, 130, 0.38);
+  box-shadow: none;
+}
+
+.study-chip--tend::before,
+.study-chip--tend::after {
+  content: none;
+}
+
+.study-chip--tend[hidden] {
+  display: none;
+}
+
 /* The travelling glint's bloom comes up with the press, so the highlight
    belongs to the same gesture instead of carrying on indifferent to it. */
 .study-chip:active::after {
@@ -1186,12 +1206,12 @@ body {
   cursor: default;
 }
 
-/* ── The Docket, mission detail, and the launch sheet (Act 3, A2.2) ─────
+/* ── The Tend, mission detail, and the launch sheet (Act 3, A2.2) ─────
  * Amber/ink only, same rule as the observatory — never --holos-cyan. */
 
-/* Docket rows: label+sub on the left, class chip + state + next-date on the
+/* Tend rows: label+sub on the left, class chip + state + next-date on the
    right. One level of indent for a row hanging under a study parent. */
-.docket-row {
+.tend-row {
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -1207,11 +1227,11 @@ body {
   color: var(--holos-ink);
 }
 
-.docket-row--child {
+.tend-row--child {
   padding-left: 1.6rem;
 }
 
-.docket-row-top {
+.tend-row-top {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -1224,14 +1244,14 @@ body {
  * (study-hyp-track): 1px rail, amber fill, a soft radial tip that is a
  * glow and never a handle. Nothing here is draggable and nothing here is a
  * capsule; the row is a clock lying on its side. */
-.docket-track {
+.tend-track {
   position: relative;
   height: 1px;
   width: 100%;
   background: var(--holos-gold-dim);
 }
 
-.docket-track-fill {
+.tend-track-fill {
   position: absolute;
   top: 0;
   left: 0;
@@ -1239,7 +1259,7 @@ body {
   background: var(--holos-amber);
 }
 
-.docket-track-tip {
+.tend-track-tip {
   position: absolute;
   top: 50%;
   width: 16px;
@@ -1257,7 +1277,7 @@ body {
 
 /* The amendment horizon: a bare tick standing ON the rail, unlabeled. Past
  * it, nothing sent from here can overtake what is already going. */
-.docket-track-mark {
+.tend-track-mark {
   position: absolute;
   top: 50%;
   width: 1px;
@@ -1270,15 +1290,15 @@ body {
 /* Silence: the rail itself stops. The fill runs to the year the schedule
  * broke and the remainder is a gap — no tip, because nothing is
  * travelling, and no red, because a silence is not an error. */
-.docket-track--broken {
+.tend-track--broken {
   background: none;
 }
 
-.docket-track--broken .docket-track-fill {
+.tend-track--broken .tend-track-fill {
   background: var(--holos-gold-dim);
 }
 
-.docket-track-tail {
+.tend-track-tail {
   position: absolute;
   top: 0;
   right: 0;
@@ -1287,7 +1307,7 @@ body {
   pointer-events: none;
 }
 
-.docket-row-main {
+.tend-row-main {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -1295,7 +1315,7 @@ body {
   flex: 1;
 }
 
-.docket-row-label {
+.tend-row-label {
   font-size: var(--holos-text-lg);
   color: var(--holos-ink);
 }
@@ -1303,7 +1323,7 @@ body {
 /* Two lines, then an ellipsis. A study row's sub is its whole annotation
  * line, which runs to four lines on a phone and turns a work list into an
  * essay; the study's own sheet is where that sentence is read in full. */
-.docket-row-sub {
+.tend-row-sub {
   font-size: var(--holos-text-sm);
   color: var(--holos-ink-dim);
   display: -webkit-box;
@@ -1313,7 +1333,7 @@ body {
   overflow: hidden;
 }
 
-.docket-row-meta {
+.tend-row-meta {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -1321,25 +1341,25 @@ body {
   flex-shrink: 0;
 }
 
-.docket-chip {
+.tend-chip {
   color: var(--holos-ink-faint);
 }
 
-.docket-row-state {
+.tend-row-state {
   color: var(--holos-ink-dim);
 }
 
-.docket-row-state--silent {
+.tend-row-state--silent {
   color: var(--holos-error);
 }
 
-.docket-row-next {
+.tend-row-next {
   color: var(--holos-ink-faint);
   align-self: flex-end;
 }
 
 /* Mission detail — the clock trio, plain two-column rows. */
-.docket-mission-clock-row {
+.tend-mission-clock-row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -1347,34 +1367,34 @@ body {
   border-bottom: 1px solid rgba(211, 185, 130, 0.24);
 }
 
-.docket-mission-clock-label {
+.tend-mission-clock-label {
   color: var(--holos-ink-faint);
 }
 
-.docket-mission-clock-value {
+.tend-mission-clock-value {
   color: var(--holos-ink);
 }
 
-.docket-mission-silent {
+.tend-mission-silent {
   padding: 0.4rem 0;
   color: var(--holos-error);
 }
 
 /* Mission detail — a report's headline, full ink against the quieter detail
    text below it (reuses .study-archive-row/-text/-age). */
-.docket-report-headline {
+.tend-report-headline {
   color: var(--holos-ink);
 }
 
 /* The launch sheet — a selected kind row (reuses .study-project-row). */
-.docket-launch-kind-row--selected {
+.tend-launch-kind-row--selected {
   border-left: 2px solid var(--holos-amber);
   padding-left: 0.6rem;
 }
 
 /* The launch sheet — one selectable charter clause (reuses the briefing's
    label+gloss reading anatomy, with button resets and a selected state). */
-.docket-launch-clause-row {
+.tend-launch-clause-row {
   display: block;
   width: 100%;
   background: none;
@@ -1386,11 +1406,11 @@ body {
   cursor: pointer;
 }
 
-.docket-launch-clause-row--selected {
+.tend-launch-clause-row--selected {
   border-left-color: var(--holos-amber);
 }
 
-.docket-launch-clause-row--selected .study-hyp-label {
+.tend-launch-clause-row--selected .study-hyp-label {
   color: var(--holos-amber);
 }
 

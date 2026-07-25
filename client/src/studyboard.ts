@@ -35,8 +35,8 @@ import type {
   MissionKindDef,
   CharterClauseDef,
   CharterClauseId,
-  DocketState,
-  DocketRow,
+  WorkState,
+  TendRow,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { CLASS_LABEL } from "./sourcecard";
@@ -44,7 +44,8 @@ import { formatClockPair, formatCountdown, nowYear } from "./clock";
 
 const SWIPE_CLOSE_PX = 56;
 
-const DOCKET_STATE_LABEL: Record<DocketState, string> = {
+const WORK_STATE_LABEL: Record<WorkState, string> = {
+  watching: "WATCHING",
   "in-hand": "IN HAND",
   "in-flight": "IN FLIGHT",
   "beyond-horizon": "BEYOND THE HORIZON",
@@ -54,7 +55,7 @@ const DOCKET_STATE_LABEL: Record<DocketState, string> = {
   standing: "STANDING",
 };
 
-/** The Docket/mission-detail absolute-year chrome: "Y1204". Countdown-bearing
+/** The Tend/mission-detail absolute-year chrome: "Y1204". Countdown-bearing
  *  dates always go through formatCountdown/formatClockPair; this is only for
  *  a date that has already passed (nothing left to count down to). */
 function formatAbsoluteYear(year: number): string {
@@ -123,6 +124,10 @@ export class StudyBoard {
 
   private readonly root: HTMLDivElement;
   private readonly chip: HTMLButtonElement;
+  /** The second standing chip, opposite + Start: everything already under
+   *  way. Hidden while there is nothing to tend — a chip pointing at an
+   *  empty list is noise. */
+  private readonly tendChip: HTMLButtonElement;
   private readonly backdrop: HTMLDivElement;
   private readonly sheet: HTMLDivElement;
   private readonly topbar: HTMLDivElement;
@@ -135,7 +140,7 @@ export class StudyBoard {
   private budget: ComputeBudget = { free: 0, ratePerYear: 0, asOfYear: 0 };
   private missions: readonly MissionSnapshot[] = [];
   private missionsById = new Map<string, MissionSnapshot>();
-  private docket: readonly DocketRow[] = [];
+  private tend: readonly TendRow[] = [];
   /** The current effective probe cruise rate (years/ly), from the latest
    *  sky — feeds the launch sheet's client-side clock preview. */
   private probeFlightYearsPerLy = 10;
@@ -149,7 +154,7 @@ export class StudyBoard {
     | "brief"
     | "explore"
     | "projects"
-    | "docket"
+    | "tend"
     | "mission"
     | "launch" = "list";
   private focusedStarId: string | null = null;
@@ -217,6 +222,16 @@ export class StudyBoard {
     this.chip.textContent = "+ Start";
     this.chip.addEventListener("click", () => this.openHub());
 
+    // The pair: + Start begins something, Tend checks on what is already
+    // going. Same pill, no glint — the glint is the standing invitation, and
+    // this chip is a destination rather than an invitation.
+    this.tendChip = document.createElement("button");
+    this.tendChip.type = "button";
+    this.tendChip.className = "study-chip study-chip--tend";
+    this.tendChip.textContent = "Tend";
+    this.tendChip.hidden = true;
+    this.tendChip.addEventListener("click", () => this.openTend());
+
     this.backdrop = document.createElement("div");
     this.backdrop.className = "study-board-backdrop";
     this.backdrop.addEventListener("click", () => this.close());
@@ -249,7 +264,7 @@ export class StudyBoard {
     this.body.className = "study-board-body";
 
     this.sheet.append(this.topbar, this.body);
-    this.root.append(this.chip, this.backdrop, this.sheet);
+    this.root.append(this.chip, this.tendChip, this.backdrop, this.sheet);
     container.append(this.root);
 
     this.attachSwipe();
@@ -264,7 +279,7 @@ export class StudyBoard {
     projects: readonly ProjectSnapshot[],
     budget: ComputeBudget,
     missions: readonly MissionSnapshot[],
-    docket: readonly DocketRow[],
+    tend: readonly TendRow[],
     probeFlightYearsPerLy: number,
   ): void {
     this.studiesByStarId = new Map(studies.map((s) => [s.starId, s] as const));
@@ -274,7 +289,7 @@ export class StudyBoard {
     this.budget = budget;
     this.missions = missions;
     this.missionsById = new Map(missions.map((m) => [m.id, m] as const));
-    this.docket = docket;
+    this.tend = tend;
     this.probeFlightYearsPerLy = probeFlightYearsPerLy;
     this.updateChip();
 
@@ -338,16 +353,16 @@ export class StudyBoard {
       this.renderExplore();
     } else if (this.view === "projects") {
       this.renderProjects();
-    } else if (this.view === "docket") {
-      this.renderDocket();
+    } else if (this.view === "tend") {
+      this.renderTend();
     } else if (this.view === "mission") {
       if (this.focusedMissionId !== null && this.missionsById.has(this.focusedMissionId)) {
         this.renderMissionDetail();
       } else {
-        // The focused mission vanished from this payload — fall back to the Docket.
-        this.view = "docket";
+        // The focused mission vanished from this payload — fall back to the Tend.
+        this.view = "tend";
         this.focusedMissionId = null;
-        this.renderDocket();
+        this.renderTend();
       }
     } else if (this.view === "launch") {
       this.renderLaunch();
@@ -401,10 +416,10 @@ export class StudyBoard {
     this.startTicking();
   }
 
-  openDocket(): void {
-    this.view = "docket";
+  openTend(): void {
+    this.view = "tend";
     this.focusedStarId = null;
-    this.renderDocket();
+    this.renderTend();
     this.openFlag = true;
     this.root.classList.add("open");
     this.startTicking();
@@ -458,7 +473,7 @@ export class StudyBoard {
       else if (this.view === "projects") this.renderProjects();
       else if (this.view === "focused" && this.focusedStarId !== null) {
         this.renderFocused(this.focusedStarId);
-      } else if (this.view === "docket") this.renderDocket();
+      } else if (this.view === "tend") this.renderTend();
       else if (this.view === "mission") this.renderMissionDetail();
     }, 1000);
   }
@@ -505,15 +520,16 @@ export class StudyBoard {
 
   // ── Render: chrome ──────────────────────────────────────────────────
 
-  /** The chip's text never changes now (always "+ START"); this still runs
-   * on every update() to keep the open-study count fresh for the hub's
-   * "Your studies · n" row. */
+  /** The Start chip's text never changes; this keeps the open-study count
+   * fresh for the hub's "Your studies · n" row, and shows or hides the Tend
+   * chip — which exists only while there is something to tend. */
   private updateChip(): void {
     let n = 0;
     for (const s of this.studiesByStarId.values()) {
       if (s.status === "open") n++;
     }
     this.openStudyCount = n;
+    this.tendChip.hidden = this.tend.length === 0;
   }
 
   private hairline(): HTMLHRElement {
@@ -556,9 +572,6 @@ export class StudyBoard {
         true,
         () => this.openProjects(),
       ),
-    );
-    this.body.append(
-      this.buildHubRow("The Docket", this.docketSummaryLine(), true, () => this.openDocket()),
     );
     this.body.append(
       this.buildHubRow(
@@ -613,14 +626,21 @@ export class StudyBoard {
     return btn;
   }
 
-  /** "3 under way · 1 silent" / "Nothing under way." — the hub row's live
-   *  summary, derived from the Docket's own rows (never a second count). */
-  private docketSummaryLine(): string {
-    const total = this.docket.length;
-    if (total === 0) return "Nothing under way.";
-    const silent = this.docket.filter((r) => r.state === "silent").length;
-    const underWay = total - silent;
-    return silent > 0 ? `${underWay} under way · ${silent} silent` : `${underWay} under way`;
+  /** "3 under way · 2 watching · 1 silent" / "Nothing under way." — the
+   *  panel's live summary, derived from its own rows (never a second
+   *  count). Under way means a clock is actually running: a study only
+   *  accruing light is watching, and counting it as work would inflate the
+   *  number every time a vigil sat idle. */
+  private tendSummaryLine(): string {
+    if (this.tend.length === 0) return "Nothing under way.";
+    const watching = this.tend.filter((r) => r.state === "watching").length;
+    const silent = this.tend.filter((r) => r.state === "silent").length;
+    const underWay = this.tend.filter((r) => r.nextYear !== null).length;
+    const parts: string[] = [];
+    if (underWay > 0) parts.push(`${underWay} under way`);
+    if (watching > 0) parts.push(`${watching} watching`);
+    if (silent > 0) parts.push(`${silent} silent`);
+    return parts.length === 0 ? "Nothing under way." : parts.join(" · ");
   }
 
   // ── Render: explore view ─────────────────────────────────────────────
@@ -1265,11 +1285,11 @@ export class StudyBoard {
     return row;
   }
 
-  // ── Render: the Docket ──────────────────────────────────────────────
-  // One row per DocketRow, in the SERVER's order (docket.ts's sortDocketRows
+  // ── Render: the Tend ──────────────────────────────────────────────
+  // One row per TendRow, in the SERVER's order (tend.ts's sortTendRows
   // — soonest-thing-first, parent then children) — the client never re-sorts.
 
-  private renderDocket(): void {
+  private renderTend(): void {
     this.body.innerHTML = "";
 
     const back = document.createElement("button");
@@ -1281,10 +1301,17 @@ export class StudyBoard {
 
     const header = document.createElement("div");
     header.className = "study-board-header holos-caps";
-    header.textContent = "THE DOCKET";
+    header.textContent = "TEND";
     this.body.append(header);
 
-    if (this.docket.length === 0) {
+    // The count the hub row used to carry, now under the title where the
+    // panel can say it in one line.
+    const summary = document.createElement("div");
+    summary.className = "study-board-empty";
+    summary.textContent = this.tendSummaryLine();
+    this.body.append(summary);
+
+    if (this.tend.length === 0) {
       const empty = document.createElement("div");
       empty.className = "study-board-empty";
       empty.textContent = "Nothing under way.";
@@ -1294,17 +1321,17 @@ export class StudyBoard {
 
     this.body.append(this.hairline());
 
-    for (const row of this.docket) {
-      this.body.append(this.buildDocketRow(row));
+    for (const row of this.tend) {
+      this.body.append(this.buildTendRow(row));
     }
   }
 
   /** A mission row opens the mission detail; any other row with a starId
    *  inspects the source (the study/question-row precedent). A row with
-   *  neither (an available-less project row never appears — see docket.ts's
+   *  neither (an available-less project row never appears — see tend.ts's
    *  no-backlog rule — but a running project row has no starId) renders
    *  inert. */
-  private buildDocketRow(row: DocketRow): HTMLElement {
+  private buildTendRow(row: TendRow): HTMLElement {
     const isMission = row.kind === "mission";
     const clickable = isMission || row.starId !== null;
 
@@ -1325,43 +1352,43 @@ export class StudyBoard {
     } else {
       el = document.createElement("div");
     }
-    el.className = row.parentId !== null ? "docket-row docket-row--child" : "docket-row";
+    el.className = row.parentId !== null ? "tend-row tend-row--child" : "tend-row";
 
     const top = document.createElement("div");
-    top.className = "docket-row-top";
+    top.className = "tend-row-top";
 
     const main = document.createElement("div");
-    main.className = "docket-row-main";
+    main.className = "tend-row-main";
     const label = document.createElement("div");
-    label.className = "docket-row-label holos-serif";
+    label.className = "tend-row-label holos-serif";
     label.textContent = row.label;
     const sub = document.createElement("div");
-    sub.className = "docket-row-sub";
+    sub.className = "tend-row-sub";
     sub.textContent = row.sub;
     main.append(label, sub);
 
     const meta = document.createElement("div");
-    meta.className = "docket-row-meta";
+    meta.className = "tend-row-meta";
     const chip = document.createElement("div");
-    chip.className = "docket-chip holos-caps";
+    chip.className = "tend-chip holos-caps";
     chip.textContent = row.costClass.toUpperCase();
     const state = document.createElement("div");
     state.className =
       row.state === "silent"
-        ? "docket-row-state holos-caps docket-row-state--silent"
-        : "docket-row-state holos-caps";
-    state.textContent = DOCKET_STATE_LABEL[row.state];
+        ? "tend-row-state holos-caps tend-row-state--silent"
+        : "tend-row-state holos-caps";
+    state.textContent = WORK_STATE_LABEL[row.state];
     meta.append(chip, state);
 
     top.append(main, meta);
     el.append(top);
 
-    const track = this.buildDocketTrack(row);
+    const track = this.buildTendTrack(row);
     if (track !== null) el.append(track);
 
     if (row.nextYear !== null && row.nextLabel !== null) {
       const next = document.createElement("div");
-      next.className = "docket-row-next holos-caps";
+      next.className = "tend-row-next holos-caps";
       const countdown = formatCountdown(row.nextYear);
       next.textContent = countdown !== null ? `${row.nextLabel} IN ${countdown}` : row.nextLabel;
       el.append(next);
@@ -1387,7 +1414,7 @@ export class StudyBoard {
    *  - done (returned, landed): no track at all. Nothing is under way, and
    *    an empty rail would be an invitation to read one.
    */
-  private buildDocketTrack(row: DocketRow): HTMLDivElement | null {
+  private buildTendTrack(row: TendRow): HTMLDivElement | null {
     const from = row.fromYear;
     const now = nowYear();
     const isSilent = row.state === "silent";
@@ -1403,10 +1430,10 @@ export class StudyBoard {
     const fraction = clamp01((fillTo - from) / (end - from));
 
     const track = document.createElement("div");
-    track.className = isSilent ? "docket-track docket-track--broken" : "docket-track";
+    track.className = isSilent ? "tend-track tend-track--broken" : "tend-track";
 
     const fill = document.createElement("div");
-    fill.className = "docket-track-fill";
+    fill.className = "tend-track-fill";
     fill.style.width = `${(fraction * 100).toFixed(2)}%`;
     track.append(fill);
 
@@ -1414,14 +1441,14 @@ export class StudyBoard {
       // The rail resumes past the gap: the schedule still exists, and
       // nothing is travelling along it.
       const tail = document.createElement("div");
-      tail.className = "docket-track-tail";
+      tail.className = "tend-track-tail";
       tail.style.left = `${Math.min(100, fraction * 100 + 8).toFixed(2)}%`;
       track.append(tail);
       return track;
     }
 
     const tip = document.createElement("div");
-    tip.className = "docket-track-tip";
+    tip.className = "tend-track-tip";
     tip.style.left = `${(fraction * 100).toFixed(2)}%`;
     track.append(tip);
 
@@ -1429,7 +1456,7 @@ export class StudyBoard {
     const mark = row.markYear;
     if (mark !== null && mark > from && mark < end) {
       const tick = document.createElement("div");
-      tick.className = "docket-track-mark";
+      tick.className = "tend-track-mark";
       tick.style.left = `${(((mark - from) / (end - from)) * 100).toFixed(2)}%`;
       track.append(tick);
     }
@@ -1441,12 +1468,12 @@ export class StudyBoard {
 
   private buildClockRow(label: string, value: string): HTMLDivElement {
     const row = document.createElement("div");
-    row.className = "docket-mission-clock-row";
+    row.className = "tend-mission-clock-row";
     const l = document.createElement("span");
-    l.className = "docket-mission-clock-label holos-caps";
+    l.className = "tend-mission-clock-label holos-caps";
     l.textContent = label;
     const v = document.createElement("span");
-    v.className = "docket-mission-clock-value holos-caps study-tabular";
+    v.className = "tend-mission-clock-value holos-caps study-tabular";
     v.textContent = value;
     row.append(l, v);
     return row;
@@ -1458,9 +1485,9 @@ export class StudyBoard {
     this.body.innerHTML = "";
     if (missionId === null || m === undefined) {
       // The mission vanished between the tap and this render — see update().
-      this.view = "docket";
+      this.view = "tend";
       this.focusedMissionId = null;
-      this.renderDocket();
+      this.renderTend();
       return;
     }
 
@@ -1468,13 +1495,13 @@ export class StudyBoard {
     back.type = "button";
     back.className = "study-back holos-caps";
     back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openDocket());
+    back.addEventListener("click", () => this.openTend());
     this.body.append(back);
 
     // Header: the mission's kind, then the target — same anatomy as the
     // study focus header (designation quiet, name loud). A mission survives
     // its source (missions.ts), so a target no longer visible falls back to
-    // the Docket row's own "at {name}" text rather than nothing.
+    // the Tend row's own "at {name}" text rather than nothing.
     const header = document.createElement("div");
     header.className = "study-focus-header";
     const kicker = document.createElement("div");
@@ -1497,8 +1524,8 @@ export class StudyBoard {
       nameEl.textContent = hasLocalName ? (localName as string) : source.designation;
       header.append(nameEl);
     } else {
-      const docketRow = this.docket.find((r) => r.id === `mission/${m.id}`);
-      const fallbackName = docketRow?.sub.replace(/^at /, "") ?? m.starId;
+      const tendRow = this.tend.find((r) => r.id === `mission/${m.id}`);
+      const fallbackName = tendRow?.sub.replace(/^at /, "") ?? m.starId;
       const nameEl = document.createElement("div");
       nameEl.className = "study-focus-name holos-serif";
       nameEl.textContent = fallbackName;
@@ -1550,7 +1577,7 @@ export class StudyBoard {
     );
 
     if (m.state === "silent") {
-      // The wire carries no explicit silence-onset date (missionDocketState
+      // The wire carries no explicit silence-onset date (missionWorkState
       // derives "silent" structurally, not as a stamped year) — the last
       // report's arrival, or the first-word promise if none ever landed, is
       // the truest date already on hand. The charter sits right above; the
@@ -1558,7 +1585,7 @@ export class StudyBoard {
       const lastReport = m.reports[m.reports.length - 1];
       const sinceYear = lastReport !== undefined ? lastReport.arrivedYear : m.firstWordYear;
       const silentRow = document.createElement("div");
-      silentRow.className = "docket-mission-silent holos-caps";
+      silentRow.className = "tend-mission-silent holos-caps";
       silentRow.textContent = `SILENT SINCE ${formatAbsoluteYear(sinceYear)}`;
       this.body.append(silentRow);
     } else if (m.state === "standing" && m.nextWordYear !== null) {
@@ -1587,7 +1614,7 @@ export class StudyBoard {
         const row = document.createElement("div");
         row.className = "study-archive-row";
         const headline = document.createElement("div");
-        headline.className = "docket-report-headline holos-caps";
+        headline.className = "tend-report-headline holos-caps";
         headline.textContent = r.headline;
         const detail = document.createElement("div");
         detail.className = "study-archive-text";
@@ -1609,7 +1636,7 @@ export class StudyBoard {
     const selected = this.launchKind === k.kind;
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = selected ? "study-project-row docket-launch-kind-row--selected" : "study-project-row";
+    btn.className = selected ? "study-project-row tend-launch-kind-row--selected" : "study-project-row";
     btn.addEventListener("click", () => {
       this.launchKind = k.kind;
       this.renderLaunch();
@@ -1634,8 +1661,8 @@ export class StudyBoard {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = selected
-      ? "docket-launch-clause-row docket-launch-clause-row--selected"
-      : "docket-launch-clause-row";
+      ? "tend-launch-clause-row tend-launch-clause-row--selected"
+      : "tend-launch-clause-row";
     btn.addEventListener("click", () => this.toggleClause(c));
 
     const label = document.createElement("span");

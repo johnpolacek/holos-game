@@ -1,7 +1,7 @@
 # HOLOS — Systems A: the work engine, as built
 
 *The A2.2 systems spec: the light cone, bought questions, probe-class
-missions, and the Docket.*
+missions, and the work list.*
 
 > **Provenance — read this first.** The original `systems-a.md` was a
 > working document of the A2.2 build session and was **never committed**;
@@ -13,7 +13,7 @@ missions, and the Docket.*
 >
 > What that means for its authority: **where this document and the code
 > disagree, the code wins.** It records what `knowledge.ts`,
-> `questions.ts`, `projects.ts`, `missions.ts`, `docket.ts`, `studies.ts`
+> `questions.ts`, `projects.ts`, `missions.ts`, `tend.ts`, `studies.ts`
 > and `cohort.ts` *do*, not what anyone intended — the intent is only
 > recoverable where a comment states it, and those statements are quoted
 > or paraphrased rather than embroidered. Two companion documents,
@@ -467,10 +467,10 @@ sat. The ordinary case is the common one.
 `MAX_REPORTS_ON_WIRE = 8`; older reports are dropped from the wire, newest
 kept.
 
-### §3.6 Docket state
+### §3.6 work state
 
-`DocketState = in-hand | in-flight | beyond-horizon | awaiting-light |
-returned | silent | standing`, decided in order:
+`WorkState = watching | in-hand | in-flight | beyond-horizon |
+awaiting-light | returned | silent | standing`, decided in order:
 
 1. `nowYear < horizon` → **in-flight**
 2. `nowYear < arrival` → **beyond-horizon**
@@ -480,8 +480,9 @@ returned | silent | standing`, decided in order:
 5. reports exist → **standing** if `plan.standing`, else **returned**
 6. otherwise → **awaiting-light**
 
-`in-hand` never applies to a mission — it is the projects-and-questions
-state; `missionNextDate`'s branch for it is defensive only.
+`in-hand` and `watching` never apply to a mission — they are the states
+of a project or question in hand, and of a study only accruing light;
+`missionSpan`'s branches for them are defensive only.
 
 ### §3.7 The mission wire snapshot
 
@@ -496,9 +497,17 @@ the only truth-derived member.
 
 ---
 
-## §4 The Docket
+## §4 The work list (TEND)
 
-**One derived list.** `buildDocket` stores nothing: it is assembled per
+**Named TEND on screen** (renamed from *the Docket*, 2026-07). The old
+name was the last survivor of a legal vocabulary the game had already
+dropped once, when `case` became `study`; TEND is a verb, and it names
+the second standing chip on the sky — `+ Start` begins something, `Tend`
+checks on what is already going. In code the module is `tend.ts` with
+`TendRow`, and the per-row state is `WorkState`, which describes the work
+rather than the surface.
+
+**One derived list.** `buildTendList` stores nothing: it is assembled per
 sky send from the three state records that already exist (studies,
 projects, missions) plus nothing new. Every date on a row derives from a
 purchase-time stamp plus catalog constants — never a stored date of its
@@ -506,10 +515,18 @@ own.
 
 **The no-backlog rule.** Available projects and offered questions are not
 undertakings — nothing has been committed to, so they are not rows.
-Answered questions leave the Docket too: they have become evidence on the
-study, which is where the player reads them. A study row appears only if
-it has at least one child, so an idle vigil is not clutter. **There is
-nothing to groom.**
+Answered questions leave the work list too: they have become evidence on
+the study, which is where the player reads them. **There is nothing to
+groom.**
+
+**Every open study is a row** (changed 2026-07, with the TEND rename).
+The rule was once "a study row appears only if it has at least one
+child", which kept idle vigils off the list; TEND is where a player
+checks on all three kinds of work at once, so a study with nothing bought
+on it still appears — in the `watching` state, with no date and no track,
+which is the honest rendering of a vigil that is only accruing light.
+Closed studies stay off: grounded is finished and shelved is put down,
+and both live on the study board.
 
 **Parenting is by star, one level deep.** A question or mission row's
 `parentId` is `study/${starId}` exactly when an **open** (not shelved)
@@ -568,7 +585,7 @@ charter[]}` join the pre-existing `openStudy` / `shelveStudy` /
 
 ### §5.2 What a sky send carries
 
-`sky` gained `missions`, `docket`, and `probeFlightYearsPerLy` (the
+`sky` gained `missions`, `work list`, and `probeFlightYearsPerLy` (the
 *current* effective speed, so the launch sheet can preview a clock before
 committing), alongside A2.1's `studies` and the compute `budget`.
 

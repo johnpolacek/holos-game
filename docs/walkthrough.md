@@ -295,7 +295,7 @@ The Day 2 morning session — year 280 AE by Longlight's own count — settles
 into the loop that will carry the season: the **report** (what the light
 brought while he was away), the **strategy turn** (purposes, never
 logistics), the **beats** (the dilemmas his purposes set in motion), and
-release. The strategy turn happens on the **Docket** — the Desk panel
+release. The strategy turn happens on the **work list** — the Desk panel
 where everything the civilization is doing lives as one nested plan of
 works: each undertaking a row with its class chip, its clock pair
 (`31 h · ≈370 y`), and a state derived from physics rather than set by
@@ -313,7 +313,7 @@ What he says yes to, this week:
   the observatory desk: hypotheses listed (someone's heart; a brown
   dwarf; a rogue world), compute allocated between them — a
   purpose-level choice, *which question*, never which telescope setting.
-  The study lands on the Docket as a parent with a child already
+  The study lands on the work list as a parent with a child already
   drafted: build the deep-inspection instrument (a project, an
   Investment, ~14 real hours), then ferry it out to the solar focal
   line (a mission, a short flight with a clock). Two rows, one purpose,
@@ -728,7 +728,7 @@ promise of the v1 game:
   hail, sleep — and never once touched a queue, a route, or a unit.
 - **The dispatch was a habit by Day 3.** The season's questions were
   answered by sending things — an assay probe, a ferried instrument, a
-  seedship under a charter — each a Docket row with a clock, and every
+  seedship under a charter — each a work-list row with a clock, and every
   answer came home as light on a countdown he could watch.
 - **The economy stayed a rhythm, not a spreadsheet.** Ambient hum,
   one or two Investments a sitting, an Endeavor accruing across days —
@@ -745,7 +745,7 @@ promise of the v1 game:
 Most of this season runs on the v1 scope in act3-design.md: the
 inheritance ceremony and the seeded cohort, the Sky and the five signal
 classes with the mask-versus-instrument contest thin but live, the light
-echo, seedships and probe-class missions with charters on the Docket,
+echo, seedships and probe-class missions with charters on the work list,
 the forecast survey and mission clock in their thin forms, directed
 hail, broadcast, and tight-beam traffic on real clocks, sleep with
 tripwires, and rule-based AI counterparts (Hearth, the Lantern, and

@@ -102,7 +102,7 @@ past 0.9: watching never delivers certainty, structurally.
 price of knowing: probe-class missions (`missions.ts` — the Assay and the
 Sentinel, charters of 2–3 pre-authorized clauses resolved against truth
 at arrival, silence as the subtraction of two schedules rather than a die
-roll) and **the Docket** (`docket.ts` — one derived list of undertakings
+roll) and **the work list** (`tend.ts` — one derived list of undertakings
 with class chips, physics-derived states, and one level of study
 parentage), with their client surfaces. This overran build-a2.md's "no
 missions, no launches" guardrail, which is now amended rather than
@@ -119,7 +119,7 @@ code cites them for a tuning call ("priced at 2100 per synthesis.md §4"),
 that provenance is now recorded in systems-a.md as a fact about the
 citation, and the number itself lives only in the code.
 
-**A2.2b shipped** (2026-07): the grounded exit, plus the Docket's
+**A2.2b shipped** (2026-07): the grounded exit, plus the work list's
 progress tracks, built alongside it. Every row now carries the span it is
 waiting across (`fromYear` / `markYear` join `nextYear`), a probe's
 amendment horizon is a tick on its rail, and a silence is drawn as a
@@ -311,7 +311,7 @@ record of that past — rides this same light echo and knowledge layer; thin.)
 
 ### A4 — Missions & expansion
 
-Every launch is a mission from here on: a Docket node with a charter, a
+Every launch is a mission from here on: a work-list node with a charter, a
 clock, and an outcome ([missions-design.md](./missions-design.md) —
 working decision 2026-07, missions into v1 thin).
 
@@ -320,10 +320,10 @@ working decision 2026-07, missions into v1 thin).
 remains here is the *travel* half: seedships, relativistic ships,
 charters as a written value function, and the Ledger.
 
-- [x] **The Docket (list form)** *(shipped with A2.2)*: one surface for
+- [x] **The work list (list form)** *(shipped with A2.2)*: one surface for
       every undertaking — projects and missions as one derived work
       list, class chips, clock pairs, physics-derived states, one level
-      of study parentage (missions-design.md, § The Docket). Nothing to
+      of study parentage (missions-design.md, § The work list). Nothing to
       groom: an undertaking not yet undertaken is not a row.
 - [x] **Probe-class missions** *(shipped with A2.2)*: the Assay (go and
       know) and the emplaced Sentinel; charters with 2–3 contingency
@@ -332,7 +332,7 @@ charters as a written value function, and the Ledger.
       — the grounded exit — moved up to A2 (see § A2).
 - [ ] **Standing orders (thin)**: one or two armable order-classes
       (*on warm movement, launch sentinel*), priced at fire time. Not
-      shipped — the Docket's `standing` state is a Sentinel on cadence,
+      shipped — the work list's `standing` state is a Sentinel on cadence,
       not an armed order awaiting a trigger.
 - [ ] **Seedships**: launches with real flight clocks; the **forecast
       survey** — information age at landfall (light-age + transit years)
@@ -453,7 +453,7 @@ ceremony (8), signals in flight (9), the Ledger (10), sleep/wake (11–12),
 and the Model set (13–15, echo shell = poster). The inheritance-ceremony
 ask from this plan shipped with A1 (concepts 03-00, 03-00b), and the
 observatory ask (screen 7b) shipped as A2.1's adopted target
-(concepts 03-03), and the Docket has its plate too (screen 18, concepts
+(concepts 03-03), and the work list has its plate too (screen 18, concepts
 03-04 — adopted for its visual language, with six content fixes logged;
 its progress tracks are unbuilt, the shipped rows carry text countdowns
 only). **Current ask (A2.4): the choice ceremony** —

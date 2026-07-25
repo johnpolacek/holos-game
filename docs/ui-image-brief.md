@@ -142,7 +142,7 @@ groups (screens 7–15) are the active shot list**, plus screen 16 — the
 **inheritance ceremony** (session zero for Act-3-first: a card presenting
 a generated civilization's world, lineage, dial sheet, and charter to
 accept and name) — screen 17, the home system (present tense), adopted
-alongside it, and screen 18, the Docket (A2.2's work list, added once
+alongside it, and screen 18, the work list (A2.2's work list, added once
 that slice shipped). The Act 1 / pivot / Act 2 groups belong to Phase B
 and can wait.*
 
@@ -309,9 +309,9 @@ costs (observatory-design.md § Questions). A regeneration should read
 "12 COMPUTE" for "12 H INSTRUMENT" and label the strip a compute
 allocation; everything else about the plate stands.*
 
-#### 18 — Act 3: the Docket (everything under way; A2.2's screen)
+#### 18 — Act 3: TEND, the work list (everything under way; A2.2's screen)
 
-> A work-list screen on the dark starfield: a single column of eight
+> A work-list screen on the dark starfield, titled TEND: a single column of eight
 > undertakings, each a wide flat row with generous air between them. Each
 > row is a line of editorial serif naming the work ("Extend the deep
 > array", "Take its temperature", "The Assay"), a smaller slate sub-line
