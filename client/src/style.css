@@ -559,8 +559,9 @@ body {
   inset: 0;
   /* Covered entirely by the sheet on a phone; on a wide screen the sheet
      docks to one side and this scrim is what says the sky behind is still
-     there and tapping it returns you. */
-  background: rgba(7, 6, 10, 0.6);
+     there and tapping it returns you. Light-handed — the sheet itself is
+     translucent now, and this stacks under it on a phone. */
+  background: rgba(7, 6, 10, 0.35);
   opacity: 0;
   transition: opacity 260ms ease;
 }
@@ -576,7 +577,13 @@ body {
   gap: 0.5rem;
   padding: max(0.6rem, env(safe-area-inset-top)) 1.1rem
     max(1rem, env(safe-area-inset-bottom));
-  background: var(--holos-bg-raised);
+  /* Translucent over the sky: the stars stay in view behind the menu. The
+     blur softens them into glows under the type instead of crisp points
+     competing with it — dark enough (with the backdrop underneath) that the
+     ink tiers still clear daylight. */
+  background: rgba(7, 6, 10, 0.62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
   border-left: 1px solid var(--holos-gold-dim);
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.55);
   transform: translateY(100%);
@@ -658,13 +665,15 @@ body {
 }
 
 /* Panel titles carry the display face: these are the names of places in the
-   game, and at caps-xs they read as form labels instead. */
+   game, and at caps-xs they read as form labels instead. Amber, with a faint
+   warm halo — the title shares the chip's light, not the prose's ink. */
 .study-board-header {
   padding: 0.2rem 0 0.6rem;
   font-family: var(--holos-font-display);
   font-size: var(--holos-text-xl);
   letter-spacing: 0.12em;
-  color: var(--holos-ink);
+  color: var(--holos-amber);
+  text-shadow: 0 0 18px rgba(240, 172, 102, 0.35);
 }
 
 .study-board-empty,
@@ -1811,6 +1820,14 @@ body {
 
   .study-row--dim {
     opacity: 0.9;
+  }
+
+  /* The see-through menu is a mood, and glare mode trades mood for ink:
+     back to the solid raised stage so text never fights the stars. */
+  .study-board-sheet {
+    background: var(--holos-bg-raised);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   .civ-card:not(.focused) {
