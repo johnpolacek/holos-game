@@ -939,11 +939,14 @@ body {
   letter-spacing: 0.07em;
   line-height: 1.15;
   color: var(--holos-amber);
+  text-wrap: balance;
 }
 
 .study-row-conf {
   font-variant-numeric: tabular-nums;
   color: var(--holos-ink-dim);
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 /* Hub + projects view — the compute allocation line, ticked live once a
