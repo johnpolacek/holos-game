@@ -32,24 +32,17 @@ import type {
   MissionSnapshot,
   MissionCatalog,
   MissionKind,
+  MissionKindDef,
+  CharterClauseDef,
   CharterClauseId,
   DocketState,
-  CohortServerMessage,
+  DocketRow,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { CLASS_LABEL } from "./sourcecard";
 import { formatClockPair, formatCountdown, nowYear } from "./clock";
 
 const SWIPE_CLOSE_PX = 56;
-
-// DocketRow, MissionKindDef and CharterClauseDef are not individually
-// re-exported from protocol.ts (unlike their siblings MissionSnapshot /
-// MissionCatalog / CharterClauseWire) — derived here via index access on the
-// shapes that ARE exported (CohortServerMessage's `sky` variant and
-// MissionCatalog itself) rather than widening the server's export surface.
-type DocketRow = Extract<CohortServerMessage, { type: "sky" }>["docket"][number];
-type MissionKindOption = MissionCatalog["kinds"][number];
-type CharterClauseOption = MissionCatalog["clauses"][number];
 
 const DOCKET_STATE_LABEL: Record<DocketState, string> = {
   "in-hand": "IN HAND",
@@ -1519,7 +1512,7 @@ export class StudyBoard {
   // Two steps, no hold-to-commit ceremony (economy-design.md: Ambient = no
   // ceremony) — a kind pick with a live clock preview, then a real charter.
 
-  private buildKindRow(k: MissionKindOption): HTMLButtonElement {
+  private buildKindRow(k: MissionKindDef): HTMLButtonElement {
     const selected = this.launchKind === k.kind;
     const btn = document.createElement("button");
     btn.type = "button";
@@ -1543,7 +1536,7 @@ export class StudyBoard {
     return btn;
   }
 
-  private buildClauseRow(c: CharterClauseOption): HTMLButtonElement {
+  private buildClauseRow(c: CharterClauseDef): HTMLButtonElement {
     const selected = this.launchCharter.has(c.id);
     const btn = document.createElement("button");
     btn.type = "button";
@@ -1564,7 +1557,7 @@ export class StudyBoard {
 
   /** Tap toggles; at most one clause per group (client-side enforcement —
    *  missions.ts's validateCharter re-checks server-side regardless). */
-  private toggleClause(c: CharterClauseOption): void {
+  private toggleClause(c: CharterClauseDef): void {
     if (this.missionCatalog === null) return;
     const next = new Set(this.launchCharter);
     if (next.has(c.id)) {

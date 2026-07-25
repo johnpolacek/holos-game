@@ -20,6 +20,7 @@ import type {
   MissionSnapshot,
   MissionCatalog,
   DocketState,
+  DocketRow,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { StudyBoard } from "./studyboard";
@@ -27,11 +28,6 @@ import { clearPendingBecome, hasPendingBecome, renderCeremony } from "./ceremony
 import { Model } from "./model";
 import { SourceCard, type MissionCardState } from "./sourcecard";
 import { setClockAnchor } from "./clock";
-
-// DocketRow is not individually re-exported from protocol.ts (see
-// studyboard.ts's note by the same derivation) — pulled off the `sky`
-// variant's own field rather than widening the server's export surface.
-type DocketRow = Extract<CohortServerMessage, { type: "sky" }>["docket"][number];
 
 /** Docket states that mean a mission is still under way — everything but a
  *  terminal returned/silent (missions.ts's missionDocketState never emits

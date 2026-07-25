@@ -100,7 +100,16 @@ export type { LineageId } from "./cradles";
 export type { ArchetypeId } from "./minds";
 export type { CostClass } from "./projects";
 export type { QuestionId } from "./questions";
-export type { CharterClauseId, DocketState, MissionKind } from "./missions";
+export type {
+  CharterClauseDef,
+  CharterClauseId,
+  DocketState,
+  MissionKind,
+  MissionKindDef,
+} from "./missions";
+// The Docket row shape rides inside `sky`; the client renders it directly, so
+// it is named here rather than reached for through the message union.
+export type { DocketRow } from "./docket";
 
 /** Clock anchor; the client computes nowYear locally (no time polling). */
 export interface ClockWire {
