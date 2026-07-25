@@ -7,6 +7,14 @@ propose, and build — without this file open beside it. The prompts point
 at specs rather than duplicating them; [build-a2.md](./build-a2.md) and
 the docs each prompt names stay the source of truth.*
 
+**Status (2026-07):** A2.1 and A2.2 are shipped — their blocks stay
+below as record. **A2.2b, the grounded exit, is the open stage**, added
+after probe missions landed early with A2.2; A2.3 follows. Every block
+from A2.3 on describes a tree that now also contains missions, the
+Docket, and the light-cone gate — each block's *What exists* paragraph
+has been brought up to date, but read `roadmap.md` § Where the build is
+today before trusting any older framing.
+
 **How to use:** one stage at a time, in order. Paste the stage's block
 into a new session. The session ends at an **open PR plus a phone
 checklist** — you run the check on the preview or deployed URL, and the
@@ -15,7 +23,7 @@ merged. Then paste the next block into the next fresh session.
 
 ---
 
-## A2.1 — The observatory, read-only
+## A2.1 — The observatory, read-only ✅ *shipped — kept as record*
 
 ```
 Build stage A2.1 of Holos: the observatory, read-only — the vigil's
@@ -93,7 +101,11 @@ the evidence so far; confirm nothing is buyable.
 
 ---
 
-## A2.2 — Questions, bought and answered
+## A2.2 — Questions, bought and answered ✅ *shipped — kept as record*
+
+*Shipped wider than written: the session also built probe-class missions
+and the Docket (A4 work, pulled forward). build-a2.md § Guardrails
+records the overrun and what stays out.*
 
 ```
 Build stage A2.2 of Holos: questions, bought and answered — the vigil's
@@ -162,6 +174,72 @@ visibly moved — or a plateau, honestly labeled.
 
 ---
 
+## A2.2b — The grounded exit ← *next*
+
+```
+Build stage A2.2b of Holos: the grounded exit — a returned probe closes
+the study that sent it.
+
+Orient. Read, in order: CLAUDE.md at the repo root (stack, conventions,
+and § Build orchestration — you are the orchestrator; this stage is
+small enough that one Opus pass on the shape and Sonnet for the wiring
+is the whole topology). Then docs/build-a2.md (§ A2.2b and
+§ Guardrails), docs/observatory-design.md (§ The exits — grounded is the
+Assay's close: the belief comes back with the probe, and a grounded
+study stays closed exactly as a called one does), and
+docs/missions-design.md (what a returned Assay actually carries).
+
+What exists. A2.1 shipped the study board; A2.2 shipped bought questions
+AND — beyond its brief — probe-class missions and the Docket. So the
+Assay already flies, already resolves its charter against truth at
+arrival, and already moves a study's hypothesis board: see
+deriveStudyMoves in server/src/missions.ts, which cohort.ts folds into
+the evidence handed to buildStudySnapshot. studies.ts cannot tell an
+answer from a report, and must not learn to. What is missing is only the
+close: StudyStatus is still "open" | "shelved" (server/src/protocol.ts).
+
+Caution: the A2.2 modules cite docs/systems-a.md, synthesis.md and
+content.md by section. Those files were never committed. The code is the
+spec of record; do not go looking, and do not add new citations to them.
+
+Build:
+1. Wire + server: "grounded" joins StudyStatus. When an Assay report
+   lands for a star the player holds an open study on, that study closes
+   as grounded, carrying which mission grounded it and the belief the
+   probe settled. Derived in studies.ts/missions.ts, never in handlers.
+   A grounded study is immutable except by the player's explicit reopen
+   — the same rule as called, which arrives in A2.3 alongside it.
+2. Client: a grounded study reads as closed on the board and says why in
+   one flat observatory-deadpan sentence — the belief came back with the
+   probe, not out of the sky, and its date is the report's, not the
+   sky's. The Docket row for the mission gains no new state.
+3. Leave the reopen affordance exactly as shelved studies have it.
+
+Do not build: called or overtaken (A2.3), tripwires (A2.3), the mask
+contest (A2.3), any new mission kind, any change to the Docket's states.
+
+Invariants you personally verify: a grounded study's belief is still a
+belief — nothing from peekTruth crosses the wire unaged; a report can
+never be fresher than the sky, only sharper; grounded closes only on a
+report the player's own mission produced; studies.ts still cannot
+distinguish a report from an answer; strict TypeScript, no any,
+noUncheckedIndexedAccess on; wit 0, no exclamation marks; npm run
+typecheck and npm run build green at every commit.
+
+First move: propose the StudyStatus widening and the close rule (which
+report grounds which study, and what the board says) in one short note.
+Get a go, then build.
+
+Finish: small single-purpose commits on a feature branch; open a PR (do
+not merge); report the PR link, the preview URL if Workers Builds made
+one (dev cohort room only), and this phone checklist: launch an Assay
+from an open study, wait out its flight, and watch the study close as
+grounded when the report lands — naming the probe as the source of the
+belief.
+```
+
+---
+
 ## A2.3 — The contest, and study tripwires
 
 ```
@@ -181,11 +259,22 @@ docs/economy-design.md (the mask-versus-instrument contest is opposed
 open-ended spending, never stealth stats), and docs/prose-style.md
 (observatory deadpan, wit 0, for the tell).
 
-What exists. A2.1–A2.2 shipped studies with hypothesis distributions and
-bought questions answering through the alarm queue against delayed
-truth. Seeded civs carry archetypes and emission histories
-(server/src/civseed.ts, minds.ts); their mask behavior is this stage's
-addition.
+What exists. A2.1–A2.2 shipped studies with hypothesis boards and bought
+questions answering through the alarm queue against delayed truth —
+plus, beyond that brief, probe-class missions and the Docket
+(server/src/missions.ts, docket.ts) and the light-cone gate that all
+three knowledge channels read through (LightCone / peekTruth /
+occupancyAt in knowledge.ts; above the cone it returns null, never a
+clamp). A2.2b added the grounded exit, so StudyStatus already carries a
+closed state and its reopen rule when you arrive. settleShares in
+studies.ts is the one place a belief moves, and it already caps shares
+below certainty — regression enters through it, not around it. Seeded
+civs carry archetypes and emission histories (civseed.ts, minds.ts);
+their mask behavior is this stage's addition.
+
+Caution: the A2.2 modules cite docs/systems-a.md, synthesis.md and
+content.md by section. Those files were never committed. The code is the
+spec of record; do not go looking, and do not add new citations to them.
 
 Build:
 1. Server: archetype-rule mask upkeep for seeded civs (a Cloister pays
@@ -208,8 +297,9 @@ Build:
    and STAYS closed — later light accrues to the archive but never
    auto-reopens, never warns, never penalizes; reopening is always the
    player's own act) and overtaken (the source's own change of state
-   converts the study). Shelve already exists; grounded does not ship
-   (A4).
+   converts the study). Shelved and grounded already exist — called
+   inherits grounded's closed-state and reopen rules rather than
+   inventing its own.
 
 Do not build: the choice ceremony (A2.4), signals (A2.5+), push
 notifications, missions, the player's own mask UI beyond what exists
@@ -252,7 +342,10 @@ screen; hold-to-commit component), docs/act3-map.md (ceremonies stage
 ON the Model, in the volume), and client/src/ceremony.ts (the existing
 hold-to-commit pattern from BECOME — reuse its feel).
 
-What exists. A2.1–A2.3 shipped the full vigil. The Model renders the
+What exists. A2.1–A2.3 shipped the full vigil, and A2.2 shipped probe
+missions and the Docket alongside it — so the Model already carries one
+set of physics-derived clocks; the ceremony's renders join them rather
+than starting a second vocabulary. The Model renders the
 cohort's sky with detected sources (client/src/model.ts); emission
 history lives per-civ in the CivSeed/truth layer and the knowledge
 layer serves only departed light — which is why this stage's commits
@@ -405,9 +498,10 @@ settled), and docs/roadmap.md (§ Open build decisions — durable
 identity in Durable Objects' native SQLite storage, decided).
 
 What exists. A2.1–A2.5: the full vigil, the choice ceremony, and
-freeform traffic with AI counterparts on real clocks. Called studies
-produce dossiers server-side (belief, confidence, evidence chain,
-light-ages). Identity is still the A1 per-run token.
+freeform traffic with AI counterparts on real clocks. Closed studies —
+called or grounded — produce dossiers server-side (belief, confidence,
+evidence chain, light-ages; a grounded one says the belief came back
+with a probe). Identity is still the A1 per-run token.
 
 Build:
 1. The part grammar (the double-Opus deliverable): a composed signal is

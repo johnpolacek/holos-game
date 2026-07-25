@@ -65,8 +65,33 @@ Three decisions are already made for you (do not reopen them):
   first read, voices) that AI counterpart replies are generated from;
   `emissionHistory` feeds what any vigil can actually see.
 - `client/src/model.ts`, `sourcecard.ts`, `ceremony.ts` — the Model, the
-  source card (grows the *open study* affordance), and the
-  hold-to-commit ceremony pattern (reused for the choice screen).
+  source card (grew the *open study* affordance in A2.1, and *dispatch a
+  probe* in A2.2), and the hold-to-commit ceremony pattern (reused for
+  the choice screen).
+
+And what A2.1/A2.2 added, which the remaining stages extend rather than
+re-invent:
+
+- `server/src/studies.ts` — studies, hypothesis boards, evidence and
+  `settleShares` (the one place a belief moves; shares capped below
+  certainty). `StudyStatus` is still `"open" | "shelved"` — A2.2b and
+  A2.3 are what widen it.
+- `server/src/questions.ts` / `projects.ts` — the six bought questions
+  and the instrument shelf, priced in compute with effects frozen at
+  purchase.
+- `server/src/missions.ts` / `docket.ts` — Assay and Sentinel probes,
+  charters, the mission clock, and the derived Docket. `deriveStudyMoves`
+  is the seam A2.2b closes a study through.
+- `server/src/knowledge.ts` — now also `LightCone` / `peekTruth` /
+  `occupancyAt`: every channel that reads another civ's truth mints a
+  cone first, and above it `peekTruth` returns `null`, never a clamp.
+- `client/src/studyboard.ts` — the board, the Docket, and the launch
+  sheet. It is the largest client module; new panels join it.
+
+**A caution for any session reading those modules:** their comments cite
+`systems-a.md`, `synthesis.md` and `content.md` with section numbers.
+Those three files were never committed. Treat the code as the spec of
+record and do not go looking (roadmap.md § Where the build is today).
 
 ## Read first (docs)
 
@@ -117,7 +142,15 @@ shapes derived in `knowledge.ts`, never in handlers.
 
 ## The stages — A2 (roadmap § A2 is authoritative for scope)
 
-### A2.1 — The observatory, read-only
+**Where the stages stand (2026-07):** A2.1 and A2.2 are merged and
+deployed; the grounded-exit slice is next, then A2.3. A2.2 also shipped
+probe missions and the Docket — A4 work, pulled forward, against this
+brief's guardrail (see § Guardrails, which now records the overrun
+rather than pretending it away). roadmap.md § Where the build is today
+carries the full account, including the three uncommitted spec docs the
+shipped code cites.
+
+### A2.1 — The observatory, read-only ✅ *shipped (#12, follow-ups #13–#17)*
 
 The vigil's screen, before its verbs. Wire: open/shelve a study; study
 state on the Cohort DO; hypothesis menus per signal class seeded from
@@ -130,7 +163,7 @@ affordance: *open a study*.
 → read its hypotheses with confidence shares and the evidence so far.
 Nothing buyable yet.
 
-### A2.2 — Questions, bought and answered
+### A2.2 — Questions, bought and answered ✅ *shipped*
 
 The vigil's verb. Wire: buy a question; compute income and allocation;
 answers scheduled through the alarm queue on real clocks.
@@ -143,6 +176,25 @@ plateau only — no opponent yet).
 morning's report shows the answer and the study's bars visibly moved —
 or a plateau, honestly labeled.
 
+### A2.2b — The grounded exit *(next)*
+
+Added 2026-07, after probe missions shipped early with A2.2. The Assay
+is the observatory's closing verb — *go and know* — and its reports
+already fold into a study's board through `deriveStudyMoves`; what is
+missing is the close. A returned Assay on a study's target grounds that
+study: the belief it settles is the probe's, not the sky's, and the
+board says which. Grounded is an exit like called — it stays closed
+until the player reopens it — but it is the one exit whose belief was
+paid for in flight time rather than in compute.
+
+Small and standalone on purpose: it opens the study lifecycle once, so
+A2.3 adds called and overtaken to a lifecycle that already has three
+states, and A2.3's double-Opus session stays on the confidence model.
+
+**Phone check:** launch an Assay from an open study, wait out its
+flight, and on the report's arrival the study closes as grounded,
+naming the probe as the source of the belief.
+
 ### A2.3 — The contest, and study tripwires
 
 The other side spends. Archetype-rule mask upkeep for seeded civs (a
@@ -152,8 +204,9 @@ certainty. Regression joins the answer shapes, its tell stated plainly
 in the observatory deadpan (observatory-design.md, **settled**). Study
 tripwires (*wake this study if confidence regresses; if the leakage
 stops*) fire in-app on next open. Called/shelved/overtaken exits
-complete the study lifecycle — a called study stays called. **No
-grounded exit** — the Assay is A4; the board simply does not offer it.
+complete the study lifecycle — a called study stays called. The
+grounded exit is no longer this stage's problem: it ships in A2.2b,
+just above.
 
 **Phone check:** a vigil on a masked target regresses and the board
 says why in one flat sentence; a called study closes and stays closed.
@@ -217,9 +270,16 @@ tune here — nothing else builds until this gate passes (roadmap, § A2).
 - **Irreversibility requires presence.** No auto-hail, no auto-answer
   to first contact, nothing irreversible fires from any standing state
   while the player is away (act3-design.md, § the presence rule).
-- **No missions, no launches.** The Assay/grounded exit, the Docket
-  surface, and seedships are A4. Bought questions may ride the existing
-  strip clocks; do not build the Docket early.
+- ~~**No missions, no launches.**~~ **Amended 2026-07 — overrun, and
+  kept.** A2.2 shipped probe-class missions (Assay, Sentinel, charters)
+  and the Docket alongside the questions layer, on the argument that a
+  bought question and a launched probe are the same verb at two prices
+  and wanted one work engine between them. That is now the shipped
+  architecture and this brief follows it rather than the other way
+  round. What stays out of A2 is still real: **no seedships, no
+  relativistic ships, no standing orders, no Ledger** — the travel half
+  of A4 (roadmap.md § A4). New work in the remaining stages hangs off
+  the Docket that exists; it does not grow it.
 - **`ObservedCiv`/`DetectedSource` discipline is absolute**, extended
   only through `knowledge.ts`.
 - **The comms register**: signals, tight beams, traffic, payloads —
@@ -236,12 +296,13 @@ tune here — nothing else builds until this gate passes (roadmap, § A2).
 
 ## First move
 
-Read the code and docs above, then **propose before building A2.1: the
-study wire shapes (study, hypothesis, evidence) and the observatory's
-screen layout** — plus a sketch of where the later stages' messages will
-hang, so A2.1's shapes don't need reshaping. Each subsequent stage opens
-the same way: a short proposal (its wire additions and its screen), the
-go, then build. The two proposals that warrant the double-Opus treatment
+Every stage opens the same way: a short proposal — its wire additions
+and its screen — then the go, then the build. A2.1's proposal (the study,
+hypothesis and evidence shapes, and the board's layout) is shipped and
+is now the pattern the rest extend. **The open stage is A2.2b**, whose
+proposal is small: where `grounded` sits in `StudyStatus`, what closes
+the study when an Assay report lands, and how the board says the belief
+came back with the probe rather than out of the sky. The two proposals that warrant the double-Opus treatment
 when their stages arrive: the study/confidence model with earned
 regression (A2.3) and the composed-signal part grammar (A2.6). After
 each go, decompose into subagent tasks (see *Orchestration*), and
