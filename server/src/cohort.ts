@@ -45,15 +45,17 @@ import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
 import { buildStudySnapshot, hypothesisMenus } from "./studies";
 import {
-  bankedHoursAt,
+  freeComputeAt,
   hasLanded,
   landedYear,
+  migrateProjectState,
   newProjectState,
   projectById,
   ratePerYearAt,
   PROJECTS,
   type ProjectState,
   type StartedProject,
+  type StoredProjectState,
 } from "./projects";
 import {
   parseCohortClientMessage,
@@ -65,7 +67,7 @@ import {
   type ClockWire,
   type CohortServerMessage,
   type DetectedSource,
-  type InstrumentBudget,
+  type ComputeBudget,
   type ProjectSnapshot,
   type SelfView,
 } from "./protocol";
@@ -455,9 +457,9 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
-   * startProject: commission a project against the civ's banked
-   * instrument-hours. No derivation here beyond calling projects.ts
-   * functions: validate, mutate state, persist, then a fresh sky.
+   * startProject: commission a project against the civ's free compute. No
+   * derivation here beyond calling projects.ts functions: validate, mutate
+   * state, persist, then a fresh sky.
    */
   private async onStartProject(conn: Connection, projectId: string): Promise<void> {
     const state = this.conns.get(conn.id);
@@ -480,12 +482,12 @@ export class Cohort extends Server<CohortEnv> {
       });
       return;
     }
-    const banked = bankedHoursAt(projectState, nowYear);
-    if (banked < def.costInstrumentHours) {
+    const free = freeComputeAt(projectState, nowYear);
+    if (free < def.costCompute) {
       this.sendMsg(conn, {
         type: "error",
-        code: "insufficient-instrument-time",
-        message: "insufficient instrument time",
+        code: "insufficient-compute",
+        message: "not enough free compute",
       });
       return;
     }
@@ -496,7 +498,7 @@ export class Cohort extends Server<CohortEnv> {
     const updated: ProjectState = {
       ...projectState,
       started,
-      spentHours: projectState.spentHours + def.costInstrumentHours,
+      committedCompute: projectState.committedCompute + def.costCompute,
     };
     await this.saveProjectState(state.token, updated);
     await this.sendSky(conn, state.token, state.civId);
@@ -517,16 +519,26 @@ export class Cohort extends Server<CohortEnv> {
   /**
    * A run placed before A2.2 has no stored project state: lazily create one
    * (via newProjectState, seeded from the civ's energy ladder) when absent,
-   * and persist it once so the endowment/base-grant clock doesn't restart on
-   * every read. A pure read that finds existing state never writes it back.
+   * and persist it once so the opening-allocation/base-grant clock doesn't
+   * restart on every read.
+   *
+   * A run placed before the instrument-hours→compute rename has state in the
+   * v1 shape: migrate it and persist once, so the civ keeps its exact
+   * position (the rename was nominal — same numbers, same rates). A pure
+   * read that finds current-shape state never writes it back.
    */
   private async loadProjectState(
     token: string,
     civId: string,
     nowYear: number,
   ): Promise<ProjectState> {
-    const stored = await this.ctx.storage.get<ProjectState>(`projects:${token}`);
-    if (stored !== undefined) return stored;
+    const stored = await this.ctx.storage.get<StoredProjectState>(`projects:${token}`);
+    if (stored !== undefined) {
+      if (stored.version === 2) return stored;
+      const migrated = migrateProjectState(stored);
+      await this.ctx.storage.put(`projects:${token}`, migrated);
+      return migrated;
+    }
     const galaxy = this.requireGalaxy();
     const civ = civById(galaxy, civId);
     const fresh = newProjectState(nowYear, civ.seed.ladders.energy);
@@ -606,7 +618,7 @@ export class Cohort extends Server<CohortEnv> {
           label: def.label,
           line: def.line,
           costClass: def.costClass,
-          costInstrumentHours: def.costInstrumentHours,
+          costCompute: def.costCompute,
           durationYears: def.durationYears,
           addRatePerYear: def.effect.addRatePerYear,
           status: "available",
@@ -620,7 +632,7 @@ export class Cohort extends Server<CohortEnv> {
         label: def.label,
         line: def.line,
         costClass: def.costClass,
-        costInstrumentHours: def.costInstrumentHours,
+        costCompute: def.costCompute,
         durationYears: def.durationYears,
         addRatePerYear: def.effect.addRatePerYear,
         status: landed ? "standing" : "running",
@@ -628,8 +640,8 @@ export class Cohort extends Server<CohortEnv> {
         landsYear: landedYear(def, runningEntry),
       };
     });
-    const budget: InstrumentBudget = {
-      hours: bankedHoursAt(projectState, nowYear),
+    const budget: ComputeBudget = {
+      free: freeComputeAt(projectState, nowYear),
       ratePerYear: ratePerYearAt(projectState, nowYear),
       asOfYear: nowYear,
     };

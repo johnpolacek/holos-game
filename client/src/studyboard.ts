@@ -12,7 +12,9 @@
 //   - The OPEN QUESTIONS section ships its layout (a reserved, empty
 //     container) but renders nothing in A2.1: `StudySnapshot.openQuestions`
 //     is always `[]` this slice, and nothing is buyable yet. The art's
-//     INSTRUMENT ALLOCATION strip is A2.2 entirely and does not appear here.
+//     allocation strip (labelled INSTRUMENT ALLOCATION in the image brief,
+//     denominated in compute since — see projects.ts) is A2.2 entirely and
+//     does not appear here.
 //
 // Register: observatory deadpan, wit 0, no exclamation marks. Soft past
 // tense for remote facts — every one wears its light-age. NEVER cyan here;
@@ -25,7 +27,7 @@ import type {
   HypothesisId,
   HypothesisMenus,
   ProjectSnapshot,
-  InstrumentBudget,
+  ComputeBudget,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { CLASS_LABEL } from "./sourcecard";
@@ -101,7 +103,7 @@ export class StudyBoard {
   private sourcesByStarId = new Map<string, DetectedSource>();
   private localNames: ReadonlyMap<string, string> = new Map();
   private projects: readonly ProjectSnapshot[] = [];
-  private budget: InstrumentBudget = { hours: 0, ratePerYear: 0, asOfYear: 0 };
+  private budget: ComputeBudget = { free: 0, ratePerYear: 0, asOfYear: 0 };
 
   private openFlag = false;
   private view:
@@ -123,9 +125,9 @@ export class StudyBoard {
   // error, so the verb can never sit stuck mid-flight.
   private pendingBeginStarId: string | null = null;
 
-  // A single 1s ticker, live while the panel is open, so the hub's banked-
-  // hours line and any running project's countdown stay current without a
-  // new `sky` message — both derive from clock.ts's locally-interpolated
+  // A single 1s ticker, live while the panel is open, so the hub's compute
+  // allocation line and any running project's countdown stay current without
+  // a new `sky` message — both derive from clock.ts's locally-interpolated
   // nowYear(), never from server polling.
   private tickHandle: number | null = null;
 
@@ -196,7 +198,7 @@ export class StudyBoard {
     sources: readonly DetectedSource[],
     localNames: ReadonlyMap<string, string>,
     projects: readonly ProjectSnapshot[],
-    budget: InstrumentBudget,
+    budget: ComputeBudget,
   ): void {
     this.studiesByStarId = new Map(studies.map((s) => [s.starId, s] as const));
     this.sourcesByStarId = new Map(sources.map((s) => [s.starId, s] as const));
@@ -320,18 +322,24 @@ export class StudyBoard {
     }
   }
 
-  /** The instrument-hour balance right now: the last snapshot plus what has
-   * accrued since, derived locally from clock.ts's nowYear() so the hub and
-   * projects panel read live without waiting on a new `sky`. */
-  private currentBudgetHours(): number {
+  /** Uncommitted compute right now: the last snapshot plus what has accrued
+   * since, derived locally from clock.ts's nowYear() so the hub and projects
+   * panel read live without waiting on a new `sky`. */
+  private currentFreeCompute(): number {
     const elapsedYears = Math.max(0, nowYear() - this.budget.asOfYear);
-    return this.budget.hours + this.budget.ratePerYear * elapsedYears;
+    return this.budget.free + this.budget.ratePerYear * elapsedYears;
   }
 
+  /**
+   * The allocation line. "UNCOMMITTED", not "banked" — this is compute not
+   * yet spent on thinking, not savings (projects.ts § NOT A BANK), and the
+   * word has to carry that on its own because it is the only place the
+   * player meets the currency.
+   */
   private buildBudgetLine(): HTMLDivElement {
     const line = document.createElement("div");
     line.className = "study-budget-line holos-caps";
-    line.textContent = `${Math.floor(this.currentBudgetHours())} INSTRUMENT HOURS BANKED · +${this.budget.ratePerYear}/Y`;
+    line.textContent = `${Math.floor(this.currentFreeCompute())} COMPUTE UNCOMMITTED · +${this.budget.ratePerYear}/Y`;
     return line;
   }
 
@@ -396,7 +404,7 @@ export class StudyBoard {
     this.body.append(
       this.buildHubRow(
         "Start a project",
-        "Build the instruments. Raise the income.",
+        "Build the instruments. Raise what you can think about.",
         true,
         () => this.openProjects(),
       ),
@@ -748,8 +756,7 @@ export class StudyBoard {
   // is free, uncapped and reversible, so the brief's job is not to price a
   // transaction (there is none) but to say what the watch is, what it can
   // tell apart, and what it will and will not cost. Nothing here invents a
-  // spend: instrument hours buy questions, and questions are their own
-  // slice.
+  // spend: compute buys questions, and questions are their own slice.
 
   private openBrief(starId: string): void {
     this.view = "brief";
@@ -831,13 +838,13 @@ export class StudyBoard {
     this.body.append(
       this.buildBriefSection(
         "WHAT IT COSTS",
-        "Nothing to open, nothing to hold, and no limit on how many stand at once. Watching spends only patience. Instrument hours buy questions — the observations that separate one reading from another — and no question has been put to this source.",
+        "Nothing to open, nothing to hold, and no limit on how many stand at once. The light arrives whether or not you attend to it, so watching spends only patience. Compute buys questions — the inference that separates one reading from another — and no question has been put to this source.",
       ),
     );
 
     const meta = document.createElement("div");
     meta.className = "study-brief-meta holos-caps";
-    meta.textContent = "NO INSTRUMENT HOURS · NO CLOCK · REVERSIBLE";
+    meta.textContent = "NO COMPUTE · NO CLOCK · REVERSIBLE";
     this.body.append(meta);
 
     this.body.append(this.hairline());
@@ -950,9 +957,9 @@ export class StudyBoard {
       flag.textContent = "STANDING";
     } else {
       // "available"
-      const currentHours = this.currentBudgetHours();
-      const affordable = currentHours >= p.costInstrumentHours;
-      const base = `${p.costInstrumentHours} H · ${formatClockPair(p.durationYears)} · +${p.addRatePerYear}/Y`;
+      const free = this.currentFreeCompute();
+      const affordable = free >= p.costCompute;
+      const base = `${p.costCompute} COMPUTE · ${formatClockPair(p.durationYears)} · +${p.addRatePerYear}/Y`;
       if (affordable) {
         btn.addEventListener("click", () => {
           this.socket.send({ type: "startProject", projectId: p.id });
@@ -961,8 +968,8 @@ export class StudyBoard {
       } else {
         btn.disabled = true;
         btn.classList.add("study-project-row--disabled");
-        const shortfall = Math.ceil(p.costInstrumentHours - currentHours);
-        meta.textContent = `${base} · ${shortfall} H SHORT`;
+        const shortfall = Math.ceil(p.costCompute - free);
+        meta.textContent = `${base} · ${shortfall} SHORT`;
       }
     }
 

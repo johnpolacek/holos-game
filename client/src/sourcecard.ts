@@ -10,7 +10,7 @@
 // holds. NOTHING is ever drawn to the right of that edge; there is no
 // future here (concepts/03-01 shows future ticks — that is wrong).
 //
-// Read-and-name only: no vigil/instrument-time mechanics, no contact
+// Read-and-name only: no vigil/compute mechanics, no contact
 // verbs, no time-scrubbing (all later slices).
 
 import {

@@ -211,7 +211,8 @@ export type HypothesisMenus = Readonly<
 export interface OpenQuestion {
   readonly id: string;
   readonly label: string;
-  readonly costInstrumentHours: number;
+  /** Compute to run the inference. `integrationHours` is the clock it runs on. */
+  readonly costCompute: number;
   readonly integrationHours: number;
   readonly separates: readonly HypothesisId[];
 }
@@ -231,9 +232,11 @@ export interface StudySnapshot {
   readonly annotationLine: string;
 }
 
-// ── A2.2: the instrument-time economy ───────────────────────────────────
+// ── A2.2: the compute economy ───────────────────────────────────────────
 // The server resolves the catalog + this civ's state into these shapes so
 // no catalog ships to the client — the archetypeName precedent.
+// The currency is Compute, economy-design.md's price of knowing: looking is
+// free at this stage, and what is finite is the inference. See projects.ts.
 
 /** One project as seen from a specific civ's current state. */
 export interface ProjectSnapshot {
@@ -241,7 +244,7 @@ export interface ProjectSnapshot {
   readonly label: string;
   readonly line: string;
   readonly costClass: CostClass;
-  readonly costInstrumentHours: number;
+  readonly costCompute: number;
   readonly durationYears: number;
   readonly addRatePerYear: number;
   readonly status: "available" | "running" | "standing";
@@ -249,10 +252,13 @@ export interface ProjectSnapshot {
   readonly landsYear: number | null; // null iff available
 }
 
-/** The civ's current instrument-time balance. */
-export interface InstrumentBudget {
-  readonly hours: number; // banked as of asOfYear
-  readonly ratePerYear: number; // instrument-hours per GAME year
+/**
+ * The civ's compute allocation — an allocation, not a balance: `free` is
+ * what is not already committed, never a store of value.
+ */
+export interface ComputeBudget {
+  readonly free: number; // uncommitted as of asOfYear
+  readonly ratePerYear: number; // compute per GAME year
   readonly asOfYear: number; // so the client accrues locally
 }
 
@@ -276,13 +282,13 @@ export type CohortServerMessage =
       localNames: Readonly<Record<string, string>>;
       studies: readonly StudySnapshot[];
       projects: readonly ProjectSnapshot[];
-      budget: InstrumentBudget }
+      budget: ComputeBudget }
   | { type: "sourceNamed"; starId: string; name: string }
   | { type: "error"; code: CohortErrorCode; message: string };
 
 export type CohortErrorCode =
   | "bad-name" | "unknown-candidate" | "cohort-full" | "not-placed" | "bad-message"
-  | "unknown-project" | "already-running" | "insufficient-instrument-time";
+  | "unknown-project" | "already-running" | "insufficient-compute";
 
 /** Max civilization / local-source name length (post-trim). */
 export const MAX_NAME_LEN = 24;

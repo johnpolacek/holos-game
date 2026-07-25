@@ -715,8 +715,8 @@ body {
   color: var(--holos-ink-dim);
 }
 
-/* Hub + projects view — the banked-hours line, ticked live once a second
- * while the panel is open (see StudyBoard's startTicking). */
+/* Hub + projects view — the compute allocation line, ticked live once a
+ * second while the panel is open (see StudyBoard's startTicking). */
 .study-budget-line {
   padding: 0.1rem 0 0.5rem;
 }

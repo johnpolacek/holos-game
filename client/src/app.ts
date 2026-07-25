@@ -15,7 +15,7 @@ import type {
   SelfView,
   Star,
   ProjectSnapshot,
-  InstrumentBudget,
+  ComputeBudget,
   HypothesisMenus,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
@@ -48,7 +48,7 @@ export class App {
   private studies: readonly StudySnapshot[] = [];
   private sources: readonly DetectedSource[] = [];
   private projects: readonly ProjectSnapshot[] = [];
-  private budget: InstrumentBudget = { hours: 0, ratePerYear: 0, asOfYear: 0 };
+  private budget: ComputeBudget = { free: 0, ratePerYear: 0, asOfYear: 0 };
 
   // Set when the source card fires onStudyAction for a source with no study
   // yet: we've sent `openStudy` and are waiting for the confirming `sky` to
