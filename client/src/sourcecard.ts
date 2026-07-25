@@ -114,6 +114,9 @@ export class SourceCard {
 
   private dragStartY: number | null = null;
   private dragDy = 0;
+  /** True once a pointerdown lands on the backdrop itself — the guard that
+   * separates a real dismissal tap from the opening tap's trailing click. */
+  private backdropArmed = false;
 
   constructor(container: HTMLElement, socket: CohortSocket) {
     this.socket = socket;
@@ -123,7 +126,18 @@ export class SourceCard {
 
     this.backdrop = document.createElement("div");
     this.backdrop.className = "source-card-backdrop";
-    this.backdrop.addEventListener("click", () => this.requestClose());
+    // The sky tap that OPENS this card ends with a click the browser
+    // dispatches after the pointerup — by which time the backdrop is already
+    // up and catches it, closing the card inside the same gesture. Only a
+    // click whose pointerdown also landed on the backdrop is a dismissal.
+    this.backdrop.addEventListener("pointerdown", () => {
+      this.backdropArmed = true;
+    });
+    this.backdrop.addEventListener("click", () => {
+      if (!this.backdropArmed) return;
+      this.backdropArmed = false;
+      this.requestClose();
+    });
 
     this.sheet = document.createElement("div");
     this.sheet.className = "source-card-sheet";
@@ -255,6 +269,7 @@ export class SourceCard {
 
   open(source: DetectedSource, localNames: ReadonlyMap<string, string>): void {
     this.source = source;
+    this.backdropArmed = false;
     this.localNames = localNames;
     this.editing = false;
     this.pendingSend = false;
