@@ -1193,10 +1193,9 @@ body {
    right. One level of indent for a row hanging under a study parent. */
 .docket-row {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.9rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
   width: 100%;
   min-height: 60px;
   background: none;
@@ -1210,6 +1209,73 @@ body {
 
 .docket-row--child {
   padding-left: 1.6rem;
+}
+
+.docket-row-top {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+  width: 100%;
+}
+
+/* The track — a hairline the work crosses, in the study board's own idiom
+ * (study-hyp-track): 1px rail, amber fill, a soft radial tip that is a
+ * glow and never a handle. Nothing here is draggable and nothing here is a
+ * capsule; the row is a clock lying on its side. */
+.docket-track {
+  position: relative;
+  height: 1px;
+  width: 100%;
+  background: var(--holos-gold-dim);
+}
+
+.docket-track-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--holos-amber);
+}
+
+.docket-track-tip {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(240, 172, 102, 0.55) 0%,
+    rgba(240, 172, 102, 0) 70%
+  );
+  filter: blur(1.5px);
+  pointer-events: none;
+}
+
+/* The amendment horizon: a bare tick standing ON the rail, unlabeled. Past
+ * it, nothing sent from here can overtake what is already going. */
+.docket-track-mark {
+  position: absolute;
+  top: 50%;
+  width: 1px;
+  height: 7px;
+  transform: translate(-50%, -50%);
+  background: var(--holos-gold-dim);
+  pointer-events: none;
+}
+
+/* Silence: the rail itself stops. The fill runs to the year the schedule
+ * broke and the remainder is a gap — no tip, because nothing is
+ * travelling, and no red, because a silence is not an error. */
+.docket-track--broken {
+  background: none;
+}
+
+.docket-track--broken .docket-track-fill {
+  background: var(--holos-gold-dim);
 }
 
 .docket-row-main {
@@ -1252,6 +1318,7 @@ body {
 
 .docket-row-next {
   color: var(--holos-ink-faint);
+  align-self: flex-end;
 }
 
 /* Mission detail — the clock trio, plain two-column rows. */

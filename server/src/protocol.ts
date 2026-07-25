@@ -391,6 +391,10 @@ export interface MissionSnapshot {
   readonly arrivalYear: number; // launchedYear + 10d
   readonly firstWordYear: number; // launchedYear + 11d
   readonly nextWordYear: number | null; // next expected arrival, null if none
+  /** The year of the FIRST promised word that never came — non-null iff
+   *  `state === "silent"`. A silence has exactly one date: the year the
+   *  schedule broke. What broke it is not knowable from here. */
+  readonly missedWordYear: number | null;
   readonly charter: readonly CharterClauseWire[];
   readonly state: DocketState;
   readonly reports: readonly MissionReport[];

@@ -1327,6 +1327,9 @@ export class StudyBoard {
     }
     el.className = row.parentId !== null ? "docket-row docket-row--child" : "docket-row";
 
+    const top = document.createElement("div");
+    top.className = "docket-row-top";
+
     const main = document.createElement("div");
     main.className = "docket-row-main";
     const label = document.createElement("div");
@@ -1350,16 +1353,74 @@ export class StudyBoard {
     state.textContent = DOCKET_STATE_LABEL[row.state];
     meta.append(chip, state);
 
+    top.append(main, meta);
+    el.append(top);
+
+    const track = this.buildDocketTrack(row);
+    if (track !== null) el.append(track);
+
     if (row.nextYear !== null && row.nextLabel !== null) {
       const next = document.createElement("div");
       next.className = "docket-row-next holos-caps";
       const countdown = formatCountdown(row.nextYear);
       next.textContent = countdown !== null ? `${row.nextLabel} IN ${countdown}` : row.nextLabel;
-      meta.append(next);
+      el.append(next);
     }
 
-    el.append(main, meta);
     return el;
+  }
+
+  /**
+   * The row's track: a hairline the fill crosses as the wait runs down, with
+   * a travelling tip where the work is now. It is a CLOCK, not a task bar —
+   * both ends are years the server already sent (`fromYear` → `nextYear`),
+   * and the fraction is derived locally from clock.ts's nowYear, so the 1s
+   * ticker advances it without a new sky.
+   *
+   * Three shapes, and the difference between them is the whole point:
+   *  - running: fill and tip, plus a tick where the physics mark sits (a
+   *    probe's amendment horizon — once the tip is past it, no beamed change
+   *    can overtake the probe).
+   *  - silent: the span ends at the year the schedule broke, so the track is
+   *    drawn BROKEN — the line stops at the mark and the rest is a gap. No
+   *    tip: nothing is travelling. Absence rendered as absence.
+   *  - done (returned, landed): no track at all. Nothing is under way, and
+   *    an empty rail would be an invitation to read one.
+   */
+  private buildDocketTrack(row: DocketRow): HTMLDivElement | null {
+    const from = row.fromYear;
+    const end = row.nextYear ?? row.markYear;
+    if (from === null || end === null || end <= from) return null;
+
+    const now = nowYear();
+    const fraction = clamp01((now - from) / (end - from));
+    const isSilent = row.state === "silent";
+
+    const track = document.createElement("div");
+    track.className = isSilent ? "docket-track docket-track--broken" : "docket-track";
+
+    const fill = document.createElement("div");
+    fill.className = "docket-track-fill";
+    fill.style.width = `${(fraction * 100).toFixed(2)}%`;
+    track.append(fill);
+
+    if (isSilent) return track;
+
+    const tip = document.createElement("div");
+    tip.className = "docket-track-tip";
+    tip.style.left = `${(fraction * 100).toFixed(2)}%`;
+    track.append(tip);
+
+    // The mark is only drawn where it actually falls inside the span.
+    const mark = row.markYear;
+    if (mark !== null && mark > from && mark < end) {
+      const tick = document.createElement("div");
+      tick.className = "docket-track-mark";
+      tick.style.left = `${(((mark - from) / (end - from)) * 100).toFixed(2)}%`;
+      track.append(tick);
+    }
+
+    return track;
   }
 
   // ── Render: mission detail ───────────────────────────────────────────

@@ -20,7 +20,7 @@
 // is a top-level row.
 
 import { hasLanded, landedYear, projectById, type CostClass, type ProjectState } from "./projects";
-import type { DocketState } from "./missions";
+import { SENTINEL_CADENCE_YEARS, type DocketState } from "./missions";
 import type { MissionSnapshot, StudySnapshot } from "./protocol";
 
 export type DocketKind = "study" | "project" | "question" | "mission";
@@ -38,6 +38,22 @@ export interface DocketRow {
   readonly state: DocketState;
   readonly nextYear: number | null;
   readonly nextLabel: string | null; // "LANDS" | "ANSWERS" | "ARRIVES" | "FIRST WORD" | "NEXT WORD"
+  /**
+   * The year this stretch of waiting BEGAN — the other end of the span the
+   * client draws a track across (`fromYear` → `nextYear ?? markYear`). Not
+   * always the year the work was commissioned: a standing sentinel's span
+   * is one cadence, so its track measures the wait for the NEXT word rather
+   * than the decades since launch, which would sit at 99% forever.
+   */
+  readonly fromYear: number | null;
+  /**
+   * A physics mark ON the track, where one exists: a mission in flight
+   * carries its amendment horizon (past that point no beamed change can
+   * overtake the probe), and a silent one carries the year its schedule
+   * broke. Null where the wait has no interior event — a project lands or
+   * it does not.
+   */
+  readonly markYear: number | null;
   /** One level of linkage: the id of the study row this hangs under, or null. */
   readonly parentId: string | null;
   /** The star this row concerns, so the client can offer "inspect". */
@@ -52,22 +68,63 @@ function nameFor(
   return localNames[starId] ?? designations[starId] ?? starId;
 }
 
-/** Mission nextYear/nextLabel by state (systems-a.md §4). */
-function missionNextDate(m: MissionSnapshot): { nextYear: number | null; nextLabel: string | null } {
+interface RowSpan {
+  readonly nextYear: number | null;
+  readonly nextLabel: string | null;
+  readonly fromYear: number | null;
+  readonly markYear: number | null;
+}
+
+/**
+ * Mission nextYear/nextLabel by state (systems-a.md §4), plus the span the
+ * client draws its track across. Every date here is already on the
+ * snapshot — this only says which pair of them bounds the current wait.
+ */
+function missionSpan(m: MissionSnapshot): RowSpan {
   switch (m.state) {
     case "in-flight":
     case "beyond-horizon":
-      return { nextYear: m.arrivalYear, nextLabel: "ARRIVES" };
+      // Launch → arrival, with the horizon marked inside it.
+      return {
+        nextYear: m.arrivalYear,
+        nextLabel: "ARRIVES",
+        fromYear: m.launchedYear,
+        markYear: m.horizonYear,
+      };
     case "awaiting-light":
-      return { nextYear: m.firstWordYear, nextLabel: "FIRST WORD" };
+      // The probe is there; what is crossing is the light. The horizon is
+      // behind us and stays marked — the amendment window is closed, and
+      // saying so is the point of drawing it.
+      return {
+        nextYear: m.firstWordYear,
+        nextLabel: "FIRST WORD",
+        fromYear: m.launchedYear,
+        markYear: m.horizonYear,
+      };
     case "standing":
-      return { nextYear: m.nextWordYear, nextLabel: "NEXT WORD" };
-    case "returned":
+      // One cadence, not the whole mission: the wait that is actually
+      // running is the wait for the next word.
+      return {
+        nextYear: m.nextWordYear,
+        nextLabel: "NEXT WORD",
+        fromYear:
+          m.nextWordYear === null ? null : m.nextWordYear - SENTINEL_CADENCE_YEARS,
+        markYear: null,
+      };
     case "silent":
-      return { nextYear: null, nextLabel: null };
+      // Nothing is coming, so there is no next date. The span ends at the
+      // year the schedule broke, and the client draws the break.
+      return {
+        nextYear: null,
+        nextLabel: null,
+        fromYear: m.launchedYear,
+        markYear: m.missedWordYear,
+      };
+    case "returned":
+      return { nextYear: null, nextLabel: null, fromYear: null, markYear: null };
     case "in-hand":
       // Never applies to a mission (systems-a.md §3.6); defensive fallback.
-      return { nextYear: null, nextLabel: null };
+      return { nextYear: null, nextLabel: null, fromYear: null, markYear: null };
   }
 }
 
@@ -159,6 +216,8 @@ export function buildDocket(input: {
       state: landed ? "standing" : "in-hand",
       nextYear: landed ? null : landedYear(def, p),
       nextLabel: landed ? null : "LANDS",
+      fromYear: landed ? null : p.startedYear,
+      markYear: null,
       parentId: null,
       starId: null,
     });
@@ -177,6 +236,8 @@ export function buildDocket(input: {
         state: "in-hand",
         nextYear: q.answersYear,
         nextLabel: "ANSWERS",
+        fromYear: q.boughtYear,
+        markYear: null,
         parentId: parentFor(study.starId),
         starId: study.starId,
       });
@@ -185,7 +246,7 @@ export function buildDocket(input: {
 
   // Mission rows: every mission is a row, whatever its state.
   for (const m of missions) {
-    const { nextYear, nextLabel } = missionNextDate(m);
+    const { nextYear, nextLabel, fromYear, markYear } = missionSpan(m);
     rows.push({
       id: `mission/${m.id}`,
       kind: "mission",
@@ -195,6 +256,8 @@ export function buildDocket(input: {
       state: m.state,
       nextYear,
       nextLabel,
+      fromYear,
+      markYear,
       parentId: parentFor(m.starId),
       starId: m.starId,
     });
@@ -233,6 +296,10 @@ export function buildDocket(input: {
       state: "in-hand",
       nextYear: best?.nextYear ?? null,
       nextLabel: best?.nextLabel ?? null,
+      // The parent mirrors the soonest child whole, span included: a study
+      // row is a stand-in for the nearest thing happening under it.
+      fromYear: best?.fromYear ?? null,
+      markYear: best?.markYear ?? null,
       parentId: null,
       starId: study.starId,
     });

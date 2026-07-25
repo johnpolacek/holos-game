@@ -687,27 +687,31 @@ function missionDocketState(
   plan: ResolvedPlan | null,
   reportCount: number,
   nowYear: number,
-): DocketState {
+): { readonly state: DocketState; readonly missedWordYear: number | null } {
   const horizon = missionHorizonYear(m);
   const arrival = missionArrivalYear(m);
   const firstWord = missionFirstWordYear(m);
-  if (nowYear < horizon) return "in-flight";
-  if (nowYear < arrival) return "beyond-horizon";
-  if (nowYear < firstWord) return "awaiting-light";
+  if (nowYear < horizon) return { state: "in-flight", missedWordYear: null };
+  if (nowYear < arrival) return { state: "beyond-horizon", missedWordYear: null };
+  if (nowYear < firstWord) return { state: "awaiting-light", missedWordYear: null };
   // Truth at arrival is guaranteed knowable once nowYear ≥ firstWord, so
   // `plan` is always non-null here; the fallback is defensive only.
-  if (plan === null) return "awaiting-light";
+  if (plan === null) return { state: "awaiting-light", missedWordYear: null };
 
   const expected = expectedArrivals(m.kind, m.launchedYear, m.distanceLy, m.flightYearsPerLy, nowYear);
   const actualAtHome = new Set(
     actualEmissions(plan, arrival, nowYear).map((a) => a + m.distanceLy),
   );
-  const isSilent = expected.some(
+  // The FIRST promise that went unkept, not merely whether one did: it is
+  // the year the schedule broke, which is the only date a silence has.
+  const missed = expected.find(
     (e) => e + SILENCE_GRACE_YEARS <= nowYear + EPS && !actualAtHome.has(e),
   );
-  if (isSilent) return "silent";
-  if (reportCount > 0) return plan.standing ? "standing" : "returned";
-  return "awaiting-light";
+  if (missed !== undefined) return { state: "silent", missedWordYear: missed };
+  if (reportCount > 0) {
+    return { state: plan.standing ? "standing" : "returned", missedWordYear: null };
+  }
+  return { state: "awaiting-light", missedWordYear: null };
 }
 
 /** The next scheduled home-arrival strictly after `nowYear`, assuming a
@@ -740,7 +744,7 @@ export function toMissionSnapshot(
   const reports: readonly MissionReport[] =
     plan !== null ? deriveReports(galaxy, cone, m, plan, arrivalYear, nowYear) : [];
 
-  const state = missionDocketState(m, plan, reports.length, nowYear);
+  const { state, missedWordYear } = missionDocketState(m, plan, reports.length, nowYear);
   const nextWordYear =
     plan !== null && plan.standing ? nextCadenceYearAfter(firstWordYear, nowYear) : null;
 
@@ -766,6 +770,7 @@ export function toMissionSnapshot(
     arrivalYear,
     firstWordYear,
     nextWordYear,
+    missedWordYear,
     charter,
     state,
     reports,
