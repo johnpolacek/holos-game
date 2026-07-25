@@ -141,8 +141,9 @@ filename to its screen.) Build-order note: the roadmap now runs
 groups (screens 7–15) are the active shot list**, plus screen 16 — the
 **inheritance ceremony** (session zero for Act-3-first: a card presenting
 a generated civilization's world, lineage, dial sheet, and charter to
-accept and name) — and screen 17, the home system (present tense),
-adopted alongside it. The Act 1 / pivot / Act 2 groups belong to Phase B
+accept and name) — screen 17, the home system (present tense), adopted
+alongside it, and screen 18, the Docket (A2.2's work list, added once
+that slice shipped). The Act 1 / pivot / Act 2 groups belong to Phase B
 and can wait.*
 
 ### Style & components · all milestones
@@ -307,6 +308,46 @@ instrument hours — looking is free at this stage, the inference is what
 costs (observatory-design.md § Questions). A regeneration should read
 "12 COMPUTE" for "12 H INSTRUMENT" and label the strip a compute
 allocation; everything else about the plate stands.*
+
+#### 18 — Act 3: the Docket (everything under way; A2.2's screen)
+
+> A work-list screen on the dark starfield: a single column of eight
+> undertakings, each a wide flat row with generous air between them. Each
+> row is a line of editorial serif naming the work ("Extend the deep
+> array", "Take its temperature", "The Assay"), a smaller slate sub-line
+> beneath it saying what the work is *for* ("whether it is cooling the way
+> nature cools, or being held"), and — the row's spine — a **hairline
+> horizontal progress track** running the full width just under the text,
+> mostly empty, filled from the left in ember-amber to a different extent
+> on every row. The fills are quiet: a one-pixel warm line with a soft
+> glow at its leading tip, never a thick capsule, never a percentage.
+> Right-aligned above each track sit two small slate labels — a class chip
+> in caps ("INVESTMENT", "AMBIENT", "ENDEAVOR") and a state ("IN HAND",
+> "IN FLIGHT", "AWAITING LIGHT", "STANDING") — and beneath the track, a
+> paired clock in tabular numerals ("ARRIVES IN 41 MIN · 8.2 Y"). One
+> row's track carries a **small vertical tick mark partway along it,
+> unlabeled**, with the fill approaching that mark. One row's track is
+> **broken — a visible gap where the line should continue**, its state
+> reading "SILENT", stated flatly with no red and no alarm. Two rows are
+> indented one level under a parent row, hairline-connected. No row
+> numbers anywhere. Everything is amber and off-white on near-black; no
+> cyan anywhere. Restrained and editorial — a ledger of works under way,
+> not a dashboard: no gauges, no donuts, no percentages, no cards, no
+> icons, no color coding beyond the single ember.
+
+*An adopted plate lives at [`concepts/03-04-docket.png`](./concepts/03-04-docket.png)
+— **a layout target, not a data source**; its decision-log row in
+[concepts/README.md](./concepts/README.md) lists six content fixes the
+build must make. Four of them are constraints on any regeneration, and
+are the reason this prompt says what it says: the next-date label is per
+state (LANDS for a project, ANSWERS for a question, ARRIVES / FIRST WORD
+/ NEXT WORD for a mission), a clock pair is one span said twice at five
+real minutes per game year (`41 MIN · 8.2 Y`, never a pair that
+disagrees with itself), the parent row is always a **study** with
+questions and missions beneath it, and a project row has no star. The
+three ideas the plate contributed — the travelling tip, the broken
+silent track, the unlabeled horizon tick — are written into the prompt
+above.*
 
 #### 8 — Act 3: the choice ceremony (broadcast)
 

@@ -448,7 +448,10 @@ ceremony (8), signals in flight (9), the Ledger (10), sleep/wake (11–12),
 and the Model set (13–15, echo shell = poster). The inheritance-ceremony
 ask from this plan shipped with A1 (concepts 03-00, 03-00b), and the
 observatory ask (screen 7b) shipped as A2.1's adopted target
-(concepts 03-03). **Current ask (A2.4): the choice ceremony** —
+(concepts 03-03), and the Docket has its plate too (screen 18, concepts
+03-04 — adopted for its visual language, with six content fixes logged;
+its progress tracks are unbuilt, the shipped rows carry text countdowns
+only). **Current ask (A2.4): the choice ceremony** —
 ui-image-brief.md screen 8, the hail thread and the broadcast shell
 staged on the Model. A2.3 needs no new art: the contest renders inside
 the board that already exists. Phase B's screens (world reveal variants,
