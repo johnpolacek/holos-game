@@ -1389,12 +1389,18 @@ export class StudyBoard {
    */
   private buildDocketTrack(row: DocketRow): HTMLDivElement | null {
     const from = row.fromYear;
-    const end = row.nextYear ?? row.markYear;
-    if (from === null || end === null || end <= from) return null;
-
     const now = nowYear();
-    const fraction = clamp01((now - from) / (end - from));
     const isSilent = row.state === "silent";
+    // A silence has no end to run toward, so the rail is the time SINCE
+    // LAUNCH and the fill stops at the year the schedule broke. The gap
+    // after it is the silence itself, and it widens every year nothing
+    // comes — which is the one honest thing a bar can say about a probe
+    // that has stopped answering.
+    const end = isSilent ? now : (row.nextYear ?? row.markYear);
+    const fillTo = isSilent ? row.markYear : now;
+    if (from === null || end === null || fillTo === null || end <= from) return null;
+
+    const fraction = clamp01((fillTo - from) / (end - from));
 
     const track = document.createElement("div");
     track.className = isSilent ? "docket-track docket-track--broken" : "docket-track";
@@ -1404,7 +1410,15 @@ export class StudyBoard {
     fill.style.width = `${(fraction * 100).toFixed(2)}%`;
     track.append(fill);
 
-    if (isSilent) return track;
+    if (isSilent) {
+      // The rail resumes past the gap: the schedule still exists, and
+      // nothing is travelling along it.
+      const tail = document.createElement("div");
+      tail.className = "docket-track-tail";
+      tail.style.left = `${Math.min(100, fraction * 100 + 8).toFixed(2)}%`;
+      track.append(tail);
+      return track;
+    }
 
     const tip = document.createElement("div");
     tip.className = "docket-track-tip";

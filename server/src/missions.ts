@@ -699,14 +699,17 @@ function missionDocketState(
   if (plan === null) return { state: "awaiting-light", missedWordYear: null };
 
   const expected = expectedArrivals(m.kind, m.launchedYear, m.distanceLy, m.flightYearsPerLy, nowYear);
-  const actualAtHome = new Set(
-    actualEmissions(plan, arrival, nowYear).map((a) => a + m.distanceLy),
-  );
+  const actualAtHome = actualEmissions(plan, arrival, nowYear).map((a) => a + m.distanceLy);
+  // A promise is KEPT by an actual arrival within EPS of it — not by exact
+  // float equality. The two schedules are the same arithmetic associated
+  // differently (`launched + f·d + k·c + d` against `launched + (f+1)·d +
+  // k·c`), so from the third cadence on they disagree in the last bits and
+  // a Sentinel reporting perfectly on schedule read SILENT forever.
+  const kept = (promise: number): boolean =>
+    actualAtHome.some((a) => Math.abs(a - promise) <= EPS);
   // The FIRST promise that went unkept, not merely whether one did: it is
   // the year the schedule broke, which is the only date a silence has.
-  const missed = expected.find(
-    (e) => e + SILENCE_GRACE_YEARS <= nowYear + EPS && !actualAtHome.has(e),
-  );
+  const missed = expected.find((e) => e + SILENCE_GRACE_YEARS <= nowYear + EPS && !kept(e));
   if (missed !== undefined) return { state: "silent", missedWordYear: missed };
   if (reportCount > 0) {
     return { state: plan.standing ? "standing" : "returned", missedWordYear: null };
