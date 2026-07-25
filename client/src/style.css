@@ -566,9 +566,32 @@ body {
 .study-chip--tend {
   right: auto;
   left: max(0.9rem, env(safe-area-inset-left));
+  /* The mark and the word are one line. Trimmed on the mark's side, since
+     the icon carries less optical weight to its left edge than a glyph
+     does and the pill would otherwise look lopsided. */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-left: 0.95rem;
   color: var(--holos-cyan);
   border-color: var(--holos-cyan-dim);
   box-shadow: 0 0 10px rgba(126, 233, 239, 0.1);
+}
+
+/* Sized to Cinzel's cap height rather than the em box — at 1em the mark
+   overshoots the word it sits beside and reads as the louder half of the
+   pair. The svg inherits the chip's color through fill="currentColor". */
+.study-chip-icon {
+  display: inline-flex;
+  width: 0.82em;
+  height: 0.82em;
+  flex: none;
+}
+
+.study-chip-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 @media (hover: hover) {

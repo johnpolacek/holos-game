@@ -41,6 +41,11 @@ import type {
 import type { CohortSocket } from "./net";
 import { CLASS_LABEL } from "./sourcecard";
 import { formatClockPair, formatCountdown, nowYear } from "./clock";
+// Inlined at build time rather than fetched: one more request for a 400-byte
+// mark is a request the sky does not need, and the markup carries
+// fill="currentColor", so the icon takes the chip's ink — including the
+// glare-mode bump — without a second color declaration anywhere.
+import treeViewIcon from "@phosphor-icons/core/assets/light/tree-view-light.svg?raw";
 
 const SWIPE_CLOSE_PX = 56;
 
@@ -226,10 +231,23 @@ export class StudyBoard {
     // going. Same pill, other corner, cyan rather than amber, and the same
     // travelling glint at half the rate — a slower pulse for the chip you
     // return to rather than the one that invites you in.
+    // The mark is Phosphor's tree-view at light weight — a trunk with things
+    // branching off it, which is the shape of the panel it opens: missions
+    // with their children indented under them. It is decoration for the word
+    // beside it, so it is hidden from the accessibility tree; "Tend" is the
+    // accessible name on its own.
     this.tendChip = document.createElement("button");
     this.tendChip.type = "button";
     this.tendChip.className = "study-chip study-chip--tend";
-    this.tendChip.textContent = "Tend";
+    const tendIcon = document.createElement("span");
+    tendIcon.className = "study-chip-icon";
+    tendIcon.setAttribute("aria-hidden", "true");
+    // A build-time constant from node_modules, not anything a player or the
+    // server can reach — the one place innerHTML is safe.
+    tendIcon.innerHTML = treeViewIcon;
+    const tendLabel = document.createElement("span");
+    tendLabel.textContent = "Tend";
+    this.tendChip.append(tendIcon, tendLabel);
     this.tendChip.hidden = true;
     this.tendChip.addEventListener("click", () => this.openTend());
 
