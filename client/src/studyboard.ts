@@ -82,7 +82,7 @@ export class StudyBoard {
   private readonly chip: HTMLButtonElement;
   private readonly backdrop: HTMLDivElement;
   private readonly sheet: HTMLDivElement;
-  private readonly grabber: HTMLDivElement;
+  private readonly topbar: HTMLDivElement;
   private readonly body: HTMLDivElement;
 
   private studiesByStarId = new Map<string, StudySnapshot>();
@@ -130,11 +130,13 @@ export class StudyBoard {
     // entirely — "tap outside to dismiss" does not exist here. The panel
     // therefore carries its own visible exit, and the grabber's swipe stays
     // as the gesture for thumbs that already know it.
-    const topbar = document.createElement("div");
-    topbar.className = "study-board-topbar";
+    // The whole bar is the swipe surface, not just the pill: the pill is
+    // 4px tall and a thumb misses it far more often than it hits.
+    this.topbar = document.createElement("div");
+    this.topbar.className = "study-board-topbar";
 
-    this.grabber = document.createElement("div");
-    this.grabber.className = "study-board-grabber";
+    const grabber = document.createElement("div");
+    grabber.className = "study-board-grabber";
 
     const closeBtn = document.createElement("button");
     closeBtn.type = "button";
@@ -143,12 +145,12 @@ export class StudyBoard {
     closeBtn.textContent = "✕";
     closeBtn.addEventListener("click", () => this.close());
 
-    topbar.append(this.grabber, closeBtn);
+    this.topbar.append(grabber, closeBtn);
 
     this.body = document.createElement("div");
     this.body.className = "study-board-body";
 
-    this.sheet.append(topbar, this.body);
+    this.sheet.append(this.topbar, this.body);
     this.root.append(this.chip, this.backdrop, this.sheet);
     container.append(this.root);
 
@@ -931,31 +933,37 @@ export class StudyBoard {
   // ── Swipe-down to close ─────────────────────────────────────────────
 
   private attachSwipe(): void {
-    this.grabber.addEventListener("pointerdown", this.onDragStart);
-    this.grabber.addEventListener("pointermove", this.onDragMove);
-    this.grabber.addEventListener("pointerup", this.onDragEnd);
-    this.grabber.addEventListener("pointercancel", this.onDragEnd);
+    this.topbar.addEventListener("pointerdown", this.onDragStart);
+    this.topbar.addEventListener("pointermove", this.onDragMove);
+    this.topbar.addEventListener("pointerup", this.onDragEnd);
+    this.topbar.addEventListener("pointercancel", this.onDragEnd);
   }
 
   private readonly onDragStart = (e: PointerEvent): void => {
-    this.grabber.setPointerCapture(e.pointerId);
+    // The close button shares this bar; leave it a button.
+    if (e.target instanceof Element && e.target.closest("button") !== null) return;
+    if (!e.isPrimary || this.dragStartY !== null) return;
+    this.topbar.setPointerCapture(e.pointerId);
+    // The sheet eases its transform over 320ms; while a thumb is driving it
+    // the drag must be the only thing moving it.
+    this.sheet.classList.add("dragging");
     this.dragStartY = e.clientY;
     this.dragDy = 0;
   };
 
   private readonly onDragMove = (e: PointerEvent): void => {
     if (this.dragStartY === null) return;
-    this.dragDy = e.clientY - this.dragStartY;
-    if (this.dragDy > 0) {
-      this.sheet.style.transform = `translateY(${this.dragDy}px)`;
-    }
+    this.dragDy = Math.max(0, e.clientY - this.dragStartY);
+    this.sheet.style.transform = `translateY(${this.dragDy}px)`;
   };
 
   private readonly onDragEnd = (): void => {
-    this.sheet.style.transform = "";
+    if (this.dragStartY === null) return;
     const dy = this.dragDy;
     this.dragStartY = null;
     this.dragDy = 0;
+    this.sheet.classList.remove("dragging");
+    this.sheet.style.transform = "";
     if (dy > SWIPE_CLOSE_PX) this.close();
   };
 }

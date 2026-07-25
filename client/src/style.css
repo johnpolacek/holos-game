@@ -150,6 +150,13 @@ body {
 }
 
 /* ── Source card (the thin observatory, Act 3 A1) ────────────────────── */
+/* While a thumb drives the sheet, the drag is the only thing moving it —
+   otherwise every frame eases over 320ms and the sheet lags the finger. */
+.source-card-sheet.dragging,
+.study-board-sheet.dragging {
+  transition: none;
+}
+
 .source-card-root {
   position: absolute;
   inset: 0;
@@ -201,14 +208,25 @@ body {
   transform: translateY(0);
 }
 
+/* The swipe listens on the zone, not the pill: the pill is 0.28rem tall and
+   a thumb aimed at it misses far more often than it lands. */
+.source-card-grabzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.25rem;
+  margin-bottom: -0.35rem;
+  flex-shrink: 0;
+  touch-action: none;
+  cursor: grab;
+}
+
 .source-card-grabber {
-  align-self: center;
   width: 2.4rem;
   height: 0.28rem;
   border-radius: 999px;
   background: var(--holos-gold-dim);
-  touch-action: none;
-  cursor: grab;
+  pointer-events: none;
 }
 
 .source-card-header {
@@ -463,6 +481,9 @@ body {
   justify-content: center;
   min-height: 2.75rem;
   flex-shrink: 0;
+  /* The whole bar is the swipe surface — the pill alone is 0.28rem tall. */
+  touch-action: none;
+  cursor: grab;
 }
 
 .study-board-grabber {
@@ -470,9 +491,8 @@ body {
   height: 0.28rem;
   border-radius: 999px;
   background: var(--holos-gold-dim);
-  touch-action: none;
-  cursor: grab;
   flex-shrink: 0;
+  pointer-events: none;
 }
 
 .study-board-close {

@@ -78,7 +78,7 @@ export class SourceCard {
   private readonly root: HTMLDivElement;
   private readonly backdrop: HTMLDivElement;
   private readonly sheet: HTMLDivElement;
-  private readonly grabber: HTMLDivElement;
+  private readonly grabzone: HTMLDivElement;
 
   private readonly designationEl: HTMLSpanElement;
   private readonly nameArea: HTMLDivElement;
@@ -116,8 +116,13 @@ export class SourceCard {
     this.sheet = document.createElement("div");
     this.sheet.className = "source-card-sheet";
 
-    this.grabber = document.createElement("div");
-    this.grabber.className = "source-card-grabber";
+    // The pill is 4px tall; a thumb aiming at it mostly misses. The zone
+    // around it is what the swipe actually listens on.
+    this.grabzone = document.createElement("div");
+    this.grabzone.className = "source-card-grabzone";
+    const grabber = document.createElement("div");
+    grabber.className = "source-card-grabber";
+    this.grabzone.append(grabber);
 
     const header = document.createElement("div");
     header.className = "source-card-header";
@@ -183,7 +188,7 @@ export class SourceCard {
     });
     studyRow.append(this.studyBtn);
 
-    this.sheet.append(this.grabber, header, hr, beliefRow, chartWrap, studyRow);
+    this.sheet.append(this.grabzone, header, hr, beliefRow, chartWrap, studyRow);
     this.root.append(this.backdrop, this.sheet);
     container.append(this.root);
 
@@ -547,31 +552,35 @@ export class SourceCard {
   // ── Swipe-down to close ─────────────────────────────────────────────
 
   private attachSwipe(): void {
-    this.grabber.addEventListener("pointerdown", this.onDragStart);
-    this.grabber.addEventListener("pointermove", this.onDragMove);
-    this.grabber.addEventListener("pointerup", this.onDragEnd);
-    this.grabber.addEventListener("pointercancel", this.onDragEnd);
+    this.grabzone.addEventListener("pointerdown", this.onDragStart);
+    this.grabzone.addEventListener("pointermove", this.onDragMove);
+    this.grabzone.addEventListener("pointerup", this.onDragEnd);
+    this.grabzone.addEventListener("pointercancel", this.onDragEnd);
   }
 
   private readonly onDragStart = (e: PointerEvent): void => {
-    this.grabber.setPointerCapture(e.pointerId);
+    if (!e.isPrimary || this.dragStartY !== null) return;
+    this.grabzone.setPointerCapture(e.pointerId);
+    // The sheet eases its transform over 320ms; while a thumb is driving it
+    // the drag must be the only thing moving it.
+    this.sheet.classList.add("dragging");
     this.dragStartY = e.clientY;
     this.dragDy = 0;
   };
 
   private readonly onDragMove = (e: PointerEvent): void => {
     if (this.dragStartY === null) return;
-    this.dragDy = e.clientY - this.dragStartY;
-    if (this.dragDy > 0) {
-      this.sheet.style.transform = `translateY(${this.dragDy}px)`;
-    }
+    this.dragDy = Math.max(0, e.clientY - this.dragStartY);
+    this.sheet.style.transform = `translateY(${this.dragDy}px)`;
   };
 
   private readonly onDragEnd = (): void => {
-    this.sheet.style.transform = "";
+    if (this.dragStartY === null) return;
     const dy = this.dragDy;
     this.dragStartY = null;
     this.dragDy = 0;
+    this.sheet.classList.remove("dragging");
+    this.sheet.style.transform = "";
     if (dy > SWIPE_CLOSE_PX) this.requestClose();
   };
 }
