@@ -43,7 +43,7 @@ import { emissionAt, observeCiv, observeSky, visibleSky } from "./knowledge";
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
-import { buildStudySnapshot } from "./studies";
+import { buildStudySnapshot, hypothesisMenuLabels } from "./studies";
 import {
   bankedHoursAt,
   hasLanded,
@@ -245,6 +245,7 @@ export class Cohort extends Server<CohortEnv> {
         phase: "placed",
         clock: this.toClockWire(),
         catalog: galaxy.stars,
+        menus: hypothesisMenuLabels(),
       });
       await this.sendSky(conn, token, run.civId);
       return;
@@ -256,6 +257,7 @@ export class Cohort extends Server<CohortEnv> {
       phase: "choosing",
       clock: this.toClockWire(),
       catalog: galaxy.stars,
+      menus: hypothesisMenuLabels(),
     });
     const offerYear = await this.getOfferYear(token);
     this.sendMsg(conn, { type: "offer", candidates: this.makeCandidates(token, offerYear) });

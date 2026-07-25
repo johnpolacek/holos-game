@@ -191,6 +191,21 @@ const MENUS: Record<SignalClass, Menu> = {
   },
 };
 
+/**
+ * The opening menu labels for every signal class, in menu order — what a
+ * study on a source of that class would be able to tell apart. Labels only:
+ * shares are derived per-study and do not exist until a study is open, so
+ * this leaks nothing about any particular source. The briefing screen reads
+ * it so the client never carries a second copy of the menus.
+ */
+export function hypothesisMenuLabels(): Record<SignalClass, readonly string[]> {
+  const out = {} as Record<SignalClass, readonly string[]>;
+  for (const [signalClass, menu] of Object.entries(MENUS) as [SignalClass, Menu][]) {
+    out[signalClass] = menu.entries.map((e) => e.label);
+  }
+  return out;
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }

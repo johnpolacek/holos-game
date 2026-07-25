@@ -16,6 +16,7 @@ import type {
   Star,
   ProjectSnapshot,
   InstrumentBudget,
+  HypothesisMenus,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { StudyBoard } from "./studyboard";
@@ -33,6 +34,10 @@ export class App {
   private mountedScreen: "none" | "ceremony" | "sky" = "none";
 
   private catalog: readonly Star[] = [];
+  // The opening hypothesis menus, retained from `welcome` (which always
+  // precedes the first `sky`) for the study briefing's "what it can tell
+  // apart". Null only if the board somehow mounts before a welcome lands.
+  private menus: HypothesisMenus | null = null;
   private model: Model | null = null;
   private sourceCard: SourceCard | null = null;
   private studyBoard: StudyBoard | null = null;
@@ -76,6 +81,7 @@ export class App {
         // star's position. A placed welcome is followed immediately by `sky`,
         // which is what actually mounts the Model.
         this.catalog = message.catalog;
+        this.menus = message.menus;
         setClockAnchor(message.clock);
         break;
       case "offer":
@@ -101,8 +107,10 @@ export class App {
         // The ceremony subscribes to the socket directly for become-
         // rejection errors; the source card only reacts while it has a
         // nameSource request in flight, so forwarding unconditionally is
-        // safe even outside the sky screen.
+        // safe even outside the sky screen. The observatory needs it to
+        // release a begin that will never be confirmed by a `sky`.
         this.sourceCard?.handleServerMessage(message);
+        this.studyBoard?.handleServerError();
         break;
     }
   }
@@ -175,7 +183,7 @@ export class App {
     this.mount(() => {
       const model = new Model(this.root, this.catalog);
       const sourceCard = new SourceCard(this.root, this.socket);
-      const studyBoard = new StudyBoard(this.root, this.socket);
+      const studyBoard = new StudyBoard(this.root, this.socket, this.menus);
       this.model = model;
       this.sourceCard = sourceCard;
       this.studyBoard = studyBoard;

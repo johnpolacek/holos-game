@@ -954,9 +954,53 @@ body {
   margin-top: 0.15rem;
 }
 
-/* A2.2 fills this in — StudySnapshot.openQuestions is always [] in A2.1, so
- * this container ships empty: no header, no rows, nothing buyable. */
+/* Nothing buyable ships here yet (StudySnapshot.openQuestions is always []);
+ * the container carries the state-of-the-watch line until A2.2 fills it. */
 .study-open-questions {
+  padding-top: 0.4rem;
+}
+
+/* ── The study briefing ──────────────────────────────────────────────────
+ * Between tapping a candidate and opening the watch. A study costs nothing
+ * and runs on no clock, so this screen states that plainly rather than
+ * dressing up a transaction that does not exist. */
+.study-brief-identity {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.6rem 0.1rem 0.9rem;
+}
+
+.study-brief-section {
+  padding: 0.7rem 0 0.2rem;
+}
+
+.study-brief-body {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  line-height: 1.5;
+}
+
+.study-brief-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+}
+
+/* Same pill as the archive's attribution tags — a reading is a reading
+   whether it is being proposed or being moved. */
+.study-brief-tag {
+  padding: 0.15rem 0.45rem;
+  border: 1px solid rgba(211, 185, 130, 0.4);
+  border-radius: 999px;
+  color: var(--holos-ink-faint);
+}
+
+.study-brief-meta {
+  padding: 0.9rem 0 0.2rem;
+  color: var(--holos-ink-faint);
 }
 
 .study-verb-row {
@@ -978,6 +1022,21 @@ body {
 
 .study-verb-btn:hover {
   color: var(--holos-ink-dim);
+}
+
+/* The one verb on a screen that exists to offer it — the briefing's begin.
+   Still a word, not a call-to-action slab; it just holds the amber. */
+.study-verb-btn--primary {
+  color: var(--holos-amber);
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.55rem 1.1rem;
+}
+
+.study-verb-btn--primary:disabled {
+  color: var(--holos-ink-faint);
+  border-color: rgba(211, 185, 130, 0.25);
+  cursor: default;
 }
 
 /* ── Ceremony carousel ───────────────────────────────────────────────── */

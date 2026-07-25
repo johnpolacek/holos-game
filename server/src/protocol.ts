@@ -189,6 +189,15 @@ export interface EvidenceEntry {
 /** "called" | "overtaken" join in A2.3. */
 export type StudyStatus = "open" | "shelved";
 
+/**
+ * Per signal class, the opening hypothesis menu's labels in menu order —
+ * what a study on such a source could tell apart, before one exists. Sent
+ * once on `welcome` so the briefing screen names the readings without the
+ * client keeping its own copy of the menus (studies.ts stays the one
+ * source of truth). Labels only: no shares, nothing source-specific.
+ */
+export type HypothesisMenus = Readonly<Record<SignalClass, readonly string[]>>;
+
 /** Reserved for A2.2 — always [] in A2.1. */
 export interface OpenQuestion {
   readonly id: string;
@@ -251,7 +260,7 @@ export type CohortClientMessage =
 // server → client
 export type CohortServerMessage =
   | { type: "welcome"; token: string; phase: "choosing" | "placed";
-      clock: ClockWire; catalog: readonly Star[] }
+      clock: ClockWire; catalog: readonly Star[]; menus: HypothesisMenus }
   | { type: "offer"; candidates: readonly CivCard[] }
   | { type: "sky"; nowYear: number; self: SelfView;
       sources: readonly DetectedSource[];

@@ -23,6 +23,7 @@ import type {
   DetectedSource,
   Hypothesis,
   HypothesisId,
+  HypothesisMenus,
   ProjectSnapshot,
   InstrumentBudget,
 } from "@holos/protocol";
@@ -85,6 +86,9 @@ function hypothesisPercentages(
 
 export class StudyBoard {
   private readonly socket: CohortSocket;
+  /** Opening menu labels per signal class, from `welcome` — the briefing's
+   *  "what it can tell apart". Null omits that section rather than guessing. */
+  private readonly menus: HypothesisMenus | null;
 
   private readonly root: HTMLDivElement;
   private readonly chip: HTMLButtonElement;
@@ -100,9 +104,24 @@ export class StudyBoard {
   private budget: InstrumentBudget = { hours: 0, ratePerYear: 0, asOfYear: 0 };
 
   private openFlag = false;
-  private view: "hub" | "list" | "focused" | "picker" | "explore" | "projects" = "list";
+  private view:
+    | "hub"
+    | "list"
+    | "focused"
+    | "picker"
+    | "brief"
+    | "explore"
+    | "projects" = "list";
   private focusedStarId: string | null = null;
+  private briefStarId: string | null = null;
   private openStudyCount = 0;
+
+  // The star a `begin the watch` is in flight for. The confirming `sky`
+  // carries the new study and hands straight to the focused board — without
+  // this the picker row simply vanished in place and the tap read as a
+  // dead end. Cleared by any sky that does not confirm, and by any server
+  // error, so the verb can never sit stuck mid-flight.
+  private pendingBeginStarId: string | null = null;
 
   // A single 1s ticker, live while the panel is open, so the hub's banked-
   // hours line and any running project's countdown stay current without a
@@ -115,8 +134,13 @@ export class StudyBoard {
   private dragStartY: number | null = null;
   private dragDy = 0;
 
-  constructor(container: HTMLElement, socket: CohortSocket) {
+  constructor(
+    container: HTMLElement,
+    socket: CohortSocket,
+    menus: HypothesisMenus | null,
+  ) {
     this.socket = socket;
+    this.menus = menus;
 
     this.root = document.createElement("div");
     this.root.className = "study-board-root";
@@ -181,6 +205,18 @@ export class StudyBoard {
     this.budget = budget;
     this.updateChip();
 
+    // A begin sent from the briefing: this sky either carries the new study
+    // — hand straight to it, which is the monitor page — or it does not, in
+    // which case the request went nowhere and the verb is released.
+    if (this.pendingBeginStarId !== null) {
+      const starId = this.pendingBeginStarId;
+      this.pendingBeginStarId = null;
+      if (this.studiesByStarId.has(starId)) {
+        this.focusStudy(starId);
+        return;
+      }
+    }
+
     if (this.view === "focused" && this.focusedStarId !== null) {
       if (this.studiesByStarId.has(this.focusedStarId)) {
         this.renderFocused(this.focusedStarId);
@@ -193,6 +229,8 @@ export class StudyBoard {
     } else if (this.view === "picker") {
       // Re-render so a row disappears the moment its study exists.
       this.renderPicker();
+    } else if (this.view === "brief") {
+      this.renderBrief();
     } else if (this.view === "hub") {
       this.renderHub();
     } else if (this.view === "explore") {
@@ -485,9 +523,14 @@ export class StudyBoard {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "study-picker-row";
+    btn.append(this.sourceSmudge(source.signal.confidence), this.buildSourceIdentity(source));
+    return btn;
+  }
 
-    btn.append(this.sourceSmudge(source.signal.confidence));
-
+  /** The text half of a source row — designation, local name, belief, light
+   *  age. Shared with the briefing so a source reads identically either side
+   *  of the tap that opens it. */
+  private buildSourceIdentity(source: DetectedSource): HTMLDivElement {
     const text = document.createElement("div");
     text.className = "study-row-text";
 
@@ -521,8 +564,7 @@ export class StudyBoard {
     age.textContent = `AS OF ${source.lightAgeYears.toFixed(1)} Y AGO`;
 
     text.append(idLine, beliefLine, age);
-    btn.append(text);
-    return btn;
+    return text;
   }
 
   private buildExploreRow(source: DetectedSource): HTMLButtonElement {
@@ -673,7 +715,7 @@ export class StudyBoard {
 
     const subtitle = document.createElement("div");
     subtitle.className = "study-picker-subtitle";
-    subtitle.textContent = "Sources your instruments have found. Tap one to begin.";
+    subtitle.textContent = "Sources your instruments have found. Tap one to read the brief.";
     this.body.append(subtitle);
 
     this.body.append(this.hairline());
@@ -697,10 +739,143 @@ export class StudyBoard {
 
   private buildPickerRow(source: DetectedSource): HTMLButtonElement {
     const btn = this.buildSourceRow(source);
-    btn.addEventListener("click", () => {
-      this.socket.send({ type: "openStudy", starId: source.starId });
-    });
+    btn.addEventListener("click", () => this.openBrief(source.starId));
     return btn;
+  }
+
+  // ── Render: briefing view ────────────────────────────────────────────
+  // Tapping a candidate does not open a study — it opens the brief. A study
+  // is free, uncapped and reversible, so the brief's job is not to price a
+  // transaction (there is none) but to say what the watch is, what it can
+  // tell apart, and what it will and will not cost. Nothing here invents a
+  // spend: instrument hours buy questions, and questions are their own
+  // slice.
+
+  private openBrief(starId: string): void {
+    this.view = "brief";
+    this.briefStarId = starId;
+    this.pendingBeginStarId = null;
+    this.renderBrief();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
+  private renderBrief(): void {
+    const starId = this.briefStarId;
+    const source = starId === null ? undefined : this.sourcesByStarId.get(starId);
+    this.body.innerHTML = "";
+
+    // The source faded between the picker and here — there is nothing to
+    // brief, so fall back rather than render a card about nothing.
+    if (starId === null || source === undefined) {
+      this.view = "picker";
+      this.briefStarId = null;
+      this.renderPicker();
+      return;
+    }
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => this.openPicker());
+    this.body.append(back);
+
+    // The same identity block the picker row carries, so the source reads as
+    // itself across the tap.
+    const identity = document.createElement("div");
+    identity.className = "study-brief-identity";
+    identity.append(this.sourceSmudge(source.signal.confidence));
+    identity.append(this.buildSourceIdentity(source));
+    this.body.append(identity);
+
+    this.body.append(this.hairline());
+
+    this.body.append(
+      this.buildBriefSection(
+        "WHAT A STUDY IS",
+        "A standing watch on one source. Its light goes on arriving at its own delay, and every arrival is filed here and read against the stories still in play.",
+      ),
+    );
+
+    const labels = this.menus === null ? [] : this.menus[source.signal.classification];
+    if (labels.length > 0) {
+      const section = this.buildBriefSection(
+        "WHAT IT COULD TELL APART",
+        // No class name in this sentence: the labels are not all count nouns
+        // ("a transit shadows"), and the class already sits in the identity
+        // block directly above.
+        "At this range the reading admits more than one story. The watch holds them all at once, each with its share of the confidence.",
+      );
+      const tags = document.createElement("div");
+      tags.className = "study-brief-menu";
+      for (const label of labels) {
+        const tag = document.createElement("span");
+        tag.className = "study-brief-tag holos-caps";
+        tag.textContent = label;
+        tags.append(tag);
+      }
+      section.append(tags);
+      this.body.append(section);
+    }
+
+    this.body.append(
+      this.buildBriefSection(
+        "WHAT IT COSTS",
+        "Nothing to open, nothing to hold, and no limit on how many stand at once. Watching spends only patience. Instrument hours buy questions — the observations that separate one reading from another — and no question has been put to this source.",
+      ),
+    );
+
+    const meta = document.createElement("div");
+    meta.className = "study-brief-meta holos-caps";
+    meta.textContent = "NO INSTRUMENT HOURS · NO CLOCK · REVERSIBLE";
+    this.body.append(meta);
+
+    this.body.append(this.hairline());
+
+    const verbRow = document.createElement("div");
+    verbRow.className = "study-verb-row";
+    const verbBtn = document.createElement("button");
+    verbBtn.type = "button";
+    verbBtn.className = "study-verb-btn study-verb-btn--primary";
+    if (this.pendingBeginStarId === starId) {
+      verbBtn.disabled = true;
+      verbBtn.textContent = "opening the watch…";
+    } else {
+      verbBtn.textContent = "begin the watch";
+      verbBtn.addEventListener("click", () => {
+        this.pendingBeginStarId = starId;
+        this.socket.send({ type: "openStudy", starId });
+        this.renderBrief();
+      });
+    }
+    verbRow.append(verbBtn);
+    this.body.append(verbRow);
+  }
+
+  private buildBriefSection(header: string, body: string): HTMLDivElement {
+    const section = document.createElement("div");
+    section.className = "study-brief-section";
+
+    const h = document.createElement("div");
+    h.className = "study-section-header holos-caps";
+    h.textContent = header;
+
+    const p = document.createElement("div");
+    p.className = "study-brief-body";
+    p.textContent = body;
+
+    section.append(h, p);
+    return section;
+  }
+
+  /** Releases a begin that no `sky` will ever confirm (the server answered
+   *  with an error instead), so the verb does not sit disabled forever. */
+  handleServerError(): void {
+    if (this.pendingBeginStarId === null) return;
+    this.pendingBeginStarId = null;
+    if (this.view === "brief") this.renderBrief();
   }
 
   // ── Render: projects view ────────────────────────────────────────────
@@ -945,11 +1120,24 @@ export class StudyBoard {
     }
     this.body.append(archiveSection);
 
-    // OPEN QUESTIONS — A2.1 ships the layout only; the snapshot's
-    // openQuestions is always [] this slice, so this container stays empty
-    // (no header, no rows). A2.2 fills it in.
+    // OPEN QUESTIONS — the snapshot's openQuestions is always [] this slice,
+    // so nothing buyable renders here yet. What does render is the state of
+    // the watch itself: a study opened a moment ago has no new evidence and
+    // bars sitting at their opening prior, which without a word reads as a
+    // second dead end. This says what will move it, and what has not been
+    // asked. A2.2 fills the rest in.
     const oqSection = document.createElement("div");
     oqSection.className = "study-open-questions";
+    const oqHeader = document.createElement("div");
+    oqHeader.className = "study-section-header holos-caps";
+    oqHeader.textContent = "THE WATCH";
+    const oqBody = document.createElement("div");
+    oqBody.className = "study-brief-body";
+    oqBody.textContent =
+      s.status === "open"
+        ? "Standing. New light from this source files itself into the archive above as it arrives, and the readings move with it. No question has been put to the source."
+        : "Shelved. Nothing new is being filed, and the readings hold where they were left.";
+    oqSection.append(oqHeader, oqBody);
     this.body.append(oqSection);
 
     this.body.append(this.hairline());
