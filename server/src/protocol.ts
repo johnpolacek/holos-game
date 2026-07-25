@@ -70,6 +70,7 @@ export function parseServerMessage(raw: string): ServerMessage | null {
 import type { CivSeed } from "./civseed";
 import type { ObservedCiv, ObservedSignal, SignalClass } from "./knowledge";
 import type { Star, Vec3Ly } from "./galaxy";
+import type { CostClass } from "./projects";
 
 // Re-exports the client needs to render. Types are erased; DIAL_AXES is the
 // ONE runtime value the client genuinely needs (in-world dial pole labels),
@@ -88,11 +89,15 @@ export type { Star, SpectralClass, Vec3Ly } from "./galaxy";
 // runtime or data ships, and archetypeName stays the server-resolved wire field.
 export type { LineageId } from "./cradles";
 export type { ArchetypeId } from "./minds";
+export type { CostClass } from "./projects";
 
 /** Clock anchor; the client computes nowYear locally (no time polling). */
 export interface ClockWire {
   readonly epochRealMs: number;
   readonly epochGameYear: number;
+  // The anchor is self-describing so a client never compiles in a constant
+  // that can disagree with a re-anchored server.
+  readonly realMsPerGameYear: number;
 }
 
 /**
@@ -199,6 +204,31 @@ export interface StudySnapshot {
   readonly annotationLine: string;
 }
 
+// ── A2.2: the instrument-time economy ───────────────────────────────────
+// The server resolves the catalog + this civ's state into these shapes so
+// no catalog ships to the client — the archetypeName precedent.
+
+/** One project as seen from a specific civ's current state. */
+export interface ProjectSnapshot {
+  readonly id: string;
+  readonly label: string;
+  readonly line: string;
+  readonly costClass: CostClass;
+  readonly costInstrumentHours: number;
+  readonly durationYears: number;
+  readonly addRatePerYear: number;
+  readonly status: "available" | "running" | "standing";
+  readonly startedYear: number | null; // null iff available
+  readonly landsYear: number | null; // null iff available
+}
+
+/** The civ's current instrument-time balance. */
+export interface InstrumentBudget {
+  readonly hours: number; // banked as of asOfYear
+  readonly ratePerYear: number; // instrument-hours per GAME year
+  readonly asOfYear: number; // so the client accrues locally
+}
+
 // client → server (UNTRUSTED — every field guarded on parse)
 export type CohortClientMessage =
   | { type: "hello"; token: string | null }
@@ -206,7 +236,8 @@ export type CohortClientMessage =
   | { type: "nameSource"; starId: string; name: string } // "" = delete
   | { type: "requestSky" }
   | { type: "openStudy"; starId: string }
-  | { type: "shelveStudy"; starId: string };
+  | { type: "shelveStudy"; starId: string }
+  | { type: "startProject"; projectId: string };
 
 // server → client
 export type CohortServerMessage =
@@ -216,12 +247,15 @@ export type CohortServerMessage =
   | { type: "sky"; nowYear: number; self: SelfView;
       sources: readonly DetectedSource[];
       localNames: Readonly<Record<string, string>>;
-      studies: readonly StudySnapshot[] }
+      studies: readonly StudySnapshot[];
+      projects: readonly ProjectSnapshot[];
+      budget: InstrumentBudget }
   | { type: "sourceNamed"; starId: string; name: string }
   | { type: "error"; code: CohortErrorCode; message: string };
 
 export type CohortErrorCode =
-  | "bad-name" | "unknown-candidate" | "cohort-full" | "not-placed" | "bad-message";
+  | "bad-name" | "unknown-candidate" | "cohort-full" | "not-placed" | "bad-message"
+  | "unknown-project" | "already-running" | "insufficient-instrument-time";
 
 /** Max civilization / local-source name length (post-trim). */
 export const MAX_NAME_LEN = 24;
@@ -296,6 +330,10 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
 
   if (msg["type"] === "shelveStudy" && typeof msg["starId"] === "string") {
     return { type: "shelveStudy", starId: msg["starId"] };
+  }
+
+  if (msg["type"] === "startProject" && typeof msg["projectId"] === "string") {
+    return { type: "startProject", projectId: msg["projectId"] };
   }
 
   if (msg["type"] === "requestSky") {

@@ -23,9 +23,12 @@ import type {
   DetectedSource,
   Hypothesis,
   HypothesisId,
+  ProjectSnapshot,
+  InstrumentBudget,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { CLASS_LABEL } from "./sourcecard";
+import { formatClockPair, formatCountdown, nowYear } from "./clock";
 
 const SWIPE_CLOSE_PX = 56;
 
@@ -85,11 +88,19 @@ export class StudyBoard {
   private studiesByStarId = new Map<string, StudySnapshot>();
   private sourcesByStarId = new Map<string, DetectedSource>();
   private localNames: ReadonlyMap<string, string> = new Map();
+  private projects: readonly ProjectSnapshot[] = [];
+  private budget: InstrumentBudget = { hours: 0, ratePerYear: 0, asOfYear: 0 };
 
   private openFlag = false;
-  private view: "hub" | "list" | "focused" | "picker" | "explore" = "list";
+  private view: "hub" | "list" | "focused" | "picker" | "explore" | "projects" = "list";
   private focusedStarId: string | null = null;
   private openStudyCount = 0;
+
+  // A single 1s ticker, live while the panel is open, so the hub's banked-
+  // hours line and any running project's countdown stay current without a
+  // new `sky` message — both derive from clock.ts's locally-interpolated
+  // nowYear(), never from server polling.
+  private tickHandle: number | null = null;
 
   private onInspectCb: ((starId: string) => void) | null = null;
 
@@ -115,17 +126,34 @@ export class StudyBoard {
     this.sheet = document.createElement("div");
     this.sheet.className = "study-board-sheet";
 
+    // The sheet is full-height on a phone, so it covers the backdrop
+    // entirely — "tap outside to dismiss" does not exist here. The panel
+    // therefore carries its own visible exit, and the grabber's swipe stays
+    // as the gesture for thumbs that already know it.
+    const topbar = document.createElement("div");
+    topbar.className = "study-board-topbar";
+
     this.grabber = document.createElement("div");
     this.grabber.className = "study-board-grabber";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "study-board-close";
+    closeBtn.setAttribute("aria-label", "Close");
+    closeBtn.textContent = "✕";
+    closeBtn.addEventListener("click", () => this.close());
+
+    topbar.append(this.grabber, closeBtn);
 
     this.body = document.createElement("div");
     this.body.className = "study-board-body";
 
-    this.sheet.append(this.grabber, this.body);
+    this.sheet.append(topbar, this.body);
     this.root.append(this.chip, this.backdrop, this.sheet);
     container.append(this.root);
 
     this.attachSwipe();
+    window.addEventListener("keydown", this.onKeyDown);
     this.renderList();
   }
 
@@ -133,10 +161,14 @@ export class StudyBoard {
     studies: readonly StudySnapshot[],
     sources: readonly DetectedSource[],
     localNames: ReadonlyMap<string, string>,
+    projects: readonly ProjectSnapshot[],
+    budget: InstrumentBudget,
   ): void {
     this.studiesByStarId = new Map(studies.map((s) => [s.starId, s] as const));
     this.sourcesByStarId = new Map(sources.map((s) => [s.starId, s] as const));
     this.localNames = localNames;
+    this.projects = projects;
+    this.budget = budget;
     this.updateChip();
 
     if (this.view === "focused" && this.focusedStarId !== null) {
@@ -155,6 +187,8 @@ export class StudyBoard {
       this.renderHub();
     } else if (this.view === "explore") {
       this.renderExplore();
+    } else if (this.view === "projects") {
+      this.renderProjects();
     } else {
       this.renderList();
     }
@@ -166,6 +200,7 @@ export class StudyBoard {
     this.renderList();
     this.openFlag = true;
     this.root.classList.add("open");
+    this.startTicking();
   }
 
   openHub(): void {
@@ -174,6 +209,7 @@ export class StudyBoard {
     this.renderHub();
     this.openFlag = true;
     this.root.classList.add("open");
+    this.startTicking();
   }
 
   openPicker(): void {
@@ -182,6 +218,16 @@ export class StudyBoard {
     this.renderPicker();
     this.openFlag = true;
     this.root.classList.add("open");
+    this.startTicking();
+  }
+
+  openProjects(): void {
+    this.view = "projects";
+    this.focusedStarId = null;
+    this.renderProjects();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
   }
 
   focusStudy(starId: string): void {
@@ -190,11 +236,13 @@ export class StudyBoard {
     this.renderFocused(starId);
     this.openFlag = true;
     this.root.classList.add("open");
+    this.startTicking();
   }
 
   close(): void {
     this.openFlag = false;
     this.root.classList.remove("open");
+    this.stopTicking();
   }
 
   isOpen(): boolean {
@@ -202,8 +250,48 @@ export class StudyBoard {
   }
 
   destroy(): void {
+    this.stopTicking();
+    window.removeEventListener("keydown", this.onKeyDown);
     this.root.remove();
   }
+
+  /** Starts the 1s ticker if it is not already running. Idempotent — every
+   * open* method calls this, so opening while already open is a no-op. */
+  private startTicking(): void {
+    if (this.tickHandle !== null) return;
+    this.tickHandle = window.setInterval(() => {
+      if (this.view === "hub") this.renderHub();
+      else if (this.view === "projects") this.renderProjects();
+    }, 1000);
+  }
+
+  private stopTicking(): void {
+    if (this.tickHandle !== null) {
+      window.clearInterval(this.tickHandle);
+      this.tickHandle = null;
+    }
+  }
+
+  /** The instrument-hour balance right now: the last snapshot plus what has
+   * accrued since, derived locally from clock.ts's nowYear() so the hub and
+   * projects panel read live without waiting on a new `sky`. */
+  private currentBudgetHours(): number {
+    const elapsedYears = Math.max(0, nowYear() - this.budget.asOfYear);
+    return this.budget.hours + this.budget.ratePerYear * elapsedYears;
+  }
+
+  private buildBudgetLine(): HTMLDivElement {
+    const line = document.createElement("div");
+    line.className = "study-budget-line holos-caps";
+    line.textContent = `${Math.floor(this.currentBudgetHours())} INSTRUMENT HOURS BANKED · +${this.budget.ratePerYear}/Y`;
+    return line;
+  }
+
+  /** Escape closes the panel on a keyboard — the desktop equivalent of the
+   *  exit button, which is the only way out on a phone. */
+  private readonly onKeyDown = (e: KeyboardEvent): void => {
+    if (e.key === "Escape" && this.openFlag) this.close();
+  };
 
   /** Registers the callback fired when a row in the explore view is tapped,
    * with the tapped source's starId. */
@@ -245,6 +333,8 @@ export class StudyBoard {
     subtitle.textContent = "What your civilization can begin now.";
     this.body.append(subtitle);
 
+    this.body.append(this.buildBudgetLine());
+
     this.body.append(this.hairline());
 
     this.body.append(
@@ -256,9 +346,12 @@ export class StudyBoard {
       ),
     );
     this.body.append(
-      this.buildHubRow("Start a project", "Arrives with Act 2.", false, () => {
-        /* inert */
-      }),
+      this.buildHubRow(
+        "Start a project",
+        "Build the instruments. Raise the income.",
+        true,
+        () => this.openProjects(),
+      ),
     );
     this.body.append(
       this.buildHubRow("Start a mission", "Arrives with the Docket.", false, () => {
@@ -582,6 +675,91 @@ export class StudyBoard {
 
     bottom.append(belief, age);
     btn.append(top, bottom);
+    return btn;
+  }
+
+  // ── Render: projects view ────────────────────────────────────────────
+
+  private renderProjects(): void {
+    this.body.innerHTML = "";
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => this.openHub());
+    this.body.append(back);
+
+    const header = document.createElement("div");
+    header.className = "study-board-header holos-caps";
+    header.textContent = "PROJECTS";
+    this.body.append(header);
+
+    const subtitle = document.createElement("div");
+    subtitle.className = "study-picker-subtitle";
+    subtitle.textContent =
+      "What the observatory can build. Each one raises the income for good.";
+    this.body.append(subtitle);
+
+    this.body.append(this.buildBudgetLine());
+
+    this.body.append(this.hairline());
+
+    for (const p of this.projects) {
+      this.body.append(this.buildProjectRow(p));
+    }
+  }
+
+  private buildProjectRow(p: ProjectSnapshot): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "study-project-row";
+
+    const label = document.createElement("div");
+    label.className = "study-project-label holos-serif";
+    label.textContent = p.label;
+
+    const line = document.createElement("div");
+    line.className = "study-project-line";
+    line.textContent = p.line;
+
+    const meta = document.createElement("div");
+    meta.className = "study-project-meta holos-caps";
+
+    let flag: HTMLSpanElement | null = null;
+
+    if (p.status === "running") {
+      btn.disabled = true;
+      btn.classList.add("study-project-row--disabled");
+      const countdown = p.landsYear === null ? null : formatCountdown(p.landsYear);
+      meta.textContent = countdown !== null ? `LANDS IN ${countdown}` : "LANDING";
+    } else if (p.status === "standing") {
+      btn.disabled = true;
+      btn.classList.add("study-project-row--disabled");
+      meta.textContent = `+${p.addRatePerYear}/Y`;
+      flag = document.createElement("span");
+      flag.className = "study-project-flag holos-caps";
+      flag.textContent = "STANDING";
+    } else {
+      // "available"
+      const currentHours = this.currentBudgetHours();
+      const affordable = currentHours >= p.costInstrumentHours;
+      const base = `${p.costInstrumentHours} H · ${formatClockPair(p.durationYears)} · +${p.addRatePerYear}/Y`;
+      if (affordable) {
+        btn.addEventListener("click", () => {
+          this.socket.send({ type: "startProject", projectId: p.id });
+        });
+        meta.textContent = base;
+      } else {
+        btn.disabled = true;
+        btn.classList.add("study-project-row--disabled");
+        const shortfall = Math.ceil(p.costInstrumentHours - currentHours);
+        meta.textContent = `${base} · ${shortfall} H SHORT`;
+      }
+    }
+
+    btn.append(label, line, meta);
+    if (flag !== null) btn.append(flag);
     return btn;
   }
 

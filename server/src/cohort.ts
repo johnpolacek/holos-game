@@ -24,6 +24,7 @@ import {
   gameYearAt,
   newClock,
   realMsAtGameYear,
+  REAL_MS_PER_GAME_YEAR,
   type ClockState,
 } from "./clock";
 import {
@@ -44,6 +45,17 @@ import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
 import { buildStudySnapshot } from "./studies";
 import {
+  bankedHoursAt,
+  hasLanded,
+  landedYear,
+  newProjectState,
+  projectById,
+  ratePerYearAt,
+  PROJECTS,
+  type ProjectState,
+  type StartedProject,
+} from "./projects";
+import {
   parseCohortClientMessage,
   toWireSource,
   validateName,
@@ -53,6 +65,8 @@ import {
   type ClockWire,
   type CohortServerMessage,
   type DetectedSource,
+  type InstrumentBudget,
+  type ProjectSnapshot,
   type SelfView,
 } from "./protocol";
 
@@ -204,6 +218,9 @@ export class Cohort extends Server<CohortEnv> {
         return;
       case "shelveStudy":
         await this.onShelveStudy(conn, msg.starId);
+        return;
+      case "startProject":
+        await this.onStartProject(conn, msg.projectId);
         return;
     }
   }
@@ -435,6 +452,54 @@ export class Cohort extends Server<CohortEnv> {
     await this.sendSky(conn, state.token, state.civId);
   }
 
+  /**
+   * startProject: commission a project against the civ's banked
+   * instrument-hours. No derivation here beyond calling projects.ts
+   * functions: validate, mutate state, persist, then a fresh sky.
+   */
+  private async onStartProject(conn: Connection, projectId: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    const def = projectById(projectId);
+    if (def === undefined) {
+      this.sendMsg(conn, { type: "error", code: "unknown-project", message: "no such project" });
+      return;
+    }
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    const projectState = await this.loadProjectState(state.token, state.civId, nowYear);
+    if (projectState.started.some((p) => p.id === def.id)) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "already-running",
+        message: "already commissioned",
+      });
+      return;
+    }
+    const banked = bankedHoursAt(projectState, nowYear);
+    if (banked < def.costInstrumentHours) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "insufficient-instrument-time",
+        message: "insufficient instrument time",
+      });
+      return;
+    }
+    const started: StartedProject[] = [
+      ...projectState.started,
+      { id: def.id, startedYear: nowYear },
+    ];
+    const updated: ProjectState = {
+      ...projectState,
+      started,
+      spentHours: projectState.spentHours + def.costInstrumentHours,
+    };
+    await this.saveProjectState(state.token, updated);
+    await this.sendSky(conn, state.token, state.civId);
+  }
+
   private async loadStudyState(token: string): Promise<StudyState> {
     // Key changed from `cases:${token}` at the case→study rename (A2.1 had
     // just shipped and the tap bug meant no studies were ever opened in
@@ -445,6 +510,30 @@ export class Cohort extends Server<CohortEnv> {
 
   private async saveStudyState(token: string, state: StudyState): Promise<void> {
     await this.ctx.storage.put(`studies:${token}`, state);
+  }
+
+  /**
+   * A run placed before A2.2 has no stored project state: lazily create one
+   * (via newProjectState, seeded from the civ's energy ladder) when absent,
+   * and persist it once so the endowment/base-grant clock doesn't restart on
+   * every read. A pure read that finds existing state never writes it back.
+   */
+  private async loadProjectState(
+    token: string,
+    civId: string,
+    nowYear: number,
+  ): Promise<ProjectState> {
+    const stored = await this.ctx.storage.get<ProjectState>(`projects:${token}`);
+    if (stored !== undefined) return stored;
+    const galaxy = this.requireGalaxy();
+    const civ = civById(galaxy, civId);
+    const fresh = newProjectState(nowYear, civ.seed.ladders.energy);
+    await this.ctx.storage.put(`projects:${token}`, fresh);
+    return fresh;
+  }
+
+  private async saveProjectState(token: string, state: ProjectState): Promise<void> {
+    await this.ctx.storage.put(`projects:${token}`, state);
   }
 
   /**
@@ -505,7 +594,54 @@ export class Cohort extends Server<CohortEnv> {
       })
       .filter((s): s is StudySnapshot => s !== null)
       .sort((a, b) => a.starId.localeCompare(b.starId));
-    this.sendMsg(conn, { type: "sky", nowYear, self, sources, localNames, studies });
+
+    const projectState = await this.loadProjectState(token, civId, nowYear);
+    const projects: ProjectSnapshot[] = PROJECTS.map((def) => {
+      const runningEntry = projectState.started.find((p) => p.id === def.id);
+      if (runningEntry === undefined) {
+        return {
+          id: def.id,
+          label: def.label,
+          line: def.line,
+          costClass: def.costClass,
+          costInstrumentHours: def.costInstrumentHours,
+          durationYears: def.durationYears,
+          addRatePerYear: def.effect.addRatePerYear,
+          status: "available",
+          startedYear: null,
+          landsYear: null,
+        };
+      }
+      const landed = hasLanded(def, runningEntry, nowYear);
+      return {
+        id: def.id,
+        label: def.label,
+        line: def.line,
+        costClass: def.costClass,
+        costInstrumentHours: def.costInstrumentHours,
+        durationYears: def.durationYears,
+        addRatePerYear: def.effect.addRatePerYear,
+        status: landed ? "standing" : "running",
+        startedYear: runningEntry.startedYear,
+        landsYear: landedYear(def, runningEntry),
+      };
+    });
+    const budget: InstrumentBudget = {
+      hours: bankedHoursAt(projectState, nowYear),
+      ratePerYear: ratePerYearAt(projectState, nowYear),
+      asOfYear: nowYear,
+    };
+
+    this.sendMsg(conn, {
+      type: "sky",
+      nowYear,
+      self,
+      sources,
+      localNames,
+      studies,
+      projects,
+      budget,
+    });
   }
 
   /**
@@ -560,7 +696,11 @@ export class Cohort extends Server<CohortEnv> {
 
   private toClockWire(): ClockWire {
     const clock = this.requireClock();
-    return { epochRealMs: clock.epochRealMs, epochGameYear: clock.epochGameYear };
+    return {
+      epochRealMs: clock.epochRealMs,
+      epochGameYear: clock.epochGameYear,
+      realMsPerGameYear: REAL_MS_PER_GAME_YEAR,
+    };
   }
 
   private requireGalaxy(): Galaxy {
