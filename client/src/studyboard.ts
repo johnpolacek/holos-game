@@ -17,8 +17,15 @@
 //     does not appear here.
 //
 // Register: observatory deadpan, wit 0, no exclamation marks. Soft past
-// tense for remote facts — every one wears its light-age. NEVER cyan here;
-// cyan is HOME-only, this surface is all amber/ink.
+// tense for remote facts — every one wears its light-age. NEVER cyan inside
+// the panel: cyan is the present tense and your own works, and everything
+// this surface shows is remote and old, so it is all amber/ink.
+//
+// The one exception, and it proves the rule: the Tend chip out on the sky.
+// It is chrome, not panel — and what it opens is the list of YOUR work,
+// which is the one thing here that is present-tense and yours. Its cyan is
+// the same cyan as the HOME mote (model.ts's COLOR_HOME), used for the same
+// reason. Nothing rendered into the sheet below may follow it.
 
 import type {
   StudySnapshot,
