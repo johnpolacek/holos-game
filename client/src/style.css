@@ -1361,6 +1361,27 @@ body {
   background: var(--holos-gold-dim);
 }
 
+/* Belief, not time: a study's rail carries the leading reading's share, in
+   the study sheet's own gold rather than the live amber, so a glance can
+   tell a settling vigil from a running clock without reading a word. */
+.tend-track--belief .tend-track-fill {
+  background: rgba(211, 185, 130, 0.65);
+}
+
+.tend-track-tip--belief {
+  background: radial-gradient(
+    circle,
+    rgba(217, 154, 83, 0.34) 0%,
+    rgba(217, 154, 83, 0) 70%
+  );
+}
+
+/* Done: the whole rail, in the quiet gold rather than the live amber —
+   nothing is travelling along it any more. */
+.tend-track--done .tend-track-fill {
+  background: var(--holos-gold-dim);
+}
+
 .tend-track-tail {
   position: absolute;
   top: 0;
@@ -1378,9 +1399,18 @@ body {
   flex: 1;
 }
 
+/* Row titles take the amber the hub rows took: on a list this dense the
+   name is what a thumb scans for, and off-white put it in the same ink as
+   the sub-line beneath it. Rows that are not a destination (a project has
+   no star to inspect) dim within the amber family rather than switching to
+   faint ink — the hub's own rule. */
 .tend-row-label {
   font-size: var(--holos-text-lg);
-  color: var(--holos-ink);
+  color: var(--holos-amber);
+}
+
+div.tend-row .tend-row-label {
+  color: var(--holos-gold-dim);
 }
 
 /* Two lines, then an ellipsis. A study row's sub is its whole annotation

@@ -560,6 +560,15 @@ can draw a track without reaching into three other collections by id:
 | mission silent | `launchedYear` | `missedWordYear` |
 | study | mirrors the soonest child, span included | mirrors |
 
+**Two rails, two meanings** (2026-07). A rail on a question, mission or
+project row measures **time**: `fromYear` → `nextYear ?? markYear`,
+crossed by a fill with a travelling tip. A rail on a **study** row
+measures **belief** — the leading hypothesis's share, in the study
+sheet's own gold rather than the live amber — because a vigil has no end
+date to run toward: light keeps arriving for as long as you keep
+watching. Everything that actually ends is a child row under it. A landed
+project keeps a full, unlit rail: finished reads better than absent.
+
 A standing sentinel's span is **one cadence**, not the decades since
 launch — the wait that is actually running is the wait for the next word,
 and a launch-anchored track would sit at 99% forever. A silent mission

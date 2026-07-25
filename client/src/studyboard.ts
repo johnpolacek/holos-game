@@ -1441,6 +1441,42 @@ export class StudyBoard {
    *    an empty rail would be an invitation to read one.
    */
   private buildTendTrack(row: TendRow): HTMLDivElement | null {
+    // A STUDY's rail is not time — it is belief. A vigil has no end date to
+    // run toward (light keeps arriving for as long as you keep watching), so
+    // its progress is how far the leading reading has come: the same share
+    // the study sheet draws, in the same shape, one row up. Time rails
+    // belong to the things that actually end — questions, missions,
+    // projects — and every one of those is a child row under it.
+    if (row.kind === "study" && row.starId !== null) {
+      const study = this.studiesByStarId.get(row.starId);
+      const leader = leadingHypothesis(study?.hypotheses ?? []);
+      if (leader === undefined) return null;
+      const share = clamp01(leader.share);
+      const track = document.createElement("div");
+      track.className = "tend-track tend-track--belief";
+      const fill = document.createElement("div");
+      fill.className = "tend-track-fill";
+      fill.style.width = `${(share * 100).toFixed(2)}%`;
+      const glow = document.createElement("div");
+      glow.className = "tend-track-tip tend-track-tip--belief";
+      glow.style.left = `${(share * 100).toFixed(2)}%`;
+      track.append(fill, glow);
+      return track;
+    }
+
+    // Landed work keeps its rail, filled end to end and unlit: a project
+    // that stands is not waiting on anything, and a full line says finished
+    // where a missing line said nothing at all.
+    if (row.kind === "project" && row.state === "standing") {
+      const done = document.createElement("div");
+      done.className = "tend-track tend-track--done";
+      const fill = document.createElement("div");
+      fill.className = "tend-track-fill";
+      fill.style.width = "100%";
+      done.append(fill);
+      return done;
+    }
+
     const from = row.fromYear;
     const now = nowYear();
     const isSilent = row.state === "silent";
