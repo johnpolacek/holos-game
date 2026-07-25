@@ -36,6 +36,14 @@ function clamp01(v: number): number {
   return Math.min(1, Math.max(0, v));
 }
 
+/** Archive entries can run into the thousands of years, so from 100 up we
+ *  round to a whole year and add thousands separators (`9,016`); below that
+ *  the one-decimal reading stays, matching the header sentence's precision. */
+function formatArchiveAge(years: number): string {
+  if (years >= 100) return Math.round(years).toLocaleString("en-US");
+  return years.toFixed(1);
+}
+
 /** The hypothesis with the largest share (ties keep the first encountered,
  * i.e. wire order). Undefined only if the menu is empty. */
 function leadingHypothesis(hyps: readonly Hypothesis[]): Hypothesis | undefined {
@@ -804,28 +812,33 @@ export class StudyBoard {
 
     const header = document.createElement("div");
     header.className = "study-focus-header";
-    const desig = document.createElement("div");
-    desig.className = "study-focus-designation holos-caps";
-    desig.textContent = source.designation;
     const localName = this.localNames.get(starId);
+    const hasLocalName = localName !== undefined && localName.length > 0;
+    if (hasLocalName) {
+      const desig = document.createElement("div");
+      desig.className = "study-focus-designation holos-caps";
+      desig.textContent = source.designation;
+      header.append(desig);
+    }
     const nameEl = document.createElement("div");
     nameEl.className = "study-focus-name holos-serif";
-    nameEl.textContent =
-      localName !== undefined && localName.length > 0 ? localName : source.designation;
-    const ageChip = document.createElement("div");
-    ageChip.className = "study-focus-age holos-caps";
-    ageChip.textContent = `AS OF ${source.lightAgeYears.toFixed(1)} Y AGO`;
-    header.append(desig, nameEl, ageChip);
+    nameEl.textContent = hasLocalName ? (localName as string) : source.designation;
+    header.append(nameEl);
     this.body.append(header);
+
+    const lightAgeLine = document.createElement("div");
+    lightAgeLine.className = "study-focus-lightage";
+    lightAgeLine.textContent = `The light you are reading left it ${source.lightAgeYears.toFixed(1)} years ago.`;
+    this.body.append(lightAgeLine);
 
     this.body.append(this.hairline());
 
-    // CURRENT HYPOTHESES
+    // WHAT IT MIGHT BE
     const hypSection = document.createElement("div");
     hypSection.className = "study-section";
     const hypHeader = document.createElement("div");
     hypHeader.className = "study-section-header holos-caps";
-    hypHeader.textContent = "CURRENT HYPOTHESES";
+    hypHeader.textContent = "WHAT IT MIGHT BE";
     hypSection.append(hypHeader);
 
     const pcts = hypothesisPercentages(s.hypotheses);
@@ -835,9 +848,15 @@ export class StudyBoard {
       const row = document.createElement("div");
       row.className = "study-hyp-row";
 
+      const labelCol = document.createElement("span");
+      labelCol.className = "study-hyp-labelcol";
       const label = document.createElement("span");
       label.className = "study-hyp-label holos-caps";
       label.textContent = h.label;
+      const gloss = document.createElement("span");
+      gloss.className = "study-hyp-gloss";
+      gloss.textContent = h.gloss;
+      labelCol.append(label, gloss);
 
       const track = document.createElement("div");
       track.className = "study-hyp-track";
@@ -854,7 +873,7 @@ export class StudyBoard {
       pct.className = "study-hyp-pct study-tabular";
       pct.textContent = `${pcts.get(h.id) ?? Math.round(h.share * 100)}%`;
 
-      row.append(label, track, pct);
+      row.append(labelCol, track, pct);
       hypSection.append(row);
     }
     this.body.append(hypSection);
@@ -866,12 +885,12 @@ export class StudyBoard {
 
     this.body.append(this.hairline());
 
-    // LIGHT ARCHIVE
+    // WHAT THE LIGHT HAS SHOWN
     const archiveSection = document.createElement("div");
     archiveSection.className = "study-section";
     const archiveHeader = document.createElement("div");
     archiveHeader.className = "study-section-header holos-caps";
-    archiveHeader.textContent = "LIGHT ARCHIVE";
+    archiveHeader.textContent = "WHAT THE LIGHT HAS SHOWN";
     archiveSection.append(archiveHeader);
 
     if (s.evidence.length === 0) {
@@ -880,21 +899,32 @@ export class StudyBoard {
       empty.textContent = "No light in the record yet.";
       archiveSection.append(empty);
     } else {
+      const archiveIntro = document.createElement("div");
+      archiveIntro.className = "study-focus-lightage";
+      archiveIntro.textContent = "Each entry is how long ago the change happened.";
+      archiveSection.append(archiveIntro);
+
       const labelById = new Map(s.hypotheses.map((h) => [h.id, h.label] as const));
-      const sorted = [...s.evidence].sort((a, b) => b.asOfYear - a.asOfYear);
-      for (const ev of sorted) {
+      for (const ev of s.evidence) {
         const row = document.createElement("div");
         row.className = "study-archive-row";
 
         const age = document.createElement("span");
         age.className = "study-archive-age holos-caps";
-        age.textContent = `${ev.lightAgeYears.toFixed(1)} Y AGO`;
+        age.textContent = `${formatArchiveAge(ev.lightAgeYears)} Y AGO`;
 
         const text = document.createElement("span");
         text.className = "study-archive-text";
         text.textContent = ev.annotation;
 
         row.append(age, text);
+
+        if (ev.latest) {
+          const newest = document.createElement("span");
+          newest.className = "study-archive-newest holos-caps";
+          newest.textContent = "THE NEWEST LIGHT WE HAVE";
+          row.append(newest);
+        }
 
         if (ev.moved.length > 0) {
           const tags = document.createElement("div");

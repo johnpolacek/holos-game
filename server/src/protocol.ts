@@ -160,6 +160,9 @@ export type HypothesisId =
 export interface Hypothesis {
   readonly id: HypothesisId;
   readonly label: string;
+  /** One short plain-language phrase saying what this reading would MEAN,
+   *  so the label never has to be decoded (studies.ts owns the wording). */
+  readonly gloss: string;
   readonly share: number;
 }
 
@@ -168,9 +171,15 @@ export interface Hypothesis {
  * a belief, never truth. `moved` is descriptive attribution in A2.1 (which
  * stories this arrival spoke to); it does not feed shares until A2.2's
  * bought answers do.
+ *
+ * The trail is a story: studies.ts returns it OLDEST-FIRST and the client
+ * renders it in that order. `ordinal` is the 1-based position in the record
+ * and `latest` marks the newest arrival, so a renderer needs no sort.
  */
 export interface EvidenceEntry {
   readonly id: string;
+  readonly ordinal: number;
+  readonly latest: boolean;
   readonly asOfYear: number;
   readonly lightAgeYears: number;
   readonly annotation: string;
