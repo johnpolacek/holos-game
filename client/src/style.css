@@ -464,26 +464,6 @@ body {
     inset 0 0 14px rgba(240, 172, 102, 0.18);
 }
 
-/* The second chip: same pill, other corner. It carries no glint — the
-   travelling highlight is the sky's one standing invitation, and this chip
-   is a destination, not an offer. Slightly quieter in the rim, so + Start
-   still reads as the brighter of the two. */
-.study-chip--tend {
-  right: auto;
-  left: max(0.9rem, env(safe-area-inset-left));
-  border-color: rgba(211, 185, 130, 0.38);
-  box-shadow: none;
-}
-
-.study-chip--tend::before,
-.study-chip--tend::after {
-  content: none;
-}
-
-.study-chip--tend[hidden] {
-  display: none;
-}
-
 /* The travelling glint's bloom comes up with the press, so the highlight
    belongs to the same gesture instead of carrying on indifferent to it. */
 .study-chip:active::after {
@@ -572,6 +552,52 @@ body {
   .study-chip:active {
     transform: none;
   }
+}
+
+/* The second chip: same pill, other corner, and its own ink. Amber is the
+   sky's call to begin; cyan is what is already yours and already under way,
+   so the pair reads as two verbs rather than one repeated. It carries no
+   glint — the travelling highlight is the standing invitation, and this chip
+   is a destination, not an offer. Quieter in the rim than + Start, which
+   stays the brighter of the two.
+   These rules sit after the whole .study-chip block on purpose: the
+   overrides tie on specificity, so order is what decides them. */
+.study-chip--tend {
+  right: auto;
+  left: max(0.9rem, env(safe-area-inset-left));
+  color: var(--holos-cyan);
+  border-color: var(--holos-cyan-dim);
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  .study-chip--tend:hover {
+    border-color: var(--holos-cyan);
+    box-shadow: 0 0 16px rgba(126, 233, 239, 0.18);
+  }
+}
+
+.study-chip--tend:active {
+  border-color: var(--holos-cyan);
+  box-shadow:
+    0 0 22px rgba(126, 233, 239, 0.26),
+    inset 0 0 14px rgba(126, 233, 239, 0.16);
+}
+
+.study-chip--tend:focus-visible {
+  border-color: var(--holos-cyan);
+  box-shadow:
+    0 0 0 2px rgba(126, 233, 239, 0.3),
+    0 0 16px rgba(126, 233, 239, 0.2);
+}
+
+.study-chip--tend::before,
+.study-chip--tend::after {
+  content: none;
+}
+
+.study-chip--tend[hidden] {
+  display: none;
 }
 
 .study-board-backdrop {
@@ -1927,6 +1953,7 @@ body {
     --holos-gold-dim: rgba(232, 211, 162, 0.8);
     --holos-amber: #ffc078;
     --holos-cyan: #a5f3f7;
+    --holos-cyan-dim: rgba(165, 243, 247, 0.8);
   }
 
   .study-row--dim {

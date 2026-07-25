@@ -223,8 +223,9 @@ export class StudyBoard {
     this.chip.addEventListener("click", () => this.openHub());
 
     // The pair: + Start begins something, Tend checks on what is already
-    // going. Same pill, no glint — the glint is the standing invitation, and
-    // this chip is a destination rather than an invitation.
+    // going. Same pill, other corner, cyan rather than amber, and no glint —
+    // the glint is the standing invitation, and this chip is a destination
+    // rather than an invitation.
     this.tendChip = document.createElement("button");
     this.tendChip.type = "button";
     this.tendChip.className = "study-chip study-chip--tend";
