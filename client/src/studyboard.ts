@@ -210,8 +210,11 @@ export class StudyBoard {
 
     this.chip = document.createElement("button");
     this.chip.type = "button";
-    this.chip.className = "study-chip holos-caps";
-    this.chip.textContent = "+ START";
+    // Not holos-caps: this is the one standing invitation on the sky, not a
+    // label, so it wears the display face at reading size. Cinzel's lowercase
+    // are small caps, so "Start" sets as a titled word without shouting.
+    this.chip.className = "study-chip";
+    this.chip.textContent = "+ Start";
     this.chip.addEventListener("click", () => this.openHub());
 
     this.backdrop = document.createElement("div");
