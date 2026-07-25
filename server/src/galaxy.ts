@@ -231,6 +231,16 @@ export function civById(galaxy: Galaxy, id: CivId): PlacedCiv {
   return civ;
 }
 
+/**
+ * The civ placed at a star, if any (A2.2: cohort.ts needs this to mint a
+ * LightCone for a study's target — DetectedSource drops targetId, so a
+ * study's starId is the only handle back to the civ once it is wire-side).
+ * Undefined rather than throwing: not every star hosts a civ.
+ */
+export function civAtStar(galaxy: Galaxy, starId: StarId): PlacedCiv | undefined {
+  return galaxy.civs.find((c) => c.starId === starId);
+}
+
 /** Distance between two civilizations' home stars — the gameplay quantity. */
 export function civDistanceLy(galaxy: Galaxy, a: CivId, b: CivId): number {
   const starA = starById(galaxy.stars, civById(galaxy, a).starId);

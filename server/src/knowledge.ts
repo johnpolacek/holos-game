@@ -49,6 +49,99 @@ export function civTruthAt(seed: CivSeed, year: number): CivTruth {
 }
 
 // ---------------------------------------------------------------------------
+// The knowledge gate — LightCone (A2.2, missions-design.md / systems-a.md §1)
+// ---------------------------------------------------------------------------
+//
+// `ObservedCiv` was the wire boundary; this slice adds two more channels
+// that read truth (bought questions, mission reports), so the boundary
+// needs a reusable server-side form. A LightCone is a capability token: the
+// only way to obtain one is `lightConeFor`, which derives `asOfYear` from
+// the clock and the real distance. There is no constructor that takes an
+// arbitrary ceiling, so carrying a cone is proof a read is causal.
+
+/**
+ * Permission to read one target's truth, bounded by causality. The ONLY way
+ * to obtain one is `lightConeFor`. A cone is server-side only: it never
+ * crosses the wire and has no wire-facing analogue.
+ */
+export interface LightCone {
+  readonly observerId: CivId;
+  readonly targetId: CivId;
+  readonly distanceLy: number;
+  /** nowYear − distanceLy. The newest target-year home may hold ANY claim
+   *  about, from ANY channel: telescope, bought answer, or mission report. */
+  readonly asOfYear: number;
+}
+
+/**
+ * Mint a cone for (observer, target) at the clock's nowYear. Throws on
+ * unknown civs, as civById already does.
+ */
+export function lightConeFor(
+  galaxy: Galaxy,
+  observerId: CivId,
+  targetId: CivId,
+  nowYear: number,
+): LightCone {
+  const distance = observerId === targetId ? 0 : civDistanceLy(galaxy, observerId, targetId);
+  return {
+    observerId,
+    targetId,
+    distanceLy: distance,
+    asOfYear: nowYear - lightDelayYears(distance),
+  };
+}
+
+/** Slop so a float-adjacent year at the exact cone edge never spuriously reads as pending. */
+const LIGHT_CONE_EPS = 1e-6;
+
+/**
+ * The only truth read outside observeCiv. Returns null — never a clamped or
+ * approximated value — when `year` is above the cone. Callers turn that
+ * null into "pending" / "in flight" / "awaiting light"; none of them can
+ * turn it into a number.
+ */
+export function peekTruth(galaxy: Galaxy, cone: LightCone, year: number): CivTruth | null {
+  if (year > cone.asOfYear + LIGHT_CONE_EPS) return null;
+  return civTruthAt(civById(galaxy, cone.targetId).seed, year);
+}
+
+// ---------------------------------------------------------------------------
+// Occupancy — the one truth summary questions and reports both read
+// ---------------------------------------------------------------------------
+
+/**
+ * What is going on there, at a year, in four tiers. Server-side only —
+ * never a wire field, never a number, never handed to a client.
+ *
+ * A content gap the builder must know about, not fix: every DetectedSource
+ * in v1 is a civilization, so a naive "report the truth" question would
+ * answer *somebody* every single time. At this stage the honest meaning of
+ * "nobody" is nobody answering — a world with no machines on it
+ * (`living-quiet`), or a civilization that went dark and now radiates
+ * nothing (`banked`). Both are, to every instrument and to a fist-sized
+ * probe, indistinguishable from an ordinary cold body. `banked` is the
+ * designed wrong answer: a shut-down civilization reads as a cooled
+ * remnant, and the read is wrong and honest, produced by truth and never by
+ * a die. Adding non-civ sources to galaxy generation is the right eventual
+ * fix and is out of scope for this slice; nothing here has to change when
+ * it lands, because every question and report reads Occupancy, not
+ * PlacedCiv.
+ */
+export type Occupancy =
+  | "living-quiet" // a biosphere, no machines
+  | "living-industrial" // machines running, not ascended
+  | "working" // ascended and radiating on purpose
+  | "banked"; // ascended and radiating almost nothing
+
+export function occupancyAt(truth: CivTruth): Occupancy {
+  if (!truth.ascended) {
+    return truth.emissionLevel >= LEAKAGE_FLOOR ? "living-industrial" : "living-quiet";
+  }
+  return truth.emissionLevel >= MADE_HEAT_FLOOR ? "working" : "banked";
+}
+
+// ---------------------------------------------------------------------------
 // The observed view
 // ---------------------------------------------------------------------------
 
@@ -101,15 +194,28 @@ export interface ObservedCiv {
 const DETECTION_FLOOR = 0.015;
 
 /**
+ * Emission at or above this reads as machines, pre-ascension — classify's
+ * broadcast-leakage boundary, hoisted from a literal so `occupancyAt` and
+ * `classify` can never disagree about where it sits (A2.2, systems-a.md §1).
+ */
+export const LEAKAGE_FLOOR = 0.1;
+/**
+ * Above this, no ordinary world explains the output on its own — classify's
+ * post-ascension infrared-excess boundary and studies.ts's
+ * WORLD_OUTPUT_CEILING, unified for the same reason as LEAKAGE_FLOOR.
+ */
+export const MADE_HEAT_FLOOR = 0.12;
+
+/**
  * Thin A0 classification of delayed truth. Static emitters only —
  * directed beams arrive with signal traffic (A2) and are never produced
  * here; the class is in the type so the record doesn't reshape.
  */
 function classify(truth: CivTruth, seed: CivSeed): SignalClass {
   if (!truth.ascended) {
-    return truth.emissionLevel >= 0.1 ? "broadcast-leakage" : "biosignature";
+    return truth.emissionLevel >= LEAKAGE_FLOOR ? "broadcast-leakage" : "biosignature";
   }
-  if (truth.emissionLevel < 0.12) return "infrared-excess";
+  if (truth.emissionLevel < MADE_HEAT_FLOOR) return "infrared-excess";
   return seed.ladders.energy >= 3 ? "transit-shadows" : "broadcast-leakage";
 }
 
