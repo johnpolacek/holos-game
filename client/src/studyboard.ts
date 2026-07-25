@@ -446,43 +446,83 @@ export class StudyBoard {
     }
   }
 
-  private buildExploreRow(source: DetectedSource): HTMLButtonElement {
+  /**
+   * The source as its instrument actually renders it: a warm, formless blot
+   * whose radius GROWS as confidence falls and whose core brightens as it
+   * rises. Same law the Model draws in the sky (model.ts's SMUDGE_* sizing),
+   * so a source looks like itself wherever the player meets it — and the
+   * sharpening of the image is the progress bar of the inference game
+   * (ui-design.md § principle 4).
+   */
+  private sourceSmudge(confidence: number): HTMLDivElement {
+    const conf = clamp01(confidence);
+    const cell = document.createElement("div");
+    cell.className = "study-row-smudgecell";
+
+    const blot = document.createElement("div");
+    blot.className = "study-row-smudge";
+    const diameter = 30 + (1 - conf) * 26;
+    blot.style.width = `${diameter.toFixed(1)}px`;
+    blot.style.height = `${(diameter * 0.86).toFixed(1)}px`;
+    blot.style.filter = `blur(${(4 + (1 - conf) * 7).toFixed(1)}px)`;
+    blot.style.opacity = (0.34 + conf * 0.52).toFixed(2);
+
+    cell.append(blot);
+    return cell;
+  }
+
+  /** The shared anatomy of a source row: the blot, then the belief loud with
+   *  the catalog designation and the light-age quiet around it. */
+  private buildSourceRow(source: DetectedSource): HTMLButtonElement {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "study-picker-row";
-    btn.addEventListener("click", () => {
-      this.onInspectCb?.(source.starId);
-      this.close();
-    });
 
-    const top = document.createElement("div");
-    top.className = "study-row-top";
+    btn.append(this.sourceSmudge(source.signal.confidence));
+
+    const text = document.createElement("div");
+    text.className = "study-row-text";
+
+    const idLine = document.createElement("div");
+    idLine.className = "study-row-idline";
     const desig = document.createElement("span");
     desig.className = "study-row-designation holos-caps";
     desig.textContent = source.designation;
-    top.append(desig);
+    idLine.append(desig);
 
     const localName = this.localNames.get(source.starId);
     if (localName !== undefined && localName.length > 0) {
       const nm = document.createElement("span");
       nm.className = "study-row-name holos-serif";
       nm.textContent = localName;
-      top.append(nm);
+      idLine.append(nm);
     }
 
-    const bottom = document.createElement("div");
-    bottom.className = "study-row-bottom";
+    const beliefLine = document.createElement("div");
+    beliefLine.className = "study-row-beliefline";
+    const cls = document.createElement("span");
+    cls.className = "study-row-class";
+    cls.textContent = CLASS_LABEL[source.signal.classification];
+    const conf = document.createElement("span");
+    conf.className = "study-row-conf";
+    conf.textContent = `${Math.round(source.signal.confidence * 100)}%`;
+    beliefLine.append(cls, conf);
 
-    const belief = document.createElement("span");
-    belief.className = "study-row-hyp";
-    belief.textContent = `${CLASS_LABEL[source.signal.classification]} · ${Math.round(source.signal.confidence * 100)}%`;
-
-    const age = document.createElement("span");
+    const age = document.createElement("div");
     age.className = "study-row-age holos-caps";
     age.textContent = `AS OF ${source.lightAgeYears.toFixed(1)} Y AGO`;
 
-    bottom.append(belief, age);
-    btn.append(top, bottom);
+    text.append(idLine, beliefLine, age);
+    btn.append(text);
+    return btn;
+  }
+
+  private buildExploreRow(source: DetectedSource): HTMLButtonElement {
+    const btn = this.buildSourceRow(source);
+    btn.addEventListener("click", () => {
+      this.onInspectCb?.(source.starId);
+      this.close();
+    });
 
     if (this.studiesByStarId.has(source.starId)) {
       const flag = document.createElement("span");
@@ -559,44 +599,50 @@ export class StudyBoard {
     btn.className = dimmed ? "study-row study-row--dim" : "study-row";
     btn.addEventListener("click", () => this.focusStudy(s.starId));
 
-    const top = document.createElement("div");
-    top.className = "study-row-top";
+    // Sized by the LEADING hypothesis rather than the raw signal confidence:
+    // a study's blot tightens as its own belief firms, so the list shows
+    // progress the same way the focused sheet does.
+    const leader = leadingHypothesis(s.hypotheses);
+    btn.append(this.sourceSmudge(leader?.share ?? 0));
+
+    const text = document.createElement("div");
+    text.className = "study-row-text";
+
+    const idLine = document.createElement("div");
+    idLine.className = "study-row-idline";
     const desig = document.createElement("span");
     desig.className = "study-row-designation holos-caps";
     desig.textContent = source.designation;
-    top.append(desig);
+    idLine.append(desig);
 
     const localName = this.localNames.get(s.starId);
     if (localName !== undefined && localName.length > 0) {
       const nm = document.createElement("span");
       nm.className = "study-row-name holos-serif";
       nm.textContent = localName;
-      top.append(nm);
+      idLine.append(nm);
     }
 
-    const bottom = document.createElement("div");
-    bottom.className = "study-row-bottom";
-
-    const hyp = document.createElement("span");
-    hyp.className = "study-row-hyp";
-    const leader = leadingHypothesis(s.hypotheses);
+    const beliefLine = document.createElement("div");
+    beliefLine.className = "study-row-beliefline";
     if (leader !== undefined) {
       const pcts = hypothesisPercentages(s.hypotheses);
       const pct = pcts.get(leader.id) ?? Math.round(leader.share * 100);
       const label = document.createElement("span");
+      label.className = "study-row-class";
       label.textContent = leader.label;
       const percent = document.createElement("span");
-      percent.className = "study-tabular";
+      percent.className = "study-row-conf study-tabular";
       percent.textContent = `${pct}%`;
-      hyp.append(label, percent);
+      beliefLine.append(label, percent);
     }
 
-    const age = document.createElement("span");
+    const age = document.createElement("div");
     age.className = "study-row-age holos-caps";
     age.textContent = `AS OF ${source.lightAgeYears.toFixed(1)} Y AGO`;
 
-    bottom.append(hyp, age);
-    btn.append(top, bottom);
+    text.append(idLine, beliefLine, age);
+    btn.append(text);
     return btn;
   }
 
@@ -642,41 +688,10 @@ export class StudyBoard {
   }
 
   private buildPickerRow(source: DetectedSource): HTMLButtonElement {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "study-picker-row";
+    const btn = this.buildSourceRow(source);
     btn.addEventListener("click", () => {
       this.socket.send({ type: "openStudy", starId: source.starId });
     });
-
-    const top = document.createElement("div");
-    top.className = "study-row-top";
-    const desig = document.createElement("span");
-    desig.className = "study-row-designation holos-caps";
-    desig.textContent = source.designation;
-    top.append(desig);
-
-    const localName = this.localNames.get(source.starId);
-    if (localName !== undefined && localName.length > 0) {
-      const nm = document.createElement("span");
-      nm.className = "study-row-name holos-serif";
-      nm.textContent = localName;
-      top.append(nm);
-    }
-
-    const bottom = document.createElement("div");
-    bottom.className = "study-row-bottom";
-
-    const belief = document.createElement("span");
-    belief.className = "study-row-hyp";
-    belief.textContent = `${CLASS_LABEL[source.signal.classification]} · ${Math.round(source.signal.confidence * 100)}%`;
-
-    const age = document.createElement("span");
-    age.className = "study-row-age holos-caps";
-    age.textContent = `AS OF ${source.lightAgeYears.toFixed(1)} Y AGO`;
-
-    bottom.append(belief, age);
-    btn.append(top, bottom);
     return btn;
   }
 

@@ -525,8 +525,14 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Panel titles carry the display face: these are the names of places in the
+   game, and at caps-xs they read as form labels instead. */
 .study-board-header {
   padding: 0.2rem 0 0.6rem;
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-xl);
+  letter-spacing: 0.12em;
+  color: var(--holos-ink);
 }
 
 .study-board-empty,
@@ -543,13 +549,15 @@ body {
 
 .study-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.9rem;
   width: 100%;
+  min-height: 76px;
   background: none;
   border: none;
   border-bottom: 1px solid rgba(211, 185, 130, 0.28);
-  padding: 0.6rem 0.1rem;
+  padding: 0.85rem 0.1rem;
   text-align: left;
   cursor: pointer;
   color: var(--holos-ink);
@@ -559,15 +567,9 @@ body {
   opacity: 0.72;
 }
 
-.study-row-top {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
 
 .study-row-designation {
-  color: var(--holos-ink-dim);
+  color: var(--holos-ink-faint);
 }
 
 .study-row-name {
@@ -575,20 +577,7 @@ body {
   color: var(--holos-ink);
 }
 
-.study-row-bottom {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.5rem;
-  font-size: var(--holos-text-sm);
-  color: var(--holos-ink-dim);
-}
 
-.study-row-hyp {
-  display: inline-flex;
-  gap: 0.3rem;
-  min-width: 0;
-}
 
 .study-row-age {
   flex-shrink: 0;
@@ -652,19 +641,78 @@ body {
   padding: 0 0 0.4rem;
 }
 
+/* A source row is the instrument's own product, not a table cell: the blot
+   first, the belief loud, the catalog number and the light-age quiet around
+   it. The blot's size and brightness follow the same law the Model uses in
+   the sky, so a source reads as itself in either place. */
 .study-picker-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.9rem;
   width: 100%;
-  min-height: 44px;
+  min-height: 76px;
   background: none;
   border: none;
   border-bottom: 1px solid rgba(211, 185, 130, 0.28);
-  padding: 0.6rem 0.1rem;
+  padding: 0.85rem 0.1rem;
   text-align: left;
   cursor: pointer;
   color: var(--holos-ink);
+}
+
+.study-row-smudgecell {
+  flex: 0 0 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Three offset lobes, blurred together — no core, no edge, nothing the
+   percentage does not know. Sized and lit inline, per source. */
+.study-row-smudge {
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 44% 58%, rgba(240, 172, 102, 0.75) 0%, transparent 62%),
+    radial-gradient(circle at 58% 42%, rgba(240, 172, 102, 0.5) 0%, transparent 68%),
+    radial-gradient(circle at 50% 50%, rgba(240, 172, 102, 0.3) 0%, transparent 78%);
+}
+
+.study-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.study-row-idline {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.study-row-beliefline {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+/* The belief leads the row — the one thing worth reading at a glance. */
+.study-row-class {
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-lg);
+  letter-spacing: 0.07em;
+  line-height: 1.15;
+  color: var(--holos-amber);
+}
+
+.study-row-conf {
+  font-variant-numeric: tabular-nums;
+  color: var(--holos-ink-dim);
 }
 
 /* Hub + projects view — the banked-hours line, ticked live once a second
