@@ -108,13 +108,16 @@ parentage), with their client surfaces. This overran build-a2.md's "no
 missions, no launches" guardrail, which is now amended rather than
 pretended away; A4 below is struck to match what actually landed.
 
-**Known gap:** the shipped A2.2 modules cite three documents that were
-never committed — `systems-a.md` (27 references), `synthesis.md` (14) and
-`content.md` (14), working specs from that build session. Until they are
-recovered or rewritten as-built, **the code is the spec of record** for
-question tables, charter clauses, project effects, and the alarm
-liveness rule; a session that reads those citations will not find the
-files.
+**Known gap, half closed:** the shipped A2.2 modules cite three documents
+that were never committed — `systems-a.md` (27 references),
+`synthesis.md` (14) and `content.md` (14), working specs from that build
+session. [systems-a.md](./systems-a.md) has been **reconstructed from the
+shipped code** (2026-07), numbered to match those citations so they
+resolve; it is an as-built record, and where it disagrees with the code,
+the code wins. `synthesis.md` and `content.md` remain missing: where the
+code cites them for a tuning call ("priced at 2100 per synthesis.md §4"),
+that provenance is now recorded in systems-a.md as a fact about the
+citation, and the number itself lives only in the code.
 
 **→ Next to build: the grounded exit**, then **A2.3 — the contest and
 study tripwires**. The grounded exit is a small standalone slice: probe

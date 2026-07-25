@@ -198,9 +198,11 @@ the evidence handed to buildStudySnapshot. studies.ts cannot tell an
 answer from a report, and must not learn to. What is missing is only the
 close: StudyStatus is still "open" | "shelved" (server/src/protocol.ts).
 
-Caution: the A2.2 modules cite docs/systems-a.md, synthesis.md and
-content.md by section. Those files were never committed. The code is the
-spec of record; do not go looking, and do not add new citations to them.
+On the A2.2 modules' citations: docs/systems-a.md was reconstructed from
+the shipped code (2026-07) and is numbered to match them — read it for
+the tables, and treat the code as the spec of record where they differ.
+synthesis.md and content.md are cited too and were never committed; do
+not go looking, and do not add new citations to them.
 
 Build:
 1. Wire + server: "grounded" joins StudyStatus. When an Assay report
@@ -272,9 +274,11 @@ below certainty — regression enters through it, not around it. Seeded
 civs carry archetypes and emission histories (civseed.ts, minds.ts);
 their mask behavior is this stage's addition.
 
-Caution: the A2.2 modules cite docs/systems-a.md, synthesis.md and
-content.md by section. Those files were never committed. The code is the
-spec of record; do not go looking, and do not add new citations to them.
+On the A2.2 modules' citations: docs/systems-a.md was reconstructed from
+the shipped code (2026-07) and is numbered to match them — read it for
+the tables, and treat the code as the spec of record where they differ.
+synthesis.md and content.md are cited too and were never committed; do
+not go looking, and do not add new citations to them.
 
 Build:
 1. Server: archetype-rule mask upkeep for seeded civs (a Cloister pays

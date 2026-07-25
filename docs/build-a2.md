@@ -88,10 +88,15 @@ re-invent:
 - `client/src/studyboard.ts` — the board, the Docket, and the launch
   sheet. It is the largest client module; new panels join it.
 
-**A caution for any session reading those modules:** their comments cite
-`systems-a.md`, `synthesis.md` and `content.md` with section numbers.
-Those three files were never committed. Treat the code as the spec of
-record and do not go looking (roadmap.md § Where the build is today).
+**A note for any session reading those modules:** their comments cite
+`systems-a.md`, `synthesis.md` and `content.md` with section numbers, and
+none of the three was ever committed.
+[systems-a.md](./systems-a.md) now exists as a **reconstruction from the
+code**, numbered to match its citations — read it for the tables (the
+question catalog, the finding rows, the charter resolution, the Docket's
+states), but treat the code as the spec of record where they differ.
+`synthesis.md` and `content.md` are still missing; do not add new
+citations to them.
 
 ## Read first (docs)
 
