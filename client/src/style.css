@@ -1038,6 +1038,153 @@ body {
   cursor: default;
 }
 
+/* ── The Docket, mission detail, and the launch sheet (Act 3, A2.2) ─────
+ * Amber/ink only, same rule as the observatory — never --holos-cyan. */
+
+/* Docket rows: label+sub on the left, class chip + state + next-date on the
+   right. One level of indent for a row hanging under a study parent. */
+.docket-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  width: 100%;
+  min-height: 60px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.7rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--holos-ink);
+}
+
+.docket-row--child {
+  padding-left: 1.6rem;
+}
+
+.docket-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.docket-row-label {
+  font-size: var(--holos-text-lg);
+  color: var(--holos-ink);
+}
+
+.docket-row-sub {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+}
+
+.docket-row-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.docket-chip {
+  color: var(--holos-ink-faint);
+}
+
+.docket-row-state {
+  color: var(--holos-ink-dim);
+}
+
+.docket-row-state--silent {
+  color: var(--holos-error);
+}
+
+.docket-row-next {
+  color: var(--holos-ink-faint);
+}
+
+/* Mission detail — the clock trio, plain two-column rows. */
+.docket-mission-clock-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.24);
+}
+
+.docket-mission-clock-label {
+  color: var(--holos-ink-faint);
+}
+
+.docket-mission-clock-value {
+  color: var(--holos-ink);
+}
+
+.docket-mission-silent {
+  padding: 0.4rem 0;
+  color: var(--holos-error);
+}
+
+/* Mission detail — a report's headline, full ink against the quieter detail
+   text below it (reuses .study-archive-row/-text/-age). */
+.docket-report-headline {
+  color: var(--holos-ink);
+}
+
+/* The launch sheet — a selected kind row (reuses .study-project-row). */
+.docket-launch-kind-row--selected {
+  border-left: 2px solid var(--holos-amber);
+  padding-left: 0.6rem;
+}
+
+/* The launch sheet — one selectable charter clause (reuses the briefing's
+   label+gloss reading anatomy, with button resets and a selected state). */
+.docket-launch-clause-row {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  border-left: 1px solid var(--holos-gold-dim);
+  padding: 0.4rem 0 0.4rem 0.7rem;
+  margin: 0.35rem 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.docket-launch-clause-row--selected {
+  border-left-color: var(--holos-amber);
+}
+
+.docket-launch-clause-row--selected .study-hyp-label {
+  color: var(--holos-amber);
+}
+
+/* ── Source card — the mission (dispatch) affordance row ─────────────── */
+.source-card-mission-row {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.15rem;
+}
+
+.source-card-mission-affordance {
+  background: none;
+  border: none;
+  padding: 0.3rem 0.6rem;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--holos-text-xs);
+  color: var(--holos-amber);
+  cursor: pointer;
+}
+
+.source-card-mission-affordance--active {
+  font-weight: 700;
+}
+
 /* ── Ceremony carousel ───────────────────────────────────────────────── */
 .ceremony {
   position: relative;

@@ -17,13 +17,33 @@ import type {
   ProjectSnapshot,
   ComputeBudget,
   HypothesisMenus,
+  MissionSnapshot,
+  MissionCatalog,
+  DocketState,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { StudyBoard } from "./studyboard";
 import { clearPendingBecome, hasPendingBecome, renderCeremony } from "./ceremony";
 import { Model } from "./model";
-import { SourceCard } from "./sourcecard";
+import { SourceCard, type MissionCardState } from "./sourcecard";
 import { setClockAnchor } from "./clock";
+
+// DocketRow is not individually re-exported from protocol.ts (see
+// studyboard.ts's note by the same derivation) — pulled off the `sky`
+// variant's own field rather than widening the server's export surface.
+type DocketRow = Extract<CohortServerMessage, { type: "sky" }>["docket"][number];
+
+/** Docket states that mean a mission is still under way — everything but a
+ *  terminal returned/silent (missions.ts's missionDocketState never emits
+ *  "in-hand" for a mission; that branch is defensive only there too). */
+function isLiveMissionState(state: DocketState): boolean {
+  return (
+    state === "in-flight" ||
+    state === "beyond-horizon" ||
+    state === "awaiting-light" ||
+    state === "standing"
+  );
+}
 
 type ScreenCleanup = () => void;
 
@@ -38,6 +58,8 @@ export class App {
   // precedes the first `sky`) for the study briefing's "what it can tell
   // apart". Null only if the board somehow mounts before a welcome lands.
   private menus: HypothesisMenus | null = null;
+  // The launch sheet's vocabulary, retained from `welcome` like `menus`.
+  private missionCatalog: MissionCatalog | null = null;
   private model: Model | null = null;
   private sourceCard: SourceCard | null = null;
   private studyBoard: StudyBoard | null = null;
@@ -49,6 +71,9 @@ export class App {
   private sources: readonly DetectedSource[] = [];
   private projects: readonly ProjectSnapshot[] = [];
   private budget: ComputeBudget = { free: 0, ratePerYear: 0, asOfYear: 0 };
+  private missions: readonly MissionSnapshot[] = [];
+  private docket: readonly DocketRow[] = [];
+  private probeFlightYearsPerLy = 10;
 
   // Set when the source card fires onStudyAction for a source with no study
   // yet: we've sent `openStudy` and are waiting for the confirming `sky` to
@@ -82,6 +107,7 @@ export class App {
         // which is what actually mounts the Model.
         this.catalog = message.catalog;
         this.menus = message.menus;
+        this.missionCatalog = message.missionCatalog;
         setClockAnchor(message.clock);
         break;
       case "offer":
@@ -96,6 +122,9 @@ export class App {
         this.sources = message.sources;
         this.projects = message.projects;
         this.budget = message.budget;
+        this.missions = message.missions;
+        this.docket = message.docket;
+        this.probeFlightYearsPerLy = message.probeFlightYearsPerLy;
         this.showSky(message.self, message.sources);
         break;
       case "sourceNamed":
@@ -137,6 +166,21 @@ export class App {
     return this.studies.find((s) => s.starId === starId);
   }
 
+  /** The source card's mission-row state for `starId`, derived from the
+   *  latest sky's missions — "live" beats "inactive" beats "none". */
+  private findMissionState(starId: string): MissionCardState {
+    const onStar = this.missions.filter((m) => m.starId === starId);
+    if (onStar.some((m) => isLiveMissionState(m.state))) return "live";
+    if (onStar.length > 0) return "inactive";
+    return "none";
+  }
+
+  /** The one live mission on `starId`, if any — for the source card's
+   *  DISPATCH verb deciding between "focus it" and "open the launch sheet". */
+  private findLiveMission(starId: string): MissionSnapshot | undefined {
+    return this.missions.find((m) => m.starId === starId && isLiveMissionState(m.state));
+  }
+
   /** If a study was just requested (onStudyAction, no prior study) and the
    * confirming sky has now arrived carrying it, hand focus to the
    * observatory — the phone-checklist beat "flag a source; a study opens". */
@@ -161,6 +205,7 @@ export class App {
         if (updated !== undefined) {
           this.sourceCard?.setSource(updated);
           this.sourceCard?.setStudyStatus(this.findStudy(openId)?.status ?? null);
+          this.sourceCard?.setMissionState(this.findMissionState(openId));
         }
         // else: the Model's setSky above already fired onSelectSource(null)
         // for a selection that no longer corresponds to a live source.
@@ -171,6 +216,9 @@ export class App {
         this.localNames,
         this.projects,
         this.budget,
+        this.missions,
+        this.docket,
+        this.probeFlightYearsPerLy,
       );
       this.maybeFocusPendingStudy();
       return;
@@ -183,7 +231,7 @@ export class App {
     this.mount(() => {
       const model = new Model(this.root, this.catalog);
       const sourceCard = new SourceCard(this.root, this.socket);
-      const studyBoard = new StudyBoard(this.root, this.socket, this.menus);
+      const studyBoard = new StudyBoard(this.root, this.socket, this.menus, this.missionCatalog);
       this.model = model;
       this.sourceCard = sourceCard;
       this.studyBoard = studyBoard;
@@ -194,6 +242,7 @@ export class App {
         } else {
           sourceCard.open(source, this.localNames);
           sourceCard.setStudyStatus(this.findStudy(source.starId)?.status ?? null);
+          sourceCard.setMissionState(this.findMissionState(source.starId));
         }
       });
       sourceCard.onClose(() => model.clearSelection());
@@ -203,6 +252,7 @@ export class App {
         model.selectStar(starId);
         sourceCard.open(source, this.localNames);
         sourceCard.setStudyStatus(this.findStudy(starId)?.status ?? null);
+        sourceCard.setMissionState(this.findMissionState(starId));
       });
       sourceCard.onStudyAction((starId) => {
         if (this.findStudy(starId) !== undefined) {
@@ -214,6 +264,16 @@ export class App {
           this.pendingStudyFocus = starId;
         }
       });
+      sourceCard.onMissionAction((starId) => {
+        const live = this.findLiveMission(starId);
+        sourceCard.close();
+        model.clearSelection();
+        if (live !== undefined) {
+          studyBoard.focusMission(live.id);
+        } else {
+          studyBoard.openLaunch(starId);
+        }
+      });
 
       model.setSky(self, sources);
       studyBoard.update(
@@ -222,6 +282,9 @@ export class App {
         this.localNames,
         this.projects,
         this.budget,
+        this.missions,
+        this.docket,
+        this.probeFlightYearsPerLy,
       );
       model.enter(mode);
       clearPendingBecome();

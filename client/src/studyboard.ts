@@ -28,12 +28,45 @@ import type {
   HypothesisMenus,
   ProjectSnapshot,
   ComputeBudget,
+  OpenQuestion,
+  MissionSnapshot,
+  MissionCatalog,
+  MissionKind,
+  CharterClauseId,
+  DocketState,
+  CohortServerMessage,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { CLASS_LABEL } from "./sourcecard";
 import { formatClockPair, formatCountdown, nowYear } from "./clock";
 
 const SWIPE_CLOSE_PX = 56;
+
+// DocketRow, MissionKindDef and CharterClauseDef are not individually
+// re-exported from protocol.ts (unlike their siblings MissionSnapshot /
+// MissionCatalog / CharterClauseWire) — derived here via index access on the
+// shapes that ARE exported (CohortServerMessage's `sky` variant and
+// MissionCatalog itself) rather than widening the server's export surface.
+type DocketRow = Extract<CohortServerMessage, { type: "sky" }>["docket"][number];
+type MissionKindOption = MissionCatalog["kinds"][number];
+type CharterClauseOption = MissionCatalog["clauses"][number];
+
+const DOCKET_STATE_LABEL: Record<DocketState, string> = {
+  "in-hand": "IN HAND",
+  "in-flight": "IN FLIGHT",
+  "beyond-horizon": "BEYOND THE HORIZON",
+  "awaiting-light": "AWAITING LIGHT",
+  returned: "RETURNED",
+  silent: "SILENT",
+  standing: "STANDING",
+};
+
+/** The Docket/mission-detail absolute-year chrome: "Y1204". Countdown-bearing
+ *  dates always go through formatCountdown/formatClockPair; this is only for
+ *  a date that has already passed (nothing left to count down to). */
+function formatAbsoluteYear(year: number): string {
+  return `Y${Math.round(year)}`;
+}
 
 function clamp01(v: number): number {
   return Math.min(1, Math.max(0, v));
@@ -91,6 +124,9 @@ export class StudyBoard {
   /** Opening menu labels per signal class, from `welcome` — the briefing's
    *  "what it can tell apart". Null omits that section rather than guessing. */
   private readonly menus: HypothesisMenus | null;
+  /** The launch sheet's vocabulary (kinds + charter clauses), from `welcome`
+   *  like `menus`. Null omits the sheet's catalog rows rather than guessing. */
+  private readonly missionCatalog: MissionCatalog | null;
 
   private readonly root: HTMLDivElement;
   private readonly chip: HTMLButtonElement;
@@ -104,6 +140,12 @@ export class StudyBoard {
   private localNames: ReadonlyMap<string, string> = new Map();
   private projects: readonly ProjectSnapshot[] = [];
   private budget: ComputeBudget = { free: 0, ratePerYear: 0, asOfYear: 0 };
+  private missions: readonly MissionSnapshot[] = [];
+  private missionsById = new Map<string, MissionSnapshot>();
+  private docket: readonly DocketRow[] = [];
+  /** The current effective probe cruise rate (years/ly), from the latest
+   *  sky — feeds the launch sheet's client-side clock preview. */
+  private probeFlightYearsPerLy = 10;
 
   private openFlag = false;
   private view:
@@ -113,10 +155,20 @@ export class StudyBoard {
     | "picker"
     | "brief"
     | "explore"
-    | "projects" = "list";
+    | "projects"
+    | "docket"
+    | "mission"
+    | "launch" = "list";
   private focusedStarId: string | null = null;
   private briefStarId: string | null = null;
+  private focusedMissionId: string | null = null;
   private openStudyCount = 0;
+
+  // The launch sheet's in-progress selection — cleared each time openLaunch
+  // opens fresh (a half-written charter never survives a close/reopen).
+  private launchStarId: string | null = null;
+  private launchKind: MissionKind | null = null;
+  private launchCharter = new Set<CharterClauseId>();
 
   // The star a `begin the watch` is in flight for. The confirming `sky`
   // carries the new study and hands straight to the focused board — without
@@ -124,6 +176,20 @@ export class StudyBoard {
   // dead end. Cleared by any sky that does not confirm, and by any server
   // error, so the verb can never sit stuck mid-flight.
   private pendingBeginStarId: string | null = null;
+
+  // A buyQuestion in flight: the study it's on plus the question id, so the
+  // trio can never be mistaken for a different study's purchase. The
+  // confirming sky moves the question past "offered" (studies.ts's
+  // assembleQuestion); handleServerError releases it on a rejection.
+  private pendingQuestion: { readonly starId: string; readonly questionId: string } | null = null;
+
+  // A launchMission in flight: the star plus a snapshot of the mission ids
+  // already on the wire at send time, so the confirming sky can pick out
+  // the ONE new mission it carries (by id difference) and hand focus
+  // straight to its detail view — the monitor page, same beat as
+  // pendingBeginStarId's "begin the watch" → focusStudy.
+  private pendingLaunchStarId: string | null = null;
+  private pendingLaunchPriorMissionIds: ReadonlySet<string> = new Set();
 
   // A single 1s ticker, live while the panel is open, so the hub's compute
   // allocation line and any running project's countdown stay current without
@@ -140,9 +206,11 @@ export class StudyBoard {
     container: HTMLElement,
     socket: CohortSocket,
     menus: HypothesisMenus | null,
+    missionCatalog: MissionCatalog | null,
   ) {
     this.socket = socket;
     this.menus = menus;
+    this.missionCatalog = missionCatalog;
 
     this.root = document.createElement("div");
     this.root.className = "study-board-root";
@@ -199,12 +267,19 @@ export class StudyBoard {
     localNames: ReadonlyMap<string, string>,
     projects: readonly ProjectSnapshot[],
     budget: ComputeBudget,
+    missions: readonly MissionSnapshot[],
+    docket: readonly DocketRow[],
+    probeFlightYearsPerLy: number,
   ): void {
     this.studiesByStarId = new Map(studies.map((s) => [s.starId, s] as const));
     this.sourcesByStarId = new Map(sources.map((s) => [s.starId, s] as const));
     this.localNames = localNames;
     this.projects = projects;
     this.budget = budget;
+    this.missions = missions;
+    this.missionsById = new Map(missions.map((m) => [m.id, m] as const));
+    this.docket = docket;
+    this.probeFlightYearsPerLy = probeFlightYearsPerLy;
     this.updateChip();
 
     // A begin sent from the briefing: this sky either carries the new study
@@ -215,6 +290,34 @@ export class StudyBoard {
       this.pendingBeginStarId = null;
       if (this.studiesByStarId.has(starId)) {
         this.focusStudy(starId);
+        return;
+      }
+    }
+
+    // A buyQuestion in flight: released the moment the question's own state
+    // moves past "offered" (bought — pending or, same sky, already answered).
+    if (this.pendingQuestion !== null) {
+      const pending = this.pendingQuestion;
+      const study = this.studiesByStarId.get(pending.starId);
+      const q = study?.openQuestions.find((qq) => qq.id === pending.questionId);
+      if (q !== undefined && q.state !== "offered") {
+        this.pendingQuestion = null;
+      }
+    }
+
+    // A launchMission in flight: this sky either carries exactly one new
+    // mission for the star (by id difference against the pre-send
+    // snapshot) — hand straight to its detail view — or it does not, in
+    // which case nothing landed yet (or the server rejected it, in which
+    // case handleServerError already released the trio before this runs).
+    if (this.pendingLaunchStarId !== null) {
+      const starId = this.pendingLaunchStarId;
+      const priorIds = this.pendingLaunchPriorMissionIds;
+      const newMission = missions.find((m) => m.starId === starId && !priorIds.has(m.id));
+      if (newMission !== undefined) {
+        this.pendingLaunchStarId = null;
+        this.pendingLaunchPriorMissionIds = new Set();
+        this.focusMission(newMission.id);
         return;
       }
     }
@@ -239,6 +342,19 @@ export class StudyBoard {
       this.renderExplore();
     } else if (this.view === "projects") {
       this.renderProjects();
+    } else if (this.view === "docket") {
+      this.renderDocket();
+    } else if (this.view === "mission") {
+      if (this.focusedMissionId !== null && this.missionsById.has(this.focusedMissionId)) {
+        this.renderMissionDetail();
+      } else {
+        // The focused mission vanished from this payload — fall back to the Docket.
+        this.view = "docket";
+        this.focusedMissionId = null;
+        this.renderDocket();
+      }
+    } else if (this.view === "launch") {
+      this.renderLaunch();
     } else {
       this.renderList();
     }
@@ -289,6 +405,38 @@ export class StudyBoard {
     this.startTicking();
   }
 
+  openDocket(): void {
+    this.view = "docket";
+    this.focusedStarId = null;
+    this.renderDocket();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
+  focusMission(missionId: string): void {
+    this.view = "mission";
+    this.focusedMissionId = missionId;
+    this.renderMissionDetail();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
+  /** Opens the two-step launch sheet for `starId`. Always starts clean — a
+   *  half-written charter never survives a close/reopen (openBrief's
+   *  precedent: `pendingBeginStarId` reset on entry). */
+  openLaunch(starId: string): void {
+    this.view = "launch";
+    this.launchStarId = starId;
+    this.launchKind = null;
+    this.launchCharter = new Set();
+    this.renderLaunch();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
   close(): void {
     this.openFlag = false;
     this.root.classList.remove("open");
@@ -312,6 +460,10 @@ export class StudyBoard {
     this.tickHandle = window.setInterval(() => {
       if (this.view === "hub") this.renderHub();
       else if (this.view === "projects") this.renderProjects();
+      else if (this.view === "focused" && this.focusedStarId !== null) {
+        this.renderFocused(this.focusedStarId);
+      } else if (this.view === "docket") this.renderDocket();
+      else if (this.view === "mission") this.renderMissionDetail();
     }, 1000);
   }
 
@@ -410,9 +562,7 @@ export class StudyBoard {
       ),
     );
     this.body.append(
-      this.buildHubRow("Start a mission", "Arrives with the Docket.", false, () => {
-        /* inert */
-      }),
+      this.buildHubRow("The Docket", this.docketSummaryLine(), true, () => this.openDocket()),
     );
     this.body.append(
       this.buildHubRow(
@@ -465,6 +615,16 @@ export class StudyBoard {
 
     btn.append(labelEl, subEl);
     return btn;
+  }
+
+  /** "3 under way · 1 silent" / "Nothing under way." — the hub row's live
+   *  summary, derived from the Docket's own rows (never a second count). */
+  private docketSummaryLine(): string {
+    const total = this.docket.length;
+    if (total === 0) return "Nothing under way.";
+    const silent = this.docket.filter((r) => r.state === "silent").length;
+    const underWay = total - silent;
+    return silent > 0 ? `${underWay} under way · ${silent} silent` : `${underWay} under way`;
   }
 
   // ── Render: explore view ─────────────────────────────────────────────
@@ -885,12 +1045,31 @@ export class StudyBoard {
     return section;
   }
 
-  /** Releases a begin that no `sky` will ever confirm (the server answered
-   *  with an error instead), so the verb does not sit disabled forever. */
+  /** Releases any verb that no `sky` will ever confirm (the server answered
+   *  with an error instead), so a pending trio never sits disabled forever. */
   handleServerError(): void {
-    if (this.pendingBeginStarId === null) return;
-    this.pendingBeginStarId = null;
-    if (this.view === "brief") this.renderBrief();
+    let releasedBegin = false;
+    if (this.pendingBeginStarId !== null) {
+      this.pendingBeginStarId = null;
+      releasedBegin = true;
+    }
+    let releasedQuestion = false;
+    if (this.pendingQuestion !== null) {
+      this.pendingQuestion = null;
+      releasedQuestion = true;
+    }
+    let releasedLaunch = false;
+    if (this.pendingLaunchStarId !== null) {
+      this.pendingLaunchStarId = null;
+      this.pendingLaunchPriorMissionIds = new Set();
+      releasedLaunch = true;
+    }
+
+    if (releasedBegin && this.view === "brief") this.renderBrief();
+    if (releasedQuestion && this.view === "focused" && this.focusedStarId !== null) {
+      this.renderFocused(this.focusedStarId);
+    }
+    if (releasedLaunch && this.view === "launch") this.renderLaunch();
   }
 
   // ── Render: projects view ────────────────────────────────────────────
@@ -976,6 +1155,575 @@ export class StudyBoard {
     btn.append(label, line, meta);
     if (flag !== null) btn.append(flag);
     return btn;
+  }
+
+  /** One row per OpenQuestion on the focused study — see renderFocused's
+   *  comment for the state → anatomy mapping. */
+  private buildQuestionRow(
+    starId: string,
+    q: OpenQuestion,
+    evidenceIds: ReadonlySet<string>,
+  ): HTMLElement {
+    if (q.state === "offered") {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "study-project-row";
+
+      const label = document.createElement("div");
+      label.className = "study-project-label holos-serif";
+      label.textContent = q.label;
+      const line = document.createElement("div");
+      line.className = "study-project-line";
+      line.textContent = q.line;
+      const meta = document.createElement("div");
+      meta.className = "study-project-meta holos-caps";
+
+      const isPending =
+        this.pendingQuestion !== null &&
+        this.pendingQuestion.starId === starId &&
+        this.pendingQuestion.questionId === q.id;
+      const free = this.currentFreeCompute();
+      const affordable = free >= q.costCompute;
+      const base = `${q.costCompute} COMPUTE · ANSWERS IN ${formatClockPair(q.integrationYears)}`;
+
+      if (isPending) {
+        btn.disabled = true;
+        btn.classList.add("study-project-row--disabled");
+        meta.textContent = base;
+      } else if (affordable) {
+        btn.addEventListener("click", () => {
+          this.pendingQuestion = { starId, questionId: q.id };
+          this.socket.send({ type: "buyQuestion", starId, questionId: q.id });
+          this.renderFocused(starId);
+        });
+        meta.textContent = base;
+      } else {
+        btn.disabled = true;
+        btn.classList.add("study-project-row--disabled");
+        const shortfall = Math.ceil(q.costCompute - free);
+        meta.textContent = `${base} · ${shortfall} SHORT`;
+      }
+
+      btn.append(label, line, meta);
+      return btn;
+    }
+
+    if (q.state === "pending") {
+      const row = document.createElement("div");
+      row.className = "study-project-row study-project-row--disabled";
+      const label = document.createElement("div");
+      label.className = "study-project-label holos-serif";
+      label.textContent = q.label;
+      const meta = document.createElement("div");
+      meta.className = "study-project-meta holos-caps";
+      const countdown = q.answersYear === null ? null : formatCountdown(q.answersYear);
+      meta.textContent = countdown !== null ? `ANSWERS IN ${countdown}` : "ANSWERING";
+      row.append(label, meta);
+      return row;
+    }
+
+    // "answered"
+    const row = document.createElement("div");
+    row.className = "study-project-row study-project-row--disabled";
+    const label = document.createElement("div");
+    label.className = "study-project-label holos-serif";
+    label.textContent = q.label;
+    row.append(label);
+
+    const finding = q.finding;
+    if (finding !== null) {
+      const mergedId = `${starId}/q/${q.id}`;
+      if (evidenceIds.has(mergedId)) {
+        // A sharpen finding — already a full line in the evidence list above.
+        const meta = document.createElement("div");
+        meta.className = "study-project-meta holos-caps";
+        meta.textContent = `ANSWERED · AS OF ${formatArchiveAge(finding.lightAgeYears)} Y AGO`;
+        row.append(meta);
+      } else {
+        // A plateau finding — never merged into evidence, so this is the
+        // only place it renders. Looks like any other evidence line.
+        const text = document.createElement("div");
+        text.className = "study-archive-text";
+        text.textContent = finding.annotation;
+        const age = document.createElement("div");
+        age.className = "study-archive-age holos-caps";
+        age.textContent = `${formatArchiveAge(finding.lightAgeYears)} Y AGO`;
+        row.append(text, age);
+      }
+    }
+    return row;
+  }
+
+  // ── Render: the Docket ──────────────────────────────────────────────
+  // One row per DocketRow, in the SERVER's order (docket.ts's sortDocketRows
+  // — soonest-thing-first, parent then children) — the client never re-sorts.
+
+  private renderDocket(): void {
+    this.body.innerHTML = "";
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => this.openHub());
+    this.body.append(back);
+
+    const header = document.createElement("div");
+    header.className = "study-board-header holos-caps";
+    header.textContent = "THE DOCKET";
+    this.body.append(header);
+
+    if (this.docket.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "study-board-empty";
+      empty.textContent = "Nothing under way.";
+      this.body.append(empty);
+      return;
+    }
+
+    this.body.append(this.hairline());
+
+    for (const row of this.docket) {
+      this.body.append(this.buildDocketRow(row));
+    }
+  }
+
+  /** A mission row opens the mission detail; any other row with a starId
+   *  inspects the source (the study/question-row precedent). A row with
+   *  neither (an available-less project row never appears — see docket.ts's
+   *  no-backlog rule — but a running project row has no starId) renders
+   *  inert. */
+  private buildDocketRow(row: DocketRow): HTMLElement {
+    const isMission = row.kind === "mission";
+    const clickable = isMission || row.starId !== null;
+
+    let el: HTMLButtonElement | HTMLDivElement;
+    if (clickable) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.addEventListener("click", () => {
+        if (isMission) {
+          const missionId = row.id.startsWith("mission/") ? row.id.slice("mission/".length) : row.id;
+          this.focusMission(missionId);
+        } else if (row.starId !== null) {
+          this.onInspectCb?.(row.starId);
+          this.close();
+        }
+      });
+      el = btn;
+    } else {
+      el = document.createElement("div");
+    }
+    el.className = row.parentId !== null ? "docket-row docket-row--child" : "docket-row";
+
+    const main = document.createElement("div");
+    main.className = "docket-row-main";
+    const label = document.createElement("div");
+    label.className = "docket-row-label holos-serif";
+    label.textContent = row.label;
+    const sub = document.createElement("div");
+    sub.className = "docket-row-sub";
+    sub.textContent = row.sub;
+    main.append(label, sub);
+
+    const meta = document.createElement("div");
+    meta.className = "docket-row-meta";
+    const chip = document.createElement("div");
+    chip.className = "docket-chip holos-caps";
+    chip.textContent = row.costClass.toUpperCase();
+    const state = document.createElement("div");
+    state.className =
+      row.state === "silent"
+        ? "docket-row-state holos-caps docket-row-state--silent"
+        : "docket-row-state holos-caps";
+    state.textContent = DOCKET_STATE_LABEL[row.state];
+    meta.append(chip, state);
+
+    if (row.nextYear !== null && row.nextLabel !== null) {
+      const next = document.createElement("div");
+      next.className = "docket-row-next holos-caps";
+      const countdown = formatCountdown(row.nextYear);
+      next.textContent = countdown !== null ? `${row.nextLabel} IN ${countdown}` : row.nextLabel;
+      meta.append(next);
+    }
+
+    el.append(main, meta);
+    return el;
+  }
+
+  // ── Render: mission detail ───────────────────────────────────────────
+
+  private buildClockRow(label: string, value: string): HTMLDivElement {
+    const row = document.createElement("div");
+    row.className = "docket-mission-clock-row";
+    const l = document.createElement("span");
+    l.className = "docket-mission-clock-label holos-caps";
+    l.textContent = label;
+    const v = document.createElement("span");
+    v.className = "docket-mission-clock-value holos-caps study-tabular";
+    v.textContent = value;
+    row.append(l, v);
+    return row;
+  }
+
+  private renderMissionDetail(): void {
+    const missionId = this.focusedMissionId;
+    const m = missionId === null ? undefined : this.missionsById.get(missionId);
+    this.body.innerHTML = "";
+    if (missionId === null || m === undefined) {
+      // The mission vanished between the tap and this render — see update().
+      this.view = "docket";
+      this.focusedMissionId = null;
+      this.renderDocket();
+      return;
+    }
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => this.openDocket());
+    this.body.append(back);
+
+    // Header: the mission's kind, then the target — same anatomy as the
+    // study focus header (designation quiet, name loud). A mission survives
+    // its source (missions.ts), so a target no longer visible falls back to
+    // the Docket row's own "at {name}" text rather than nothing.
+    const header = document.createElement("div");
+    header.className = "study-focus-header";
+    const kicker = document.createElement("div");
+    kicker.className = "holos-caps";
+    kicker.textContent = m.label;
+    header.append(kicker);
+
+    const source = this.sourcesByStarId.get(m.starId);
+    if (source !== undefined) {
+      const localName = this.localNames.get(m.starId);
+      const hasLocalName = localName !== undefined && localName.length > 0;
+      if (hasLocalName) {
+        const desig = document.createElement("div");
+        desig.className = "study-focus-designation holos-caps";
+        desig.textContent = source.designation;
+        header.append(desig);
+      }
+      const nameEl = document.createElement("div");
+      nameEl.className = "study-focus-name holos-serif";
+      nameEl.textContent = hasLocalName ? (localName as string) : source.designation;
+      header.append(nameEl);
+    } else {
+      const docketRow = this.docket.find((r) => r.id === `mission/${m.id}`);
+      const fallbackName = docketRow?.sub.replace(/^at /, "") ?? m.starId;
+      const nameEl = document.createElement("div");
+      nameEl.className = "study-focus-name holos-serif";
+      nameEl.textContent = fallbackName;
+      header.append(nameEl);
+    }
+    this.body.append(header);
+
+    this.body.append(this.hairline());
+
+    // Charter — the same reading anatomy the briefing's menu uses (label
+    // over quiet gloss), reused wholesale rather than a new quiet-list style.
+    const charterHeader = document.createElement("div");
+    charterHeader.className = "study-section-header holos-caps";
+    charterHeader.textContent = "CHARTER";
+    this.body.append(charterHeader);
+
+    const charterList = document.createElement("div");
+    charterList.className = "study-brief-menu";
+    for (const c of m.charter) {
+      const item = document.createElement("div");
+      item.className = "study-hyp-labelcol study-brief-reading";
+      const label = document.createElement("span");
+      label.className = "study-hyp-label holos-caps";
+      label.textContent = c.label;
+      const line = document.createElement("span");
+      line.className = "study-hyp-gloss";
+      line.textContent = c.line;
+      item.append(label, line);
+      charterList.append(item);
+    }
+    this.body.append(charterList);
+
+    this.body.append(this.hairline());
+
+    // The clock trio.
+    const now = nowYear();
+    this.body.append(
+      now < m.arrivalYear
+        ? this.buildClockRow("ARRIVES", formatCountdown(m.arrivalYear) ?? formatAbsoluteYear(m.arrivalYear))
+        : this.buildClockRow("ARRIVED", formatAbsoluteYear(m.arrivalYear)),
+    );
+    this.body.append(
+      now < m.firstWordYear
+        ? this.buildClockRow(
+            "FIRST WORD",
+            formatCountdown(m.firstWordYear) ?? formatAbsoluteYear(m.firstWordYear),
+          )
+        : this.buildClockRow("FIRST WORD", formatAbsoluteYear(m.firstWordYear)),
+    );
+
+    if (m.state === "silent") {
+      // The wire carries no explicit silence-onset date (missionDocketState
+      // derives "silent" structurally, not as a stamped year) — the last
+      // report's arrival, or the first-word promise if none ever landed, is
+      // the truest date already on hand. The charter sits right above; the
+      // game never explains further.
+      const lastReport = m.reports[m.reports.length - 1];
+      const sinceYear = lastReport !== undefined ? lastReport.arrivedYear : m.firstWordYear;
+      const silentRow = document.createElement("div");
+      silentRow.className = "docket-mission-silent holos-caps";
+      silentRow.textContent = `SILENT SINCE ${formatAbsoluteYear(sinceYear)}`;
+      this.body.append(silentRow);
+    } else if (m.state === "standing" && m.nextWordYear !== null) {
+      this.body.append(
+        this.buildClockRow(
+          "NEXT WORD",
+          formatCountdown(m.nextWordYear) ?? formatAbsoluteYear(m.nextWordYear),
+        ),
+      );
+    }
+
+    this.body.append(this.hairline());
+
+    const reportsHeader = document.createElement("div");
+    reportsHeader.className = "study-section-header holos-caps";
+    reportsHeader.textContent = "REPORTS";
+    this.body.append(reportsHeader);
+
+    if (m.reports.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "study-archive-empty";
+      empty.textContent = "No word yet.";
+      this.body.append(empty);
+    } else {
+      for (const r of m.reports) {
+        const row = document.createElement("div");
+        row.className = "study-archive-row";
+        const headline = document.createElement("div");
+        headline.className = "docket-report-headline holos-caps";
+        headline.textContent = r.headline;
+        const detail = document.createElement("div");
+        detail.className = "study-archive-text";
+        detail.textContent = r.detail;
+        const age = document.createElement("div");
+        age.className = "study-archive-age holos-caps";
+        age.textContent = `AS OF ${formatArchiveAge(r.lightAgeYears)} Y AGO`;
+        row.append(headline, detail, age);
+        this.body.append(row);
+      }
+    }
+  }
+
+  // ── Render: the launch sheet ─────────────────────────────────────────
+  // Two steps, no hold-to-commit ceremony (economy-design.md: Ambient = no
+  // ceremony) — a kind pick with a live clock preview, then a real charter.
+
+  private buildKindRow(k: MissionKindOption): HTMLButtonElement {
+    const selected = this.launchKind === k.kind;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = selected ? "study-project-row docket-launch-kind-row--selected" : "study-project-row";
+    btn.addEventListener("click", () => {
+      this.launchKind = k.kind;
+      this.renderLaunch();
+    });
+
+    const label = document.createElement("div");
+    label.className = "study-project-label holos-serif";
+    label.textContent = k.label;
+    const line = document.createElement("div");
+    line.className = "study-project-line";
+    line.textContent = k.line;
+    const meta = document.createElement("div");
+    meta.className = "study-project-meta holos-caps";
+    meta.textContent = `${k.costCompute} COMPUTE`;
+
+    btn.append(label, line, meta);
+    return btn;
+  }
+
+  private buildClauseRow(c: CharterClauseOption): HTMLButtonElement {
+    const selected = this.launchCharter.has(c.id);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = selected
+      ? "docket-launch-clause-row docket-launch-clause-row--selected"
+      : "docket-launch-clause-row";
+    btn.addEventListener("click", () => this.toggleClause(c));
+
+    const label = document.createElement("span");
+    label.className = "study-hyp-label holos-caps";
+    label.textContent = c.label;
+    const line = document.createElement("span");
+    line.className = "study-hyp-gloss";
+    line.textContent = c.line;
+    btn.append(label, line);
+    return btn;
+  }
+
+  /** Tap toggles; at most one clause per group (client-side enforcement —
+   *  missions.ts's validateCharter re-checks server-side regardless). */
+  private toggleClause(c: CharterClauseOption): void {
+    if (this.missionCatalog === null) return;
+    const next = new Set(this.launchCharter);
+    if (next.has(c.id)) {
+      next.delete(c.id);
+    } else {
+      for (const other of [...next]) {
+        const def = this.missionCatalog.clauses.find((cc) => cc.id === other);
+        if (def !== undefined && def.group === c.group) next.delete(other);
+      }
+      next.add(c.id);
+    }
+    this.launchCharter = next;
+    this.renderLaunch();
+  }
+
+  private renderLaunch(): void {
+    const starId = this.launchStarId;
+    const source = starId === null ? undefined : this.sourcesByStarId.get(starId);
+    this.body.innerHTML = "";
+
+    // The source faded before the sheet opened (or between renders) — there
+    // is nothing to launch at, so fall back rather than render about nothing
+    // (renderBrief's precedent).
+    if (starId === null || source === undefined) {
+      this.view = "hub";
+      this.launchStarId = null;
+      this.renderHub();
+      return;
+    }
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => this.openHub());
+    this.body.append(back);
+
+    const header = document.createElement("div");
+    header.className = "study-focus-header";
+    const localName = this.localNames.get(starId);
+    const hasLocalName = localName !== undefined && localName.length > 0;
+    if (hasLocalName) {
+      const desig = document.createElement("div");
+      desig.className = "study-focus-designation holos-caps";
+      desig.textContent = source.designation;
+      header.append(desig);
+    }
+    const nameEl = document.createElement("div");
+    nameEl.className = "study-focus-name holos-serif";
+    nameEl.textContent = hasLocalName ? (localName as string) : source.designation;
+    header.append(nameEl);
+    this.body.append(header);
+
+    const meta = document.createElement("div");
+    meta.className = "holos-caps";
+    meta.textContent = `${source.distanceLy.toFixed(1)} LY · AS OF ${source.lightAgeYears.toFixed(1)} Y AGO`;
+    this.body.append(meta);
+
+    this.body.append(this.hairline());
+
+    const kindHeader = document.createElement("div");
+    kindHeader.className = "study-section-header holos-caps";
+    kindHeader.textContent = "CHOOSE A KIND";
+    this.body.append(kindHeader);
+
+    if (this.missionCatalog !== null) {
+      for (const k of this.missionCatalog.kinds) {
+        this.body.append(this.buildKindRow(k));
+      }
+    }
+
+    if (this.launchKind !== null) {
+      const F = this.probeFlightYearsPerLy;
+      const d = source.distanceLy;
+      const preview = document.createElement("div");
+      preview.className = "study-focus-lightage";
+      preview.textContent = `ARRIVES IN ${formatClockPair(F * d)} · FIRST WORD IN ${formatClockPair((F + 1) * d)}`;
+      this.body.append(preview);
+    }
+
+    this.body.append(this.hairline());
+
+    const charterHeader = document.createElement("div");
+    charterHeader.className = "study-section-header holos-caps";
+    charterHeader.textContent = "WRITE THE CHARTER";
+    this.body.append(charterHeader);
+
+    const catalog = this.missionCatalog;
+    if (this.launchKind === null || catalog === null) {
+      const hint = document.createElement("div");
+      hint.className = "study-picker-subtitle";
+      hint.textContent = "Choose a kind to write its charter.";
+      this.body.append(hint);
+    } else {
+      const kind = this.launchKind;
+      for (const c of catalog.clauses) {
+        if (!c.appliesTo.includes(kind)) continue;
+        this.body.append(this.buildClauseRow(c));
+      }
+    }
+
+    this.body.append(this.hairline());
+
+    const verbRow = document.createElement("div");
+    verbRow.className = "study-verb-row";
+    const verbBtn = document.createElement("button");
+    verbBtn.type = "button";
+    verbBtn.className = "study-verb-btn study-verb-btn--primary";
+
+    const kindDef =
+      catalog === null || this.launchKind === null
+        ? undefined
+        : catalog.kinds.find((k) => k.kind === this.launchKind);
+    const count = this.launchCharter.size;
+    const validCount = catalog !== null && count >= catalog.minClauses && count <= catalog.maxClauses;
+    const free = this.currentFreeCompute();
+    const affordable = kindDef !== undefined && free >= kindDef.costCompute;
+    const pending = this.pendingLaunchStarId === starId;
+
+    let hint = "";
+    if (pending) {
+      verbBtn.disabled = true;
+      verbBtn.textContent = "LAUNCHING…";
+    } else if (kindDef === undefined) {
+      verbBtn.disabled = true;
+      verbBtn.textContent = "LAUNCH";
+    } else if (!validCount) {
+      verbBtn.disabled = true;
+      verbBtn.textContent = "LAUNCH";
+      hint = "PICK TWO OR THREE";
+    } else if (!affordable) {
+      verbBtn.disabled = true;
+      verbBtn.textContent = "LAUNCH";
+      hint = `${Math.ceil(kindDef.costCompute - free)} SHORT`;
+    } else {
+      const launchKind = this.launchKind;
+      verbBtn.textContent = "LAUNCH";
+      verbBtn.addEventListener("click", () => {
+        if (launchKind === null) return;
+        this.pendingLaunchStarId = starId;
+        this.pendingLaunchPriorMissionIds = new Set(this.missions.map((mm) => mm.id));
+        this.socket.send({
+          type: "launchMission",
+          starId,
+          kind: launchKind,
+          charter: [...this.launchCharter],
+        });
+        this.renderLaunch();
+      });
+    }
+    verbRow.append(verbBtn);
+    this.body.append(verbRow);
+
+    if (hint.length > 0) {
+      const hintEl = document.createElement("div");
+      hintEl.className = "study-brief-meta holos-caps";
+      hintEl.textContent = hint;
+      this.body.append(hintEl);
+    }
   }
 
   // ── Render: focused view ─────────────────────────────────────────────
@@ -1135,24 +1883,24 @@ export class StudyBoard {
     }
     this.body.append(archiveSection);
 
-    // OPEN QUESTIONS — the snapshot's openQuestions is always [] this slice,
-    // so nothing buyable renders here yet. What does render is the state of
-    // the watch itself: a study opened a moment ago has no new evidence and
-    // bars sitting at their opening prior, which without a word reads as a
-    // second dead end. This says what will move it, and what has not been
-    // asked. A2.2 fills the rest in.
+    // OPEN QUESTIONS — one row per OpenQuestion (questions.ts's catalog for
+    // this study's signal class, always non-empty). Offered buys directly
+    // (project-row pattern); pending shows a live countdown; answered either
+    // points at the evidence entry above (a sharpen finding — studies.ts's
+    // mergeEvidence already folded it in under `${starId}/q/${id}`) or, for
+    // a plateau finding (never merged into evidence — assembleQuestion
+    // returns move: null for a plateau), renders the finding inline.
     const oqSection = document.createElement("div");
     oqSection.className = "study-open-questions";
     const oqHeader = document.createElement("div");
     oqHeader.className = "study-section-header holos-caps";
-    oqHeader.textContent = "THE WATCH";
-    const oqBody = document.createElement("div");
-    oqBody.className = "study-brief-body";
-    oqBody.textContent =
-      s.status === "open"
-        ? "Standing. New light from this source is added to the record above as it arrives, and the readings move with it. No question has been put to the source."
-        : "Shelved. Nothing new is being filed, and the readings hold where they were left.";
-    oqSection.append(oqHeader, oqBody);
+    oqHeader.textContent = "OPEN QUESTIONS";
+    oqSection.append(oqHeader);
+
+    const evidenceIds = new Set(s.evidence.map((e) => e.id));
+    for (const q of s.openQuestions) {
+      oqSection.append(this.buildQuestionRow(starId, q, evidenceIds));
+    }
     this.body.append(oqSection);
 
     this.body.append(this.hairline());

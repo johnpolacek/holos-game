@@ -10,8 +10,10 @@
 // holds. NOTHING is ever drawn to the right of that edge; there is no
 // future here (concepts/03-01 shows future ticks — that is wrong).
 //
-// Read-and-name only: no vigil/compute mechanics, no contact
-// verbs, no time-scrubbing (all later slices).
+// Read-and-name, plus two affordance rows: the study verb (A2.1) and the
+// mission verb (A2.2, DISPATCH A PROBE) — both fire a starId callback and
+// leave the App to decide what happens (open a sheet vs. focus something
+// already under way). No contact verbs, no time-scrubbing (later slices).
 
 import {
   MAX_NAME_LEN,
@@ -32,6 +34,13 @@ export const CLASS_LABEL: Readonly<Record<SignalClass, string>> = {
   "broadcast-leakage": "BROADCAST LEAKAGE",
   biosignature: "LIVING WORLD",
 };
+
+/** The mission-affordance row's state, as App derives it from `sky.missions`
+ *  for the currently open source: "live" (a mission still under way — the
+ *  row focuses it), "inactive" (every mission on this star has returned or
+ *  gone silent — the row still opens the launch sheet), "none" (nothing
+ *  ever dispatched here). */
+export type MissionCardState = "none" | "live" | "inactive";
 
 const SWIPE_CLOSE_PX = 56;
 const CHART_H = 46; // css px, the light-history strip's height
@@ -89,9 +98,11 @@ export class SourceCard {
   private readonly canvas: HTMLCanvasElement;
   private readonly axisEl: HTMLDivElement;
   private readonly studyBtn: HTMLButtonElement;
+  private readonly missionBtn: HTMLButtonElement;
 
   private onCloseCb: (() => void) | null = null;
   private onStudyActionCb: ((starId: string) => void) | null = null;
+  private onMissionActionCb: ((starId: string) => void) | null = null;
 
   private source: DetectedSource | null = null;
   private localNames: ReadonlyMap<string, string> = new Map();
@@ -99,6 +110,7 @@ export class SourceCard {
   private pendingSend = false;
   private nameOverride: NameOverride | null = null;
   private studyStatus: StudyStatus | null = null;
+  private missionState: MissionCardState | null = null;
 
   private dragStartY: number | null = null;
   private dragDy = 0;
@@ -188,7 +200,21 @@ export class SourceCard {
     });
     studyRow.append(this.studyBtn);
 
-    this.sheet.append(this.grabzone, header, hr, beliefRow, chartWrap, studyRow);
+    // Second affordance row, same anatomy, mission-launch verbs instead of
+    // the study verb. App decides what a tap means (open the launch sheet
+    // vs. focus a live mission's detail) — this card only reports the tap.
+    const missionRow = document.createElement("div");
+    missionRow.className = "source-card-mission-row";
+    this.missionBtn = document.createElement("button");
+    this.missionBtn.type = "button";
+    this.missionBtn.className = "source-card-mission-affordance";
+    this.missionBtn.textContent = "DISPATCH A PROBE";
+    this.missionBtn.addEventListener("click", () => {
+      if (this.source !== null) this.onMissionActionCb?.(this.source.starId);
+    });
+    missionRow.append(this.missionBtn);
+
+    this.sheet.append(this.grabzone, header, hr, beliefRow, chartWrap, studyRow, missionRow);
     this.root.append(this.backdrop, this.sheet);
     container.append(this.root);
 
@@ -211,6 +237,14 @@ export class SourceCard {
     this.onStudyActionCb = cb;
   }
 
+  /** Fired when the mission-affordance row is tapped, with the open source's
+   *  starId. Same contract as onStudyAction: the card sends no wire message
+   *  and decides nothing — that is the App's call (open the launch sheet vs.
+   *  focus a live mission's detail). */
+  onMissionAction(cb: (starId: string) => void): void {
+    this.onMissionActionCb = cb;
+  }
+
   isOpen(): boolean {
     return this.source !== null;
   }
@@ -226,8 +260,10 @@ export class SourceCard {
     this.pendingSend = false;
     this.nameOverride = null;
     this.studyStatus = null;
+    this.missionState = null;
     this.renderAll();
     this.renderStudyRow();
+    this.renderMissionRow();
     this.root.classList.add("open");
   }
 
@@ -236,6 +272,14 @@ export class SourceCard {
   setStudyStatus(status: StudyStatus | null): void {
     this.studyStatus = status;
     this.renderStudyRow();
+  }
+
+  /** The mission-row state for the currently open source, derived by the
+   *  App from `sky.missions`. Called right after open() (and again on every
+   *  later sky), mirroring setStudyStatus. */
+  setMissionState(state: MissionCardState | null): void {
+    this.missionState = state;
+    this.renderMissionRow();
   }
 
   /** A later `sky` for the currently open source: refresh belief/age/chart.
@@ -264,6 +308,7 @@ export class SourceCard {
     this.pendingSend = false;
     this.nameOverride = null;
     this.studyStatus = null;
+    this.missionState = null;
   }
 
   /** Route sourceNamed/error while this card is open. `error` lacks a
@@ -347,6 +392,20 @@ export class SourceCard {
     } else {
       this.studyBtn.textContent = "OPEN A STUDY";
       this.studyBtn.className = "source-card-study-affordance";
+    }
+  }
+
+  private renderMissionRow(): void {
+    if (this.missionState === "live") {
+      this.missionBtn.textContent = "MISSION UNDER WAY · VIEW";
+      this.missionBtn.className =
+        "source-card-mission-affordance source-card-mission-affordance--active";
+    } else if (this.missionState === "inactive") {
+      this.missionBtn.textContent = "DISPATCH ANOTHER";
+      this.missionBtn.className = "source-card-mission-affordance";
+    } else {
+      this.missionBtn.textContent = "DISPATCH A PROBE";
+      this.missionBtn.className = "source-card-mission-affordance";
     }
   }
 
