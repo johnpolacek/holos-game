@@ -1404,16 +1404,11 @@ body {
 
 /* Row titles take the amber the hub rows took: on a list this dense the
    name is what a thumb scans for, and off-white put it in the same ink as
-   the sub-line beneath it. Rows that are not a destination (a project has
-   no star to inspect) dim within the amber family rather than switching to
-   faint ink — the hub's own rule. */
+   the sub-line beneath it. Every row is a destination now — a project row
+   opens its own detail sheet — so there is no dimmed non-destination tier. */
 .tend-row-label {
   font-size: var(--holos-text-lg);
   color: var(--holos-amber);
-}
-
-div.tend-row .tend-row-label {
-  color: var(--holos-gold-dim);
 }
 
 /* Two lines, then an ellipsis. A study row's sub is its whole annotation

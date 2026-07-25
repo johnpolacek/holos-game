@@ -166,12 +166,18 @@ export class StudyBoard {
     | "brief"
     | "explore"
     | "projects"
+    | "project"
     | "tend"
     | "mission"
     | "launch" = "list";
   private focusedStarId: string | null = null;
   private briefStarId: string | null = null;
   private focusedMissionId: string | null = null;
+  // The project detail sheet: which catalog entry, and which panel the tap
+  // came from — the back button returns there, so Tend and Projects each
+  // get their own way in without the sheet forking.
+  private focusedProjectId: string | null = null;
+  private projectReturn: "tend" | "projects" = "projects";
   private openStudyCount = 0;
 
   // The launch sheet's in-progress selection — cleared each time openLaunch
@@ -192,6 +198,12 @@ export class StudyBoard {
   // confirming sky moves the question past "offered" (studies.ts's
   // assembleQuestion); handleServerError releases it on a rejection.
   private pendingQuestion: { readonly starId: string; readonly questionId: string } | null = null;
+
+  // A startProject in flight: released when the confirming sky moves the
+  // project past "available" (the detail sheet then reads RUNNING with its
+  // countdown — the confirmation is the state change, not a toast), or by
+  // handleServerError on a rejection.
+  private pendingProjectId: string | null = null;
 
   // A launchMission in flight: the star plus a snapshot of the mission ids
   // already on the wire at send time, so the confirming sky can pick out
@@ -331,6 +343,15 @@ export class StudyBoard {
       }
     }
 
+    // A startProject in flight: released the moment the project's own state
+    // moves past "available" (running or, same sky, already landed).
+    if (this.pendingProjectId !== null) {
+      const proj = this.projects.find((pp) => pp.id === this.pendingProjectId);
+      if (proj === undefined || proj.status !== "available") {
+        this.pendingProjectId = null;
+      }
+    }
+
     // A buyQuestion in flight: released the moment the question's own state
     // moves past "offered" (bought — pending or, same sky, already answered).
     if (this.pendingQuestion !== null) {
@@ -379,6 +400,8 @@ export class StudyBoard {
       this.renderExplore();
     } else if (this.view === "projects") {
       this.renderProjects();
+    } else if (this.view === "project") {
+      this.renderProjectDetail();
     } else if (this.view === "tend") {
       this.renderTend();
     } else if (this.view === "mission") {
@@ -451,6 +474,16 @@ export class StudyBoard {
     this.startTicking();
   }
 
+  focusProject(projectId: string, from: "tend" | "projects"): void {
+    this.view = "project";
+    this.focusedProjectId = projectId;
+    this.projectReturn = from;
+    this.renderProjectDetail();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
   focusMission(missionId: string): void {
     this.view = "mission";
     this.focusedMissionId = missionId;
@@ -497,6 +530,7 @@ export class StudyBoard {
     this.tickHandle = window.setInterval(() => {
       if (this.view === "hub") this.renderHub();
       else if (this.view === "projects") this.renderProjects();
+      else if (this.view === "project") this.renderProjectDetail();
       else if (this.view === "focused" && this.focusedStarId !== null) {
         this.renderFocused(this.focusedStarId);
       } else if (this.view === "tend") this.renderTend();
@@ -1108,6 +1142,11 @@ export class StudyBoard {
       this.pendingQuestion = null;
       releasedQuestion = true;
     }
+    let releasedProject = false;
+    if (this.pendingProjectId !== null) {
+      this.pendingProjectId = null;
+      releasedProject = true;
+    }
     let releasedLaunch = false;
     if (this.pendingLaunchStarId !== null) {
       this.pendingLaunchStarId = null;
@@ -1119,6 +1158,7 @@ export class StudyBoard {
     if (releasedQuestion && this.view === "focused" && this.focusedStarId !== null) {
       this.renderFocused(this.focusedStarId);
     }
+    if (releasedProject && this.view === "project") this.renderProjectDetail();
     if (releasedLaunch && this.view === "launch") this.renderLaunch();
   }
 
@@ -1142,7 +1182,7 @@ export class StudyBoard {
     const subtitle = document.createElement("div");
     subtitle.className = "study-picker-subtitle";
     subtitle.textContent =
-      "What the observatory can build. Each one raises the income for good.";
+      "What the observatory can build. Tap one to read what it grants.";
     this.body.append(subtitle);
 
     this.body.append(this.buildBudgetLine());
@@ -1154,10 +1194,14 @@ export class StudyBoard {
     }
   }
 
+  /** Every row opens the detail sheet — the picker → brief pattern. Nothing
+   *  is bought from the list: the commit verb lives on the sheet, behind
+   *  the grant, the cost, and the allocation line. */
   private buildProjectRow(p: ProjectSnapshot): HTMLButtonElement {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "study-project-row";
+    btn.addEventListener("click", () => this.focusProject(p.id, "projects"));
 
     const label = document.createElement("div");
     label.className = "study-project-label holos-serif";
@@ -1173,38 +1217,164 @@ export class StudyBoard {
     let flag: HTMLSpanElement | null = null;
 
     if (p.status === "running") {
-      btn.disabled = true;
-      btn.classList.add("study-project-row--disabled");
       const countdown = p.landsYear === null ? null : formatCountdown(p.landsYear);
       meta.textContent = countdown !== null ? `LANDS IN ${countdown}` : "LANDING";
     } else if (p.status === "standing") {
-      btn.disabled = true;
-      btn.classList.add("study-project-row--disabled");
-      meta.textContent = `+${p.addRatePerYear}/Y`;
+      // Income projects wear their rate; the others landed a one-time grant
+      // the sheet spells out, so the row carries the landing date instead —
+      // never a false "+0/Y".
+      meta.textContent =
+        p.addRatePerYear > 0
+          ? `+${p.addRatePerYear}/Y`
+          : `LANDED ${formatAbsoluteYear(p.landsYear ?? 0)}`;
       flag = document.createElement("span");
       flag.className = "study-project-flag holos-caps";
       flag.textContent = "STANDING";
     } else {
       // "available"
       const free = this.currentFreeCompute();
-      const affordable = free >= p.costCompute;
-      const base = `${p.costCompute} COMPUTE · ${formatClockPair(p.durationYears)} · +${p.addRatePerYear}/Y`;
-      if (affordable) {
-        btn.addEventListener("click", () => {
-          this.socket.send({ type: "startProject", projectId: p.id });
-        });
-        meta.textContent = base;
-      } else {
-        btn.disabled = true;
-        btn.classList.add("study-project-row--disabled");
-        const shortfall = Math.ceil(p.costCompute - free);
-        meta.textContent = `${base} · ${shortfall} SHORT`;
-      }
+      const rate = p.addRatePerYear > 0 ? ` · +${p.addRatePerYear}/Y` : "";
+      const base = `${p.costCompute} COMPUTE · ${formatClockPair(p.durationYears)}${rate}`;
+      meta.textContent =
+        free >= p.costCompute
+          ? base
+          : `${base} · ${Math.ceil(p.costCompute - free)} SHORT`;
     }
 
     btn.append(label, line, meta);
     if (flag !== null) btn.append(flag);
     return btn;
+  }
+
+  // ── Render: project detail ───────────────────────────────────────────
+  // The sheet that answers, for one project: what it grants, what it costs,
+  // where its clock stands, and what the allocation can bear right now.
+  // Reached from the Projects list and from a Tend project row; for an
+  // available project it also carries the one commit verb (the brief's
+  // "begin the watch" pattern — nothing on the list spends).
+
+  private renderProjectDetail(): void {
+    const id = this.focusedProjectId;
+    const p = id === null ? undefined : this.projects.find((pp) => pp.id === id);
+    this.body.innerHTML = "";
+
+    // The catalog is fixed server-side, so a missing entry means a stale id
+    // — fall back to wherever the tap came from.
+    if (p === undefined) {
+      this.focusedProjectId = null;
+      if (this.projectReturn === "tend") {
+        this.view = "tend";
+        this.renderTend();
+      } else {
+        this.view = "projects";
+        this.renderProjects();
+      }
+      return;
+    }
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () =>
+      this.projectReturn === "tend" ? this.openTend() : this.openProjects(),
+    );
+    this.body.append(back);
+
+    // Header: cost class quiet over the name loud — the focused study's
+    // designation/name anatomy.
+    const header = document.createElement("div");
+    header.className = "study-focus-header";
+    const kicker = document.createElement("div");
+    kicker.className = "study-focus-designation holos-caps";
+    kicker.textContent = p.costClass.toUpperCase();
+    const nameEl = document.createElement("div");
+    nameEl.className = "study-focus-name holos-serif";
+    nameEl.textContent = p.label;
+    header.append(kicker, nameEl);
+    this.body.append(header);
+
+    const line = document.createElement("div");
+    line.className = "study-focus-lightage";
+    line.textContent = p.line;
+    this.body.append(line);
+
+    this.body.append(this.hairline());
+
+    // The grant. Present tense only once it is actually on.
+    this.body.append(
+      this.buildBriefSection(
+        p.status === "standing" ? "WHAT IT GRANTS" : "WHAT IT WILL GRANT",
+        p.effectLine,
+      ),
+    );
+
+    this.body.append(this.hairline());
+
+    // The clocks: the price in compute, then whichever date matters now.
+    this.body.append(this.buildClockRow("COST", `${p.costCompute} COMPUTE`));
+    if (p.status === "available") {
+      this.body.append(this.buildClockRow("TAKES", formatClockPair(p.durationYears)));
+    } else if (p.status === "running") {
+      if (p.startedYear !== null) {
+        this.body.append(this.buildClockRow("STARTED", formatAbsoluteYear(p.startedYear)));
+      }
+      const countdown = p.landsYear === null ? null : formatCountdown(p.landsYear);
+      this.body.append(
+        countdown !== null
+          ? this.buildClockRow("LANDS IN", countdown)
+          : this.buildClockRow("LANDS", "NOW"),
+      );
+    } else {
+      // "standing"
+      if (p.landsYear !== null) {
+        this.body.append(this.buildClockRow("LANDED", formatAbsoluteYear(p.landsYear)));
+      }
+      const standing = document.createElement("div");
+      standing.className = "study-brief-meta holos-caps";
+      standing.textContent = "STANDING · PAID ONCE · THE GRANT HOLDS";
+      this.body.append(standing);
+    }
+
+    this.body.append(this.hairline());
+
+    // The economy the decision is made against — same line the hub carries.
+    this.body.append(this.buildBudgetLine());
+
+    if (p.status === "available") {
+      const verbRow = document.createElement("div");
+      verbRow.className = "study-verb-row";
+      const verbBtn = document.createElement("button");
+      verbBtn.type = "button";
+      verbBtn.className = "study-verb-btn study-verb-btn--primary";
+
+      const free = this.currentFreeCompute();
+      let hint = "";
+      if (this.pendingProjectId === p.id) {
+        verbBtn.disabled = true;
+        verbBtn.textContent = "starting the project…";
+      } else if (free >= p.costCompute) {
+        verbBtn.textContent = "start the project";
+        verbBtn.addEventListener("click", () => {
+          this.pendingProjectId = p.id;
+          this.socket.send({ type: "startProject", projectId: p.id });
+          this.renderProjectDetail();
+        });
+      } else {
+        verbBtn.disabled = true;
+        verbBtn.textContent = "start the project";
+        hint = `${Math.ceil(p.costCompute - free)} SHORT`;
+      }
+      verbRow.append(verbBtn);
+      this.body.append(verbRow);
+
+      if (hint.length > 0) {
+        const hintEl = document.createElement("div");
+        hintEl.className = "study-brief-meta holos-caps";
+        hintEl.textContent = hint;
+        this.body.append(hintEl);
+      }
+    }
   }
 
   /** One row per OpenQuestion on the focused study — see renderFocused's
@@ -1352,14 +1522,14 @@ export class StudyBoard {
     }
   }
 
-  /** A mission row opens the mission detail; any other row with a starId
-   *  inspects the source (the study/question-row precedent). A row with
-   *  neither (an available-less project row never appears — see tend.ts's
-   *  no-backlog rule — but a running project row has no starId) renders
-   *  inert. */
+  /** A mission row opens the mission detail; a project row opens the
+   *  project detail; any other row with a starId inspects the source (the
+   *  study/question-row precedent). Every row is a destination now — the
+   *  inert branch survives only as a defensive fallback. */
   private buildTendRow(row: TendRow): HTMLElement {
     const isMission = row.kind === "mission";
-    const clickable = isMission || row.starId !== null;
+    const isProject = row.kind === "project";
+    const clickable = isMission || isProject || row.starId !== null;
 
     let el: HTMLButtonElement | HTMLDivElement;
     if (clickable) {
@@ -1369,6 +1539,9 @@ export class StudyBoard {
         if (isMission) {
           const missionId = row.id.startsWith("mission/") ? row.id.slice("mission/".length) : row.id;
           this.focusMission(missionId);
+        } else if (isProject) {
+          const projectId = row.id.startsWith("project/") ? row.id.slice("project/".length) : row.id;
+          this.focusProject(projectId, "tend");
         } else if (row.starId !== null) {
           this.onInspectCb?.(row.starId);
           this.close();
