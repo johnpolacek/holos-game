@@ -799,8 +799,8 @@ export class StudyBoard {
       ),
     );
 
-    const labels = this.menus === null ? [] : this.menus[source.signal.classification];
-    if (labels.length > 0) {
+    const menu = this.menus === null ? [] : this.menus[source.signal.classification];
+    if (menu.length > 0) {
       const section = this.buildBriefSection(
         "WHAT IT COULD TELL APART",
         // No class name in this sentence: the labels are not all count nouns
@@ -808,15 +808,23 @@ export class StudyBoard {
         // block directly above.
         "At this range the reading admits more than one story. The watch holds them all at once, each with its share of the confidence.",
       );
-      const tags = document.createElement("div");
-      tags.className = "study-brief-menu";
-      for (const label of labels) {
-        const tag = document.createElement("span");
-        tag.className = "study-brief-tag holos-caps";
-        tag.textContent = label;
-        tags.append(tag);
+      const list = document.createElement("div");
+      list.className = "study-brief-menu";
+      // Label over gloss, exactly as the board's hypothesis rows carry them —
+      // the same reading in the same words on both sides of the tap.
+      for (const entry of menu) {
+        const item = document.createElement("div");
+        item.className = "study-hyp-labelcol study-brief-reading";
+        const label = document.createElement("span");
+        label.className = "study-hyp-label holos-caps";
+        label.textContent = entry.label;
+        const gloss = document.createElement("span");
+        gloss.className = "study-hyp-gloss";
+        gloss.textContent = entry.gloss;
+        item.append(label, gloss);
+        list.append(item);
       }
-      section.append(tags);
+      section.append(list);
       this.body.append(section);
     }
 
@@ -1135,7 +1143,7 @@ export class StudyBoard {
     oqBody.className = "study-brief-body";
     oqBody.textContent =
       s.status === "open"
-        ? "Standing. New light from this source files itself into the archive above as it arrives, and the readings move with it. No question has been put to the source."
+        ? "Standing. New light from this source is added to the record above as it arrives, and the readings move with it. No question has been put to the source."
         : "Shelved. Nothing new is being filed, and the readings hold where they were left.";
     oqSection.append(oqHeader, oqBody);
     this.body.append(oqSection);

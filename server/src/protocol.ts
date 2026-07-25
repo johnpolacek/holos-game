@@ -189,14 +189,23 @@ export interface EvidenceEntry {
 /** "called" | "overtaken" join in A2.3. */
 export type StudyStatus = "open" | "shelved";
 
+/** One reading a study could tell apart, before any study exists — the same
+ *  label and plain-language gloss Hypothesis carries, without the share. */
+export interface HypothesisMenuEntry {
+  readonly label: string;
+  readonly gloss: string;
+}
+
 /**
- * Per signal class, the opening hypothesis menu's labels in menu order —
- * what a study on such a source could tell apart, before one exists. Sent
- * once on `welcome` so the briefing screen names the readings without the
- * client keeping its own copy of the menus (studies.ts stays the one
- * source of truth). Labels only: no shares, nothing source-specific.
+ * Per signal class, the opening hypothesis menu in menu order — what a study
+ * on such a source could tell apart, before one exists. Sent once on
+ * `welcome` so the briefing screen names the readings without the client
+ * keeping its own copy of the menus (studies.ts stays the one source of
+ * truth). Wording only: no shares, nothing source-specific.
  */
-export type HypothesisMenus = Readonly<Record<SignalClass, readonly string[]>>;
+export type HypothesisMenus = Readonly<
+  Record<SignalClass, readonly HypothesisMenuEntry[]>
+>;
 
 /** Reserved for A2.2 — always [] in A2.1. */
 export interface OpenQuestion {
