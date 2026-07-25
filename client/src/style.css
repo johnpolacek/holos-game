@@ -432,6 +432,52 @@ body {
   /* A steady warmth under the moving highlight, so the chip still sits in
      the dark rather than blinking in and out of it. */
   box-shadow: 0 0 10px rgba(240, 172, 102, 0.13);
+  /* Android paints a grey rectangle over a tapped control, which on a pill
+     is a square flash of the wrong color; the press state below is the
+     acknowledgement instead. */
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    transform 120ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+/* Guarded: on a touch screen :hover sticks after the tap, which would leave
+   the chip lit long after the finger has gone. */
+@media (hover: hover) {
+  .study-chip:hover {
+    border-color: var(--holos-gold);
+    box-shadow: 0 0 16px rgba(240, 172, 102, 0.22);
+  }
+}
+
+/* Pressed: the chip takes the light rather than moving away from it — it
+   sinks a little, the rim comes up to full amber, and the warmth turns
+   inward, as though the thing being touched has lit from inside. */
+.study-chip:active {
+  transform: scale(0.96);
+  border-color: var(--holos-amber);
+  box-shadow:
+    0 0 22px rgba(240, 172, 102, 0.3),
+    inset 0 0 14px rgba(240, 172, 102, 0.18);
+}
+
+/* The travelling glint's bloom comes up with the press, so the highlight
+   belongs to the same gesture instead of carrying on indifferent to it. */
+.study-chip:active::after {
+  opacity: 1;
+}
+
+/* Keyboard focus gets its own ring — the press state is a transient, and a
+   focused-but-not-pressed chip must still say where the keyboard is. */
+.study-chip:focus-visible {
+  outline: none;
+  border-color: var(--holos-amber);
+  box-shadow:
+    0 0 0 2px rgba(240, 172, 102, 0.3),
+    0 0 16px rgba(240, 172, 102, 0.2);
 }
 
 /* The angle the glint rides. Registered so it interpolates — a bare custom
@@ -499,6 +545,12 @@ body {
   .study-chip::after {
     animation: none;
     --holos-glint-angle: 296deg;
+  }
+  /* The press still has to be felt, so the light stays and only the movement
+     goes. */
+  .study-chip,
+  .study-chip:active {
+    transform: none;
   }
 }
 
