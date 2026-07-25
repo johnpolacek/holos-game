@@ -556,10 +556,11 @@ body {
 
 /* The second chip: same pill, other corner, and its own ink. Amber is the
    sky's call to begin; cyan is what is already yours and already under way,
-   so the pair reads as two verbs rather than one repeated. It carries no
-   glint — the travelling highlight is the standing invitation, and this chip
-   is a destination, not an offer. Quieter in the rim than + Start, which
-   stays the brighter of the two.
+   so the pair reads as two verbs rather than one repeated. It carries the
+   same travelling glint at half the rate — both chips are alive, but this
+   one turns at the pace of something being watched rather than something
+   waiting to be started. Quieter in the rim and the warmth than + Start,
+   which stays the brighter of the two.
    These rules sit after the whole .study-chip block on purpose: the
    overrides tie on specificity, so order is what decides them. */
 .study-chip--tend {
@@ -567,7 +568,7 @@ body {
   left: max(0.9rem, env(safe-area-inset-left));
   color: var(--holos-cyan);
   border-color: var(--holos-cyan-dim);
-  box-shadow: none;
+  box-shadow: 0 0 10px rgba(126, 233, 239, 0.1);
 }
 
 @media (hover: hover) {
@@ -591,9 +592,22 @@ body {
     0 0 16px rgba(126, 233, 239, 0.2);
 }
 
+/* The same comet, recolored to this chip's ink and walking the rim at half
+   the rate. Only the duration longhand is set, never the `animation`
+   shorthand: the reduced-motion block above kills the name, and a shorthand
+   here would resurrect it. With no name, the duration is inert. */
 .study-chip--tend::before,
 .study-chip--tend::after {
-  content: none;
+  background: conic-gradient(
+    from var(--holos-glint-angle),
+    transparent 0deg,
+    transparent 232deg,
+    rgba(126, 233, 239, 0.3) 288deg,
+    rgba(226, 253, 255, 0.95) 326deg,
+    rgba(126, 233, 239, 0.35) 344deg,
+    transparent 360deg
+  );
+  animation-duration: 14s;
 }
 
 .study-chip--tend[hidden] {
