@@ -407,18 +407,18 @@ body {
   pointer-events: none;
 }
 
-/* The chip is the game's single action verb ("+ START") and always reads as
+/* The chip is the game's single action verb ("+ Start") and always reads as
  * the amber call-to-action — it opens the hub menu, never varies by state. */
 /* The only verb visible before the player opens anything, so it is sized and
    set to be read rather than scanned: the display face at its lightest
-   weight, and a slow breath of amber around it. */
+   weight, and a glint that walks the rim. */
 .study-chip {
   position: absolute;
   top: max(0.9rem, env(safe-area-inset-top));
   right: max(0.9rem, env(safe-area-inset-right));
   pointer-events: auto;
   background: var(--holos-bg-raised);
-  border: 1px solid var(--holos-amber);
+  border: 1px solid var(--holos-gold-dim);
   border-radius: 999px;
   padding: 0.5rem 1.15rem;
   font-family: var(--holos-font-display);
@@ -429,32 +429,76 @@ body {
   line-height: 1.15;
   color: var(--holos-amber);
   cursor: pointer;
-  animation: study-chip-glow 7s ease-in-out infinite;
+  /* A steady warmth under the moving highlight, so the chip still sits in
+     the dark rather than blinking in and out of it. */
+  box-shadow: 0 0 10px rgba(240, 172, 102, 0.13);
 }
 
-/* A breath, not a pulse. It should read as something warm sitting there in
-   the dark — never as a notification asking to be tapped. */
-@keyframes study-chip-glow {
-  0%,
-  100% {
-    border-color: var(--holos-gold-dim);
-    box-shadow:
-      0 0 6px rgba(240, 172, 102, 0.12),
-      0 0 0 rgba(240, 172, 102, 0);
-  }
-  50% {
-    border-color: var(--holos-amber);
-    box-shadow:
-      0 0 13px rgba(240, 172, 102, 0.28),
-      0 0 30px rgba(240, 172, 102, 0.1);
+/* The angle the glint rides. Registered so it interpolates — a bare custom
+   property is a string to the animator and would jump, not travel. */
+@property --holos-glint-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* The rim itself: a conic sweep clipped to a one-pixel ring by masking the
+   padding box out of the border box. Mostly empty, with one comet — dim
+   ramp, bright head, quick fade — so what travels is a highlight and not a
+   rotating gradient. */
+.study-chip::before,
+.study-chip::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--holos-glint-angle),
+    transparent 0deg,
+    transparent 232deg,
+    rgba(240, 172, 102, 0.3) 288deg,
+    rgba(255, 238, 214, 0.95) 326deg,
+    rgba(240, 172, 102, 0.35) 344deg,
+    transparent 360deg
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  animation: study-chip-glint 7s linear infinite;
+}
+
+/* Crisp rim. */
+.study-chip::before {
+  padding: 1px;
+}
+
+/* The bloom the glint throws — the same comet, thicker and blurred, sitting
+   under the crisp one so the highlight has some light around it. */
+.study-chip::after {
+  padding: 2px;
+  filter: blur(4px);
+  opacity: 0.75;
+}
+
+@keyframes study-chip-glint {
+  to {
+    --holos-glint-angle: 360deg;
   }
 }
 
-/* Motion is decoration here — the chip is just as legible held still. */
+/* Motion is decoration here — the chip is just as legible held still, with
+   the glint parked where it reads as a highlight rather than an artifact. */
 @media (prefers-reduced-motion: reduce) {
-  .study-chip {
+  .study-chip::before,
+  .study-chip::after {
     animation: none;
-    box-shadow: 0 0 10px rgba(240, 172, 102, 0.18);
+    --holos-glint-angle: 296deg;
   }
 }
 
