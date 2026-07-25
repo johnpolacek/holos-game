@@ -115,17 +115,34 @@ export class StudyBoard {
     this.sheet = document.createElement("div");
     this.sheet.className = "study-board-sheet";
 
+    // The sheet is full-height on a phone, so it covers the backdrop
+    // entirely — "tap outside to dismiss" does not exist here. The panel
+    // therefore carries its own visible exit, and the grabber's swipe stays
+    // as the gesture for thumbs that already know it.
+    const topbar = document.createElement("div");
+    topbar.className = "study-board-topbar";
+
     this.grabber = document.createElement("div");
     this.grabber.className = "study-board-grabber";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "study-board-close";
+    closeBtn.setAttribute("aria-label", "Close");
+    closeBtn.textContent = "✕";
+    closeBtn.addEventListener("click", () => this.close());
+
+    topbar.append(this.grabber, closeBtn);
 
     this.body = document.createElement("div");
     this.body.className = "study-board-body";
 
-    this.sheet.append(this.grabber, this.body);
+    this.sheet.append(topbar, this.body);
     this.root.append(this.chip, this.backdrop, this.sheet);
     container.append(this.root);
 
     this.attachSwipe();
+    window.addEventListener("keydown", this.onKeyDown);
     this.renderList();
   }
 
@@ -202,8 +219,15 @@ export class StudyBoard {
   }
 
   destroy(): void {
+    window.removeEventListener("keydown", this.onKeyDown);
     this.root.remove();
   }
+
+  /** Escape closes the panel on a keyboard — the desktop equivalent of the
+   *  exit button, which is the only way out on a phone. */
+  private readonly onKeyDown = (e: KeyboardEvent): void => {
+    if (e.key === "Escape" && this.openFlag) this.close();
+  };
 
   /** Registers the callback fired when a row in the explore view is tapped,
    * with the tapped source's starId. */

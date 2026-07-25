@@ -407,7 +407,10 @@ body {
 .study-board-backdrop {
   position: absolute;
   inset: 0;
-  background: transparent;
+  /* Covered entirely by the sheet on a phone; on a wide screen the sheet
+     docks to one side and this scrim is what says the sky behind is still
+     there and tapping it returns you. */
+  background: rgba(7, 6, 10, 0.6);
   opacity: 0;
   transition: opacity 260ms ease;
 }
@@ -450,8 +453,19 @@ body {
   }
 }
 
+/* Top bar: the swipe grabber centered, the explicit exit at the right.
+   The sheet covers the backdrop on a phone, so this button is the only
+   discoverable way out and is sized as a real touch target. */
+.study-board-topbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  flex-shrink: 0;
+}
+
 .study-board-grabber {
-  align-self: center;
   width: 2.4rem;
   height: 0.28rem;
   border-radius: 999px;
@@ -459,6 +473,29 @@ body {
   touch-action: none;
   cursor: grab;
   flex-shrink: 0;
+}
+
+.study-board-close {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--holos-ink-dim);
+  font-size: var(--holos-text-lg);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.study-board-close:hover {
+  color: var(--holos-ink);
 }
 
 .study-board-body {
