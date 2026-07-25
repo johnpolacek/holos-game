@@ -320,6 +320,10 @@ export interface ProjectSnapshot {
   readonly id: string;
   readonly label: string;
   readonly line: string;
+  /** What landing it grants, said plainly — projects.ts's effectLine. The
+   *  detail sheet's whole answer to "why would I buy this"; the client
+   *  never sees the effect union itself. */
+  readonly effectLine: string;
   readonly costClass: CostClass;
   readonly costCompute: number;
   readonly durationYears: number;
