@@ -38,6 +38,8 @@ import {
   buildGalaxyCanvases,
   cosmosLandmarks,
   GALAXY_TEX_SIZE,
+  milkyWayBillboard,
+  type CosmosBillboard,
   type CosmosGalaxy,
   type CosmosGlow,
   type CosmosLandmark,
@@ -84,9 +86,15 @@ const LG_FADE_HI = 200_000;
 /** The web arrives once the Local Group is a huddle. */
 const WEB_FADE_LO = 2e6;
 const WEB_FADE_HI = 2e7;
-/** GALACTIC CENTER only wants naming once the neighborhood has gone. */
+/** GALACTIC CENTER only wants naming once the neighborhood has gone. Each
+ *  landmark carries its own fade-OUT band (cosmos.ts, `labelOut`), so a name
+ *  dies while the thing it names is still a separate thing on screen. */
 const GC_LABEL_LO = 2_000;
 const GC_LABEL_HI = 10_000;
+/** Where the Milky Way stops being a place we are inside and becomes one more
+ *  galaxy in the huddle: the particle disk hands off to a single sprite. */
+const MW_BILLBOARD_LO = 1.2e6;
+const MW_BILLBOARD_HI = 4e6;
 /** How far out the cyan HOME ring starts standing down. It never vanishes —
  *  it is the way back — but at half a billion light-years it must not be the
  *  loudest thing in the universe. */
@@ -99,10 +107,40 @@ const HOME_SOFT_HI = 1e6;
 const MW_SIZE_REF_LY = 26_000;
 const MW_PX_MIN = 0.9;
 const MW_PX_MAX = 3.0;
-/** Galaxies are real objects with a real diameter, so they project honestly;
- *  the floor just keeps the far field from disappearing entirely. */
-const GALAXY_PX_MIN = 2.2;
+/**
+ * Point-splat flux conservation. A splat that has hit MW_PX_MIN cannot get
+ * any smaller, so past that point its brightness has to fall instead — the
+ * standard trick, and the reason the disk stops burning white. The knee is
+ * where the floor starts binding for every particle at once (the disk is
+ * 100 kly across and 26 kly off-center, so by 300 kly the whole thing is
+ * outside the camera and shrinking together); inside it nothing changes at
+ * all, which is the promise the near views are owed. Beyond it the alpha
+ * carries the honest inverse-square, which holds SURFACE brightness constant
+ * as the disk shrinks — the galaxy looks the same, just smaller.
+ */
+const MW_FLUX_KNEE_LY = 300_000;
+/**
+ * Galaxies are real objects with a real diameter, so they project honestly.
+ * Below RESOLVE_PX the 256 px galaxy texture is minified so hard that whether
+ * a sprite samples its own core is a coin flip, and a field of them shimmers
+ * into nothing — so under that size a galaxy stops being drawn as a disk and
+ * becomes what an unresolved galaxy actually is: a point source. The mote is
+ * sized to carry the same flux the disk had at the hand-off, so the swap is a
+ * change of shape and not of brightness.
+ */
+const GALAXY_RESOLVE_PX = 10;
+const GALAXY_MOTE_PX = 6.3;
 const GALAXY_PX_MAX = 2_600;
+/** A galaxy's drawn diameter against its catalog one. Galaxies are bigger
+ *  than the isophote they are measured to, and the payoff scales need the
+ *  Local Group to read as galaxies rather than as dust. */
+const GALAXY_DISPLAY_MUL = 1.9;
+/** The display stretch every deep-field image has: a lift on the tier's own
+ *  alphas, and a floor under how far a mote may dim, so the far side of the
+ *  web reads as structure instead of as noise. Both are honest about what
+ *  they are — presentation, not physics. */
+const GALAXY_GAIN = 2;
+const GALAXY_MOTE_FLOOR = 0.18;
 
 // Volume-view resting camera angles (slightly off-axis, per 03-07).
 const VOLUME_AZ = 0.5;
@@ -185,10 +223,12 @@ interface GlowSprite {
   readonly item: CosmosGlow;
 }
 
-/** A backdrop galaxy. World-sized, for the same reason. */
+/** A backdrop galaxy. World-sized, for the same reason. `tex` is kept so the
+ *  sprite can swap back to its disk after a spell as an unresolved mote. */
 interface GalaxySprite {
   readonly sprite: Sprite;
   readonly item: CosmosGalaxy;
+  readonly tex: Texture;
 }
 
 /** A DOM overlay name for one of the ~8 places worth naming. */
@@ -304,6 +344,7 @@ export class Model {
   private mwGlows: GlowSprite[] = [];
   private lgGalaxies: GalaxySprite[] = [];
   private webGalaxies: GalaxySprite[] = [];
+  private mwBillboard: { sprite: Sprite; item: CosmosBillboard; tex: Texture } | null = null;
   private readonly camCache = {
     az: NaN,
     el: NaN,
@@ -542,6 +583,18 @@ export class Model {
     for (const item of cosmos.localGroup) {
       lg.addChild(this.makeGalaxySprite(item, this.lgGalaxies));
     }
+    // Our own galaxy joins the huddle once it is small enough to be one of
+    // them. It rides in the Local Group's layer because that is what it is a
+    // member of, and because that layer sorts by depth.
+    const bb = milkyWayBillboard();
+    const bbTex = this.galaxyTex[bb.tex] ?? this.galaxyTex[0] ?? Texture.WHITE;
+    const bbSprite = new Sprite(bbTex);
+    bbSprite.anchor.set(0.5);
+    bbSprite.tint = bb.tint;
+    bbSprite.blendMode = "add";
+    bbSprite.visible = false;
+    lg.addChild(bbSprite);
+    this.mwBillboard = { sprite: bbSprite, item: bb, tex: bbTex };
 
     // Tier C — the cosmic web.
     const web = new Container();
@@ -560,7 +613,7 @@ export class Model {
     sprite.alpha = item.alpha;
     sprite.rotation = item.rotation;
     sprite.blendMode = "add";
-    into.push({ sprite, item });
+    into.push({ sprite, item, tex });
     return sprite;
   }
 
@@ -872,12 +925,19 @@ export class Model {
   ): void {
     // The Milky Way is always there — it is the night sky, not a zoom level.
     // It only stands down in brightness while the game is on screen.
-    const mwAlpha = lerp(MW_DIM_NEAR, 1, fadeIn(this.dist, MW_DIM_LO, MW_DIM_HI));
+    // ...until the point where it is not the night sky any more but one more
+    // galaxy, and the billboard takes it over.
+    const mwFar = fadeIn(this.dist, MW_BILLBOARD_LO, MW_BILLBOARD_HI);
+    const mwAlpha =
+      lerp(MW_DIM_NEAR, 1, fadeIn(this.dist, MW_DIM_LO, MW_DIM_HI)) * (1 - mwFar);
     const lgAlpha = fadeIn(this.dist, LG_FADE_LO, LG_FADE_HI);
     const webAlpha = fadeIn(this.dist, WEB_FADE_LO, WEB_FADE_HI);
 
     const mw = this.mwLayer;
     if (mw !== null) {
+      mw.visible = mwAlpha > 0.004;
+    }
+    if (mw !== null && mw.visible) {
       mw.alpha = mwAlpha;
       for (const p of this.mwParticles) {
         const pos = p.item.pos;
@@ -893,6 +953,15 @@ export class Model {
           MW_PX_MIN,
           MW_PX_MAX,
         );
+        // Past the knee the splat cannot shrink any further, so the flux comes
+        // out of the alpha instead. Without this, five thousand floored
+        // sprites pile onto the same forty pixels and the galaxy burns to a
+        // solid white lens the moment it is more than a megalight-year away.
+        const flux = Math.min(1, (MW_FLUX_KNEE_LY / this.proj.depth) ** 2);
+        if (flux <= 0) {
+          p.sprite.visible = false;
+          continue;
+        }
         if (this.offscreen(this.proj.x, this.proj.y, w, h, sizePx * 4 + 8)) {
           p.sprite.visible = false;
           continue;
@@ -900,6 +969,7 @@ export class Model {
         p.sprite.visible = true;
         p.sprite.position.set(this.proj.x, this.proj.y);
         p.sprite.scale.set(sizePx / 16);
+        p.sprite.alpha = p.item.alpha * flux;
       }
       for (const g of this.mwGlows) {
         const pos = g.item.pos;
@@ -923,6 +993,7 @@ export class Model {
       this.lgLayer, this.lgGalaxies, lgAlpha, true,
       cx, cy, focal, w, h, sinAz, cosAz, sinEl, cosEl,
     );
+    this.projectMilkyWayBillboard(cx, cy, focal, w, h, sinAz, cosAz, sinEl, cosEl, mwFar);
     this.projectGalaxies(
       this.webLayer, this.webGalaxies, webAlpha, false,
       cx, cy, focal, w, h, sinAz, cosAz, sinEl, cosEl,
@@ -953,6 +1024,7 @@ export class Model {
     layer.visible = tierAlpha > 0.004;
     if (!layer.visible) return;
     layer.alpha = tierAlpha;
+    const moteTex = this.pointTex;
     for (const g of items) {
       const pos = g.item.pos;
       this.projectInto(pos.x, pos.y, pos.z, cx, cy, focal, sinAz, cosAz, sinEl, cosEl);
@@ -960,20 +1032,133 @@ export class Model {
         g.sprite.visible = false;
         continue;
       }
-      const sizePx = clamp(
-        (focal * g.item.baseSizeLy) / this.proj.depth,
-        GALAXY_PX_MIN,
-        GALAXY_PX_MAX,
-      );
-      if (this.offscreen(this.proj.x, this.proj.y, w, h, sizePx * 0.6 + 8)) {
+      const rawPx = (focal * g.item.baseSizeLy * GALAXY_DISPLAY_MUL) / this.proj.depth;
+      const reach = Math.max(rawPx * 0.6, GALAXY_MOTE_PX) + 8;
+      if (this.offscreen(this.proj.x, this.proj.y, w, h, reach)) {
         g.sprite.visible = false;
         continue;
       }
       g.sprite.visible = true;
       g.sprite.position.set(this.proj.x, this.proj.y);
-      g.sprite.scale.set(sizePx / GALAXY_TEX_SIZE);
+      this.drawGalaxy(g.sprite, g.tex, moteTex, rawPx, rawPx, g.item.rotation, g.item.alpha);
       if (sorted) g.sprite.zIndex = -this.proj.depth;
     }
+  }
+
+  /**
+   * One galaxy, at whichever of its two readings its drawn size has earned: a
+   * resolved disk with an orientation, or — below GALAXY_RESOLVE_PX, where the
+   * 256 px texture is minified past the point of sampling its own core — the
+   * point source an unresolved galaxy is. `majorPx`/`minorPx` are the drawn
+   * ellipse; they are equal for everything except our own galaxy, which is the
+   * one whose inclination we know because we are sitting in it.
+   */
+  private drawGalaxy(
+    sprite: Sprite,
+    tex: Texture,
+    moteTex: Texture | null,
+    majorPx: number,
+    minorPx: number,
+    rotation: number,
+    alpha: number,
+  ): void {
+    const lit = Math.min(1, alpha * GALAXY_GAIN);
+    const extent = Math.max(majorPx, minorPx);
+    if (extent >= GALAXY_RESOLVE_PX || moteTex === null) {
+      if (sprite.texture !== tex) sprite.texture = tex;
+      sprite.rotation = rotation;
+      sprite.scale.set(
+        Math.min(majorPx, GALAXY_PX_MAX) / GALAXY_TEX_SIZE,
+        Math.min(minorPx, GALAXY_PX_MAX) / GALAXY_TEX_SIZE,
+      );
+      sprite.alpha = lit;
+      return;
+    }
+    if (sprite.texture !== moteTex) sprite.texture = moteTex;
+    sprite.rotation = 0;
+    sprite.scale.set(GALAXY_MOTE_PX / STAR_TEX_SIZE);
+    // The mote holds the disk's flux at the hand-off and dims from there on a
+    // square-root stretch rather than the raw inverse square — the same
+    // compression every deep-field image is printed with, and the reason the
+    // far half of the web is structure instead of an empty frame.
+    sprite.alpha = lit * clamp(extent / GALAXY_RESOLVE_PX, GALAXY_MOTE_FLOOR, 1);
+  }
+
+  /** Our own galaxy, once it is far enough away to be a sprite (see
+   *  cosmos.ts's milkyWayBillboard). Its two in-plane axes are projected
+   *  alongside its center, and the pair spans the ellipse the disk makes on
+   *  screen — so it arrives already inclined the way the particles were. */
+  private projectMilkyWayBillboard(
+    cx: number,
+    cy: number,
+    focal: number,
+    w: number,
+    h: number,
+    sinAz: number,
+    cosAz: number,
+    sinEl: number,
+    cosEl: number,
+    farAlpha: number,
+  ): void {
+    const bb = this.mwBillboard;
+    if (bb === null) return;
+    if (farAlpha <= 0.004) {
+      bb.sprite.visible = false;
+      return;
+    }
+    const p = bb.item.pos;
+    this.projectInto(p.x, p.y, p.z, cx, cy, focal, sinAz, cosAz, sinEl, cosEl);
+    if (!this.proj.ok) {
+      bb.sprite.visible = false;
+      return;
+    }
+    const x0 = this.proj.x;
+    const y0 = this.proj.y;
+    const depth = this.proj.depth;
+
+    const u = bb.item.axisU;
+    this.projectInto(p.x + u.x, p.y + u.y, p.z + u.z, cx, cy, focal, sinAz, cosAz, sinEl, cosEl);
+    if (!this.proj.ok) {
+      bb.sprite.visible = false;
+      return;
+    }
+    const ax = this.proj.x - x0;
+    const ay = this.proj.y - y0;
+
+    const v = bb.item.axisV;
+    this.projectInto(p.x + v.x, p.y + v.y, p.z + v.z, cx, cy, focal, sinAz, cosAz, sinEl, cosEl);
+    if (!this.proj.ok) {
+      bb.sprite.visible = false;
+      return;
+    }
+    const bx = this.proj.x - x0;
+    const by = this.proj.y - y0;
+
+    // Along the first axis, and across it: the component of the second axis
+    // perpendicular to the first is the disk's foreshortened width.
+    const la = Math.hypot(ax, ay);
+    const across = la > 1e-6 ? Math.abs(ax * by - ay * bx) / la : Math.hypot(bx, by);
+    const majorPx = 2 * la * GALAXY_DISPLAY_MUL;
+    const minorPx = 2 * across * GALAXY_DISPLAY_MUL;
+
+    const reach = Math.max(majorPx, minorPx, GALAXY_MOTE_PX) * 0.6 + 8;
+    if (this.offscreen(x0, y0, w, h, reach)) {
+      bb.sprite.visible = false;
+      return;
+    }
+    bb.sprite.visible = true;
+    bb.sprite.position.set(x0, y0);
+    bb.sprite.zIndex = -depth;
+    this.drawGalaxy(
+      bb.sprite,
+      bb.tex,
+      this.pointTex,
+      majorPx,
+      minorPx,
+      Math.atan2(ay, ax),
+      bb.item.alpha,
+    );
+    bb.sprite.alpha *= farAlpha;
   }
 
   /** The ~8 named places. Each label lives only while its tier is faded in
@@ -994,8 +1179,14 @@ export class Model {
   ): void {
     const gcAlpha = fadeIn(this.dist, GC_LABEL_LO, GC_LABEL_HI);
     for (const { el, mark } of this.landmarks) {
-      const tierAlpha =
+      const inAlpha =
         mark.tier === "milkyway" ? gcAlpha : mark.tier === "localgroup" ? lgAlpha : webAlpha;
+      // ...and out again, on the object's own scale. A name has to be gone
+      // while what it names is still separable: keep GALACTIC CENTER past a
+      // megalight-year and it lands on top of both Magellanic Clouds, and
+      // three names on one dot is unreadable in a way no fade can rescue.
+      const out = mark.labelOut;
+      const tierAlpha = out === null ? inAlpha : inAlpha * (1 - fadeIn(this.dist, out[0], out[1]));
       if (tierAlpha <= 0.02) {
         el.style.opacity = "0";
         continue;

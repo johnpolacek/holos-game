@@ -245,6 +245,15 @@ export interface CosmosLandmark {
   readonly pos: CosmosVec3;
   /** Which tier's fade gates the label. */
   readonly tier: "milkyway" | "localgroup" | "web";
+  /**
+   * Camera distances (ly) over which the NAME fades back out, scaled to the
+   * thing it names. A label has to die while its object is still a separate
+   * object: past a few million light-years the galactic center, the LMC and
+   * the SMC are all within a couple of pixels of each other, and three names
+   * on one point is not a map, it is a smear. `null` = never fades — the
+   * cluster names are the only thing left to read at maximum zoom.
+   */
+  readonly labelOut: readonly [number, number] | null;
 }
 
 export interface Cosmos {
@@ -420,39 +429,45 @@ const LOCAL_GROUP_NAMED: readonly {
   readonly alpha: number;
   readonly rotation: number;
   readonly landmark: boolean;
+  readonly labelOut: readonly [number, number] | null;
 }[] = [
   // Tidally shredded, wrapped around the far side of our own bulge. Faint
   // because it is: you cannot see it, you infer it.
   {
     name: "Sagittarius Dwarf",
     l: 5.6, b: -14.2, distLy: 65_000,
-    tex: TEX_DWARF, sizeLy: 10_000, tint: 0xf2e2cf, alpha: 0.13, rotation: 0.6,
-    landmark: false,
+    tex: TEX_DWARF, sizeLy: 10_000, tint: 0xf2e2cf, alpha: 0.05, rotation: 0.6,
+    landmark: false, labelOut: null,
   },
+  // The Clouds are ours: by 3 Mly they and the galactic center are one dot.
   {
     name: "Large Magellanic Cloud",
     l: 280.5, b: -32.9, distLy: 163_000,
-    tex: TEX_IRREGULAR, sizeLy: 14_000, tint: 0xe8effc, alpha: 0.8, rotation: 2.1,
-    landmark: true,
+    tex: TEX_IRREGULAR, sizeLy: 14_000, tint: 0xe8effc, alpha: 0.2, rotation: 2.1,
+    landmark: true, labelOut: [900_000, 2_500_000],
   },
   {
     name: "Small Magellanic Cloud",
     l: 302.8, b: -44.3, distLy: 200_000,
-    tex: TEX_IRREGULAR, sizeLy: 7_000, tint: 0xe4ecfb, alpha: 0.62, rotation: 0.9,
-    landmark: true,
+    tex: TEX_IRREGULAR, sizeLy: 7_000, tint: 0xe4ecfb, alpha: 0.16, rotation: 0.9,
+    landmark: true, labelOut: [900_000, 2_500_000],
   },
-  // The biggest thing out there, and inclined ~77° to our line of sight.
+  // The biggest thing out there, and inclined ~77° to our line of sight. It
+  // and Triangulum outlive the Clouds by a factor of thirty, because they are
+  // two and a half million light-years out and stay separate that much longer.
   {
     name: "Andromeda",
     l: 121.2, b: -21.6, distLy: 2_540_000,
     tex: TEX_SPIRAL_INCLINED, sizeLy: 150_000, tint: 0xffffff, alpha: 0.9, rotation: 0.55,
-    landmark: true,
+    landmark: true, labelOut: [30_000_000, 100_000_000],
   },
   {
     name: "Triangulum",
     l: 133.6, b: -31.3, distLy: 2_730_000,
+    // The lesser of the pair yields first: the two are three-quarters of a
+    // megalight-year apart, so past ~30 Mly their names are on the same dot.
     tex: TEX_SPIRAL, sizeLy: 60_000, tint: 0xf2f6ff, alpha: 0.55, rotation: 2.8,
-    landmark: true,
+    landmark: true, labelOut: [10_000_000, 30_000_000],
   },
 ];
 
@@ -658,15 +673,29 @@ export function buildCosmos(): Cosmos {
   const web = buildWeb(rnd);
 
   const marks: CosmosLandmark[] = [
-    { name: "Galactic Center", pos: GAL_CENTER, tier: "milkyway" },
+    // Once the galaxy is a lens a few pixels wide, "galactic center" is a name
+    // for the middle of it and stops being a place.
+    {
+      name: "Galactic Center",
+      pos: GAL_CENTER,
+      tier: "milkyway",
+      labelOut: [300_000, 1_000_000],
+    },
   ];
   for (const m of LOCAL_GROUP_NAMED) {
     if (!m.landmark) continue;
-    marks.push({ name: m.name, pos: galactic(m.l, m.b, m.distLy), tier: "localgroup" });
+    marks.push({
+      name: m.name,
+      pos: galactic(m.l, m.b, m.distLy),
+      tier: "localgroup",
+      labelOut: m.labelOut,
+    });
   }
   for (const node of web.nodes) {
     if (node.name === null) continue;
-    marks.push({ name: node.name, pos: node.pos, tier: "web" });
+    // The clusters are the last names standing: at maximum zoom they are the
+    // only thing on screen big enough to be worth pointing at.
+    marks.push({ name: node.name, pos: node.pos, tier: "web", labelOut: null });
   }
   landmarks = marks;
 
@@ -680,6 +709,48 @@ export function cosmosLandmarks(): readonly CosmosLandmark[] {
   return landmarks ?? [];
 }
 
+// ── The Milky Way, seen from outside the Local Group ──────────────────────
+//
+// Five thousand point splats are how you draw a galaxy you are inside. They
+// are not how you draw one at ten million light-years: by then the disk is a
+// dozen pixels across, every splat has bottomed out at the one-pixel floor,
+// and the honest per-splat brightness has fallen so far below what an 8-bit
+// framebuffer can hold that they either stack into a burnt white lens or
+// quantize to nothing at all. So past a couple of million light-years the
+// particles hand off to this — the same procedural galaxy sprite every other
+// galaxy in the sky uses, because past that distance ours is honestly just
+// another galaxy. The two axes are the disk's own in-plane basis, half a
+// diameter long: project both and the pair spans the ellipse the disk makes
+// on screen, so the billboard arrives at the inclination the particles were
+// already showing rather than snapping to face-on.
+
+export interface CosmosBillboard {
+  readonly pos: CosmosVec3;
+  /** Index into buildGalaxyCanvases(). Ours is a barred spiral. */
+  readonly tex: number;
+  readonly tint: number;
+  readonly sizeLy: number;
+  readonly alpha: number;
+  /** Half-diameter offsets along the galactic plane's two in-plane axes. */
+  readonly axisU: CosmosVec3;
+  readonly axisV: CosmosVec3;
+}
+
+const MILKY_WAY_DIAMETER_LY = DISK_RADIUS_LY * 2;
+
+export function milkyWayBillboard(): CosmosBillboard {
+  const r = MILKY_WAY_DIAMETER_LY / 2;
+  return {
+    pos: GAL_CENTER,
+    tex: TEX_SPIRAL_BARRED,
+    tint: 0xfff2df,
+    sizeLy: MILKY_WAY_DIAMETER_LY,
+    alpha: 0.85,
+    axisU: { x: GAL_U.x * r, y: GAL_U.y * r, z: GAL_U.z * r },
+    axisV: { x: GAL_V.x * r, y: GAL_V.y * r, z: GAL_V.z * r },
+  };
+}
+
 // ── Galaxy textures ───────────────────────────────────────────────────────
 //
 // Six canvases, built once and shared by every galaxy sprite in tiers B and
@@ -689,14 +760,29 @@ export function cosmosLandmarks(): readonly CosmosLandmark[] {
 
 export const GALAXY_TEX_SIZE = 256;
 
+/**
+ * How hard the galaxy textures are inked. They are drawn once at 256 px and
+ * then spend nearly all of their life minified to a few dozen pixels or less:
+ * a gradient tuned to read at full size vanishes there, because a sprite's
+ * light falls with the square of its drawn width while the screen's floor of
+ * one part in 255 does not move at all. So the textures are inked well past
+ * what a close-up would want, and the tiers' own alphas hold them back. This
+ * is the single knob that decides whether a galaxy three hundred million
+ * light-years out is structure or is nothing.
+ */
+const GALAXY_INK = 2.2;
+/** Ceiling on an inked stop, so cores stay light rather than flat white. */
+const GALAXY_INK_MAX = 0.95;
+
 function blob(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
   r: number,
   rgb: readonly [number, number, number],
-  alpha: number,
+  a0: number,
 ): void {
+  const alpha = Math.min(GALAXY_INK_MAX, a0 * GALAXY_INK);
   if (r <= 0.3 || alpha <= 0.002) return;
   const [cr, cg, cb] = rgb;
   const g = ctx.createRadialGradient(x, y, 0, x, y, r);
