@@ -66,9 +66,14 @@ Builds** project connected to this repo with **Path `/`**, build
 command `npm run build`, and deploy command `npx wrangler deploy`. That
 deploys the one Worker (game server + client assets, config: root
 `wrangler.jsonc`, including Durable Object migrations). No GitHub
-secrets are involved. The custom domain (holosgame.com) attaches to this
-Worker in the Cloudflare dashboard once its DNS zone is on the account —
-see the commented `routes` block in `wrangler.jsonc`.
+secrets are involved. The custom domain (playholos.com, apex canonical)
+attaches to this Worker through the `routes` block in `wrangler.jsonc`,
+which stays **commented out** until that DNS zone is active on the same
+Cloudflare account — `wrangler deploy` fails with "Could not find zone"
+otherwise, and `main` auto-deploys, so shipping routes early breaks
+production. `wrangler deploy --dry-run` does not catch this (it never
+contacts Cloudflare). The zone move and its verification are the runbook
+in `docs/deploy.md`.
 
 **Adding a Durable Object fails the *preview* build, not production.** A
 new DO adds a `migrations` entry to `wrangler.jsonc`. On `main` the

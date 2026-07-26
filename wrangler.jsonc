@@ -68,7 +68,20 @@
   "dev": {
     "port": 8787
   }
-  // Once the holosgame.com DNS zone is added to the Cloudflare account,
-  // uncomment to serve the game there (Worker custom domain):
-  // "routes": [{ "pattern": "holosgame.com", "custom_domain": true }]
+  // The custom domain. BLOCKED, and deliberately still commented: the
+  // playholos.com zone is registered at Porkbun and is not yet on this
+  // Cloudflare account. `wrangler deploy` resolves each route's zone at
+  // deploy time and fails with "Could not find zone" when it is absent —
+  // and `main` auto-deploys, so uncommenting this early breaks production
+  // on the next merge. CI does not catch it: `wrangler deploy --dry-run`
+  // never contacts Cloudflare.
+  //
+  // Uncomment only once the zone reads ACTIVE on the same account as this
+  // Worker — the move and its verification are docs/deploy.md § Custom
+  // domain, steps 1-3. Apex is canonical (client/index.html); www serves
+  // the same Worker.
+  // "routes": [
+  //   { "pattern": "playholos.com", "custom_domain": true },
+  //   { "pattern": "www.playholos.com", "custom_domain": true }
+  // ]
 }
