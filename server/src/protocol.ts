@@ -416,6 +416,22 @@ export interface MissionCatalog {
   readonly maxClauses: number; // 3
 }
 
+// ── AV1: the voice ─────────────────────────────────────────────
+// One-time lines the mind speaks, resolved server-side (the archetypeName
+// precedent — keeps voice.ts/minds.ts off the client). Nothing here concerns
+// any remote civ: these are the player's own civilization only.
+
+export type VoiceKey = "arrival" | "age" | "compute" | "clock";
+export const VOICE_KEYS: readonly VoiceKey[] = ["arrival", "age", "compute", "clock"];
+export function isVoiceKey(v: unknown): v is VoiceKey {
+  return v === "arrival" || v === "age" || v === "compute" || v === "clock";
+}
+
+/** The lines this player has NOT yet been shown. A key absent means already
+ *  seen — no-replay is carried by the payload's shape. Sent once per placed
+ *  connection, never on `sky`. */
+export type VoiceLines = Readonly<Partial<Record<VoiceKey, string>>>;
+
 // client → server (UNTRUSTED — every field guarded on parse)
 export type CohortClientMessage =
   | { type: "hello"; token: string | null }
@@ -427,7 +443,9 @@ export type CohortClientMessage =
   | { type: "startProject"; projectId: string }
   // ── A2.2 ──
   | { type: "buyQuestion"; starId: string; questionId: string }
-  | { type: "launchMission"; starId: string; kind: string; charter: readonly string[] };
+  | { type: "launchMission"; starId: string; kind: string; charter: readonly string[] }
+  // ── AV1 ──
+  | { type: "voiceSeen"; key: VoiceKey };
 
 // server → client
 export type CohortServerMessage =
@@ -448,6 +466,8 @@ export type CohortServerMessage =
        *  sheet preview a mission's clock before committing. */
       probeFlightYearsPerLy: number }
   | { type: "sourceNamed"; starId: string; name: string }
+  // ── AV1 ──
+  | { type: "voice"; lines: VoiceLines }
   | { type: "error"; code: CohortErrorCode; message: string };
 
 export type CohortErrorCode =
@@ -578,6 +598,16 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
     return { type: "requestSky" };
   }
 
+  // AV1: no error code on a malformed voiceSeen. It is pure bookkeeping —
+  // dropping it silently just means that one line replays next session — and
+  // the client's global error handler releases in-flight purchase flags on
+  // ANY "error" message, so an error code here would cancel a real
+  // in-progress buy/launch for a bookkeeping miss. Fall through to null like
+  // every other malformed message.
+  if (msg["type"] === "voiceSeen" && isVoiceKey(msg["key"])) {
+    return { type: "voiceSeen", key: msg["key"] };
+  }
+
   return null;
 }
 
@@ -601,6 +631,20 @@ export function parseCohortServerMessage(raw: string): CohortServerMessage | nul
     case "sourceNamed":
     case "error":
       return data as CohortServerMessage;
+    // AV1: unlike the cases above, validate `lines` field-by-field rather
+    // than trusting the shape wholesale — the payload's whole contract is
+    // "a key present means unseen," so a malformed key/value here would
+    // read as a bogus voice line rather than a dropped message.
+    case "voice": {
+      const raw = data as { type: "voice"; lines?: unknown };
+      if (typeof raw.lines !== "object" || raw.lines === null) return null;
+      const lines: Partial<Record<VoiceKey, string>> = {};
+      for (const [key, value] of Object.entries(raw.lines)) {
+        if (!isVoiceKey(key) || typeof value !== "string") return null;
+        lines[key] = value;
+      }
+      return { type: "voice", lines };
+    }
     default:
       return null;
   }

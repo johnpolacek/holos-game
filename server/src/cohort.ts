@@ -44,6 +44,7 @@ import { emissionAt, lightConeFor, observeCiv, observeSky, visibleSky } from "./
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
+import { arrivalLine, ageChipLine, computeLine, clockLine } from "./voice";
 import {
   buildStudySnapshot,
   hypothesisMenus,
@@ -114,6 +115,8 @@ import {
   type MissionSnapshot,
   type ProjectSnapshot,
   type SelfView,
+  isVoiceKey,
+  type VoiceKey,
 } from "./protocol";
 
 /**
@@ -174,6 +177,17 @@ interface RunRecord {
 // while studies accrete A2.2 purchases and must not ride along on that
 // rewrite. The shape and its migration now live in studies.ts (matching
 // projects.ts's precedent); this module only reads/writes the DO key.
+
+/**
+ * AV1: which one-time voice lines this player has already been shown.
+ * One record per concern, the studies/missions/projects precedent — its
+ * own key (`voice:${token}`) rather than a field bolted onto RunRecord, so
+ * a `voiceSeen` write never touches (or races) the name-echo state.
+ */
+interface VoiceState {
+  readonly version: 1;
+  readonly seen: readonly VoiceKey[];
+}
 
 /** Live connection tracking: the socket, its token, and (once placed) civ. */
 interface ConnState {
@@ -293,6 +307,9 @@ export class Cohort extends Server<CohortEnv> {
       case "launchMission":
         await this.onLaunchMission(conn, msg.starId, msg.kind, msg.charter);
         return;
+      case "voiceSeen":
+        await this.onVoiceSeen(conn, msg.key);
+        return;
     }
   }
 
@@ -319,6 +336,7 @@ export class Cohort extends Server<CohortEnv> {
         menus: hypothesisMenus(),
         missionCatalog: this.missionCatalog(),
       });
+      await this.sendVoice(conn, token, run.civId);
       await this.sendSky(conn, token, run.civId);
       return;
     }
@@ -358,13 +376,18 @@ export class Cohort extends Server<CohortEnv> {
     const token = state.token;
 
     // Idempotency: already placed (this conn or a stored run) → re-send sky.
+    // The ceremony re-sends `become` on reload, so this path fires on every
+    // reconnect of an already-placed run — sendVoice before sendSky, same
+    // as every other placement path below.
     if (state.civId !== null) {
+      await this.sendVoice(conn, token, state.civId);
       await this.sendSky(conn, token, state.civId);
       return;
     }
     const existing = await this.ctx.storage.get<RunRecord>(`run:${token}`);
     if (existing !== undefined) {
       state.civId = existing.civId;
+      await this.sendVoice(conn, token, existing.civId);
       await this.sendSky(conn, token, existing.civId);
       return;
     }
@@ -398,6 +421,7 @@ export class Cohort extends Server<CohortEnv> {
     const already = galaxy.civs.find((c) => c.seed.id === civId);
     if (already !== undefined) {
       state.civId = civId;
+      await this.sendVoice(conn, token, civId);
       await this.sendSky(conn, token, civId);
       return;
     }
@@ -415,9 +439,12 @@ export class Cohort extends Server<CohortEnv> {
     await this.ctx.storage.put(`run:${token}`, run);
     state.civId = civId;
 
-    // This connection sees its own sky; every other placed connection gets a
-    // fresh observer-relative sky (membership changed — a new warm source
-    // entered their field).
+    // This connection sees its own sky (and, this being its first placement,
+    // its arrival line + frame explainers); every other placed connection
+    // gets a fresh observer-relative sky only — membership changed for THEM
+    // (a new warm source entered their field), but their own placement
+    // didn't, so their voice state is untouched.
+    await this.sendVoice(conn, token, civId);
     await this.sendSky(conn, token, civId);
     for (const [id, other] of this.conns) {
       if (id === conn.id) continue;
@@ -471,6 +498,26 @@ export class Cohort extends Server<CohortEnv> {
     const state = this.conns.get(conn.id);
     if (state === undefined || state.civId === null) return;
     await this.sendSky(conn, state.token, state.civId);
+  }
+
+  /**
+   * voiceSeen: the client dismissed one one-time line — record it so it
+   * never replays. Not placed → return silently, same rationale as the
+   * parse-time drop in protocol.ts (no error code for bookkeeping). Nothing
+   * in the sky depends on this, so no sendSky follows. Idempotent by both
+   * the includes-check below and the full-value put: the DO is
+   * single-threaded, so there is no read-modify-write race to guard
+   * against, only a redundant write to skip.
+   */
+  private async onVoiceSeen(conn: Connection, key: VoiceKey): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) return;
+    const voiceState = await this.loadVoiceState(state.token);
+    if (voiceState.seen.includes(key)) return;
+    await this.saveVoiceState(state.token, {
+      version: 1,
+      seen: [...voiceState.seen, key],
+    });
   }
 
   /**
@@ -814,6 +861,48 @@ export class Cohort extends Server<CohortEnv> {
 
   private async saveMissionState(token: string, state: MissionState): Promise<void> {
     await this.ctx.storage.put(`missions:${token}`, state);
+  }
+
+  /**
+   * AV1: a run placed before this stage has no stored voice record, which
+   * means it has seen none of the one-time lines — accepted, deliberately:
+   * all four fire once for a pre-AV1 run, same as a brand-new one. Pure
+   * read; a missing record is NOT written back here (sendVoice writes only
+   * once a line has actually been sent). Stored keys are filtered through
+   * isVoiceKey for forward-compat hygiene (a future VoiceKey removal must
+   * not leave a stale value crashing this read).
+   */
+  private async loadVoiceState(token: string): Promise<VoiceState> {
+    const stored = await this.ctx.storage.get<VoiceState>(`voice:${token}`);
+    if (stored === undefined) return { version: 1, seen: [] };
+    return { version: 1, seen: stored.seen.filter(isVoiceKey) };
+  }
+
+  private async saveVoiceState(token: string, state: VoiceState): Promise<void> {
+    await this.ctx.storage.put(`voice:${token}`, state);
+  }
+
+  /**
+   * AV1: send the lines this player has not yet been shown — arrival (this
+   * civ's archetype), and the three frame explainers (age chip, compute,
+   * clock). Sent on placement only, right before that path's sendSky —
+   * never from sendSky itself, which repeats on every alarm-driven resend
+   * and every verb; the voice message would otherwise replay endlessly.
+   * Sends `{ type: "voice", lines }` even when `lines` is empty: one
+   * deterministic contract, the payload always REPLACES what the client
+   * holds rather than patching it.
+   */
+  private async sendVoice(conn: Connection, token: string, civId: string): Promise<void> {
+    const galaxy = this.requireGalaxy();
+    const selfCiv = civById(galaxy, civId);
+    const voiceState = await this.loadVoiceState(token);
+    const seen = new Set(voiceState.seen);
+    const lines: Partial<Record<VoiceKey, string>> = {};
+    if (!seen.has("arrival")) lines.arrival = arrivalLine(selfCiv.seed.archetype);
+    if (!seen.has("age")) lines.age = ageChipLine();
+    if (!seen.has("compute")) lines.compute = computeLine();
+    if (!seen.has("clock")) lines.clock = clockLine();
+    this.sendMsg(conn, { type: "voice", lines });
   }
 
   /**
