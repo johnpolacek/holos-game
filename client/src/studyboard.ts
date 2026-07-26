@@ -47,6 +47,8 @@ import type {
   ReportPayload,
   ReportEntry,
   ReportRoute,
+  Proposal,
+  ProposalRoute,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { CLASS_LABEL } from "./sourcecard";
@@ -159,6 +161,10 @@ export class StudyBoard {
   /** The current effective probe cruise rate (years/ly), from the latest
    *  sky — feeds the launch sheet's client-side clock preview. */
   private probeFlightYearsPerLy = 10;
+  // AV3: the mind's current proposals, wholesale-replaced on every `sky` —
+  // never appended, never re-sorted client-side (the server's ranked order
+  // is load-bearing).
+  private proposals: readonly Proposal[] = [];
 
   private openFlag = false;
   private view:
@@ -181,8 +187,16 @@ export class StudyBoard {
   // came from — the back button returns there, so Tend, Projects and the
   // Report each get their own way in without the sheet forking.
   private focusedProjectId: string | null = null;
-  private projectReturn: "tend" | "projects" | "report" = "projects";
+  // AV3: "hub" joins the return set — a proposal's `project` route opens the
+  // detail sheet from the hub, so its back button must come home there.
+  private projectReturn: "tend" | "projects" | "report" | "hub" = "projects";
   private openStudyCount = 0;
+
+  // AV3: a one-shot pointer set by focusStudyQuestion (a proposal's
+  // `question` route) — the next renderFocused() scrolls the matching row
+  // into view and clears this, so the 1s tick never re-scrolls the sheet
+  // under the player's thumb.
+  private highlightQuestionId: string | null = null;
 
   // The launch sheet's in-progress selection — cleared each time openLaunch
   // opens fresh (a half-written charter never survives a close/reopen).
@@ -223,14 +237,21 @@ export class StudyBoard {
   // nowYear(), never from server polling.
   private tickHandle: number | null = null;
 
+  // AV3: the hub's budget line element, set by buildBudgetLine() whenever
+  // the hub is the caller. The ticker's hub branch updates only this
+  // element's textContent instead of re-rendering the whole hub — a tick
+  // landing between finger-down and finger-up on a proposal row must never
+  // eat the tap (see refreshHubBudget()).
+  private hubBudgetEl: HTMLDivElement | null = null;
+
   private onInspectCb: ((starId: string) => void) | null = null;
 
   // AV1: the one-time hub explainer (compute, then later the clock note).
-  // renderHub() re-runs every second while the panel is open (startTicking)
-  // and on every sky, so nothing one-shot can live inside it directly — the
-  // App sets this field once per hub open via setHubExplainer, and every
-  // render after that just reads it back, stable for the life of the panel
-  // session.
+  // renderHub() re-runs on every openHub() and on every sky (the 1s ticker
+  // no longer re-runs it in full — see refreshHubBudget/AV3), so nothing
+  // one-shot can live inside it directly — the App sets this field once
+  // per hub open via setHubExplainer, and every render after that just
+  // reads it back, stable for the life of the panel session.
   private explainerText: string | null = null;
   private onHubOpenCb: (() => void) | null = null;
 
@@ -348,6 +369,7 @@ export class StudyBoard {
     missions: readonly MissionSnapshot[],
     tend: readonly TendRow[],
     probeFlightYearsPerLy: number,
+    proposals: readonly Proposal[],
   ): void {
     this.studiesByStarId = new Map(studies.map((s) => [s.starId, s] as const));
     this.sourcesByStarId = new Map(sources.map((s) => [s.starId, s] as const));
@@ -358,6 +380,7 @@ export class StudyBoard {
     this.missionsById = new Map(missions.map((m) => [m.id, m] as const));
     this.tend = tend;
     this.probeFlightYearsPerLy = probeFlightYearsPerLy;
+    this.proposals = proposals;
     this.updateChip();
 
     // A begin sent from the briefing: this sky either carries the new study
@@ -512,7 +535,7 @@ export class StudyBoard {
     this.startTicking();
   }
 
-  focusProject(projectId: string, from: "tend" | "projects" | "report"): void {
+  focusProject(projectId: string, from: "tend" | "projects" | "report" | "hub"): void {
     this.view = "project";
     this.focusedProjectId = projectId;
     this.projectReturn = from;
@@ -562,6 +585,26 @@ export class StudyBoard {
     this.startTicking();
   }
 
+  /** AV3: a proposal's `question` route — focuses the study and scrolls its
+   *  matching OPEN QUESTIONS row into view. Guards on the study still being
+   *  in this session's sky (the AV3 design's "target fades mid-session"
+   *  edge case) and falls back to the hub rather than opening a focus view
+   *  for a study that no longer exists. The scroll itself is one-shot: see
+   *  `highlightQuestionId` and renderFocused's oqSection loop. */
+  private focusStudyQuestion(starId: string, questionId: string): void {
+    if (!this.studiesByStarId.has(starId)) {
+      this.openHub();
+      return;
+    }
+    this.view = "focused";
+    this.focusedStarId = starId;
+    this.highlightQuestionId = questionId;
+    this.renderFocused(starId);
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
   close(): void {
     this.openFlag = false;
     this.root.classList.remove("open");
@@ -583,7 +626,12 @@ export class StudyBoard {
   private startTicking(): void {
     if (this.tickHandle !== null) return;
     this.tickHandle = window.setInterval(() => {
-      if (this.view === "hub") this.renderHub();
+      // AV3: the hub's only time-varying content is the budget line — a
+      // full renderHub() every second would wipe the body between
+      // finger-down and finger-up on a proposal's accept/decline buttons.
+      // Update just that element's text; fall back to a full render if it
+      // has fallen out of the document (defensive only).
+      if (this.view === "hub") this.refreshHubBudget();
       else if (this.view === "projects") this.renderProjects();
       else if (this.view === "project") this.renderProjectDetail();
       else if (this.view === "focused" && this.focusedStarId !== null) {
@@ -614,11 +662,30 @@ export class StudyBoard {
    * word has to carry that on its own because it is the only place the
    * player meets the currency.
    */
+  private budgetLineText(): string {
+    return `${Math.floor(this.currentFreeCompute())} COMPUTE UNCOMMITTED · +${this.budget.ratePerYear}/Y`;
+  }
+
   private buildBudgetLine(): HTMLDivElement {
     const line = document.createElement("div");
     line.className = "study-budget-line holos-caps";
-    line.textContent = `${Math.floor(this.currentFreeCompute())} COMPUTE UNCOMMITTED · +${this.budget.ratePerYear}/Y`;
+    line.textContent = this.budgetLineText();
+    // AV3: the hub's copy is the one the 1s ticker updates in place
+    // (refreshHubBudget) rather than through a full renderHub().
+    if (this.view === "hub") this.hubBudgetEl = line;
     return line;
+  }
+
+  /** AV3: the ticker's hub branch — updates only the budget line's text,
+   *  never the whole hub body, so a tick cannot land between finger-down
+   *  and finger-up on a proposal row. Falls back to a full renderHub() if
+   *  the element has fallen out of the document. */
+  private refreshHubBudget(): void {
+    if (this.hubBudgetEl !== null && this.hubBudgetEl.isConnected) {
+      this.hubBudgetEl.textContent = this.budgetLineText();
+    } else {
+      this.renderHub();
+    }
   }
 
   /** Escape closes the panel on a keyboard — the desktop equivalent of the
@@ -721,6 +788,22 @@ export class StudyBoard {
 
     this.body.append(this.hairline());
 
+    // AV3: the mind's proposals — a live, present-tense block that renders
+    // only when there is something to say. See buildProposalRow's comment
+    // for the row anatomy and why this is not another buildHubRow.
+    if (this.proposals.length > 0) {
+      const proposalHeader = document.createElement("div");
+      proposalHeader.className = "study-section-header holos-caps";
+      proposalHeader.textContent = "WHAT WE WOULD DO NEXT";
+      this.body.append(proposalHeader);
+
+      for (const proposal of this.proposals) {
+        this.body.append(this.buildProposalRow(proposal));
+      }
+
+      this.body.append(this.hairline());
+    }
+
     this.body.append(
       this.buildHubRow(
         "Start a study",
@@ -800,6 +883,83 @@ export class StudyBoard {
 
     btn.append(labelEl, subEl);
     return btn;
+  }
+
+  /**
+   * AV3: one proposal — two SIBLING buttons, never nested. `.proposal-accept`
+   * carries the deadpan reason (plus the AV4 stance, when the mind has one)
+   * and the accept verb; `.proposal-decline` is the one-tap, no-confirmation
+   * "no". A distinct block from buildHubRow deliberately: a proposal is a
+   * sentence from a different speaker, not a place-name-over-sublabel browse
+   * row, and rendering it in the same clothes would blur that.
+   */
+  private buildProposalRow(p: Proposal): HTMLDivElement {
+    const row = document.createElement("div");
+    row.className = "proposal-row";
+
+    const accept = document.createElement("button");
+    accept.type = "button";
+    accept.className = "proposal-accept";
+    accept.addEventListener("click", () => this.followProposalRoute(p.route));
+
+    const line = document.createElement("div");
+    line.className = "proposal-line";
+    line.textContent = p.line;
+    accept.append(line);
+
+    // AV4-only: always omitted at the AV3 floor, where stance is always null.
+    if (p.stance !== null) {
+      const stance = document.createElement("div");
+      stance.className = "proposal-stance";
+      stance.textContent = p.stance;
+      accept.append(stance);
+    }
+
+    const verb = document.createElement("div");
+    verb.className = "proposal-verb holos-caps";
+    verb.textContent = p.verb;
+    accept.append(verb);
+
+    const decline = document.createElement("button");
+    decline.type = "button";
+    decline.className = "proposal-decline holos-caps";
+    decline.textContent = "LEAVE IT";
+    decline.setAttribute("aria-label", `Leave it: ${p.line}`);
+    decline.addEventListener("click", () => {
+      // Quiet, one tap, no confirmation — declining is free and costs
+      // nothing to be wrong about. Optimistic local filter; the confirming
+      // `sky` re-supplies the (shorter) list wholesale. If the message is
+      // dropped the proposal simply returns on the next `sky`.
+      this.socket.send({ type: "declineProposal", id: p.id });
+      this.proposals = this.proposals.filter((x) => x.id !== p.id);
+      this.renderHub();
+    });
+
+    row.append(accept, decline);
+    return row;
+  }
+
+  /** followReportRoute's twin: every arm names an EXISTING client entry
+   *  point, so accepting a proposal never opens anything AV3 builds.
+   *  Accepting writes nothing server-side — there is no `acceptProposal`
+   *  message. Opening a surface is not a decision, so the candidate re-arms
+   *  if the player backs out without committing (the AV3 design's edge
+   *  case — "accept-then-don't-commit"). */
+  private followProposalRoute(route: ProposalRoute): void {
+    switch (route.kind) {
+      case "study-brief":
+        this.openBrief(route.starId);
+        break;
+      case "question":
+        this.focusStudyQuestion(route.starId, route.questionId);
+        break;
+      case "launch":
+        this.openLaunch(route.starId);
+        break;
+      case "project":
+        this.focusProject(route.projectId, "hub");
+        break;
+    }
   }
 
   /** "3 under way · 2 watching · 1 silent" / "Nothing under way." — the
@@ -1118,7 +1278,10 @@ export class StudyBoard {
   // tell apart, and what it will and will not cost. Nothing here invents a
   // spend: compute buys questions, and questions are their own slice.
 
-  private openBrief(starId: string): void {
+  /** AV3: public — a proposal's `study-brief` route (followProposalRoute)
+   *  is the mind's own affordance for opening this same brief, alongside
+   *  the picker row's tap. */
+  openBrief(starId: string): void {
     this.view = "brief";
     this.briefStarId = starId;
     this.pendingBeginStarId = null;
@@ -1384,6 +1547,9 @@ export class StudyBoard {
       } else if (this.projectReturn === "report") {
         this.view = "report";
         this.renderReport();
+      } else if (this.projectReturn === "hub") {
+        this.view = "hub";
+        this.renderHub();
       } else {
         this.view = "projects";
         this.renderProjects();
@@ -1398,6 +1564,7 @@ export class StudyBoard {
     back.addEventListener("click", () => {
       if (this.projectReturn === "tend") this.openTend();
       else if (this.projectReturn === "report") this.openReport();
+      else if (this.projectReturn === "hub") this.openHub();
       else this.openProjects();
     });
     this.body.append(back);
@@ -1510,6 +1677,10 @@ export class StudyBoard {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "study-project-row";
+      // AV3: tagged so a proposal's `question` route (focusStudyQuestion)
+      // can find and scroll to this row — all three branches below carry
+      // the same tag.
+      btn.dataset.questionId = q.id;
 
       const label = document.createElement("div");
       label.className = "study-project-label holos-serif";
@@ -1560,6 +1731,7 @@ export class StudyBoard {
     if (q.state === "pending") {
       const row = document.createElement("div");
       row.className = "study-project-row study-project-row--disabled";
+      row.dataset.questionId = q.id;
       const label = document.createElement("div");
       label.className = "study-project-label holos-serif";
       label.textContent = q.label;
@@ -1574,6 +1746,7 @@ export class StudyBoard {
     // "answered"
     const row = document.createElement("div");
     row.className = "study-project-row study-project-row--disabled";
+    row.dataset.questionId = q.id;
     const label = document.createElement("div");
     label.className = "study-project-label holos-serif";
     label.textContent = q.label;
@@ -2489,8 +2662,16 @@ export class StudyBoard {
     oqSection.append(oqHeader);
 
     const evidenceIds = new Set(s.evidence.map((e) => e.id));
+    // AV3: capture the row a proposal's `question` route asked to be
+    // highlighted, so it can be scrolled into view once the whole render
+    // (including the verb row below) is on the DOM.
+    let highlightedQuestionEl: HTMLElement | null = null;
     for (const q of s.openQuestions) {
-      oqSection.append(this.buildQuestionRow(starId, q, evidenceIds, s.status !== "grounded"));
+      const questionRow = this.buildQuestionRow(starId, q, evidenceIds, s.status !== "grounded");
+      if (this.highlightQuestionId !== null && q.id === this.highlightQuestionId) {
+        highlightedQuestionEl = questionRow;
+      }
+      oqSection.append(questionRow);
     }
     this.body.append(oqSection);
 
@@ -2521,6 +2702,18 @@ export class StudyBoard {
     }
     verbRow.append(verbBtn);
     this.body.append(verbRow);
+
+    // AV3: the one-shot scroll for a proposal's `question` route. Cleared
+    // BEFORE scheduling so the 1s tick's re-render of this same view (which
+    // calls renderFocused again) never re-scrolls the sheet under the
+    // player's thumb.
+    if (this.highlightQuestionId !== null) {
+      this.highlightQuestionId = null;
+      if (highlightedQuestionEl !== null) {
+        const target = highlightedQuestionEl;
+        requestAnimationFrame(() => target.scrollIntoView({ block: "center" }));
+      }
+    }
   }
 
   // ── Swipe-down to close ─────────────────────────────────────────────

@@ -24,6 +24,7 @@ import type {
   VoiceLines,
   VoiceKey,
   ReportPayload,
+  Proposal,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { StudyBoard } from "./studyboard";
@@ -74,6 +75,10 @@ export class App {
   private missions: readonly MissionSnapshot[] = [];
   private tend: readonly TendRow[] = [];
   private probeFlightYearsPerLy = 10;
+  // AV3: the mind's current proposals, wholesale-replaced on every `sky` —
+  // never appended, never re-sorted client-side (the server's ranked order
+  // is load-bearing, per the AV3 design).
+  private proposals: readonly Proposal[] = [];
 
   // AV1: one-time lines the mind speaks. A key present means unseen — the
   // payload's whole shape carries no-replay, so this is just the latest
@@ -142,6 +147,7 @@ export class App {
         this.missions = message.missions;
         this.tend = message.tend;
         this.probeFlightYearsPerLy = message.probeFlightYearsPerLy;
+        this.proposals = message.proposals;
         this.showSky(message.self, message.sources);
         break;
       case "sourceNamed":
@@ -291,6 +297,7 @@ export class App {
         this.missions,
         this.tend,
         this.probeFlightYearsPerLy,
+        this.proposals,
       );
       this.maybeFocusPendingStudy();
       return;
@@ -378,6 +385,7 @@ export class App {
         this.missions,
         this.tend,
         this.probeFlightYearsPerLy,
+        this.proposals,
       );
       // AV2: a `report` message can (and on placement, does) arrive before
       // this board exists — handleMessage stored it on `this.reportPayload`

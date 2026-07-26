@@ -206,7 +206,11 @@ body {
    remark. All running prose. */
 .report-header,
 .report-row-line,
-.report-remark {
+.report-remark,
+/* AV3: a proposal's reason and (AV4-only) the mind's stance — both
+   sentences, never the caps chrome beside them. */
+.proposal-line,
+.proposal-stance {
   text-wrap: pretty;
 }
 
@@ -982,6 +986,68 @@ body {
   /* Dim within the amber family — a switch to faint ink would read as a
      different kind of row, not a quieter one. */
   color: rgba(240, 172, 102, 0.5);
+}
+
+/* Hub view — AV3: the mind's proposals, above the standing rows and only
+ * present when there is something to say. A proposal is a sentence from a
+ * different speaker, not a place-over-sublabel browse row, so it is its own
+ * block rather than another .study-hub-row. Two SIBLING buttons per row,
+ * never nested: `.proposal-accept` carries the reason (and, from AV4 on,
+ * the mind's own stance) plus the accept verb; `.proposal-decline` is the
+ * quiet, one-tap "no" beside it. */
+.proposal-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.65rem 0.1rem;
+}
+
+.proposal-accept {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: var(--holos-ink);
+}
+
+.proposal-line {
+  font-size: var(--holos-text-sm);
+  line-height: 1.4;
+  color: var(--holos-ink);
+}
+
+/* AV4-only (always omitted at the AV3 floor, where stance is null) — the
+   mind's own free-standing sentence, styled like the report's own remark:
+   a little air, a step quieter than the reason above it. */
+.proposal-stance {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-dim);
+  margin-top: 0.1rem;
+}
+
+/* The one verb a proposal row exists to offer — the study-verb-btn--primary
+   precedent: still a word, not a slab, but it holds the amber. */
+.proposal-verb {
+  color: var(--holos-amber);
+}
+
+/* Quiet, one tap, no confirmation — a tier under the accept verb's ink, but
+   never --holos-text-xxs: this is a sentence-length affordance, not an
+   enclosed classifier a thumb reads by shape. */
+.proposal-decline {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  padding: 0.2rem 0;
+  color: var(--holos-ink-faint);
+  cursor: pointer;
 }
 
 /* Explore view — an UNDER STUDY marker on a picker-style row for a source
