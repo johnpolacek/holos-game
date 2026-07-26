@@ -1,7 +1,7 @@
 // GENERATED FILE — do not edit by hand.
 //
-// Source: docs/prose-style.md §6 (the Banks block and the Vinge block) plus
-// §8's comms register. Regenerate with `npm run sync:banned`; verify with
+// Source: docs/prose-style.md §6 (one block per source: banks, vinge, robinson, schroeder)
+// plus §8's comms register. Regenerate with `npm run sync:banned`; verify with
 // `npm run audit:banned`, which CI runs beside typecheck.
 //
 // The runtime projection of a doc-level grep: stylegate.ts is the only
@@ -80,6 +80,23 @@ export const BANNED_RULES: readonly BannedRule[] = [
   { source: "programmer.?archaeolog", flags: "", note: "vinge" },
   { source: "Zones? of Thought", flags: "", note: "vinge" },
   { source: "Slow Zone", flags: "", note: "vinge" },
+  { source: "Aurora", flags: "", note: "robinson — the destination-world name; ordinary aurora (borealis/australis) OK — case-sensitive, human-cleared" },
+  { source: "Devi", flags: "", note: "robinson" },
+  { source: "Freya", flags: "", note: "robinson" },
+  { source: "Badim", flags: "", note: "robinson" },
+  { source: "Euan", flags: "", note: "robinson" },
+  { source: "Jochi", flags: "", note: "robinson" },
+  { source: "\\block.?step\\b", flags: "", note: "schroeder — the title coinage as an in-world name; the netcode sense (deterministic simulation) is innocent in code commentary" },
+  { source: "cicada.?bed", flags: "", note: "schroeder" },
+  { source: "\\bdenner(s)?\\b", flags: "", note: "schroeder" },
+  { source: "McGonigal", flags: "", note: "schroeder" },
+  { source: "Toby Wyatt", flags: "", note: "schroeder" },
+  { source: "\\bEvayne\\b", flags: "", note: "schroeder" },
+  { source: "\\bCorva\\b", flags: "", note: "schroeder" },
+  { source: "\\bThisbe\\b", flags: "", note: "schroeder — the world; Ovid's Thisbe stays legal" },
+  { source: "\\bLowdown\\b", flags: "", note: "schroeder — the world sense; lowercase \"the lowdown\" idiom OK" },
+  { source: "\\bjubilee\\b", flags: "", note: "schroeder — as the in-world name of the aligned-calendar event; plain English jubilee OK" },
+  { source: "Emperor of Time", flags: "", note: "schroeder" },
   { source: "\\bletter(s)?\\b", flags: "i", note: "comms register, prose-style.md §8" },
   { source: "\\bcorrespondence\\b", flags: "i", note: "comms register, prose-style.md §8" },
 ];

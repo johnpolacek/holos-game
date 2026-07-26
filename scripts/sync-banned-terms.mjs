@@ -39,15 +39,30 @@ function fences(text) {
 
 const banned = section("## §6 — Banned terms", "## §7 — Sync obligations");
 const blocks = fences(banned);
-if (blocks.length !== 2) {
-  throw new Error(`§6 should hold exactly two fenced blocks, found ${blocks.length}`);
+
+// One fenced block per source, in document order. The first is Banks — §6
+// opens with it and gives it no `### nth source:` heading, because the guide
+// is written against Banks by default. Every later block is introduced by
+// one, and the label is that heading's author, lowercased. Deriving the
+// labels from the doc rather than a fixed list is what lets a new source
+// (Robinson, Schroeder, whoever the next review adopts) land as a doc edit
+// plus a regenerate, with no change here.
+const headings = [...banned.matchAll(/^### \w+ source: (\w+)/gm)].map((m) =>
+  m[1].toLowerCase(),
+);
+const LABELS = ["banks", ...headings];
+if (blocks.length !== LABELS.length) {
+  throw new Error(
+    `§6 holds ${blocks.length} fenced blocks but ${LABELS.length} sources ` +
+      `(${LABELS.join(", ")}). Every source past Banks needs a ` +
+      `"### <ordinal> source: <Author>" heading and exactly one block.`,
+  );
 }
 
 // Case sensitivity is the DEFAULT, deliberately: §6 is written as grep input
 // and several rules depend on case (\bMind\b vs. mind, \bContact\b vs.
 // contact, \bFocus(ed|ing)?\b vs. focus, \bEmergent(s)?\b). Compiling with no
 // `i` flag reproduces the doc's own grep semantics exactly.
-const LABELS = ["banks", "vinge"];
 const rules = [];
 
 blocks.forEach((block, i) => {
@@ -83,8 +98,8 @@ const body = rules
 
 const generated = `// GENERATED FILE — do not edit by hand.
 //
-// Source: docs/prose-style.md §6 (the Banks block and the Vinge block) plus
-// §8's comms register. Regenerate with \`npm run sync:banned\`; verify with
+// Source: docs/prose-style.md §6 (one block per source: ${LABELS.join(", ")})
+// plus §8's comms register. Regenerate with \`npm run sync:banned\`; verify with
 // \`npm run audit:banned\`, which CI runs beside typecheck.
 //
 // The runtime projection of a doc-level grep: stylegate.ts is the only
