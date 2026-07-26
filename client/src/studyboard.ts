@@ -1496,17 +1496,26 @@ export class StudyBoard {
     back.addEventListener("click", () => this.openHub());
     this.body.append(back);
 
+    // The count the hub row used to carry, now beside the title in the
+    // display face — a reading of the list, set against its name rather
+    // than a second line under it. Empty is the one case it sits out: the
+    // body already says "Nothing under way." and would say it twice.
+    const titleRow = document.createElement("div");
+    titleRow.className = "tend-titlerow";
+
     const header = document.createElement("div");
     header.className = "study-board-header holos-caps";
     header.textContent = "TEND";
-    this.body.append(header);
+    titleRow.append(header);
 
-    // The count the hub row used to carry, now under the title where the
-    // panel can say it in one line.
-    const summary = document.createElement("div");
-    summary.className = "study-board-empty";
-    summary.textContent = this.tendSummaryLine();
-    this.body.append(summary);
+    if (this.tend.length > 0) {
+      const summary = document.createElement("div");
+      summary.className = "tend-summary holos-serif";
+      summary.textContent = this.tendSummaryLine();
+      titleRow.append(summary);
+    }
+
+    this.body.append(titleRow);
 
     if (this.tend.length === 0) {
       const empty = document.createElement("div");

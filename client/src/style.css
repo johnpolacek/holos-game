@@ -1381,6 +1381,22 @@ body {
 /* ── The Tend, mission detail, and the launch sheet (Act 3, A2.2) ─────
  * Amber/ink only, same rule as the observatory — never --holos-cyan. */
 
+/* The Tend title line: TEND on the left, the live count in its upper right.
+   Baselines are aligned so the count sits ON the title's line rather than
+   floating above it; it stays quiet ink so the amber title still leads. */
+.tend-titlerow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.tend-summary {
+  color: var(--holos-ink-dim);
+  font-size: var(--holos-text-sm);
+  text-align: right;
+}
+
 /* Tend rows: label+sub on the left, class chip + state + next-date on the
    right. One level of indent for a row hanging under a study parent. */
 .tend-row {
