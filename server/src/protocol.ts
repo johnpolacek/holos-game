@@ -421,8 +421,8 @@ export interface MissionCatalog {
 // precedent — keeps voice.ts/minds.ts off the client). Nothing here concerns
 // any remote civ: these are the player's own civilization only.
 
-export type VoiceKey = "arrival" | "age" | "compute" | "clock";
-export const VOICE_KEYS: readonly VoiceKey[] = ["arrival", "age", "compute", "clock"];
+export type VoiceKey = "arrival" | "age" | "compute" | "clock" | "epoch";
+export const VOICE_KEYS: readonly VoiceKey[] = ["arrival", "age", "compute", "clock", "epoch"];
 export function isVoiceKey(v: unknown): v is VoiceKey {
   return v === "arrival" || v === "age" || v === "compute" || v === "clock";
 }

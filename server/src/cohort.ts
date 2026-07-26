@@ -44,7 +44,7 @@ import { emissionAt, lightConeFor, observeCiv, observeSky, visibleSky } from "./
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
-import { arrivalLine, ageChipLine, computeLine, clockLine } from "./voice";
+import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine } from "./voice";
 import {
   buildStudySnapshot,
   hypothesisMenus,
@@ -957,6 +957,9 @@ export class Cohort extends Server<CohortEnv> {
     if (!seen.has("age")) lines.age = ageChipLine();
     if (!seen.has("compute")) lines.compute = computeLine();
     if (!seen.has("clock")) lines.clock = clockLine();
+    // AV2: the epoch-dating explainer — the client shows it once, on the
+    // first report open (the report is where "year n AE" first appears).
+    if (!seen.has("epoch")) lines.epoch = epochLine();
     this.sendMsg(conn, { type: "voice", lines });
   }
 
