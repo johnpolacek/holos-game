@@ -199,7 +199,9 @@ body {
 .study-project-line,
 .tend-row-sub,
 .name-hint,
-.source-card-name-hint {
+.source-card-name-hint,
+.voice-beat-line,
+.voice-note {
   text-wrap: pretty;
 }
 
@@ -1311,6 +1313,90 @@ body {
  * the container carries the state-of-the-watch line until A2.2 fills it. */
 .study-open-questions {
   padding-top: 0.4rem;
+}
+
+/* ── Voice beat / inline explainers (AV1) ─────────────────────────────────
+ * The arrival beat is a sibling overlay root, NOT inside .model-overlay
+ * (that layer is pointer-events: none by contract and carries the HOME/
+ * landmark labels). z-index 4 is deliberate: it must sit above .study-chip
+ * — which opts itself into pointer-events even while its .study-board-root
+ * parent (z-index 3) is inert — so no explainer can ever stack over the
+ * beat, and the hub chip and canvas stay untappable while it is up. */
+.voice-beat-root {
+  position: absolute;
+  inset: 0;
+  z-index: 4; /* above .study-chip inside .study-board-root (z-index 3) */
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(1.5rem, env(safe-area-inset-top))
+    max(1.5rem, env(safe-area-inset-right))
+    max(1.5rem, env(safe-area-inset-bottom))
+    max(1.5rem, env(safe-area-inset-left));
+}
+
+.voice-beat-root.open {
+  pointer-events: auto;
+}
+
+/* A LIGHT wash — the pulled-back sky is what the line is spoken over, so
+ * this never blacks it out, only quiets it. */
+.voice-beat-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(239, 233, 219, 0.08);
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+
+.voice-beat-root.open .voice-beat-scrim {
+  opacity: 1;
+}
+
+/* position: relative (rather than static) so this paints above the
+ * absolutely-positioned scrim despite coming first in the root's flex
+ * layout — both become "positioned" boxes painted in DOM order. */
+.voice-beat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 24em;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(0.5rem);
+  transition:
+    opacity 320ms ease,
+    transform 320ms ease;
+}
+
+.voice-beat-root.open .voice-beat {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.voice-beat-line {
+  font-size: var(--holos-text-lg);
+  color: var(--holos-ink);
+}
+
+.voice-beat-dismiss {
+  background: transparent;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.55rem 1.4rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The inline one-time explainer note (sourcecard's age chip, studyboard's
+ * hub) — a step quieter than surrounding prose, never below the ink floor. */
+.voice-note {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-dim);
 }
 
 /* ── The study briefing ──────────────────────────────────────────────────

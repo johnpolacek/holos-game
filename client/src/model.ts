@@ -680,6 +680,7 @@ export class Model {
   private tapDown: { x: number; y: number; t: number; moved: boolean } | null = null;
   private selectedStarId: string | null = null;
   private selectCb: SelectSourceCallback | null = null;
+  private pullbackEndCb: (() => void) | null = null;
 
   // Screen position AND drawn radius per source, refreshed every frame: the
   // hit test reads the radius so the tappable area is exactly what the player
@@ -966,6 +967,12 @@ export class Model {
     this.selectCb = cb;
   }
 
+  /** Fired once, the frame the one-shot dolly-out completes. Never fired for
+   *  a "resume" enter — the caller owns that branch. */
+  onPullbackEnd(cb: () => void): void {
+    this.pullbackEndCb = cb;
+  }
+
   /** Deselect without a tap (e.g. the source card's own backdrop/swipe-down
    * dismiss). Does not fire onSelectSource — the closer already knows. */
   clearSelection(): void {
@@ -988,6 +995,7 @@ export class Model {
 
   destroy(): void {
     this.destroyed = true;
+    this.pullbackEndCb = null;
     // Listeners and the renderer only exist once the async init completed.
     if (this.ready) {
       this.detachInput();
@@ -1647,6 +1655,9 @@ export class Model {
       this.animating = false;
       this.pullT = 1;
       this.dist = DIST_VOLUME;
+      const cb = this.pullbackEndCb;
+      this.pullbackEndCb = null;
+      cb?.();
     }
   }
 

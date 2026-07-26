@@ -91,6 +91,7 @@ export class SourceCard {
 
   private readonly designationEl: HTMLSpanElement;
   private readonly nameArea: HTMLDivElement;
+  private readonly header: HTMLDivElement;
   private readonly ageChip: HTMLDivElement;
   private readonly thumb: HTMLDivElement;
   private readonly classEl: HTMLSpanElement;
@@ -111,6 +112,7 @@ export class SourceCard {
   private nameOverride: NameOverride | null = null;
   private studyStatus: StudyStatus | null = null;
   private missionState: MissionCardState | null = null;
+  private explainerEl: HTMLDivElement | null = null;
 
   private dragStartY: number | null = null;
   private dragDy = 0;
@@ -152,6 +154,7 @@ export class SourceCard {
 
     const header = document.createElement("div");
     header.className = "source-card-header";
+    this.header = header;
 
     const idLine = document.createElement("div");
     idLine.className = "source-card-idline";
@@ -276,10 +279,28 @@ export class SourceCard {
     this.nameOverride = null;
     this.studyStatus = null;
     this.missionState = null;
+    this.setExplainer(null); // a second source never inherits the first's note
     this.renderAll();
     this.renderStudyRow();
     this.renderMissionRow();
     this.root.classList.add("open");
+  }
+
+  /** AV1: the one-time age-chip explainer, shown at most once ever (App
+   *  decides via takeVoice). Renders right after the age chip, before the
+   *  hairline; null removes it. */
+  setExplainer(text: string | null): void {
+    if (text === null) {
+      this.explainerEl?.remove();
+      this.explainerEl = null;
+      return;
+    }
+    if (this.explainerEl === null) {
+      this.explainerEl = document.createElement("div");
+      this.explainerEl.className = "voice-note";
+      this.header.append(this.explainerEl);
+    }
+    this.explainerEl.textContent = text;
   }
 
   /** The study for the currently open source, or null if none exists yet.

@@ -221,6 +221,15 @@ export class StudyBoard {
 
   private onInspectCb: ((starId: string) => void) | null = null;
 
+  // AV1: the one-time hub explainer (compute, then later the clock note).
+  // renderHub() re-runs every second while the panel is open (startTicking)
+  // and on every sky, so nothing one-shot can live inside it directly — the
+  // App sets this field once per hub open via setHubExplainer, and every
+  // render after that just reads it back, stable for the life of the panel
+  // session.
+  private explainerText: string | null = null;
+  private onHubOpenCb: (() => void) | null = null;
+
   private dragStartY: number | null = null;
   private dragDy = 0;
 
@@ -430,6 +439,9 @@ export class StudyBoard {
   }
 
   openHub(): void {
+    // Fires first, before renderHub(), so the App's setHubExplainer() (if it
+    // calls one) is already in `explainerText` for the very first render.
+    this.onHubOpenCb?.();
     this.view = "hub";
     this.focusedStarId = null;
     this.renderHub();
@@ -578,6 +590,20 @@ export class StudyBoard {
     this.onInspectCb = cb;
   }
 
+  /** Registers the callback fired as the FIRST step of every openHub(),
+   *  before that call's renderHub() — so a setHubExplainer() the callback
+   *  makes is already in `explainerText` for the very first render. */
+  onHubOpen(cb: () => void): void {
+    this.onHubOpenCb = cb;
+  }
+
+  /** AV1: the hub's one-time explainer line (compute, then later the
+   *  clock), or null for none. The App drives this via takeVoice — stable
+   *  across the panel's re-renders because renderHub() only reads it back. */
+  setHubExplainer(text: string | null): void {
+    this.explainerText = text;
+  }
+
   // ── Render: chrome ──────────────────────────────────────────────────
 
   /** The Start chip's text never changes; this keeps the open-study count
@@ -614,6 +640,13 @@ export class StudyBoard {
     this.body.append(subtitle);
 
     this.body.append(this.buildBudgetLine());
+
+    if (this.explainerText !== null) {
+      const note = document.createElement("div");
+      note.className = "voice-note";
+      note.textContent = this.explainerText;
+      this.body.append(note);
+    }
 
     this.body.append(this.hairline());
 

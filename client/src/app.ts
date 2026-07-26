@@ -21,6 +21,8 @@ import type {
   MissionCatalog,
   WorkState,
   TendRow,
+  VoiceLines,
+  VoiceKey,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { StudyBoard } from "./studyboard";
@@ -28,6 +30,7 @@ import { clearPendingBecome, hasPendingBecome, renderCeremony } from "./ceremony
 import { Model } from "./model";
 import { SourceCard, type MissionCardState } from "./sourcecard";
 import { setClockAnchor } from "./clock";
+import { VoiceBeat } from "./voicebeat";
 
 /** Tend states that mean a mission is still under way — everything but a
  *  terminal returned/silent (missions.ts's missionWorkState never emits
@@ -70,6 +73,13 @@ export class App {
   private missions: readonly MissionSnapshot[] = [];
   private tend: readonly TendRow[] = [];
   private probeFlightYearsPerLy = 10;
+
+  // AV1: one-time lines the mind speaks. A key present means unseen — the
+  // payload's whole shape carries no-replay, so this is just the latest
+  // `voice` wholesale-replaced (a key already taken this session is dropped
+  // locally by takeVoice/playArrival, never re-added).
+  private voiceLines: VoiceLines = {};
+  private voiceBeat: VoiceBeat | null = null;
 
   // Set when the source card fires onStudyAction for a source with no study
   // yet: we've sent `openStudy` and are waiting for the confirming `sky` to
@@ -127,6 +137,9 @@ export class App {
         if (message.name === "") this.localNames.delete(message.starId);
         else this.localNames.set(message.starId, message.name);
         this.sourceCard?.handleServerMessage(message);
+        break;
+      case "voice":
+        this.voiceLines = message.lines;
         break;
       case "error":
         // The ceremony subscribes to the socket directly for become-
@@ -189,6 +202,31 @@ export class App {
     this.pendingStudyFocus = null;
   }
 
+  /** Take a one-time line if still held: returns it once, reports it shown,
+   *  never returns it again this session. */
+  private takeVoice(key: VoiceKey): string | null {
+    const text = this.voiceLines[key];
+    if (text === undefined) return null;
+    this.voiceLines = { ...this.voiceLines, [key]: undefined };
+    this.socket.send({ type: "voiceSeen", key });
+    return text;
+  }
+
+  /** The arrival beat is the exception to takeVoice's report-on-take: the
+   *  tap is the acknowledgement, so `voiceSeen` is reported ON DISMISS, not
+   *  here — a crash mid-beat replays it next session, the friendlier
+   *  failure. Safe to call more than once (double-mount guarded). */
+  private playArrival(): void {
+    if (this.voiceBeat !== null) return;
+    const text = this.voiceLines["arrival"];
+    if (text === undefined) return;
+    this.voiceLines = { ...this.voiceLines, arrival: undefined };
+    this.voiceBeat = new VoiceBeat(this.root, text, () => {
+      this.socket.send({ type: "voiceSeen", key: "arrival" });
+      this.voiceBeat = null;
+    });
+  }
+
   private showSky(self: SelfView, sources: readonly DetectedSource[]): void {
     // Later sky messages (another civ joined, or the calm-cadence refresh)
     // just update the Model and, if a card is open, its live source data.
@@ -239,6 +277,7 @@ export class App {
           sourceCard.open(source, this.localNames);
           sourceCard.setStudyStatus(this.findStudy(source.starId)?.status ?? null);
           sourceCard.setMissionState(this.findMissionState(source.starId));
+          sourceCard.setExplainer(this.takeVoice("age"));
         }
       });
       sourceCard.onClose(() => model.clearSelection());
@@ -249,6 +288,7 @@ export class App {
         sourceCard.open(source, this.localNames);
         sourceCard.setStudyStatus(this.findStudy(starId)?.status ?? null);
         sourceCard.setMissionState(this.findMissionState(starId));
+        sourceCard.setExplainer(this.takeVoice("age"));
       });
       sourceCard.onStudyAction((starId) => {
         if (this.findStudy(starId) !== undefined) {
@@ -270,6 +310,15 @@ export class App {
           studyBoard.openLaunch(starId);
         }
       });
+      // AV1: the mind's first line, at the end of the one-shot pull-back.
+      model.onPullbackEnd(() => this.playArrival());
+      // AV1: at most one hub explainer per open — compute first, the clock
+      // note on a later open (idempotent: takeVoice empties whichever it
+      // returns, so a second call in the same session yields the next one).
+      studyBoard.onHubOpen(() => {
+        const lineText = this.takeVoice("compute") ?? this.takeVoice("clock");
+        if (lineText !== null) studyBoard.setHubExplainer(lineText);
+      });
 
       model.setSky(self, sources);
       studyBoard.update(
@@ -284,10 +333,21 @@ export class App {
       );
       model.enter(mode);
       clearPendingBecome();
+      if (mode === "resume") {
+        // clearPendingBecome() (above) runs at pull-back START, not end — so
+        // a reload mid-dolly resumes straight into "resume" mode with no
+        // pull-back at all, and onPullbackEnd above will never fire. The
+        // arrival line is still unseen server-side, so play it here instead,
+        // after a short beat so it doesn't land in the same frame as the
+        // sky mounting.
+        window.setTimeout(() => this.playArrival(), 600);
+      }
       return () => {
         model.destroy();
         sourceCard.destroy();
         studyBoard.destroy();
+        this.voiceBeat?.destroy();
+        this.voiceBeat = null;
         if (this.model === model) this.model = null;
         if (this.sourceCard === sourceCard) this.sourceCard = null;
         if (this.studyBoard === studyBoard) this.studyBoard = null;
