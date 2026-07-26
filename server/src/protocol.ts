@@ -424,7 +424,10 @@ export interface MissionCatalog {
 export type VoiceKey = "arrival" | "age" | "compute" | "clock" | "epoch";
 export const VOICE_KEYS: readonly VoiceKey[] = ["arrival", "age", "compute", "clock", "epoch"];
 export function isVoiceKey(v: unknown): v is VoiceKey {
-  return v === "arrival" || v === "age" || v === "compute" || v === "clock";
+  // Derived from VOICE_KEYS so the union, the array, and the guard cannot
+  // drift apart (adding "epoch" to only two of the three cost a real bug:
+  // the client-side parse dropped every voice message whole).
+  return typeof v === "string" && (VOICE_KEYS as readonly string[]).includes(v);
 }
 
 /** The lines this player has NOT yet been shown. A key absent means already

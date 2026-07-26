@@ -202,6 +202,12 @@ interface ConnState {
   readonly conn: Connection;
   readonly token: string;
   civId: string | null;
+  /** AV2: the lastServedYear the placement-path report was built against.
+   *  A requestReport refresh in the same session rebuilds against THIS, not
+   *  the stored (already-advanced) marker — so the session's header and
+   *  promoted remark survive a reopen instead of vanishing on the first
+   *  refresh (the design's "a refresh reuses the same header"). */
+  reportBaselineYear: number | null;
 }
 
 function json(data: unknown, status = 200): Response {
@@ -337,7 +343,7 @@ export class Cohort extends Server<CohortEnv> {
     const token = tokenIn ?? crypto.randomUUID();
     const run = await this.ctx.storage.get<RunRecord>(`run:${token}`);
     if (run !== undefined) {
-      this.conns.set(conn.id, { conn, token, civId: run.civId });
+      this.conns.set(conn.id, { conn, token, civId: run.civId, reportBaselineYear: null });
       this.sendMsg(conn, {
         type: "welcome",
         token,
@@ -352,7 +358,7 @@ export class Cohort extends Server<CohortEnv> {
       await this.sendSky(conn, token, run.civId);
       return;
     }
-    this.conns.set(conn.id, { conn, token, civId: null });
+    this.conns.set(conn.id, { conn, token, civId: null, reportBaselineYear: null });
     this.sendMsg(conn, {
       type: "welcome",
       token,
@@ -988,10 +994,20 @@ export class Cohort extends Server<CohortEnv> {
     const selfCiv = civById(galaxy, civId);
 
     const state = await this.materializeReport(token, civId, nowYear);
-    const payload = buildReportPayload(state, nowYear, selfCiv.seed.archetype);
+    const connState = this.conns.get(conn.id);
+    // A same-session refresh serves against the placement serve's baseline,
+    // not the stored marker (which the placement serve already advanced) —
+    // otherwise the first reopen would erase the header and remark the
+    // session was just served.
+    const baseline =
+      !opts.advance && connState !== undefined && connState.reportBaselineYear !== null
+        ? { ...state, lastServedYear: connState.reportBaselineYear }
+        : state;
+    const payload = buildReportPayload(baseline, nowYear, selfCiv.seed.archetype);
     this.sendMsg(conn, { type: "report", report: payload });
 
     if (opts.advance) {
+      if (connState !== undefined) connState.reportBaselineYear = state.lastServedYear;
       await this.saveReportState(token, { ...state, lastServedYear: nowYear });
     }
   }
