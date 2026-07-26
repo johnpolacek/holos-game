@@ -161,7 +161,10 @@ ignore it have their entrance chosen for them.
 
 ### Projects
 
-The deep-time work the player directs, placed on the home-system map.
+The deep-time work the player directs, placed on the home-system map. The
+full anatomy — the project/launch/mission boundary, the two-part clock,
+the lifecycle, and the concurrency model — is pinned in
+[projects.md](./projects.md); this section keeps the act-level view.
 Three families:
 
 - **Bright** (energy ladder): swarm stages, star-lifting, high-output
