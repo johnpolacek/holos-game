@@ -23,8 +23,42 @@ jobs:
       - name: Typecheck (client + server)
         run: npm run typecheck
 
+      # AV4, prose-style.md §6 ↔ bannedterms.ts. The generated module is the
+      # runtime projection of the guide's banned-terms list; this fails if §6
+      # was edited without regenerating, or if the module was hand-edited.
+      - name: Audit banned terms (§6 sync)
+        run: npm run audit:banned
+
+      # AV4, prose-style.md §3 R-37 — the generated voice reaches nothing.
+      # (a) is the denylist: no truth-bearing or catalog module. (b) is the
+      # allowlist, which fails CLOSED when someone adds a new module and
+      # imports it. Both read every `from "..."` specifier, so a multi-line
+      # import cannot slip past either one.
+      - name: R-37 import allowlist (voicegen + stylegate)
+        run: |
+          set -euo pipefail
+          FILES="server/src/voicegen.ts server/src/stylegate.ts"
+          if grep -nE 'from "\./(knowledge|galaxy|studies|missions|questions|projects|tend|clock|rng|cradles|lineages|dials|names)(\.js)?"' $FILES; then
+            echo "R-37 violation: a generation module imports a truth-bearing or catalog module"
+            exit 1
+          fi
+          LEFTOVER=$(grep -hoE 'from "[^"]+"' $FILES \
+            | sed -E 's/^from //' | sort -u \
+            | grep -vxE '"(\./(voice|stylegate|bannedterms|minds|civseed|report|proposals|protocol)(\.js)?|@anthropic-ai/sdk)"' || true)
+          if [ -n "$LEFTOVER" ]; then
+            echo "R-37 violation: import specifier(s) outside the allowlist:"
+            echo "$LEFTOVER"
+            exit 1
+          fi
+
       - name: Build (client + server)
         run: npm run build
+
+      # AV4, prose-style.md §3 R-38. Runs after `build` because it imports the
+      # COMPILED gate, so the audit can never drift from the code that ships.
+      # If this fails, the gate is wrong, not the banks.
+      - name: Audit the style gate against every shipped bank string
+        run: npm run audit:voice
 
       # Deploy validation, run on every PR and push to main. `--dry-run`
       # bundles the Worker and validates wrangler.jsonc + every binding

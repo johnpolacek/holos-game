@@ -697,7 +697,10 @@ export const REPORT_REMARKS: ByArchetype<
     ],
     sent: [
       "Another of our voices is on its way to somebody, carrying what we meant at the moment we meant it.",
-      "We have never once managed to send a thing quietly. We are told this is a fault. We send anyway.",
+      // R-31 fix (AV4, found by `npm run audit:voice`): this read as three
+      // sentences against the rule's bound of two. The semicolon joins two
+      // whole clauses (R-9); not one word changed.
+      "We have never once managed to send a thing quietly. We are told this is a fault; we send anyway.",
       "It leaves as a message and arrives as a memory. We made our peace with that arrangement long ago.",
     ],
     spoken: [

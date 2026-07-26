@@ -14,7 +14,10 @@
     "art:manifest": "node scripts/build-art-manifest.mjs",
     "icons": "node scripts/build-icons.mjs",
     "og": "node scripts/build-og.mjs",
-    "audit:names": "node scripts/audit-names.mjs"
+    "audit:names": "node scripts/audit-names.mjs",
+    "sync:banned": "node scripts/sync-banned-terms.mjs",
+    "audit:banned": "node scripts/sync-banned-terms.mjs --check",
+    "audit:voice": "node scripts/audit-voice.mjs"
   },
   "devDependencies": {
     "sharp": "^0.34.5",
