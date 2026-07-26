@@ -101,6 +101,14 @@ import {
 } from "./questions";
 import { buildTendList } from "./tend";
 import {
+  buildReportPayload,
+  deriveReportEntries,
+  mergeReportEntries,
+  newReportState,
+  type DeriveReportEntriesInput,
+  type ReportState,
+} from "./report";
+import {
   parseCohortClientMessage,
   toWireSource,
   validateName,
@@ -310,6 +318,9 @@ export class Cohort extends Server<CohortEnv> {
       case "voiceSeen":
         await this.onVoiceSeen(conn, msg.key);
         return;
+      case "requestReport":
+        await this.onRequestReport(conn);
+        return;
     }
   }
 
@@ -337,6 +348,7 @@ export class Cohort extends Server<CohortEnv> {
         missionCatalog: this.missionCatalog(),
       });
       await this.sendVoice(conn, token, run.civId);
+      await this.sendReport(conn, token, run.civId, { advance: true });
       await this.sendSky(conn, token, run.civId);
       return;
     }
@@ -381,6 +393,7 @@ export class Cohort extends Server<CohortEnv> {
     // as every other placement path below.
     if (state.civId !== null) {
       await this.sendVoice(conn, token, state.civId);
+      await this.sendReport(conn, token, state.civId, { advance: true });
       await this.sendSky(conn, token, state.civId);
       return;
     }
@@ -388,6 +401,7 @@ export class Cohort extends Server<CohortEnv> {
     if (existing !== undefined) {
       state.civId = existing.civId;
       await this.sendVoice(conn, token, existing.civId);
+      await this.sendReport(conn, token, existing.civId, { advance: true });
       await this.sendSky(conn, token, existing.civId);
       return;
     }
@@ -422,6 +436,7 @@ export class Cohort extends Server<CohortEnv> {
     if (already !== undefined) {
       state.civId = civId;
       await this.sendVoice(conn, token, civId);
+      await this.sendReport(conn, token, civId, { advance: true });
       await this.sendSky(conn, token, civId);
       return;
     }
@@ -445,6 +460,7 @@ export class Cohort extends Server<CohortEnv> {
     // (a new warm source entered their field), but their own placement
     // didn't, so their voice state is untouched.
     await this.sendVoice(conn, token, civId);
+    await this.sendReport(conn, token, civId, { advance: true });
     await this.sendSky(conn, token, civId);
     for (const [id, other] of this.conns) {
       if (id === conn.id) continue;
@@ -498,6 +514,21 @@ export class Cohort extends Server<CohortEnv> {
     const state = this.conns.get(conn.id);
     if (state === undefined || state.civId === null) return;
     await this.sendSky(conn, state.token, state.civId);
+  }
+
+  /**
+   * AV2: the report panel asks to be refreshed (e.g. reopened after the
+   * client's own tab reactivated) — it does not live-append. Not placed →
+   * silent return, the same bookkeeping rationale as onVoiceSeen and the
+   * parse-time drop in protocol.ts (no error code). `advance: false`:
+   * opening the panel again must not consume the "new since last visit"
+   * marker a second time, and it reuses whatever header the last
+   * advance-serve computed rather than re-triage-ing on every reopen.
+   */
+  private async onRequestReport(conn: Connection): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) return;
+    await this.sendReport(conn, state.token, state.civId, { advance: false });
   }
 
   /**
@@ -883,6 +914,30 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
+   * AV2: unlike loadVoiceState's pure read, a missing report record is
+   * created AND PERSISTED here, immediately (loadProjectState's
+   * lazy-create-and-persist-once idiom, not loadVoiceState's). `sinceYear`
+   * must be fixed the first time anything ever asks for this token's
+   * report — a run that is re-queried before it first WRITES (every
+   * materialize call finding nothing new yet to store) would otherwise
+   * re-synthesize a fresh default anchored to the CURRENT `nowYear` on
+   * every call, silently losing anything stamped between one such call and
+   * the next. Pre-AV2 runs and brand-new ones are identical here: both
+   * start with an empty record from the moment they are first read.
+   */
+  private async loadReportState(token: string, nowYear: number): Promise<ReportState> {
+    const stored = await this.ctx.storage.get<ReportState>(`report:${token}`);
+    if (stored !== undefined) return stored;
+    const fresh = newReportState(nowYear);
+    await this.ctx.storage.put(`report:${token}`, fresh);
+    return fresh;
+  }
+
+  private async saveReportState(token: string, state: ReportState): Promise<void> {
+    await this.ctx.storage.put(`report:${token}`, state);
+  }
+
+  /**
    * AV1: send the lines this player has not yet been shown — arrival (this
    * civ's archetype), and the three frame explainers (age chip, compute,
    * clock). Sent on placement only, right before that path's sendSky —
@@ -903,6 +958,101 @@ export class Cohort extends Server<CohortEnv> {
     if (!seen.has("compute")) lines.compute = computeLine();
     if (!seen.has("clock")) lines.clock = clockLine();
     this.sendMsg(conn, { type: "voice", lines });
+  }
+
+  /**
+   * AV2: send this player's report. Always materializes first (via
+   * `materializeReport`, self-sufficient — see its own comment) so a
+   * standalone call (requestReport, or a placement path that fires before
+   * `sendSky` has run this turn) still reflects everything derivable as of
+   * `nowYear`, not just whatever a PRIOR sendSky call happened to persist.
+   *
+   * `advance` is true only on placement paths (the sendVoice precedent):
+   * the payload is built against the OLD `lastServedYear` — newCount,
+   * spanYears, and the promoted entry all read it — and ONLY THEN, if
+   * `advance`, is the marker moved to `nowYear`. Moving it first would make
+   * every report open report zero new entries against itself.
+   */
+  private async sendReport(
+    conn: Connection,
+    token: string,
+    civId: string,
+    opts: { readonly advance: boolean },
+  ): Promise<void> {
+    const galaxy = this.requireGalaxy();
+    const clock = this.requireClock();
+    const nowYear = gameYearAt(clock, Date.now());
+    const selfCiv = civById(galaxy, civId);
+
+    const state = await this.materializeReport(token, civId, nowYear);
+    const payload = buildReportPayload(state, nowYear, selfCiv.seed.archetype);
+    this.sendMsg(conn, { type: "report", report: payload });
+
+    if (opts.advance) {
+      await this.saveReportState(token, { ...state, lastServedYear: nowYear });
+    }
+  }
+
+  /**
+   * AV2: derive report candidates, merge them into the stored record, and
+   * persist ONLY IF THE STORED ID SET CHANGED (mergeReportEntries's
+   * `changed` flag — the common case, a sendSky call with nothing newly
+   * stampable, costs no write).
+   *
+   * `snapshots`, when given, lets sendSky hand in the studies/missions/
+   * projects/sources it has ALREADY assembled this turn rather than paying
+   * for a second `assembleSkyState` pass. When omitted (every OTHER caller
+   * — sendReport's placement-path and requestReport calls), this method
+   * assembles them itself via `reportDerivationSnapshots`, so it never
+   * depends on sendSky having run first in the same turn: "materialize
+   * inside sendReport too" from the two options the brief posed, chosen
+   * over "send report after sendSky" because it keeps every call site
+   * self-sufficient regardless of ordering, at the cost of that one
+   * optional extra assembly pass when sendSky is NOT the caller.
+   */
+  private async materializeReport(
+    token: string,
+    civId: string,
+    nowYear: number,
+    snapshots?: Omit<DeriveReportEntriesInput, "nowYear" | "sinceYear">,
+  ): Promise<ReportState> {
+    const inputs = snapshots ?? (await this.reportDerivationSnapshots(token, civId, nowYear));
+    const state = await this.loadReportState(token, nowYear);
+    const derived = deriveReportEntries({ ...inputs, nowYear, sinceYear: state.sinceYear });
+    const attempt = mergeReportEntries(state, derived);
+    if (!attempt.changed) return state;
+
+    // WRITE ONLY IF CHANGED, the grounding-write idiom (sendSky's
+    // `groundedWrites`): re-fetch immediately before the put and re-merge
+    // against whatever is ACTUALLY stored now, so a write interleaved by
+    // another await earlier in this same turn is folded in rather than
+    // clobbered — interleave hygiene, not a race guard (the DO itself is
+    // single-threaded; nothing here is ever concurrent with itself).
+    const fresh = await this.loadReportState(token, nowYear);
+    const final = mergeReportEntries(fresh, derived);
+    if (!final.changed) return fresh;
+    await this.saveReportState(token, final.state);
+    return final.state;
+  }
+
+  /** The report's own, self-sufficient assembly of everything
+   *  `deriveReportEntries` needs, for callers that are not sendSky (which
+   *  already has all of this from its own `assembleSkyState` call). */
+  private async reportDerivationSnapshots(
+    token: string,
+    civId: string,
+    nowYear: number,
+  ): Promise<Omit<DeriveReportEntriesInput, "nowYear" | "sinceYear">> {
+    const assembled = await this.assembleSkyState(token, civId, nowYear);
+    return {
+      studies: assembled.studies,
+      missions: assembled.missions,
+      projects: assembled.projects,
+      sources: assembled.sources,
+      localNames: assembled.localNames,
+      designations: assembled.designations,
+      ascensionYear: assembled.self.seed.ascensionYear,
+    };
   }
 
   /**
@@ -975,11 +1125,91 @@ export class Cohort extends Server<CohortEnv> {
    * studies/questions/wire — landed `confidence-lift` projects raise the
    * FLOOR under `confidenceFor`'s output, never the value, and the lift is
    * still clamped to ≤0.95 (synthesis.md §4). This is the one call site.
+   *
+   * AV2: the report is materialized right after `assembleSkyState` returns
+   * — everything `deriveReportEntries` needs (studies/missions/projects/
+   * sources/localNames/designations) is already in scope here, so this
+   * call site hands it straight to `materializeReport` rather than paying
+   * for a second assembly pass (see materializeReport's own comment on why
+   * that second pass exists at all for OTHER callers).
    */
   private async sendSky(conn: Connection, token: string, civId: string): Promise<void> {
-    const galaxy = this.requireGalaxy();
     const clock = this.requireClock();
     const nowYear = gameYearAt(clock, Date.now());
+    const {
+      self,
+      sources,
+      localNames,
+      studies,
+      missions,
+      projects,
+      projectState,
+      designations,
+    } = await this.assembleSkyState(token, civId, nowYear);
+
+    const budget: ComputeBudget = {
+      free: freeComputeAt(projectState, nowYear),
+      ratePerYear: ratePerYearAt(projectState, nowYear),
+      asOfYear: nowYear,
+    };
+    const tend = buildTendList({
+      nowYear,
+      projectState,
+      studies,
+      missions,
+      localNames,
+      designations,
+    });
+    const probeFlightYearsPerLy = effectiveFlightYearsPerLy(projectState, nowYear);
+
+    await this.materializeReport(token, civId, nowYear, {
+      studies,
+      missions,
+      projects,
+      sources,
+      localNames,
+      designations,
+      ascensionYear: self.seed.ascensionYear,
+    });
+
+    this.sendMsg(conn, {
+      type: "sky",
+      nowYear,
+      self,
+      sources,
+      localNames,
+      studies,
+      projects,
+      budget,
+      missions,
+      tend,
+      probeFlightYearsPerLy,
+    });
+  }
+
+  /**
+   * The wire-snapshot assembly `sendSky` sends and AV2's `materializeReport`
+   * derives from — split out so both can reach it without either depending
+   * on the other having already run this turn. Owns the one A2.2b side
+   * effect in this whole pipeline (`groundedWrites`: a study transitioning
+   * to `status: "grounded"` is a write, not a pure derivation — see the
+   * comment at that block).
+   */
+  private async assembleSkyState(
+    token: string,
+    civId: string,
+    nowYear: number,
+  ): Promise<{
+    readonly self: SelfView;
+    readonly sources: readonly DetectedSource[];
+    readonly localNames: Readonly<Record<string, string>>;
+    readonly studies: readonly StudySnapshot[];
+    readonly missions: readonly MissionSnapshot[];
+    readonly projects: readonly ProjectSnapshot[];
+    readonly projectState: ProjectState;
+    readonly designations: Readonly<Record<string, string>>;
+  }> {
+    const galaxy = this.requireGalaxy();
     const selfCiv = civById(galaxy, civId);
     const star = starById(galaxy.stars, selfCiv.starId);
     const self: SelfView = {
@@ -1121,11 +1351,6 @@ export class Cohort extends Server<CohortEnv> {
         landsYear: landedYear(def, runningEntry),
       };
     });
-    const budget: ComputeBudget = {
-      free: freeComputeAt(projectState, nowYear),
-      ratePerYear: ratePerYearAt(projectState, nowYear),
-      asOfYear: nowYear,
-    };
 
     const relevantStarIds = new Set<string>([
       ...studies.map((s) => s.starId),
@@ -1135,30 +1360,8 @@ export class Cohort extends Server<CohortEnv> {
     for (const starId of relevantStarIds) {
       designations[starId] = starById(galaxy.stars, starId).designation;
     }
-    const tend = buildTendList({
-      nowYear,
-      projectState,
-      studies,
-      missions,
-      localNames,
-      designations,
-    });
 
-    const probeFlightYearsPerLy = effectiveFlightYearsPerLy(projectState, nowYear);
-
-    this.sendMsg(conn, {
-      type: "sky",
-      nowYear,
-      self,
-      sources,
-      localNames,
-      studies,
-      projects,
-      budget,
-      missions,
-      tend,
-      probeFlightYearsPerLy,
-    });
+    return { self, sources, localNames, studies, missions, projects, projectState, designations };
   }
 
   /**

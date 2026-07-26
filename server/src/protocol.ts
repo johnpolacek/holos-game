@@ -432,6 +432,52 @@ export function isVoiceKey(v: unknown): v is VoiceKey {
  *  connection, never on `sky`. */
 export type VoiceLines = Readonly<Partial<Record<VoiceKey, string>>>;
 
+// ── AV2: the report ─────────────────────────────────────────────
+// The observatory's annal. report.ts derives, materializes, and stores
+// entries server-side; only rendered strings and resolved routes cross the
+// wire, exactly as VoiceLines carries lines and never voice.ts's banks.
+// report.ts is never re-exported through this module — the same discipline
+// this file's own comment states for voice.ts.
+
+/**
+ * Where a tap on a report row goes. `mission` carries only `missionId`
+ * (never a `starId`) — a mission survives its source (missions.ts's whole
+ * "missions survive their sources" story), so the route must still resolve
+ * once the source has faded below the wire.
+ */
+export type ReportRoute =
+  | { readonly kind: "study"; readonly starId: string }
+  | { readonly kind: "mission"; readonly missionId: string }
+  | { readonly kind: "source"; readonly starId: string }
+  | { readonly kind: "project"; readonly projectId: string }
+  | { readonly kind: "none" };
+
+/**
+ * One row of the report: a frozen record sentence, its stamp, and at most
+ * one archetype remark (report.ts's R-31 cadence — at most one per served
+ * report, attached to the single highest-ranked new entry). `record` and
+ * `stamp` are rendered once at materialization and never re-rendered, so a
+ * re-read of the same report is byte-identical.
+ */
+export interface ReportEntry {
+  readonly id: string;
+  readonly stamp: string;
+  readonly record: string;
+  readonly remark: string | null;
+  readonly route: ReportRoute;
+}
+
+/**
+ * The served report. `header` is non-null only when report.ts's triage
+ * thresholds fire (a long absence or a large batch of new entries);
+ * `entries` is capped at REPORT_ON_WIRE, promoted-first when a header
+ * fires, else newest-first.
+ */
+export interface ReportPayload {
+  readonly header: string | null;
+  readonly entries: readonly ReportEntry[];
+}
+
 // client → server (UNTRUSTED — every field guarded on parse)
 export type CohortClientMessage =
   | { type: "hello"; token: string | null }
@@ -445,7 +491,9 @@ export type CohortClientMessage =
   | { type: "buyQuestion"; starId: string; questionId: string }
   | { type: "launchMission"; starId: string; kind: string; charter: readonly string[] }
   // ── AV1 ──
-  | { type: "voiceSeen"; key: VoiceKey };
+  | { type: "voiceSeen"; key: VoiceKey }
+  // ── AV2 ──
+  | { type: "requestReport" };
 
 // server → client
 export type CohortServerMessage =
@@ -468,6 +516,8 @@ export type CohortServerMessage =
   | { type: "sourceNamed"; starId: string; name: string }
   // ── AV1 ──
   | { type: "voice"; lines: VoiceLines }
+  // ── AV2 ──
+  | { type: "report"; report: ReportPayload }
   | { type: "error"; code: CohortErrorCode; message: string };
 
 export type CohortErrorCode =
@@ -608,7 +658,71 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
     return { type: "voiceSeen", key: msg["key"] };
   }
 
+  // AV2: no fields, so nothing to guard beyond the discriminant. Same
+  // silent-drop-on-mismatch story as everything above (bad-message isn't
+  // wired for this — the panel just requests again).
+  if (msg["type"] === "requestReport") {
+    return { type: "requestReport" };
+  }
+
   return null;
+}
+
+/** AV2: `route`'s discriminant against the closed ReportRoute set, each
+ *  kind's own id field checked by name. A malformed route is a dead tap —
+ *  better to drop the whole message (parseCohortServerMessage's `report`
+ *  case) than hand the client a row it cannot act on. */
+function isReportRoute(v: unknown): v is ReportRoute {
+  if (typeof v !== "object" || v === null) return false;
+  const r = v as { kind?: unknown };
+  switch (r.kind) {
+    case "study":
+    case "source":
+      return typeof (v as { starId?: unknown }).starId === "string";
+    case "mission":
+      return typeof (v as { missionId?: unknown }).missionId === "string";
+    case "project":
+      return typeof (v as { projectId?: unknown }).projectId === "string";
+    case "none":
+      return true;
+    default:
+      return false;
+  }
+}
+
+function isStringOrNull(v: unknown): v is string | null {
+  return v === null || typeof v === "string";
+}
+
+/** AV2: field-by-field like `voice` above, not a wholesale cast — a
+ *  malformed entry here would read as a bogus report row rather than a
+ *  dropped message. Any mismatch anywhere in the payload drops the whole
+ *  message (report.ts's frozen entries mean a partial parse could only ever
+ *  be wrong, never a "best effort"). */
+function parseReportPayload(v: unknown): ReportPayload | null {
+  if (typeof v !== "object" || v === null) return null;
+  const p = v as { header?: unknown; entries?: unknown };
+  if (!isStringOrNull(p.header)) return null;
+  if (!Array.isArray(p.entries)) return null;
+
+  const entries: ReportEntry[] = [];
+  for (const raw of p.entries as readonly unknown[]) {
+    if (typeof raw !== "object" || raw === null) return null;
+    const e = raw as {
+      id?: unknown;
+      stamp?: unknown;
+      record?: unknown;
+      remark?: unknown;
+      route?: unknown;
+    };
+    if (typeof e.id !== "string") return null;
+    if (typeof e.stamp !== "string") return null;
+    if (typeof e.record !== "string") return null;
+    if (!isStringOrNull(e.remark)) return null;
+    if (!isReportRoute(e.route)) return null;
+    entries.push({ id: e.id, stamp: e.stamp, record: e.record, remark: e.remark, route: e.route });
+  }
+  return { header: p.header, entries };
 }
 
 /** Server→client parse, client side. Mirror parseServerMessage exactly:
@@ -644,6 +758,14 @@ export function parseCohortServerMessage(raw: string): CohortServerMessage | nul
         lines[key] = value;
       }
       return { type: "voice", lines };
+    }
+    // AV2: same field-by-field discipline as `voice` just above, not the
+    // wholesale cast the A1-era cases use — see parseReportPayload.
+    case "report": {
+      const raw = data as { type: "report"; report?: unknown };
+      const report = parseReportPayload(raw.report);
+      if (report === null) return null;
+      return { type: "report", report };
     }
     default:
       return null;
