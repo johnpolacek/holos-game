@@ -190,6 +190,10 @@ export class StudyBoard {
   // AV3: "hub" joins the return set — a proposal's `project` route opens the
   // detail sheet from the hub, so its back button must come home there.
   private projectReturn: "tend" | "projects" | "report" | "hub" = "projects";
+  // AV3: same rule for the brief — a proposal's `study-brief` route opens it
+  // from the hub, and backing out must come home there, not to a picker the
+  // player never visited.
+  private briefReturn: "picker" | "hub" = "picker";
   private openStudyCount = 0;
 
   // AV3: a one-shot pointer set by focusStudyQuestion (a proposal's
@@ -948,7 +952,7 @@ export class StudyBoard {
   private followProposalRoute(route: ProposalRoute): void {
     switch (route.kind) {
       case "study-brief":
-        this.openBrief(route.starId);
+        this.openBrief(route.starId, "hub");
         break;
       case "question":
         this.focusStudyQuestion(route.starId, route.questionId);
@@ -1281,9 +1285,10 @@ export class StudyBoard {
   /** AV3: public — a proposal's `study-brief` route (followProposalRoute)
    *  is the mind's own affordance for opening this same brief, alongside
    *  the picker row's tap. */
-  openBrief(starId: string): void {
+  openBrief(starId: string, from: "picker" | "hub" = "picker"): void {
     this.view = "brief";
     this.briefStarId = starId;
+    this.briefReturn = from;
     this.pendingBeginStarId = null;
     this.renderBrief();
     this.openFlag = true;
@@ -1299,9 +1304,14 @@ export class StudyBoard {
     // The source faded between the picker and here — there is nothing to
     // brief, so fall back rather than render a card about nothing.
     if (starId === null || source === undefined) {
-      this.view = "picker";
       this.briefStarId = null;
-      this.renderPicker();
+      if (this.briefReturn === "hub") {
+        this.view = "hub";
+        this.renderHub();
+      } else {
+        this.view = "picker";
+        this.renderPicker();
+      }
       return;
     }
 
@@ -1309,7 +1319,10 @@ export class StudyBoard {
     back.type = "button";
     back.className = "study-back holos-caps";
     back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openPicker());
+    back.addEventListener("click", () => {
+      if (this.briefReturn === "hub") this.openHub();
+      else this.openPicker();
+    });
     this.body.append(back);
 
     // The same identity block the picker row carries, so the source reads as
