@@ -457,7 +457,7 @@ undecidable by design, and the uncertainty is the game.
 
 **Adopted 2026-07** (from the Schroeder review,
 [inspiration-lockstep.md](./inspiration-lockstep.md) steal 5,
-transformed): two civilizations can commit, by correspondence, to a
+transformed): two civilizations can commit, by signal, to a
 **shared future date** — and the date is the mechanic.
 
 The physics makes a date special. A message is always stale for its
@@ -498,10 +498,10 @@ in a thousand years, we talk again).
 
 **Rarity is the tuning law.** An appointment is closer to a treaty than
 a meeting invite: proposing one is an Investment-class gesture, never a
-checkbox, and a correspondence should carry few of them. Countdown
-cards must stay weighty; five micro-appointments per letter is the
+checkbox, and a thread should carry few of them. Countdown
+cards must stay weighty; five micro-appointments per signal is the
 failure mode. The proposal-and-acceptance flow itself belongs to the
-letter design (the communication effort), which this section names as
+signal design (the communication effort), which this section names as
 its one dependency.
 
 ---

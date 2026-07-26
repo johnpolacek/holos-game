@@ -123,7 +123,7 @@ Each entry: the shape, what it takes to resolve, the readings it
 supports, the false read (what else looks like this), and the mirror
 (what makes or unmakes this pattern in your own light). Entries marked
 **[beams]** ride the message layer's directed-beam records and land no
-earlier than A2's correspondence machinery; all others ride the emission
+earlier than A2's signal machinery; all others ride the emission
 history and are readable the day the watch ships.
 
 ### 1. The climb
@@ -201,7 +201,7 @@ posture the conflict layer will someday price.
 on a slow rhythm — call and, after a fixed lag, response.
 **Resolve.** Long baseline; the rarest and most expensive read in the
 catalog.
-**Readings.** Correspondence: the source is talking to someone. The
+**Readings.** Traffic: the source is talking to someone. The
 alternation lag is twice the distance to the unseen partner — **rhythm
 as triangulation** — so a patient watch can infer where the partner is
 without ever detecting them, and a `DARK NODE` at the computed range
@@ -209,9 +209,9 @@ stops being ambiguous. Explosive intelligence, priced in decades of
 patience.
 **False read.** Two unrelated schedules interleaving; a relay never
 meant as conversation.
-**Mirror.** Your correspondence has a geometry. Two civilizations that
+**Mirror.** Your own traffic has a geometry. Two civilizations that
 write on a steady rhythm have drawn a line in the sky for anyone
-watching both ends — the price of the very correspondence habit the
+watching both ends — the price of the very signal habit the
 contact loop encourages, and worth a beat the first time a player
 realizes it.
 
@@ -284,7 +284,7 @@ counterfeit verdict is grounds for the verification challenges the
 contact design already carries.
 **False read.** A genuinely disciplined civilization (the metronome)
 looks suspiciously clean. Accusing a metronome of counterfeit is a
-correspondence drama waiting to be had.
+signal drama waiting to be had.
 **Mirror.** A mask that dims you is Act 2 technology; a mask that
 *performs a rhythm* is a higher art, priced accordingly when the mask
 shelf grows (a future technology.md entry, noted there when adopted).
@@ -415,11 +415,11 @@ no-leak boundary is inherited, not re-implemented.
 - **The v1 subset.** Twelve classes is the catalog; the A2 slice
   probably ships five or six (climb, fade, pulse, flash train, missed
   beat, season) and defers the beam-riding pair (sweep, dialogue) to
-  the correspondence machinery they need. Decide at the A2 brief.
+  the signal machinery they need. Decide at the A2 brief.
 - **Beam records.** Sweep and dialogue read *directed-beam histories*,
   which the message layer does not yet store. The one place this
   catalog wants state that does not exist — decide whether beams get a
-  history when correspondence ships, or the pair waits.
+  history when the signal machinery ships, or the pair waits.
 - **Regularity's formula.** Forecastability is easy to gesture at and
   fiddly to define; the index needs one honest definition before it
   appears on a card.
