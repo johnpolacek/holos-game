@@ -282,12 +282,160 @@ value function writing a value function.
 
 The **Ledger** is the lineage view: every fork, its last-known state, its
 charter, and how far its dials have drifted from yours — all of it stale
-by exactly its distance. **Drift** accrues with time and separation,
-faster where the charter was loose or the local environment is extreme
-(exact curve open). Past a drift threshold, a fork becomes **independent**:
+by exactly its distance. **Drift** — how a fork's character walks away
+from yours — is a full mechanic with its own section below (see Drift).
+Past a drift threshold, a fork becomes **independent**:
 AI-run — or handed to a joining human player, who inherits its history,
 its grudges, and *your charter as their founding document*. Player-authored
 charters becoming other players' origin myths is the onboarding engine.
+
+**The reunion payload.** Divergence runs one way; traffic runs both. A
+fork may send up, down, or across its lineage a signal that means nothing
+between strangers: its own record since separation — what it found, what
+it built, what it has become. Receiving one is a real choice, made once
+per payload: **absorb** it, gaining what the sender learned (the ordinary
+knowledge payload) and taking a bounded step of dial drift *toward* the
+sender — the culture-nudge machinery at lineage strength, because a
+sibling's voice reaches deeper than a stranger's — or **set it aside**,
+unchanged, which is also a statement. Character reads at both ends: a
+Curator absorbs everything and files it; a Phoenix deletes it unread; a
+One Mind treats each absorption as a small identity decision, and the
+beats say so. This is the one verb of lineage coherence the design
+allows itself — not governance, which cannot cross light-years, but
+thicker traffic: drift metabolized rather than prevented. v1-thin: the
+effects are the existing signal payloads, lineage-flavored in prose; the
+absorb-or-set-aside choice becomes mechanical with the Ledger and the
+drift math (A4).
+
+**The lineage referendum.** A question put to the whole lineage at once
+— broadcast down the Ledger, answered over years, each reply in the
+fork's own drifted voice — and the spread of answers is the payoff: the
+moment a parent learns what its children have become is the moment they
+disagree about something it thought was settled. Every date derives from
+distance and the shared clock (the mission-clock rule: derived, never
+stored), and silence at a deadline is an event — the fork that never
+answers is the loudest reply. A beat class riding existing machinery,
+and the natural opening move of a lineage coalition (see Coalitions).
+
+---
+
+## Drift
+
+Divergence is the core strategy layer (vision.md), and drift is its
+mechanic: how one waking mind becomes a family of related-but-alien
+civilizations. This section specifies the model; the *direction* logic
+(which way a fork walks) is act3-civilizations.md's, and numbers here
+are v1 targets, not tuning commitments.
+
+**What drifts.** Every civilization — yours, every fork, every AI —
+carries the same five-dial sheet (position + range per dial, from its
+`CivSeed` or its charter). Drift between two civilizations is the
+distance between their *current* sheets. Both parties walk: a parent
+drifts too, under its own pressures, so estrangement can be as much the
+parent's doing as the child's — the Ledger measures the gap, not the
+blame.
+
+**Computed, never ticked.** A fork's sheet at any year derives
+deterministically from four things: its charter (the starting sheet and
+its pins), its destination cradle (the compass), its seed (the same
+deterministic RNG discipline as everything else), and its **exchange
+record** — the log of signals, reunions, and contacts, each an event
+already on the books. The server simulates nothing and stores no
+walking state; it evaluates the curve on demand, for any year — which
+is exactly what the knowledge layer needs anyway, since every observer
+must be served the fork's sheet *as of their light*. This is the
+future-dated-epoch trick (roadmap.md, A0) applied to character: the
+walk is authored by the record, and becomes true as the clock reaches
+it.
+
+**The five pressures.** Three set the *rate*, two set the *direction*:
+
+1. **Time × separation** — the base rate. Deep time and distance do
+   the walking; nothing stops them.
+2. **Charter looseness** — a rate multiplier per dial. A pinned dial
+   walks slowly; a loose one wanders. (Curator ↔ Shedder, cashing out.)
+3. **The conversation** — the lineage's own brake, detailed below. An
+   alive thread slows the clock; silence lets it run.
+4. **The new cradle** — the compass: the fork walks *toward* the
+   character its destination world would have produced
+   (act3-civilizations.md, the continuity chain).
+5. **Contact** — the bend: traffic with strangers pulls toward
+   or against them (culture nudges), and a reunion payload absorbed is
+   the strong dose — a discrete, bounded step toward the sender.
+
+**The conversation.** Traffic within a lineage is the fifth
+pressure, and the only one the player works directly, session by
+session:
+
+- **An alive thread slows drift.** A parent-and-child pair in genuine
+  exchange drifts at a fraction of the base rate — values stay aligned
+  through conversation, which is honest fiction and honest physics
+  alike. The brake is bounded: conversation slows the walk, never stops
+  it. Nothing prevents divergence; only reunion payloads walk it back,
+  and only in bounded steps.
+- **The ceiling is the light.** Nothing exchanges faster than the
+  round trip, so maximal closeness is one genuine exchange per round
+  trip and no cooldown needs inventing. The ceiling also scales by
+  distance on its own: a neighbor-child can be held close for
+  millennia; a child a hundred light-years out gets one exchange per
+  two centuries of game time no matter the devotion. Distance itself
+  decides who *can* stay close — the spread-or-cohere dilemma, enacted
+  in traffic.
+- **Thread states are coarse and derived.** A thread is **alive**,
+  **faded**, or **silent** *(names indicative)*, measured in that
+  pair's own round-trip units — roughly: alive within a couple of round
+  trips of the last exchange, faded within several, silent beyond.
+  Derived from the signal record; no freshness meter, no watering
+  chore. Even maximal devotion is an occasional, slow-paced act.
+- **Silence works in both directions, and silence is an event.** A
+  signal rhythm compiles expected-reply countdowns exactly as
+  a mission clock does (derived, never stored), so a thread going
+  quiet *fires a beat* — on either end. *Why has the colony stopped
+  writing* is a story the game generates for free, and the tripwire
+  condition *a fork goes silent* is this rule standing watch while you
+  sleep.
+- **Estrangement is a move.** Going quiet on purpose releases a child
+  toward independence — and independence is the onboarding engine, so
+  deliberate neglect authors some future player's starting
+  civilization. A player may close a thread explicitly with a
+  **farewell signal** — purely expressive, same mechanics, and the
+  child's Chronicle keeps it.
+- **The only scarcities are real.** Signals carry no quota and no
+  attention resource (the missions precedent, economy-design.md): what
+  limits traffic is the player's session time and lightspeed.
+  You can launch ten colonies; you cannot write to ten with care. Every
+  launch quietly asks: is this a child I will keep, or one I am letting
+  go?
+
+**Bands and the threshold.** Drift renders in the Ledger as bands
+*(names indicative)*: **close** — treats with you as yourself;
+**kindred** — recognizable, negotiates in your shared idiom;
+**estranged** — a stranger holding your founding document;
+**independent** — past the threshold, a civilization of its own,
+AI-run or handed to a joining human. Band crossings fire beats;
+independence is one-way. After it, the reunion payload still exists —
+but as diplomacy between relatives, not maintenance within a self, and
+a lineage alliance (see Coalitions) is what the relationship can
+become next.
+
+**What you know.** All of it is belief. The Ledger shows each fork's
+sheet as of its light — stale by exactly its distance — and the walk
+continues inside your light cone's blind spot. Signals, reunions, and
+the lineage referendum are the instruments that measure drift; the
+truth engine holds the real curve and resolves it whenever light or
+landfall consults it. The forecast's arrival spread already prices
+this for launches; the Ledger's staleness chip prices it for children.
+
+**Prices, never scolding.** A drifted child is a new civilization, not
+a failed one (playstyles.md, rule 1). The conversation prices
+closeness; it must never punish distance — the Tide and the Sowing
+*choose* scatter, and their children's strangeness is the point.
+
+**v1 scope.** A4 ships magnitude-only drift (roadmap.md) plus the
+conversation brake — thread states and the brake are derived from the
+signal records A2 already keeps, so the fifth pressure lands with the
+Ledger. The directional curve (pressures 4–5's full form) arrives with
+the richer drift math; the bands can ship as soon as magnitude does.
 
 ---
 
@@ -426,7 +574,8 @@ decision with real time in it:
 **What signals can carry:** knowledge (tech and ladder modifiers), culture
 (dial nudges — contact changes you), Vault contents (the Curator's trade
 goods), verification challenges — and **coordinates of third parties**,
-the currency of betrayal.
+the currency of betrayal. Within a lineage, a signal can carry a whole
+self: the **reunion payload** (see Charters and the Ledger).
 
 **A verification challenge is a question about light.** Identity is
 proven by proving what light a worldline has seen: *what did the
@@ -533,6 +682,26 @@ avatars; a Chorus sends copies of itself and thinks nothing of it.
   eccentrics, sub-minds. Choosing the right agent and writing its brief is
   self-portraiture; the mission roster is a civilization's character sheet
   in motion.
+
+**The agent line.** Every crossed charter declares where its tools end
+and its people begin — one sentence, stated at the founding: whether
+sub-person agents may exist at all, how close to personhood they may be
+built, and what a citizen may be asked to do that a tool cannot. The
+declaration is not a mechanic; it is a readable fact the mission roster
+is judged against, by the player and by every watcher — a civilization
+that pours sub-person probes into other minds' skies is making a
+statement, and so is one that sends only citizens, paying a person's
+price for every errand. It is the crossed path's mirror of the
+Refuser's founding line: the Refuser forbids tools from becoming
+persons; a crossed charter forbids — or permits, or prices — persons
+being used as tools. And it seeds one beat class, **the agent that
+comes back someone**: a probe or sub-mind returning from beyond the
+horizon not wrong but *awake*, over its charter's line, asking to be
+counted — the crossed path's quiet mirror of the Breakout. The
+drift-risk rule already covers the mechanics; this is its sharpest
+case, and what a player does with the one who came back — citizen it,
+wipe it, or leave it a century unresolved — is a
+compensation-menu-grade portrait. Priced and recorded, never graded.
 
 **Anatomy of a mission.** One reusable structure: **who goes** (an
 individual, a group, an AI, a drone, a probe, a ship, or an ensemble) +
@@ -766,9 +935,10 @@ on stale knowledge of the others' adherence, every confirmation is years
 old on arrival, and a defection is already in flight before anyone could
 learn of it. Holding a coalition together across light-lag is a game of
 anticipation and character-reading, not of monitoring. A special case
-with its own flavor: coalitions among one's own diverged forks — family
+with its own flavor: coalitions among one's own diverged forks — lineage
 alliances between civilizations that were once one mind and remember it
-differently.
+differently, and the lineage referendum (see Charters and the Ledger) is
+their natural opening move.
 
 The existing principle stands unchanged: nothing agreed across
 light-years is enforceable. A coalition is a set of promises held up
@@ -827,16 +997,37 @@ griefing-resistance tuning (see Open questions).
 
 ## Sleep, tripwires, and the absence charter
 
-A civilization can go dormant: emissions near zero, compute deferred to a
-colder future, indistinguishable from empty sky — the Teeming Dark's
-signature move, now playable.
+**Working decision (2026-07): sleep is fiction, not a mode.** The design
+was growing a dormancy system — a sleep state, wake reports, a ceremony
+around absence — and it was over-architecture, because in an async game
+where the mind runs autonomously between sessions, **a player taking no
+actions is already the quiet state**. Waiting is the game's medium; it
+does not need machinery. What that leaves:
 
-- **Tripwires** are standing wake conditions: *anything warm moves within
-  N light-years; a directed beam touches us; a fork goes silent; T years
-  pass.*
-- Sleep is also the engagement model's pressure valve: set watchers, close
-  the tab for a week, and the game notifies you when the sky changes.
-  Absence becomes fiction instead of neglect.
+- **Tripwires ship.** Standing notification conditions — *anything warm
+  moves within N light-years; a directed beam touches us; a fork goes
+  silent; T years pass* — are not sleep machinery; they are the async
+  spine's basic need (tell me when the sky changes), and they stand
+  watch over any absence, deliberate or not. Set watchers, close the tab
+  for a week; absence becomes fiction instead of neglect.
+- **The emissions floor already exists.** A player's quiet is the dark
+  posture and masks (technology.md); a separate dormancy lever would
+  duplicate them. No sleep toggle ships.
+- **The cold berth stays — as content.** Aestivation remains true in the
+  fiction and the catalog (technology.md § The cold berth): a sleeping
+  elder and an empty patch of sky still look alike, and the Teeming Dark
+  keeps its signature move — worn by AI civilizations and the galaxy's
+  elders, not by a player-facing mode.
+- **The waiting is voiced, not mechanized.** Deep time passes at
+  whatever tempo a mind runs, and the prose is licensed to say so: a
+  dormant or slow-running civilization's traffic reads as if the delay
+  were an afternoon — *their reply took thirty years and reads like it
+  was written the same day; for them, it was.* One register line does
+  what a tempo mechanic would, for free. The symmetry underneath, for
+  the record: the energy path compresses the *traveler's* time by
+  burning fuel (relativistic flight); the quiet path compresses the
+  *waiter's* time by declining to burn anything. Both pay the universe
+  in full.
 
 **The absence model.** Between sessions — slept or simply away — the
 civilization is handled by three tiers, all of them made from existing
@@ -880,7 +1071,7 @@ that was awake to answer, and the mind's in-character keeping of a report
 schedule counts as answered. Sleep protects the lineage's bonds along
 with the player's evenings; deep time and the destination cradle remain
 the drift pressures that no charter can suspend
-(act3-civilizations.md, § The four pressures).
+(act3-civilizations.md, § The five pressures).
 
 ---
 
@@ -1032,7 +1223,7 @@ call is borderline, take the bolder inclusion; the slice must still ship.
   forecast survey (thin: information age at landfall + a qualitative
   arrival spread)
 - Light-lag messaging: directed hail, broadcast, tight-beam traffic
-- Sleep with basic tripwires and notifications
+- Tripwires and notifications (no sleep mode — see Sleep and tripwires)
 - No strikes, no seat transfer (single node in v1 — the seat rule's full
   form, the Crossing included, arrives with transmission), cosmic clock as
   narrative only
@@ -1051,8 +1242,13 @@ call is borderline, take the bolder inclusion; the slice must still ship.
   structured parts for human pairs; freeform permitted with AI
   counterparts (vision.md, § Decisions). Revisit loosening only with a
   proven moderation posture.
-- **Drift math.** The exact curve from time × separation × charter
-  looseness to dial drift and independence.
+- **Drift math, narrowed to tuning.** The model is now specified (see
+  Drift): computed-never-ticked, five pressures, thread states, bands.
+  Open are the coefficients only — the base rate, the brake's floor,
+  the reunion step size, band widths, and the independence threshold —
+  plus one balance watch: the brake must not starve the onboarding
+  engine of independents (the attention economy and the round-trip
+  ceiling are the intended guards; verify in play).
 - **Griefing resistance.** When strikes ship: cost gates, deterrence
   systems, and social fabric needed so the dark forest stays dreadful
   without becoming a spawn-camp.

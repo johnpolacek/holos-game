@@ -397,13 +397,18 @@ charters as a written value function, and the Ledger.
       + contingencies) — the same `CivSeed` shape, written by the player;
       the recursion made literal. A probe's 2–3 clauses (shipped) are the
       thin end of this; a seedship's charter is the full shape.
-- [ ] **The Ledger**: lineage view, staleness chips, drift (magnitude-only
-      in v1).
+- [ ] **The Ledger**: lineage view, staleness chips, drift bands, and
+      drift (magnitude-only in v1) with the conversation brake — thread
+      states derived from the signal records A2 already keeps
+      (act3-design.md § Drift).
 
 ### A5 — A living galaxy
 
-- [ ] **Sleep, tripwires, wake report** — the engagement pressure valve
-      (act3-design.md § Sleep); in-app wake first, web push after.
+- [ ] **Tripwires + notifications** — the engagement pressure valve
+      (act3-design.md § Sleep and tripwires; sleep itself demoted to
+      fiction and AI content, working decision 2026-07 — a player taking
+      no actions is already the quiet state); in-app first, web push
+      after.
 - [ ] **AI civ behavior (grown)**: the archetype spectrum acting over time
       — postures shifting, construction shadows, occasional directed
       beams — rule-based, hidden by light-lag.
@@ -412,8 +417,8 @@ charters as a written value function, and the Ledger.
       incubation, act3-design.md § Topology).
 
 **Phase A ships** as the v1 galaxy: inherit a mind, read the sky, meet
-someone, launch a child, sleep. The whole loop of the walkthrough's season
-(walkthrough.md).
+someone, launch a child, step away under tripwires. The whole loop of the
+walkthrough's season (walkthrough.md).
 
 ---
 

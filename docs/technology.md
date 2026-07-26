@@ -372,11 +372,13 @@ catalog's extensions, built under the same discipline.
   at the far end where thinking is cheap. A berthed civilization emits
   almost nothing, and a sleeping civilization and an empty patch of sky
   look alike by design.
-- **In play.** Dark; the integration ladder's deepest posture and the
-  engagement model's pressure valve (act3-design.md, *Sleep and
-  tripwires*). Near-zero upkeep; Signature floored; the risk is the
-  world changing around the sleeper — which is what the tripwires are
-  for, and what makes waking a beat rather than a menu.
+- **In play.** Dark; the integration ladder's deepest posture — worn in
+  v1 by AI civilizations and elders as content, not by a player mode
+  (working decision, act3-design.md § Sleep and tripwires: a player's
+  quiet is the dark posture and masks, and a player taking no actions
+  is already the quiet state). Near-zero upkeep; Signature floored; the
+  risk is the world changing around the sleeper — which is what the
+  tripwires are for.
 - **In the sky.** Nothing. That is the entry. The observatory's null
   result carries a permanent asterisk, and the asterisk is this.
 - **Who builds it.** The Cloister-grown, natively; elders generally; any
@@ -569,7 +571,7 @@ about them.
 - **In play.** Carrier; the v1 expansion method. Cheap in Energy, light
   in Matter, heavy in *consequence*: every launch carries a charter that
   can never be patched in time, and every arrival starts a new cradle
-  leaning on a fork (act3-civilizations.md, the four pressures). The
+  leaning on a fork (act3-civilizations.md, the five pressures). The
   divergence engine ships in this hull.
 - **In the sky.** Almost nothing — a cold small mass coasting. The honest
   signatures are endpoint events: a departure burn, an arrival
