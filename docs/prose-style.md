@@ -80,11 +80,11 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | Report record sentence | `voice.ts` record builders | Observatory deadpan; dated, past tense | 0 |
 | Report epoch stamp | `voice.ts` epochStamp | Observatory deadpan | 0 |
 | Report triage header | `voice.ts` reportHeader | Observatory deadpan | 0 |
-| Report remark | `voice.ts` REPORT_REMARKS | Archetype voice, free-standing, fact-free | 2 |
+| Report remark | `voice.ts` REPORT_REMARKS, or `voicegen.ts` when `HOLOS_VOICE_GEN=on` | Archetype voice, free-standing, fact-free | 2 |
 | Proposal reason | `voice.ts` reason builders | Observatory deadpan; present tense | 0 |
 | Proposal accept verb | `voice.ts` PROPOSAL_VERBS | Observatory deadpan (chrome) | 0 |
 | Proposal block header | `studyboard.ts` chrome | Observatory deadpan | 0 |
-| Proposal stance (AV4) | counsel seam | Archetype voice, free-standing, fact-free | 2 |
+| Proposal stance (AV4) | `voicegen.ts` counsel seam when `HOLOS_COUNSEL_GEN=on`; otherwise `null` | Archetype voice, free-standing, fact-free | 2 |
 | Docs narration | `docs/*.md` prose | Essayist, analytical | 1 |
 | In-doc quoted interface prose | walkthrough scene quotes | The quoted archetype's own voice | 3 |
 
@@ -221,6 +221,58 @@ Named mechanics of the register. Apply **at most one** per short string.
   Everything it needs is already on the assembled snapshots, which have
   passed the no-leak boundary once. Structural rather than reviewed: grep
   the module's import list.
+- **R-37 The generated voice reaches nothing.** R-34 is a *denylist*
+  ("imports no truth symbol"). For AV4's generation modules that is too
+  weak: the point is not that they avoid truth, it is that they need
+  almost nothing. So R-37 is an **allowlist**, which is strictly stronger
+  and just as greppable. `voicegen.ts` and `stylegate.ts` import only
+  from this closed set — `./voice` (banks, `render`, `pinnedTokens`),
+  `./stylegate`, `./bannedterms`, `@anthropic-ai/sdk`, and **type-only**
+  `./minds`, `./civseed`, `./report`, `./proposals`, `./protocol`.
+  Nothing else, and in particular never `./knowledge`, `./galaxy`,
+  `./studies`, `./missions`, `./questions`, `./projects`, `./tend`,
+  `./clock`, `./rng`, `./cradles`, `./lineages`, `./dials`, `./names`.
+  R-34's banned symbols are unreachable because their *modules* are
+  unreachable. Type-only matters: `isolatedModules` is on, so a value
+  import from `./civseed` would drag the whole catalog chain into the
+  module graph and make the ban a lie. Two greps, both in CI
+  (`.github/workflows/ci.yml`), and both read every `from "…"` specifier
+  so a multi-line import cannot slip past:
+
+  ```sh
+  # (a) denylist — nothing from a truth-bearing or catalog module
+  ! grep -nE 'from "\./(knowledge|galaxy|studies|missions|questions|projects|tend|clock|rng|cradles|lineages|dials|names)(\.js)?"' \
+      server/src/voicegen.ts server/src/stylegate.ts
+
+  # (b) allowlist — fails CLOSED when a new module is added and imported
+  grep -hoE 'from "[^"]+"' server/src/voicegen.ts server/src/stylegate.ts \
+    | sed -E 's/^from //' | sort -u \
+    | grep -vxE '"(\./(voice|stylegate|bannedterms|minds|civseed|report|proposals|protocol)(\.js)?|@anthropic-ai/sdk)"'
+  ```
+
+  Consequence worth stating: the two catalog reads AV4's payload does
+  need — minds.ts's §8-pinned archetype name and dials.ts's pinned label
+  pairs — are assembled by `cohort.ts` and handed in as strings, so the
+  pinned vocabulary stays single-sourced and the import list stays closed.
+- **R-38 Every generated line passes the style gate, and the gate never
+  edits.** It accepts or rejects; a rejection ships the templated line and
+  is recorded permanently, so no surface can quietly rewrite itself on a
+  re-read. The gate does not strip a wrapping quote, remove a preamble, or
+  collapse whitespace — a repaired line is prose no human wrote and no
+  human reviewed. Its companion obligation: `npm run audit:voice` runs
+  **every shipped bank string** through the gate in CI, so an over-strict
+  rule is caught against authored prose before it can silently template a
+  generated surface forever. If that audit fails, the gate is wrong, not
+  the banks — unless the bank is genuinely outside its own rule, which is
+  the other thing the audit finds.
+
+  **Note on AV4's scope.** Every surface AV4 generates is *fact-free*
+  (report remark, proposal stance), so "no fact may originate in a model"
+  is true by construction rather than by enforcement: the renderer's whole
+  request is asserted digit-free before it is sent. The fact-carrying gate
+  (`gateFactCarrying` — mask the pinned tokens, run the fact-free list over
+  the residue) is shipped and has **zero call sites**; its first consumer
+  will be a later fact-carrying surface.
 - **R-35 Proposal reason.** 1–3 sentences, ≤ 34 words in the framing
   clauses, **present tense** (the report's past tense is its own), wit 0;
   colon for the reveal, spaced em-dash for the aside. A passed-through
@@ -504,6 +556,8 @@ restyle that edits a bank without its doc sync is incomplete.
 | `voice.ts` REPORT_REMARKS / record builders | this guide, §2 register rows | Register and ceilings track the §2 rows; R-29a, R-31 and R-32 are grep- or script-checkable, and family scope + archetype legibility (the swap test) stay a human read |
 | `voice.ts` reason builders / PROPOSAL_VERBS | this guide, §2 register rows | Register and ceilings track; R-35 is grep-checkable |
 | `voice.ts` SIGNAL_CLASS_LABEL | this guide, §8's signal-class row, and `client/src/sourcecard.ts` CLASS_LABEL | **Verbatim, three-way** |
+| `voicegen.ts` FAMILY_SURFACE (the prompt's occasion / "must not name" table) | `voice.ts` REPORT_REMARKS doc comment | **Verbatim** — the doc comment is the real spec for family scope, and the prompt must state the same referents in the same words or generated remarks and templated ones drift apart in scope while both look fine alone. Human read |
+| `bannedterms.ts` | this guide, §6 (and §8's comms register) | **Generated, doc → code** — `npm run sync:banned` writes it, `npm run audit:banned` fails CI on any drift in either direction. This row RUNS BACKWARDS from the rule above it, and correctly: §6 is not a bank, it is a rule list whose canonical statement is this guide |
 
 ---
 

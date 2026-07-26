@@ -345,6 +345,58 @@ counsel seam: the same sky state yields the same generated pick twice;
 a decline holds across a reload; pulling the key mid-session degrades
 to the floor without a visible seam.
 
+**AV4, amended (2026-07) — what was built.** Two changes to the shape
+above, both narrowing it. The invariants are unchanged.
+
+*The renderer generates a POOL PER (civ, family), not a line per entry.*
+R-31 already says a remark is family-scoped: it must read correctly for
+every entry its family can produce, naming no reading, target, probe or
+cause. The shipped bank is therefore already a pool per (archetype,
+family), drawn from with `createRng("remark/" + entryId)` — so AV4
+generates that same data structure, three lines for this civilization's
+own (archetype, family), and reuses the shipped deterministic pick over
+it. Four things follow, and they are the reason for the change: the
+payload contains **no digit, no designation, and no player-authored
+text** (asserted before every call, not merely intended), so the
+injection surface for this tenant is *empty*; family scope is enforced
+by structure rather than by instruction, because the model is never
+shown the specific event; the cost is bounded absolutely at five calls
+per player, ever, rather than one per promoted entry forever; and the
+generated pool and the authored one are the same shape, so nothing
+downstream can tell them apart. The kick is at `materializeReport`, the
+swap-in is in `cohort.ts` on the built payload, and `report.ts`,
+`proposals.ts` and `voice.ts` are not modified — flag off is AV2/AV3
+byte for byte.
+
+The **arrival line** stays authored. Its payload builder is designed and
+its call site is not wired: an arrival line is served sub-second after
+`become`, so a generated render would miss the one serve it has, and the
+first line a player ever reads is not the place to find that out.
+
+*The counsel ships in conservative mode.* The floor picks and serves
+exactly as AV3 shipped; the model receives the closed candidate list as
+fixed slots and returns a pick plus a stance, and **the stance attaches
+only when its pick equals the row the floor already leads with.**
+Disagreement withholds the stance, serves the floor unchanged, and logs
+one `agree=0` line. This is the stage's own caution taken seriously: the
+blast radii differ by orders of magnitude — a bad stance is a sentence
+that reads wrong beside a correct move, a bad pick spends the
+allocation — and only one of the two is falsifiable at reading speed. It
+also collects the pick data the fuller mode would need to earn its way
+on, at zero risk, from the first day; because `pick` is in the cached
+record from the start, the records minted now stay valid if that mode is
+ever enabled. Both flags (`HOLOS_VOICE_GEN`, `HOLOS_COUNSEL_GEN`) ship
+`off`, and the counsel one stays off until its picks read well on a dev
+cohort with a real key.
+
+*Gates in CI.* `npm run audit:banned` holds `bannedterms.ts` to
+prose-style §6, `npm run audit:voice` runs every shipped bank string
+through the style gate, and the R-37 import greps hold the generation
+modules to their allowlist. All three run on every PR. The bank audit
+earned its place immediately: it found one shipped remark over R-31's
+sentence bound, and one gate rule over-strict enough to reject ordinary
+in-world vocabulary.
+
 ## Done when
 
 Hand the deployed URL to someone who has read none of the docs. Within

@@ -323,15 +323,24 @@ slice closes that gap. Full brief: [build-voice.md](./build-voice.md).
       brief/sheet. The mind proposes, the player chooses; nothing
       irreversible, no nagging — the fingerprint is what makes no-nag
       checkable under both this floor and AV4's counsel seam.
-- [ ] **AV4 — The generated voice (flagged)**: the Cohort DO can render
-      an entry via the Claude API — prompt boundary = the knowledge
-      layer, facts pinned byte-exact, output style-gated, cached forever
-      in DO storage, template fallback always, flag off by default. Two
-      tenants: the renderer (report remarks, framing lines) and **the
-      counsel seam** — model-ranked selection over AV3's closed
-      candidate set, cached per fingerprint, floor fallback; character
-      touches gameplay texture, never gameplay truth. The seam A2.5's
-      LLM-run counterpart civ later builds on.
+- [x] **AV4 — The generated voice (flagged)** *(built 2026-07, merged
+      flag-off)*: the Cohort DO can render an entry via the Claude API —
+      prompt boundary = the knowledge layer, facts pinned byte-exact,
+      output style-gated, cached forever in DO storage, template
+      fallback always, flag off by default. Two tenants: the renderer
+      (a three-line remark pool per civ and family, swapped in over the
+      shipped bank's own deterministic pick) and **the counsel seam** —
+      the closed candidate set as fixed slots, cached per candidate-set
+      fingerprint, floor fallback; character touches gameplay texture,
+      never gameplay truth. As built: the counsel ships **conservative**
+      — the floor still picks and serves, and the model's stance attaches
+      only where its pick agrees, so a disagreement degrades to the rules
+      and is logged rather than played. Two flags
+      (`HOLOS_VOICE_GEN`, `HOLOS_COUNSEL_GEN`), both `off`, key a Workers
+      secret. Gates in CI: the §6 banned-terms sync, the style gate run
+      over every shipped bank string, and R-37's import allowlist. The
+      arrival line stays authored (its one serve is sub-second after
+      `become`). The seam A2.5's LLM-run counterpart civ later builds on.
 
 ### A3 — The light echo
 
