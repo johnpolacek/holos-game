@@ -201,7 +201,12 @@ body {
 .name-hint,
 .source-card-name-hint,
 .voice-beat-line,
-.voice-note {
+.voice-note,
+/* AV2: the report — a triage header, a record sentence, an archetype
+   remark. All running prose. */
+.report-header,
+.report-row-line,
+.report-remark {
   text-wrap: pretty;
 }
 
@@ -1760,6 +1765,45 @@ body {
 
 .tend-launch-clause-row--selected .study-hyp-label {
   color: var(--holos-amber);
+}
+
+/* ── The report (AV2) ────────────────────────────────────────────────────
+ * The observatory's annal — frozen record sentences, never re-rendered.
+ * Rows reuse .tend-row for spacing/border (buildTendRow's skeleton minus
+ * the track and the state badge). NEVER cyan here: everything the report
+ * shows is remote and old, same rule as the rest of the sheet. */
+.report-header {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  padding: 0.4rem 0 0.6rem;
+}
+
+.report-row-line {
+  font-size: var(--holos-text-sm);
+  line-height: 1.4;
+  color: var(--holos-ink);
+}
+
+/* The mind's voice, set apart from the frozen record line above it — a
+   little air, a step quieter, no em dash (the server text carries its own
+   punctuation). */
+.report-remark {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-dim);
+  margin-top: 0.3rem;
+}
+
+/* The stamp chip: the caps/tabular chrome family (tend-mission-clock-
+   value's precedent — .holos-caps + .study-tabular alongside this class)
+   at --holos-text-xs, never --holos-text-xxs — a date is a reading, not an
+   enclosed classifier. */
+.report-stamp {
+  display: inline-block;
+  color: var(--holos-ink-faint);
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  margin-bottom: 0.35rem;
 }
 
 /* ── Source card — the mission (dispatch) affordance row ─────────────── */

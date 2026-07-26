@@ -44,6 +44,9 @@ import type {
   CharterClauseId,
   WorkState,
   TendRow,
+  ReportPayload,
+  ReportEntry,
+  ReportRoute,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { CLASS_LABEL } from "./sourcecard";
@@ -169,15 +172,16 @@ export class StudyBoard {
     | "project"
     | "tend"
     | "mission"
-    | "launch" = "list";
+    | "launch"
+    | "report" = "list";
   private focusedStarId: string | null = null;
   private briefStarId: string | null = null;
   private focusedMissionId: string | null = null;
   // The project detail sheet: which catalog entry, and which panel the tap
-  // came from — the back button returns there, so Tend and Projects each
-  // get their own way in without the sheet forking.
+  // came from — the back button returns there, so Tend, Projects and the
+  // Report each get their own way in without the sheet forking.
   private focusedProjectId: string | null = null;
-  private projectReturn: "tend" | "projects" = "projects";
+  private projectReturn: "tend" | "projects" | "report" = "projects";
   private openStudyCount = 0;
 
   // The launch sheet's in-progress selection — cleared each time openLaunch
@@ -229,6 +233,22 @@ export class StudyBoard {
   // session.
   private explainerText: string | null = null;
   private onHubOpenCb: (() => void) | null = null;
+
+  // AV2: the report. `report` is the latest ReportPayload the App has
+  // handed over (via setReport, mirroring `voice`'s field-then-forward
+  // pattern) — renderers only ever read it back, never mutate it. A reopen
+  // sends `requestReport` first and renders the standing copy immediately;
+  // when the fresh payload lands, setReport re-renders IF the panel is
+  // still showing the report (the setHubExplainer field-driven precedent,
+  // but this field also drives its own re-render since the payload can
+  // arrive well after the render that requested it).
+  private report: ReportPayload | null = null;
+  private onReportOpenCb: (() => void) | null = null;
+  // The one-time epoch explainer, same field-only contract as
+  // `explainerText` above: the App sets it via setReportExplainer before
+  // (or in response to) onReportOpen firing, and renderReport only reads
+  // it back.
+  private reportExplainerText: string | null = null;
 
   private dragStartY: number | null = null;
   private dragDy = 0;
@@ -424,6 +444,12 @@ export class StudyBoard {
       }
     } else if (this.view === "launch") {
       this.renderLaunch();
+    } else if (this.view === "report") {
+      // Defensive consistency only, the `tend`/`projects` precedent — a
+      // `sky` carries none of the report's own data, so this just re-runs
+      // the render against whatever `this.report` already holds. It is NOT
+      // how the report refreshes; see openReport()/setReport().
+      this.renderReport();
     } else {
       this.renderList();
     }
@@ -486,11 +512,28 @@ export class StudyBoard {
     this.startTicking();
   }
 
-  focusProject(projectId: string, from: "tend" | "projects"): void {
+  focusProject(projectId: string, from: "tend" | "projects" | "report"): void {
     this.view = "project";
     this.focusedProjectId = projectId;
     this.projectReturn = from;
     this.renderProjectDetail();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
+  /** AV2: opens the report. `onReportOpenCb` fires FIRST (the onHubOpen
+   *  mold) so a setReportExplainer() call it makes is already in
+   *  `reportExplainerText` for the very first render; `requestReport` goes
+   *  out before that render so the panel shows its standing copy while the
+   *  fresh one is in flight (setReport re-renders it in place on arrival —
+   *  see the `report` field's comment). */
+  openReport(): void {
+    this.onReportOpenCb?.();
+    this.socket.send({ type: "requestReport" });
+    this.view = "report";
+    this.focusedStarId = null;
+    this.renderReport();
     this.openFlag = true;
     this.root.classList.add("open");
     this.startTicking();
@@ -604,6 +647,34 @@ export class StudyBoard {
     this.explainerText = text;
   }
 
+  /** AV2: the latest ReportPayload, forwarded by the App on every `report`
+   *  message (session-open and reply-to-requestReport alike — the App
+   *  cannot tell them apart and does not need to). Sets the field only,
+   *  EXCEPT the one re-render this field alone can trigger: a reopen
+   *  requests fresh data before its first render, so the payload always
+   *  lands after the panel is already open — if the panel is still showing
+   *  the report when it arrives, this is the only place that can put it on
+   *  screen. */
+  setReport(payload: ReportPayload): void {
+    this.report = payload;
+    if (this.view === "report") this.renderReport();
+  }
+
+  /** Registers the callback fired as the FIRST step of every openReport(),
+   *  before requestReport is sent or renderReport() runs — the onHubOpen
+   *  mold, so a setReportExplainer() the callback makes is already in
+   *  `reportExplainerText` for the very first render. */
+  onReportOpen(cb: () => void): void {
+    this.onReportOpenCb = cb;
+  }
+
+  /** AV2: the report's one-time epoch explainer (why the dates read "n
+   *  AE"), or null for none. Same field-only contract as setHubExplainer —
+   *  renderReport() only ever reads it back. */
+  setReportExplainer(text: string | null): void {
+    this.reportExplainerText = text;
+  }
+
   // ── Render: chrome ──────────────────────────────────────────────────
 
   /** The Start chip's text never changes; this keeps the open-study count
@@ -690,6 +761,18 @@ export class StudyBoard {
         ),
       );
     }
+
+    // AV2: always present, quiet — no count, no dot, no conditional
+    // visibility. A show/hide affordance here would read as an unread
+    // badge, and the report carries none.
+    this.body.append(
+      this.buildHubRow(
+        "The report",
+        "What the light brought while you were away.",
+        true,
+        () => this.openReport(),
+      ),
+    );
   }
 
   private buildHubRow(
@@ -1298,6 +1381,9 @@ export class StudyBoard {
       if (this.projectReturn === "tend") {
         this.view = "tend";
         this.renderTend();
+      } else if (this.projectReturn === "report") {
+        this.view = "report";
+        this.renderReport();
       } else {
         this.view = "projects";
         this.renderProjects();
@@ -1309,9 +1395,11 @@ export class StudyBoard {
     back.type = "button";
     back.className = "study-back holos-caps";
     back.textContent = "‹ BACK";
-    back.addEventListener("click", () =>
-      this.projectReturn === "tend" ? this.openTend() : this.openProjects(),
-    );
+    back.addEventListener("click", () => {
+      if (this.projectReturn === "tend") this.openTend();
+      else if (this.projectReturn === "report") this.openReport();
+      else this.openProjects();
+    });
     this.body.append(back);
 
     // Header: cost class quiet over the name loud — the focused study's
@@ -1740,6 +1828,118 @@ export class StudyBoard {
     }
 
     return track;
+  }
+
+  // ── Render: the report (AV2) ─────────────────────────────────────────
+  // The observatory's annal: frozen record sentences, stamped and routed,
+  // in the server's own order (promoted-first if a header fired, else
+  // newest-first — protocol.ts's ReportPayload). The client never sorts.
+  // NOT in the 1s ticker (startTicking): there is nothing here that counts
+  // down, and a re-render mid-scroll would fight the reader's thumb.
+
+  private renderReport(): void {
+    this.body.innerHTML = "";
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => this.openHub());
+    this.body.append(back);
+
+    const header = document.createElement("div");
+    header.className = "study-board-header holos-caps";
+    header.textContent = "THE REPORT";
+    this.body.append(header);
+
+    if (this.reportExplainerText !== null) {
+      const note = document.createElement("div");
+      note.className = "voice-note";
+      note.textContent = this.reportExplainerText;
+      this.body.append(note);
+    }
+
+    const report = this.report;
+    if (report === null) return;
+
+    if (report.header !== null) {
+      const headerProse = document.createElement("div");
+      headerProse.className = "report-header";
+      headerProse.textContent = report.header;
+      this.body.append(headerProse);
+      this.body.append(this.hairline());
+    }
+
+    for (const entry of report.entries) {
+      this.body.append(this.buildReportRow(entry));
+    }
+  }
+
+  /** One row: the buildTendRow skeleton minus the track and the state
+   *  badge — a report entry has no clock and no work state, only a frozen
+   *  sentence, its stamp, and where a tap on it goes. A <button> when the
+   *  route can go anywhere, a plain <div> for `kind: "none"` (the same
+   *  clickable/inert split buildTendRow makes). */
+  private buildReportRow(entry: ReportEntry): HTMLElement {
+    const clickable = entry.route.kind !== "none";
+
+    let el: HTMLButtonElement | HTMLDivElement;
+    if (clickable) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.addEventListener("click", () => this.followReportRoute(entry.route));
+      el = btn;
+    } else {
+      el = document.createElement("div");
+    }
+    el.className = "tend-row";
+
+    const stamp = document.createElement("div");
+    // The caps/tabular chrome family (tend-mission-clock-value's precedent)
+    // at --holos-text-xs, not --holos-text-xxs: a date is a reading, not an
+    // enclosed classifier a thumb learns by shape.
+    stamp.className = "report-stamp holos-caps study-tabular";
+    stamp.textContent = entry.stamp;
+    el.append(stamp);
+
+    const record = document.createElement("div");
+    record.className = "report-row-line";
+    record.textContent = entry.record;
+    el.append(record);
+
+    if (entry.remark !== null) {
+      const remark = document.createElement("div");
+      remark.className = "report-remark";
+      remark.textContent = entry.remark;
+      el.append(remark);
+    }
+
+    return el;
+  }
+
+  /** AV2 routing: study/mission focus the board directly; source is the
+   *  Tend-row idiom (inspect the source card, then close the sheet);
+   *  project opens the detail sheet with "report" as its return leg, so its
+   *  own back button comes home here. `kind: "none"` never reaches this —
+   *  buildReportRow renders it as a non-interactive div. */
+  private followReportRoute(route: ReportRoute): void {
+    switch (route.kind) {
+      case "study":
+        this.focusStudy(route.starId);
+        break;
+      case "mission":
+        this.focusMission(route.missionId);
+        break;
+      case "source":
+        this.onInspectCb?.(route.starId);
+        this.close();
+        break;
+      case "project":
+        this.focusProject(route.projectId, "report");
+        break;
+      case "none":
+        break;
+    }
   }
 
   // ── Render: mission detail ───────────────────────────────────────────

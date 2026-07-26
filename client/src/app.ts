@@ -23,6 +23,7 @@ import type {
   TendRow,
   VoiceLines,
   VoiceKey,
+  ReportPayload,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { StudyBoard } from "./studyboard";
@@ -80,6 +81,16 @@ export class App {
   // locally by takeVoice/playArrival, never re-added).
   private voiceLines: VoiceLines = {};
   private voiceBeat: VoiceBeat | null = null;
+
+  // AV2: the latest report, wholesale-replaced on every `report` message —
+  // same field-then-forward shape as `voice`'s lines, except the report
+  // also always gets a *stored* copy here, because it can (and on
+  // placement, always does) arrive before the board mounts; the first-sky
+  // mount closure hands this to the fresh board's setReport(). Session-open
+  // uses it too (maybeOpenReport): the panel opens once per session iff
+  // this has entries and the arrival beat is not in the way.
+  private reportPayload: ReportPayload | null = null;
+  private reportOpened = false;
 
   // Set when the source card fires onStudyAction for a source with no study
   // yet: we've sent `openStudy` and are waiting for the confirming `sky` to
@@ -140,6 +151,10 @@ export class App {
         break;
       case "voice":
         this.voiceLines = message.lines;
+        break;
+      case "report":
+        this.reportPayload = message.report;
+        this.studyBoard?.setReport(message.report);
         break;
       case "error":
         // The ceremony subscribes to the socket directly for become-
@@ -215,16 +230,39 @@ export class App {
   /** The arrival beat is the exception to takeVoice's report-on-take: the
    *  tap is the acknowledgement, so `voiceSeen` is reported ON DISMISS, not
    *  here — a crash mid-beat replays it next session, the friendlier
-   *  failure. Safe to call more than once (double-mount guarded). */
-  private playArrival(): void {
-    if (this.voiceBeat !== null) return;
+   *  failure. Safe to call more than once (double-mount guarded).
+   *
+   *  AV2: returns whether a beat is up (just mounted, or already was) —
+   *  false only when there was no arrival line to show. Both call sites use
+   *  this to decide whether the report's session-open can fire right away
+   *  or must wait for the beat's onDismiss: the arrival beat always wins. */
+  private playArrival(): boolean {
+    if (this.voiceBeat !== null) return true;
     const text = this.voiceLines["arrival"];
-    if (text === undefined) return;
+    if (text === undefined) return false;
     this.voiceLines = { ...this.voiceLines, arrival: undefined };
     this.voiceBeat = new VoiceBeat(this.root, text, () => {
       this.socket.send({ type: "voiceSeen", key: "arrival" });
       this.voiceBeat = null;
+      this.maybeOpenReport();
     });
+    return true;
+  }
+
+  /** AV2: opens the report panel once per placed session — the arrival beat
+   *  always goes first (both call sites below call this only when
+   *  playArrival() reports nothing was mounted; the beat's own onDismiss
+   *  calls this too, once it closes). Requires the sky screen to actually
+   *  be mounted (studyBoard exists) and a stored payload with at least one
+   *  entry — an empty report is not worth interrupting arrival for. Never
+   *  called from the "later sky" branch of showSky or from the
+   *  visibilitychange refresh, so a reconnect never re-fires it. */
+  private maybeOpenReport(): void {
+    if (this.reportOpened) return;
+    if (this.reportPayload === null || this.reportPayload.entries.length === 0) return;
+    if (this.studyBoard === null) return;
+    this.reportOpened = true;
+    this.studyBoard.openReport();
   }
 
   private showSky(self: SelfView, sources: readonly DetectedSource[]): void {
@@ -311,13 +349,23 @@ export class App {
         }
       });
       // AV1: the mind's first line, at the end of the one-shot pull-back.
-      model.onPullbackEnd(() => this.playArrival());
+      // AV2: the report's session-open rides this same beat — it only
+      // fires once the arrival beat has had its turn (see playArrival's
+      // and maybeOpenReport's comments).
+      model.onPullbackEnd(() => {
+        if (!this.playArrival()) this.maybeOpenReport();
+      });
       // AV1: at most one hub explainer per open — compute first, the clock
       // note on a later open (idempotent: takeVoice empties whichever it
       // returns, so a second call in the same session yields the next one).
       studyBoard.onHubOpen(() => {
         const lineText = this.takeVoice("compute") ?? this.takeVoice("clock");
         if (lineText !== null) studyBoard.setHubExplainer(lineText);
+      });
+      // AV2: the epoch-dating explainer — shown once, on the first report
+      // open, because the report is where "year n AE" first appears.
+      studyBoard.onReportOpen(() => {
+        studyBoard.setReportExplainer(this.takeVoice("epoch"));
       });
 
       model.setSky(self, sources);
@@ -331,6 +379,11 @@ export class App {
         this.tend,
         this.probeFlightYearsPerLy,
       );
+      // AV2: a `report` message can (and on placement, does) arrive before
+      // this board exists — handleMessage stored it on `this.reportPayload`
+      // regardless. Hand the fresh board that stored copy now, the same
+      // beat as the update() call just above.
+      if (this.reportPayload !== null) studyBoard.setReport(this.reportPayload);
       model.enter(mode);
       clearPendingBecome();
       if (mode === "resume") {
@@ -340,7 +393,9 @@ export class App {
         // arrival line is still unseen server-side, so play it here instead,
         // after a short beat so it doesn't land in the same frame as the
         // sky mounting.
-        window.setTimeout(() => this.playArrival(), 600);
+        window.setTimeout(() => {
+          if (!this.playArrival()) this.maybeOpenReport();
+        }, 600);
       }
       return () => {
         model.destroy();
