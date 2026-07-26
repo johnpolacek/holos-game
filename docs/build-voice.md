@@ -223,22 +223,41 @@ scheduler, non-authoritative, free to fire late or not at all.
 
 The default path from "what is going on" to "what do I do."
 
-Server: a **proposal engine** — deterministic rules over the sky, the
-studies, and the work list (no LLM anywhere in this stage): an
-unclassified warmth with no study → propose the watch; a study starved
-of compute while the budget idles → propose the question; a returned
-answer that reprices a probe → propose the launch. At most one or two
-proposals at a time, each a framing line in the mind's voice (register:
-archetype voice, wit ceiling 2) plus a route into the *existing* brief or
-sheet — the proposal opens the same study brief or launch sheet the hub
-does; it never re-implements a verb.
+*(Amended 2026-07, on reopening the determinism question.)* The stage is
+**two layers, not one philosophy**. The determinism below is the floor
+the counsel stands on, not the ceiling of the experience — AV4 gains a
+second tenant (the counsel seam, below) that may pick and pitch with a
+model. What stays deterministic is what must be *promised*: the set of
+legal proposals, and the rules about firing, repeating, and declining.
+
+Server: a **candidate enumerator** — deterministic rules over the sky,
+the studies, and the work list: an unclassified warmth with no study →
+the watch is a candidate; a study starved of compute while the budget
+idles → the question is a candidate; a returned answer that reprices a
+probe → the launch is a candidate. Candidates are **typed records with
+stable ids** carrying the facts of their reason — shaped to be *ranked
+by something else*. The floor ranks them with rules and surfaces at most
+one or two; the counsel seam, when its flag is on, ranks the same closed
+set with a model. Each surfaced proposal is a framing line (the
+facts/stance split applies: the reason carries the pinned facts, the
+stance is the mind's) plus a route into the *existing* brief or sheet —
+the proposal opens the same study brief or launch sheet the hub does; it
+never re-implements a verb.
 
 Rules of the engine, held as guardrails: proposals never fire anything —
 accepting one opens the commitment surface, it does not commit; nothing
 irreversible is ever proposed into a one-tap path (the presence rule);
-declining is free and silent; a declined proposal does not return until
-the state that justified it materially changes. The mind proposes, the
-player chooses; the `+ Start` hub remains the browse path unchanged.
+declining is free and silent; a declined candidate does not return until
+its **state fingerprint** changes — the fingerprint (a hash of the
+candidate's id and the state facts that justify it) is also what the
+counsel seam's cache and decline-record key on, so the no-nag promise is
+checkable under both layers. The mind proposes, the player chooses; the
+`+ Start` hub remains the browse path unchanged.
+
+The enumerator is not a hedge against AV4 — it is the templated floor
+AV4's own contract requires under every generated path: no key, flag
+off, gate rejection, and API failure all still play, with the rules'
+pick and the templated framing.
 
 **Phone check:** a brand-new player lands with no studies — the mind
 proposes the first watch, with a reason drawn from the actual generated
@@ -249,6 +268,9 @@ repeat of the same proposal next session.
 
 The runtime seam: the same report entries and framing lines, rendered by
 a model instead of a template — off by default, template-fallback always.
+The seam has **two tenants**: the renderer (report remarks and framing
+lines, below) and **the counsel seam** (AV3's selection, at the end of
+this stage).
 
 The shape: when composing an entry with the flag on, the Cohort DO calls
 the Claude Messages API with a payload built from exactly three things —
@@ -290,11 +312,38 @@ has no sampling knobs on this model family — variety comes from the
 prompt and the entry's own material, which suits a voice that must stay
 in character anyway.
 
+**The counsel seam** *(added 2026-07 — the second tenant).* With the
+flag on, AV3's selection and framing may be generated. The model
+receives the **closed candidate list** (AV3's typed records, ids and
+all), the archetype's voice card, the dial sheet and charter, and
+nothing about the sky beyond the facts already inside the candidates —
+and returns a pick plus a framing line. The pick MUST name a candidate
+id and the line must pass the style gates; anything else falls back to
+the floor's pick and template. The response is **cached against the
+candidate-set fingerprint** (identical situations get identical
+counsel; re-reads are stable) and a decline is recorded against the same
+fingerprint, so the no-nag promise survives generation. The model never
+invents an undertaking, never prices one, never fires one — it chooses
+among legal moves and says why in character. This is the first place an
+archetype's nature is allowed to touch gameplay *texture* (which counsel
+you hear first) rather than prose alone; it remains barred from gameplay
+*truth*.
+
+One caution, owned in the stage rather than discovered later: **bad
+counsel is worse than plain counsel** — a mind that proposes the dumb
+move looks dumb at zero distance, and it is the one mind light-lag
+cannot cover for. The counsel flag stays off until its picks read well
+on a dev cohort; that evaluation is part of this stage's phone check,
+not an afterthought.
+
 **Phone check:** on a dev cohort with the flag on, a report entry
 renders in generated prose that passes the style gates and reads in the
 archetype's voice beside its templated siblings; the same entry re-reads
 identically after a reload; with the flag off, the same event renders
-from the template. Both paths on the same phone, same session.
+from the template. Both paths on the same phone, same session. For the
+counsel seam: the same sky state yields the same generated pick twice;
+a decline holds across a reload; pulling the key mid-session degrades
+to the floor without a visible seam.
 
 ## Done when
 

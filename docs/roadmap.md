@@ -316,16 +316,22 @@ slice closes that gap. Full brief: [build-voice.md](./build-voice.md).
       while you were away* — per-player, light-cone-legal, dated entries
       in the mind's voice; the Cohort DO's event machinery grows the
       per-player log it needs. Calm: no badges, the report waits.
-- [ ] **AV3 — The mind proposes**: a deterministic proposal engine
-      surfaces 1–2 candidate undertakings from the state of the sky,
-      each a framing line routing into the existing brief/sheet. The
-      mind proposes, the player chooses; nothing irreversible, no
-      nagging.
+- [ ] **AV3 — The mind proposes** *(amended 2026-07: two layers)*: a
+      deterministic **candidate enumerator** (typed records, stable ids,
+      state fingerprints) with a rules-ranked floor surfaces 1–2
+      proposals, each a framing line routing into the existing
+      brief/sheet. The mind proposes, the player chooses; nothing
+      irreversible, no nagging — the fingerprint is what makes no-nag
+      checkable under both this floor and AV4's counsel seam.
 - [ ] **AV4 — The generated voice (flagged)**: the Cohort DO can render
       an entry via the Claude API — prompt boundary = the knowledge
       layer, facts pinned byte-exact, output style-gated, cached forever
-      in DO storage, template fallback always, flag off by default. The
-      seam A2.5's LLM-run counterpart civ later builds on.
+      in DO storage, template fallback always, flag off by default. Two
+      tenants: the renderer (report remarks, framing lines) and **the
+      counsel seam** — model-ranked selection over AV3's closed
+      candidate set, cached per fingerprint, floor fallback; character
+      touches gameplay texture, never gameplay truth. The seam A2.5's
+      LLM-run counterpart civ later builds on.
 
 ### A3 — The light echo
 
