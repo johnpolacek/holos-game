@@ -155,6 +155,11 @@ export class App {
         else this.localNames.set(message.starId, message.name);
         this.sourceCard?.handleServerMessage(message);
         break;
+      case "clock":
+        // A re-anchor (dev time-skip). A fresh `sky` follows for placed
+        // connections; swapping the anchor is all the client owes.
+        setClockAnchor(message.clock);
+        break;
       case "voice":
         this.voiceLines = message.lines;
         break;

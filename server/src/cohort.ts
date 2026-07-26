@@ -18,6 +18,7 @@
 //   GET  /dev/sky?observer=ID                          all views for an observer
 //   POST /dev/event    {inYears, note}                 schedule an alarm-driven event
 //   GET  /dev/events                                   pending + fired events
+//   POST /dev/skip     {years}                         skip the clock forward (testing)
 
 import { Server, type Connection, type WSMessage } from "partyserver";
 import {
@@ -1796,6 +1797,7 @@ export class Cohort extends Server<CohortEnv> {
     if (request.method === "GET" && action === "sky") return this.devSky(url);
     if (request.method === "POST" && action === "event") return this.devScheduleEvent(request);
     if (request.method === "GET" && action === "events") return this.devEvents();
+    if (request.method === "POST" && action === "skip") return this.devSkip(request);
     return json({ error: "not found" }, 404);
   }
 
@@ -2004,5 +2006,53 @@ export class Cohort extends Server<CohortEnv> {
     const pending = (await this.ctx.storage.get<ScheduledEvent[]>("events")) ?? [];
     const log = (await this.ctx.storage.get<FiredEvent[]>("eventLog")) ?? [];
     return json({ nowYear: this.nowYear(), pending, fired: log });
+  }
+
+  /**
+   * Time acceleration for testing: skip the shared clock forward `years`
+   * game years by re-anchoring — ClockState is kept as an (epoch, year)
+   * pair precisely so the anchor can move without rewriting history. Safe
+   * because alarms are wake-ups, never truth (onAlarm's contract): every
+   * number is re-derived from the clock at read time, so the skipped
+   * window's due events simply fire on the re-armed alarm below.
+   *
+   * Forward-only: a rewind would contradict the fired-event log (events
+   * marked fired at years that are now the future).
+   */
+  private async devSkip(request: Request): Promise<Response> {
+    const clock = this.clock;
+    if (clock === null) return json({ error: "not seeded — POST /dev/seed first" }, 404);
+    const body = await parseBody(request);
+    const years = numberField(body, "years");
+    if (years === undefined || !Number.isFinite(years) || years <= 0) {
+      return json({ error: "years (positive number) required — the clock only skips forward" }, 400);
+    }
+
+    const nowMs = Date.now();
+    const fromYear = gameYearAt(clock, nowMs);
+    const next: ClockState = { epochRealMs: nowMs, epochGameYear: fromYear + years };
+    this.clock = next;
+    await this.ctx.storage.put("clock", next);
+
+    // Live clients interpolate from the anchor they were welcomed with, so
+    // push the replacement, then a fresh sky to every placed connection —
+    // nobody should wait on a wake event to see the post-skip world.
+    const wire = this.toClockWire();
+    for (const state of this.conns.values()) {
+      this.sendMsg(state.conn, { type: "clock", clock: wire });
+      if (state.civId !== null) await this.sendSky(state.conn, state.token, state.civId);
+    }
+
+    // Re-arm against the moved clock: anything that fell due inside the
+    // skipped window now maps to a past real-time and fires immediately.
+    const pending = (await this.ctx.storage.get<ScheduledEvent[]>("events")) ?? [];
+    await this.armAlarm(pending);
+
+    return json({
+      skippedYears: years,
+      fromYear,
+      nowYear: gameYearAt(next, Date.now()),
+      pendingEvents: pending.length,
+    });
   }
 }

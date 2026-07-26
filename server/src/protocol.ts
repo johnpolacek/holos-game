@@ -551,6 +551,10 @@ export type CohortServerMessage =
       // ── AV3 ──
       proposals: readonly Proposal[] }
   | { type: "sourceNamed"; starId: string; name: string }
+  /** A re-anchored clock, pushed when the server moves the anchor under a
+   *  live connection (today only the dev time-skip; a future ratio retune
+   *  would ride the same message). Clients replace their anchor wholesale. */
+  | { type: "clock"; clock: ClockWire }
   // ── AV1 ──
   | { type: "voice"; lines: VoiceLines }
   // ── AV2 ──
