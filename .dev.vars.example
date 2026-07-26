@@ -1,0 +1,14 @@
+# Local wrangler overrides for AV4's generated voice (docs/build-voice.md).
+# Copy to `.dev.vars` (gitignored) and fill in. Wrangler resolves this file
+# relative to wrangler.jsonc, so it belongs at the repo root.
+#
+# Both flags default to "off" in wrangler.jsonc and are read with strict
+# equality: only the exact string "on" enables a tenant.
+HOLOS_VOICE_GEN = "off"
+HOLOS_COUNSEL_GEN = "off"
+
+# In production this is a Workers secret, never a var and never in the repo:
+#   npx wrangler secret put ANTHROPIC_API_KEY
+# A key with the flags off generates nothing; a flag on with no key serves
+# templates silently and warns once in `wrangler tail`.
+ANTHROPIC_API_KEY = ""

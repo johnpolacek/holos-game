@@ -7,6 +7,12 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Local wrangler secrets. The API key is a Workers secret in production
+# and must never be committed; copy .dev.vars.example to get started.
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
 art-test/
 
 # Claude Code agent worktrees (transient)

@@ -24,10 +24,16 @@ function encode(msg: ServerMessage): string {
 }
 
 export { Cohort } from "./cohort";
+import type { CohortEnv } from "./cohort";
 
-interface Env {
+/**
+ * AV4: extends `CohortEnv` rather than restating it, so the Worker's two
+ * descriptions of one runtime object cannot disagree. The generation flags and
+ * the API key are declared once, in voicegen.ts, and arrive here through that
+ * chain — `wrangler.jsonc`'s vars for the flags, a Workers secret for the key.
+ */
+interface Env extends CohortEnv {
   Room: DurableObjectNamespace;
-  Cohort: DurableObjectNamespace;
   ASSETS: Fetcher;
 }
 

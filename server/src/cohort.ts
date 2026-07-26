@@ -106,7 +106,9 @@ import {
   mergeReportEntries,
   newReportState,
   type DeriveReportEntriesInput,
+  type ReportFamily,
   type ReportState,
+  type StoredReportEntry,
 } from "./report";
 import {
   DECLINE_CAP,
@@ -128,10 +130,25 @@ import {
   type MissionCatalog,
   type MissionSnapshot,
   type ProjectSnapshot,
+  type ReportEntry,
+  type ReportPayload,
   type SelfView,
   isVoiceKey,
   type VoiceKey,
 } from "./protocol";
+// AV4: the generated voice. Imported ONLY here — the client never imports
+// cohort.ts, so not one byte of the SDK reaches a phone. With both flags off
+// (the production default) every call below returns its input by identity.
+import {
+  VoiceGen,
+  counselEnabled,
+  remarksEnabled,
+  type GenDeps,
+  type MindSurface,
+  type VoiceGenEnv,
+} from "./voicegen";
+import { DIAL_AXES } from "./dials";
+import type { RemarkFamily } from "./voice";
 
 /**
  * A clock-scheduled event, driven by the Durable Object alarm. A0 proved
@@ -170,7 +187,13 @@ interface GalaxyMeta {
   readonly config: GalaxyConfig;
 }
 
-interface CohortEnv {
+/**
+ * AV4: one description of the runtime object, extended rather than
+ * duplicated. `index.ts`'s `Env` extends this in turn, so the Worker's two
+ * views of its own bindings cannot drift apart — the generation flags and the
+ * key are declared once, in voicegen.ts, where they are read.
+ */
+export interface CohortEnv extends VoiceGenEnv {
   Cohort: DurableObjectNamespace;
 }
 
@@ -265,6 +288,22 @@ async function parseBody(request: Request): Promise<Record<string, unknown>> {
   return {};
 }
 
+/**
+ * AV4: report.ts's sixth family — `record`, the mute one — gets no remark and
+ * therefore no pool. This is the one place the two family types meet, and it
+ * narrows rather than casts.
+ */
+function asRemarkFamily(family: ReportFamily): RemarkFamily | null {
+  return family === "record" ? null : family;
+}
+
+/** The stored family of a served entry, by id. Null when the entry is not in
+ *  stored state (unreachable — every served entry came from it) or is mute. */
+function remarkFamilyOf(state: ReportState, entryId: string): RemarkFamily | null {
+  const stored = state.entries.find((e) => e.id === entryId);
+  return stored === undefined ? null : asRemarkFamily(stored.family);
+}
+
 export class Cohort extends Server<CohortEnv> {
   private clock: ClockState | null = null;
   private galaxy: Galaxy | null = null;
@@ -274,6 +313,10 @@ export class Cohort extends Server<CohortEnv> {
   // If hibernation is ever enabled, every non-hello handler must instead
   // recover the token from the connection attachment.
   private readonly conns = new Map<string, ConnState>();
+  /** AV4: the generation seam, one per DO instance. Holds the record cache,
+   *  the in-flight set and the circuit breaker; every guarantee that must
+   *  survive a restart lives in storage instead. */
+  private readonly gen = new VoiceGen();
 
   async onStart(): Promise<void> {
     const clock = await this.ctx.storage.get<ClockState>("clock");
@@ -1076,7 +1119,11 @@ export class Cohort extends Server<CohortEnv> {
         ? { ...state, lastServedYear: connState.reportBaselineYear }
         : state;
     const payload = buildReportPayload(baseline, nowYear, selfCiv.seed.archetype);
-    this.sendMsg(conn, { type: "report", report: payload });
+    // AV4: a DECORATION on an already-complete payload. Flag off, no accepted
+    // pool, or any failure and this returns `payload` by identity, so what
+    // ships is AV2's bytes.
+    const decorated = await this.decorateReport(token, state, payload);
+    this.sendMsg(conn, { type: "report", report: decorated });
 
     if (opts.advance) {
       if (connState !== undefined) connState.reportBaselineYear = state.lastServedYear;
@@ -1123,7 +1170,96 @@ export class Cohort extends Server<CohortEnv> {
     const final = mergeReportEntries(fresh, derived);
     if (!final.changed) return fresh;
     await this.saveReportState(token, final.state);
+    // AV4 tenant 1's kick site: an entry was actually stored, so the family it
+    // belongs to may want a pool. Never awaited, and at most one call per
+    // (token, family) per prompt version, ever.
+    this.kickRemarkPools(token, civId, derived);
     return final.state;
+  }
+
+  // ── AV4 — the generated voice ─────────────────────────────────────────
+  // Three small seams, and nothing else in this file changes. report.ts,
+  // proposals.ts and voice.ts are untouched: generation is applied to a
+  // payload those modules already finished, so the flag-off path is their
+  // code byte for byte.
+
+  private genDeps(): GenDeps {
+    return {
+      env: this.env,
+      storage: this.ctx.storage,
+      waitUntil: (promise) => {
+        this.ctx.waitUntil(promise);
+      },
+    };
+  }
+
+  /**
+   * This player's own civilization, in words. Assembled HERE because the two
+   * catalog reads it needs — minds.ts's §8-pinned archetype name and dials.ts's
+   * pinned label pairs — are off voicegen.ts's R-37 allowlist, and hand-copying
+   * either into that module would fork the pinned vocabulary. The dial LEAN is
+   * a word derived from the sign of the position; the position itself never
+   * leaves this method.
+   */
+  private mindSurfaceFor(seed: CivSeed): MindSurface {
+    const dialLines = DIAL_AXES.map((axis) => {
+      const setting = seed.dials[axis.id];
+      const pair = `${axis.left.inWorld} · ${axis.right.inWorld}`;
+      if (setting.position === 0) return `${pair} — balanced`;
+      const pole = setting.position < 0 ? axis.left.inWorld : axis.right.inWorld;
+      return `${pair} — leans ${pole}`;
+    });
+    return {
+      archetype: seed.archetype,
+      archetypeName: archetypeById(seed.archetype).name,
+      charter: seed.charter,
+      posture: seed.posture,
+      dialLines,
+      chronicle: seed.chronicle,
+    };
+  }
+
+  /**
+   * The swap-in. `buildReportPayload` already attached the templated remark to
+   * exactly one entry (R-31), so the entry to decorate is simply the one whose
+   * `remark` is non-null; its family comes off the stored entry it was built
+   * from. The pick over the generated pool is `reportRemark`'s own — the same
+   * `createRng("remark/" + entryId)` draw — so a re-read is byte-identical and
+   * the generated pool behaves exactly like the shipped one.
+   */
+  private async decorateReport(
+    token: string,
+    state: ReportState,
+    payload: ReportPayload,
+  ): Promise<ReportPayload> {
+    if (!remarksEnabled(this.env)) return payload;
+    const promoted = payload.entries.find((e) => e.remark !== null);
+    if (promoted === undefined) return payload;
+    const family = remarkFamilyOf(state, promoted.id);
+    if (family === null) return payload;
+    const pool = await this.gen.remarkPool(this.genDeps(), token, family);
+    if (pool === null) return payload;
+    const remark = createRng(`remark/${promoted.id}`).pick(pool);
+    const entries: readonly ReportEntry[] = payload.entries.map((e) =>
+      e.id === promoted.id ? { ...e, remark } : e,
+    );
+    return { ...payload, entries };
+  }
+
+  private kickRemarkPools(
+    token: string,
+    civId: string,
+    derived: readonly StoredReportEntry[],
+  ): void {
+    if (!remarksEnabled(this.env)) return;
+    const families: RemarkFamily[] = [];
+    for (const entry of derived) {
+      const family = asRemarkFamily(entry.family);
+      if (family !== null) families.push(family);
+    }
+    if (families.length === 0) return;
+    const seed = civById(this.requireGalaxy(), civId).seed;
+    this.gen.kickRemarkPools(this.genDeps(), token, this.mindSurfaceFor(seed), families);
   }
 
   /** The report's own, self-sufficient assembly of everything
@@ -1260,19 +1396,38 @@ export class Cohort extends Server<CohortEnv> {
     // (loadVoiceState's idiom): a pre-AV3 token has simply declined
     // nothing yet.
     const proposalState = await this.loadProposalState(token);
-    const proposals = serveProposals(
-      enumerateProposals({
-        sources,
-        studies,
-        missions,
-        projects,
-        budget,
-        localNames,
-        designations,
-        probeFlightYearsPerLy,
-        declined: new Set(proposalState.declined),
-      }),
-    );
+    const ranked = enumerateProposals({
+      sources,
+      studies,
+      missions,
+      projects,
+      budget,
+      localNames,
+      designations,
+      probeFlightYearsPerLy,
+      declined: new Set(proposalState.declined),
+    });
+    const proposals = serveProposals(ranked);
+
+    // AV4 tenant 2, conservative mode: the floor picked and served above,
+    // untouched. This reads the cached counsel record and attaches a stance to
+    // the row the floor already leads with — and only when the model's own
+    // pick agrees with that row. It NEVER awaits the API: the read is memory
+    // or storage, and the kick is fired after the message is on the wire.
+    // The flag test is here rather than only inside the seam so a flag-off
+    // send does not even build a payload surface it will not use.
+    const counsel = counselEnabled(this.env)
+      ? await this.gen.counselFor(
+          this.genDeps(),
+          token,
+          this.mindSurfaceFor(self.seed),
+          ranked,
+          proposals,
+          async () => {
+            await this.resendSkyTo(token);
+          },
+        )
+      : { proposals, kick: (): void => undefined };
 
     await this.materializeReport(token, civId, nowYear, {
       studies,
@@ -1296,8 +1451,29 @@ export class Cohort extends Server<CohortEnv> {
       missions,
       tend,
       probeFlightYearsPerLy,
-      proposals,
+      proposals: counsel.proposals,
     });
+
+    // AFTER the send, always. Generation is considered only once the message
+    // has left, which is what makes "the hot path never awaits the API" a
+    // property of the ordering rather than of the timing.
+    counsel.kick();
+  }
+
+  /**
+   * AV4's acceptance push, on `onAlarm`'s precedent: an alarm's only effect is
+   * already to resend the sky, because the sky is derived at read time and a
+   * resend can never be a source of truth. A counsel record that would change
+   * what a live connection sees gets the same treatment — `sendSky` is
+   * event-driven, so "the next sky serves it" can otherwise mean "next
+   * session". Nothing else pushes: the report waits to be read.
+   */
+  private async resendSkyTo(token: string): Promise<void> {
+    const live = [...this.conns.values()].filter((c) => c.token === token && c.civId !== null);
+    for (const c of live) {
+      if (c.civId === null) continue; // filtered above; re-checked for narrowing
+      await this.sendSky(c.conn, c.token, c.civId);
+    }
   }
 
   /**

@@ -3,6 +3,14 @@
   // Must match the Worker name in the Cloudflare dashboard.
   "name": "holos-game",
   "compatibility_date": "2025-01-01",
+  // AV4: @anthropic-ai/sdk's credential chain statically imports node:fs and
+  // node:path (for the on-disk credential file we never use — the key is
+  // passed explicitly from the env binding). Without this flag the Worker
+  // fails to start on those specifiers, flags off included, so the flag is
+  // load-bearing for the whole Worker rather than only for generation. It is
+  // a config change, not a Durable Object migration, so per-PR preview builds
+  // stay green.
+  "compatibility_flags": ["nodejs_compat"],
   // One Worker serves the whole game: the partyserver Durable Object room
   // (game traffic under /parties/*) plus the built client as static assets.
   // This config lives at the repo root (Workers Builds Path "/") so the
@@ -39,6 +47,21 @@
       "new_sqlite_classes": ["Cohort"]
     }
   ],
+  // AV4 — the generated voice (docs/build-voice.md § AV4). "on" enables;
+  // every other value, including absence, is off. The production default is
+  // OFF: the templated banks in voice.ts are the shipped prose, and every
+  // generated path has one underneath it. Two flags, not one, because bad
+  // counsel is worse than plain counsel — the renderer can go on while the
+  // counsel is still being judged on a dev cohort.
+  //
+  // ANTHROPIC_API_KEY is a Workers secret
+  // (`npx wrangler secret put ANTHROPIC_API_KEY`) and NEVER appears here.
+  // A key on its own turns nothing on; both the flag and the key are
+  // preconditions. Locally, override both in `.dev.vars` (gitignored).
+  "vars": {
+    "HOLOS_VOICE_GEN": "off",
+    "HOLOS_COUNSEL_GEN": "off"
+  },
   "dev": {
     "port": 8787
   }
