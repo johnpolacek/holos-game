@@ -17,7 +17,8 @@
     "audit:names": "node scripts/audit-names.mjs",
     "sync:banned": "node scripts/sync-banned-terms.mjs",
     "audit:banned": "node scripts/sync-banned-terms.mjs --check",
-    "audit:voice": "node scripts/audit-voice.mjs"
+    "audit:voice": "node scripts/audit-voice.mjs",
+    "eval:counsel": "node scripts/eval-counsel.mjs"
   },
   "devDependencies": {
     "sharp": "^0.34.5",
