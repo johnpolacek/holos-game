@@ -94,10 +94,13 @@ branch builds in the Workers Builds project settings.)
   over libraries.
 - **Type and ink come from the tokens in `client/src/style.css`** — the
   `--holos-text-*` scale and the `--holos-ink{,-dim,-faint}` tiers. Never
-  hard-code a `font-size` or a raw ink color in a component rule. The scale
-  bottoms out at `--holos-text-xs` and the ink tiers stay above the alpha
-  where a phone screen in daylight loses them; something that needs to feel
-  quieter goes down a tier, not below the floor.
+  hard-code a `font-size` or a raw ink color in a component rule. Reading
+  type bottoms out at `--holos-text-xs` and the ink tiers stay above the
+  alpha where a phone screen in daylight loses them; something that needs to
+  feel quieter goes down a tier, not below the floor. `--holos-text-xxs` is
+  below that floor and is not reading type: it is for short, repeated,
+  *enclosed* classifiers a thumb recognises by shape (the Tend row badges).
+  Putting a sentence — or a lone unenclosed label — at xxs is a bug.
 - **Line breaking is a policy, not a per-component decision.** The
   "Wrapping" block near the top of `client/src/style.css` owns it: titles,
   subtitles, headers and short label lines get `text-wrap: balance`; running
