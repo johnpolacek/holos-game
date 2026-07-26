@@ -13,11 +13,17 @@
 // ring) at the player's own civ. Cyan is reserved for HOME — never a catalog
 // star, never a source. Amber/warm is for the detected sources.
 //
-// The act opens with a one-shot "pull-back": the camera starts close on the
-// home system (a light orrery of concentric rings + a warm central star,
-// concepts/03-02) and dollies out and off-axis into the parallax volume
-// (concepts/03-07). It plays ONCE, on fresh placement; a resume drops
-// straight into the volume.
+// Under the cyan mote is THE HOME SYSTEM (system.ts) — the player's own star
+// with its planets, at real AU laid into the same light-year frame, drawn once
+// the camera is within about a light-year. The home world is textured with the
+// actual plate its cradle ships (art.ts), the rest are small shaded discs, and
+// everything crawls along a real Keplerian orbit. The cyan HOME ring hands off
+// from the system-as-a-point to the home planet itself as you come in.
+//
+// The act opens with a one-shot "pull-back": the camera starts a couple of AU
+// off the home planet (concepts/03-02) and dollies out — exponentially, over
+// six orders of magnitude — off-axis into the parallax volume (concepts/03-07).
+// It plays ONCE, on fresh placement; a resume drops straight into the volume.
 //
 // Behind all of that is THE COSMOS (cosmos.ts) — the Milky Way as a particle
 // disk we are standing inside, the Local Group at its real distances, and the
@@ -31,8 +37,18 @@
 // Text stays in the DOM overlay (canvas for places, DOM for prose): the
 // tracking HOME label, the landmark names, and the scale readout.
 
-import { Application, Container, Graphics, Sprite, Texture } from "pixi.js";
+import { Application, Assets, Container, Graphics, Sprite, Texture } from "pixi.js";
 import type { DetectedSource, SelfView, Star, Vec3Ly } from "@holos/protocol";
+import { worldArt } from "./art";
+import {
+  AU_LY,
+  buildHomeSystem,
+  orbitPointLy,
+  trueAnomalyAt,
+  type HomeSystem,
+  type MutVec3,
+  type Planet,
+} from "./system";
 import {
   buildCosmos,
   buildGalaxyCanvases,
@@ -49,18 +65,29 @@ import {
 // ── Tuning ────────────────────────────────────────────────────────────────
 
 const FOV = 0.95; // vertical field of view, radians (~54°)
-const NEAR = 0.5; // near clip in light-years of camera depth
+/**
+ * Near clip, in light-years of camera depth. A CONSTANT half-light-year is
+ * fine while the camera never comes closer than four, and fatal once it can
+ * stand two AU off a planet: everything, including the thing you zoomed in
+ * on, is inside the clip. So it is proportional below five light-years and
+ * pinned at the old value above — nothing at any distance the camera could
+ * already reach changes at all.
+ */
+const NEAR = 0.5;
+const NEAR_FRACTION = 0.1;
 const DPR_MAX = 2;
 
-const DIST_HOME = 5; // dolly distance close on the home system (orrery)
 const DIST_VOLUME = 60; // dolly distance out in the parallax volume
-const PULLBACK_MS = 2600;
+const PULLBACK_MS = 4200;
+/** Where the pull-back starts if the system somehow is not built yet (it
+ *  always is — `enter` follows `setSky` — so this is belt and braces). */
+const PULLBACK_FALLBACK_AU = 3;
 
-// The whole range the camera can reach: from inside the home system to far
-// enough out that the cosmic web is a texture. Zoom is multiplicative in
-// both gestures, so crossing eight orders of magnitude is a handful of
+// The whole range the camera can reach: from a couple of AU off the home
+// star out to where the cosmic web is a texture. Zoom is multiplicative in
+// both gestures, so crossing thirteen orders of magnitude is a handful of
 // pinches rather than a scroll marathon.
-const DIST_MIN = 4;
+const DIST_MIN = 3e-5; // ~1.9 AU
 const DIST_MAX = 4e8;
 /** Wheel zoom rate — one notch (~100 deltaY) is about ×1.15. */
 const WHEEL_K = 0.0014;
@@ -71,6 +98,20 @@ const WHEEL_K = 0.0014;
 // with a smoothstep in LOG space — the only space in which "300 to 3,000" and
 // "2 million to 20 million" are the same size of transition.
 
+/** The home system — orbit rings, planets, the local sun's glow. It arrives
+ *  as the catalog stops being a field and starts being a night sky seen from
+ *  inside one system; by a light-year out the whole thing is one mote and the
+ *  cyan HOME ring is the only thing left to say about it. The catalog and the
+ *  amber sources do NOT stand down under it: from inside the system they are
+ *  exactly what they should be — the sky overhead. */
+const SYS_FADE_LO = 0.05;
+const SYS_FADE_HI = 1;
+/** Where the cyan ring stops meaning "this system" and starts meaning "this
+ *  planet". Between the two it tracks a lerp of the two screen positions,
+ *  which at half a light-year are the same pixel — so there is one ring
+ *  throughout and it never jumps. */
+const RING_HANDOFF_LO = 0.02;
+const RING_HANDOFF_HI = 0.5;
 /** The game itself — catalog stars, source smudges, the HOME text label.
  *  Gone by 3,000 ly, where a 25 ly neighborhood is a single point anyway. */
 const NEAR_FADE_LO = 300;
@@ -145,7 +186,9 @@ const GALAXY_MOTE_FLOOR = 0.18;
 // Volume-view resting camera angles (slightly off-axis, per 03-07).
 const VOLUME_AZ = 0.5;
 const VOLUME_EL = 0.32;
-// Pull-back starts near face-on to the orrery rings (03-02).
+// Pull-back starts near face-on to the ecliptic, so the home system's orbits
+// read as rings rather than as lines seen edge-on (03-02). The plane in
+// system.ts is chosen against these two angles.
 const HOME_AZ = 0.12;
 const HOME_EL = 0.1;
 
@@ -182,6 +225,56 @@ const SMUDGE_MAX_PX = 92;
 const HOME_PX = 2.6;
 const HOME_RING_PX = 9;
 
+// ── Home-system sizing ────────────────────────────────────────────────────
+//
+// Everything in the system is drawn against ONE number: how many pixels an
+// astronomical unit currently spans (`focal · AU_LY / depth`). Positions are
+// honest — a planet is projected from its real orbit — but SIZES are a
+// fraction of the AU scale rather than a physical diameter, because a planet
+// at true scale is a millionth of a pixel at every distance from which its
+// orbit is visible. It is the same bargain the galaxies make one-way: honest
+// where you are, readable how big you look.
+//
+// Each of the fractions below is capped a second time against the HABITABLE
+// ORBIT, because "a fifth of an AU" means something completely different
+// around an M dwarf whose home world is a quarter of an AU out than around an
+// F star whose home world is nearly two. Without the cap the close-in systems
+// draw a planet wider than the ring it sits on, which is not stylization, it
+// is a mistake.
+const SUN_CORE_AU = 0.05;
+const SUN_CORE_HZ = 0.14;
+const SUN_CORE_PX_MIN = 2.5;
+const SUN_CORE_PX_MAX = 44;
+const SUN_GLOW_AU = 0.42;
+const SUN_GLOW_HZ = 0.85;
+const SUN_GLOW_PX_MIN = 8;
+const SUN_GLOW_PX_MAX = 200;
+const SUN_GLOW_ALPHA = 0.34;
+/** Drawn diameter of a planet, as a fraction of an AU and of its own orbit. */
+const PLANET_AU = 0.055;
+const PLANET_ORBIT_FRAC = 0.16;
+const PLANET_PX_MIN = 1.6;
+const PLANET_PX_MAX = 70;
+const HOME_PLANET_AU = 0.22;
+const HOME_PLANET_ORBIT_FRAC = 0.45;
+const HOME_PLANET_PX_MIN = 3;
+const HOME_PLANET_PX_MAX = 220;
+/** Where the home world stops being a mote and becomes a body — the drawn
+ *  diameter, in px, over which the cyan point inside the ring stands down and
+ *  lets the world itself be what the ring is around. */
+const BODY_READ_PX_LO = 7;
+const BODY_READ_PX_HI = 19;
+/** Below this drawn radius an orbit is not a ring, it is a dot — skip it. */
+const ORBIT_MIN_PX = 2.5;
+const ORBIT_SEGMENTS = 56;
+/** How far off screen an orbit's path is still worth carrying. Well past any
+ *  viewport, and far short of the coordinates a sample just inside the near
+ *  plane produces. */
+const ORBIT_REACH_PX = 40_000;
+
+const PLANET_TEX_SIZE = 128;
+const WORLD_TEX_SIZE = 256;
+
 /** True-color by spectral class: M dull red → K orange → G yellow-white → F white. */
 const SPECTRAL_TINT: Readonly<Record<Star["spectralClass"], number>> = {
   M: 0xcf5b43,
@@ -193,10 +286,12 @@ const SPECTRAL_TINT: Readonly<Record<Star["spectralClass"], number>> = {
 const COLOR_HOME = 0x5fe0e6; // cyan — you, the present tense
 const COLOR_SOURCE = 0xdf9b52; // amber — belief / other
 const COLOR_SELECT = 0xb79b63; // gold hairline for a selected source
+/** The gold the orbit rings are drawn in — the one line-work color in the
+ *  Model, shared with a selected source's hairline. */
 const COLOR_ORRERY = 0xb79b63;
-// Pale cyan, not warm: the home system is you, the one present-tense place
-// (cyan = own civ), and the orrery star hands off to the cyan HOME mote.
-const COLOR_ORRERY_STAR = 0x9fe8ec;
+/** The home world's atmosphere rim. Pale blue-white rather than cyan: the
+ *  cyan ring around it is the game speaking, the rim is just air. */
+const COLOR_ATMOSPHERE = 0xbfe4ff;
 
 /** Callback fired on tap: the selected source, or null when tapping empty sky. */
 export type SelectSourceCallback = (source: DetectedSource | null) => void;
@@ -275,10 +370,14 @@ function fadeIn(d: number, lo: number, hi: number): number {
   return smoothstep(Math.log(Math.max(d, 1e-6) / lo) / Math.log(hi / lo));
 }
 
-/** The scale readout's number: an honest distance, never a zoom percentage. */
+/** The scale readout's number: an honest distance, never a zoom percentage.
+ *  Inside the home system a light-year is the wrong ruler — nobody measures
+ *  the distance to a planet in millionths of one — so it switches to AU at
+ *  the point where the system is the thing on screen. */
 function formatDistance(ly: number): string {
   const unit = (v: number, suffix: string): string =>
-    `${v < 10 ? v.toFixed(1) : String(Math.round(v))} ${suffix}`;
+    `${v < 10 ? v.toFixed(v < 1 ? 2 : 1) : String(Math.round(v))} ${suffix}`;
+  if (ly < SYS_FADE_LO) return unit(ly / AU_LY, "AU");
   if (ly < 1e3) return unit(ly, "ly");
   if (ly < 1e6) return unit(ly / 1e3, "kly");
   if (ly < 1e9) return unit(ly / 1e6, "Mly");
@@ -300,6 +399,179 @@ function radialTexture(size: number, stops: readonly [number, number][]): Textur
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, size, size);
   return Texture.from(canvas);
+}
+
+/** Clip whatever is already on the canvas to a circle with one pixel of
+ *  softness at the limb — the difference between a world and a sticker. */
+function clipToCircle(ctx: CanvasRenderingContext2D, size: number): void {
+  const c = size / 2;
+  ctx.globalCompositeOperation = "destination-in";
+  const g = ctx.createRadialGradient(c, c, 0, c, c, c);
+  g.addColorStop(0, "rgba(0,0,0,1)");
+  g.addColorStop(0.955, "rgba(0,0,0,1)");
+  g.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+  ctx.globalCompositeOperation = "source-over";
+}
+
+/** Lay a terminator over a circular plate: light from the upper left, the
+ *  limb falling into shadow. Cheap, static, and the whole reason a flat
+ *  square of art reads as a body with a far side. */
+function shadeSphere(ctx: CanvasRenderingContext2D, size: number, depth: number): void {
+  const c = size / 2;
+  ctx.globalCompositeOperation = "source-atop";
+  const g = ctx.createRadialGradient(c * 0.62, c * 0.6, c * 0.06, c, c, c * 1.12);
+  g.addColorStop(0, "rgba(0,0,0,0)");
+  g.addColorStop(0.45, `rgba(0,0,0,${depth * 0.18})`);
+  g.addColorStop(0.78, `rgba(0,0,0,${depth * 0.6})`);
+  g.addColorStop(1, `rgba(0,0,0,${depth})`);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+  ctx.globalCompositeOperation = "source-over";
+}
+
+/** The generic planet: a white shaded sphere, tinted per-planet at draw time.
+ *  Non-additive — a planet is not a light source, and the moment one blends
+ *  like a star the system stops reading as a system. */
+function discTexture(size: number): Texture {
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (ctx === null) throw new Error("Model: no 2d context for the planet disc");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, size, size);
+  clipToCircle(ctx, size);
+  shadeSphere(ctx, size, 0.82);
+  return Texture.from(canvas);
+}
+
+/**
+ * Where the world actually is inside its plate, as fractions of the plate.
+ *
+ * The plates are a lit sphere on black, and the sphere is neither centered nor
+ * the same size from one to the next — it fills anywhere from two-fifths to
+ * four-fifths of the frame. Cropping the frame's own circle would leave a
+ * black annulus around the world, which on a black sky reads as a hole cut in
+ * the stars, so the disc has to be found rather than assumed.
+ *
+ * The measurement is the one that survives the plates' own lighting: for each
+ * COLUMN, how tall the lit region is. For a disc that height peaks at the
+ * center and falls to nothing at the limbs, and the limb glow that ruins a
+ * horizontal bounding box is a thin thing with almost no column height. So the
+ * tallest column gives the diameter, and the run of near-tallest columns
+ * brackets the center.
+ */
+function plateDisc(
+  data: Uint8ClampedArray,
+  n: number,
+): { cx: number; cy: number; r: number } | null {
+  const top = new Int32Array(n).fill(-1);
+  const bottom = new Int32Array(n).fill(-1);
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      const k = (y * n + x) * 4;
+      const lum =
+        0.299 * (data[k] ?? 0) + 0.587 * (data[k + 1] ?? 0) + 0.114 * (data[k + 2] ?? 0);
+      if (lum <= 10) continue;
+      if (top[x] === -1) top[x] = y;
+      bottom[x] = y;
+    }
+  }
+  let tallest = 0;
+  for (let x = 0; x < n; x++) {
+    const t = top[x] ?? -1;
+    const b = bottom[x] ?? -1;
+    if (t >= 0 && b - t > tallest) tallest = b - t;
+  }
+  if (tallest < n * 0.1) return null; // not a disc; caller keeps the fallback
+  let x0 = n;
+  let x1 = -1;
+  let sumY = 0;
+  let countY = 0;
+  for (let x = 0; x < n; x++) {
+    const t = top[x] ?? -1;
+    const b = bottom[x] ?? -1;
+    if (t < 0 || b - t < tallest * 0.9) continue;
+    if (x < x0) x0 = x;
+    if (x > x1) x1 = x;
+    sumY += (t + b) / 2;
+    countY++;
+  }
+  if (x1 < x0 || countY === 0) return null;
+  return {
+    cx: (x0 + x1) / 2 / n,
+    cy: sumY / countY / n,
+    r: tallest / 2 / n,
+  };
+}
+
+/**
+ * The home world's actual plate as a body: its disc located, cropped to a
+ * circle, nothing else. No terminator is laid over it — every plate arrives
+ * already lit, each from its own direction, and a second shadow from a
+ * direction the art does not agree with turns a world into a smudge.
+ */
+function worldTexture(src: PlateSource, size: number): Texture {
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (ctx === null) throw new Error("Model: no 2d context for the world plate");
+
+  ctx.drawImage(src, 0, 0, size, size);
+  const disc = plateDisc(ctx.getImageData(0, 0, size, size).data, size);
+
+  ctx.clearRect(0, 0, size, size);
+  if (disc === null) {
+    ctx.drawImage(src, 0, 0, size, size);
+  } else {
+    // A hair of margin so the limb — and the thin haze the art puts on it —
+    // lands just inside the crop rather than exactly on it.
+    const half = disc.r * 1.06;
+    const { w, h } = plateSize(src);
+    ctx.drawImage(
+      src,
+      (disc.cx - half) * w,
+      (disc.cy - half) * h,
+      half * 2 * w,
+      half * 2 * h,
+      0,
+      0,
+      size,
+      size,
+    );
+  }
+  clipToCircle(ctx, size);
+  return Texture.from(canvas);
+}
+
+/** What a loaded plate can actually be backed by. */
+type PlateSource = HTMLImageElement | HTMLCanvasElement | ImageBitmap;
+
+/** Narrow a Pixi texture's backing resource to something drawImage accepts.
+ *  Every image source Pixi builds from a URL is one of these three; the null
+ *  return is the honest "then keep the fallback disc" branch. */
+function drawableResource(source: unknown): PlateSource | null {
+  if (source instanceof HTMLImageElement) return source;
+  if (source instanceof HTMLCanvasElement) return source;
+  if (typeof ImageBitmap !== "undefined" && source instanceof ImageBitmap) return source;
+  return null;
+}
+
+/** An `<img>` reports its layout size in `width`; only `naturalWidth` is the
+ *  pixel one, and the crop rectangle is in pixels. */
+function plateSize(src: PlateSource): { w: number; h: number } {
+  if (src instanceof HTMLImageElement) return { w: src.naturalWidth, h: src.naturalHeight };
+  return { w: src.width, h: src.height };
+}
+
+/** One planet's sprite plus, for the home world only, its atmosphere rim. */
+interface PlanetSprite {
+  readonly sprite: Sprite;
+  readonly planet: Planet;
+  readonly isHome: boolean;
 }
 
 export class Model {
@@ -325,14 +597,38 @@ export class Model {
   private haloLayer: Container | null = null;
   private starLayer: Container | null = null;
   private sourceLayer: Container | null = null;
-  private orreryGfx: Graphics | null = null;
+  private systemLayer: Container | null = null;
+  private orbitGfx: Graphics | null = null;
+  private sunGlow: Sprite | null = null;
+  private sunCore: Sprite | null = null;
+  private atmosphere: Sprite | null = null;
   private homeGfx: Graphics | null = null;
   private homeMote: Sprite | null = null;
   private selectionGfx: Graphics | null = null;
 
   private pointTex: Texture | null = null;
   private glowTex: Texture | null = null;
+  private discTex: Texture | null = null;
   private galaxyTex: Texture[] = [];
+
+  // The home system. Rebuilt only when the star under it actually changes,
+  // and its world plate loaded once — the fallback disc renders from the
+  // first frame, so the plate arriving is a swap and never a pop of nothing.
+  private system: HomeSystem | null = null;
+  private systemKey: string | null = null;
+  private planets: PlanetSprite[] = [];
+  private worldTex: Texture | null = null;
+  private worldToken = 0;
+  private readonly systemT0 = performance.now();
+  private readonly orbitPoint: MutVec3 = { x: 0, y: 0, z: 0 };
+  /** Where the home planet landed on screen this frame, and how big — the
+   *  cyan ring and the HOME label follow it once the hand-off completes. */
+  private homePlanetScreen: { ok: boolean; x: number; y: number; r: number } = {
+    ok: false,
+    x: 0,
+    y: 0,
+    r: 0,
+  };
 
   private stars: StarSprite[] = [];
   private sources: SourceSprite[] = [];
@@ -363,10 +659,15 @@ export class Model {
   private target: Vec3Ly = { x: 0, y: 0, z: 0 };
   private homePos: Vec3Ly = { x: 0, y: 0, z: 0 };
 
-  // Pull-back animation.
+  // Pull-back animation. `pullT` is the eased progress, kept so the HOME
+  // label can arrive partway through rather than on the first frame.
   private animating = false;
   private animStart = 0;
-  private orreryAlpha = 0;
+  private animFrom = DIST_VOLUME;
+  private pullT = 0;
+
+  // Near clip, recomputed per frame from `dist` (see NEAR).
+  private near = NEAR;
 
   // Buffered calls that arrive before the async renderer is ready.
   private pendingSky: { self: SelfView; sources: readonly DetectedSource[] } | null = null;
@@ -457,6 +758,7 @@ export class Model {
       [0.72, 0.035],
       [1, 0],
     ]);
+    this.discTex = discTexture(PLANET_TEX_SIZE);
     this.galaxyTex = buildGalaxyCanvases().map((canvas) => Texture.from(canvas));
 
     this.buildLayers();
@@ -479,7 +781,26 @@ export class Model {
     const glowTex = this.glowTex;
     if (pointTex === null || glowTex === null) return;
 
-    this.orreryGfx = new Graphics();
+    // The home system. One sortable container: the rings sit behind
+    // everything, the sun and the planets sort against each other by depth,
+    // so a world on the far side of its orbit passes behind the star.
+    this.systemLayer = new Container();
+    this.systemLayer.sortableChildren = true;
+    this.systemLayer.visible = false;
+    this.orbitGfx = new Graphics();
+    this.orbitGfx.zIndex = -1e12;
+    this.sunGlow = new Sprite(glowTex);
+    this.sunGlow.anchor.set(0.5);
+    this.sunGlow.blendMode = "add";
+    this.sunCore = new Sprite(pointTex);
+    this.sunCore.anchor.set(0.5);
+    this.sunCore.blendMode = "add";
+    this.atmosphere = new Sprite(glowTex);
+    this.atmosphere.anchor.set(0.5);
+    this.atmosphere.tint = COLOR_ATMOSPHERE;
+    this.atmosphere.blendMode = "add";
+    this.atmosphere.visible = false;
+    this.systemLayer.addChild(this.orbitGfx, this.sunGlow, this.sunCore, this.atmosphere);
 
     const tiers = this.buildCosmos(pointTex, glowTex);
     this.mwLayer = tiers.mw;
@@ -528,9 +849,9 @@ export class Model {
 
     // Draw order: the cosmos furthest back (web, then the Local Group, then
     // our own galaxy — order is cosmetic under additive blending, but this is
-    // the order the distances are in); orrery (the foreground you pull away
-    // from) fades to reveal the volume; stars over the backdrop, sources over
-    // stars, home + selection on top.
+    // the order the distances are in); stars over the backdrop, sources over
+    // stars; the home system over both, because from inside it those two ARE
+    // the night sky behind it; home + selection on top of everything.
     this.app.stage.addChild(
       tiers.web,
       tiers.lg,
@@ -538,7 +859,7 @@ export class Model {
       this.haloLayer,
       this.starLayer,
       this.sourceLayer,
-      this.orreryGfx,
+      this.systemLayer,
       this.selectionGfx,
       this.homeGfx,
       this.homeMote,
@@ -673,8 +994,11 @@ export class Model {
       this.app.ticker.remove(this.tick);
       this.app.destroy(true, { children: true });
     }
+    this.worldToken++; // orphan any world plate still in flight
     this.pointTex?.destroy(true);
     this.glowTex?.destroy(true);
+    this.discTex?.destroy(true);
+    this.worldTex?.destroy(true);
     for (const tex of this.galaxyTex) tex.destroy(true);
     this.galaxyTex = [];
     this.root.remove();
@@ -689,6 +1013,7 @@ export class Model {
 
     this.homePos = self.position;
     this.target = self.position; // orbit around HOME; keeps it centered
+    this.buildSystem(self);
 
     // Rebuild the source smudges from scratch (≤ ~24, trivial).
     for (const s of this.sources) s.sprite.destroy();
@@ -720,20 +1045,94 @@ export class Model {
     }
   }
 
+  /**
+   * (Re)generate the home system for the star the player woke on. Keyed on
+   * star + cradle so the repeat `sky` messages that arrive every time anyone
+   * joins do not tear down and rebuild eight sprites and a texture load.
+   */
+  private buildSystem(self: SelfView): void {
+    const key = `${self.starId}:${self.seed.cradleId}`;
+    if (key === this.systemKey) return;
+    this.systemKey = key;
+
+    const layer = this.systemLayer;
+    const discTex = this.discTex;
+    if (layer === null || discTex === null) return;
+
+    for (const p of this.planets) p.sprite.destroy();
+    this.planets = [];
+
+    const star = this.catalog.find((s) => s.id === self.starId);
+    const cls: Star["spectralClass"] = star?.spectralClass ?? "G";
+    const system = buildHomeSystem(self.starId, self.seed.cradleId, cls);
+    this.system = system;
+
+    const tint = SPECTRAL_TINT[cls];
+    if (this.sunGlow !== null) this.sunGlow.tint = tint;
+    if (this.sunCore !== null) this.sunCore.tint = tint;
+
+    for (let i = 0; i < system.planets.length; i++) {
+      const planet = system.planets[i];
+      if (planet === undefined) continue;
+      const isHome = i === system.homeIndex;
+      const sprite = new Sprite(discTex);
+      sprite.anchor.set(0.5);
+      sprite.tint = planet.tint;
+      layer.addChild(sprite);
+      this.planets.push({ sprite, planet, isHome });
+    }
+
+    // The home world's plate. The fallback disc above is already on screen,
+    // so this is a swap when it lands and nothing at all if it never does.
+    this.worldTex?.destroy(true);
+    this.worldTex = null;
+    this.loadWorldPlate(self.seed.cradleId);
+  }
+
+  /** Fetch and circular-crop the cradle's world plate. Fire-and-forget: every
+   *  failure path (no plate for the id, a load error, an undrawable resource)
+   *  leaves the shaded fallback disc in place, which is a real case — worldArt
+   *  is partial over the catalog. */
+  private loadWorldPlate(cradleId: number): void {
+    const url = worldArt(cradleId, "sq");
+    if (url === null) return;
+    const token = ++this.worldToken;
+    void Assets.load<Texture>(url)
+      .then((tex) => {
+        if (this.destroyed || token !== this.worldToken) return;
+        const src = drawableResource(tex.source.resource);
+        if (src === null) return;
+        this.worldTex = worldTexture(src, WORLD_TEX_SIZE);
+        for (const p of this.planets) {
+          if (p.isHome) {
+            p.sprite.texture = this.worldTex;
+            p.sprite.tint = 0xffffff; // the plate carries its own color now
+          }
+        }
+      })
+      .catch(() => {
+        /* keep the fallback disc */
+      });
+  }
+
   private applyEnter(mode: "pullback" | "resume"): void {
     if (mode === "pullback") {
       this.animating = true;
       this.animStart = performance.now();
+      this.pullT = 0;
       this.az = HOME_AZ;
       this.el = HOME_EL;
-      this.dist = DIST_HOME;
-      this.orreryAlpha = 1;
+      // Start a few AU off the home planet — close enough that it is a world
+      // with an orbit and not a mote. How close depends on the star: an M
+      // dwarf's habitable world is a tenth of an AU out, an F star's is two.
+      this.animFrom = (this.system?.openingAu ?? PULLBACK_FALLBACK_AU) * AU_LY;
+      this.dist = this.animFrom;
     } else {
       this.animating = false;
+      this.pullT = 1;
       this.az = VOLUME_AZ;
       this.el = VOLUME_EL;
       this.dist = DIST_VOLUME;
-      this.orreryAlpha = 0;
     }
   }
 
@@ -761,7 +1160,7 @@ export class Model {
     const y2 = dy * cosEl - z1 * sinEl;
     const z2 = dy * sinEl + z1 * cosEl;
     const depth = this.dist - z2;
-    if (depth <= NEAR) {
+    if (depth <= this.near) {
       this.proj.ok = false;
       return;
     }
@@ -783,6 +1182,11 @@ export class Model {
     const focal = h * 0.5 / Math.tan(FOV / 2);
 
     if (this.animating) this.stepPullback();
+
+    // Proportional below five light-years, the old constant above it (see
+    // NEAR). Recomputed here because this is the one place after every input
+    // and after the pull-back's step where `dist` is settled for the frame.
+    this.near = Math.min(NEAR, this.dist * NEAR_FRACTION);
 
     const sinAz = Math.sin(this.az);
     const cosAz = Math.cos(this.az);
@@ -819,6 +1223,16 @@ export class Model {
           if (item.halo !== null) item.halo.visible = false;
           continue;
         }
+        // Inside the home system the camera sits micro-light-years from its
+        // target, and a catalog star a few degrees off the view axis projects
+        // to a coordinate with eight digits in front of the point. Cull on the
+        // screen position the projection just produced rather than handing
+        // Pixi a transform it has no business trying to rasterize.
+        if (this.offscreen(this.proj.x, this.proj.y, w, h, STAR_PX_MAX * 4 + 16)) {
+          item.sprite.visible = false;
+          if (item.halo !== null) item.halo.visible = false;
+          continue;
+        }
         item.sprite.visible = true;
         item.sprite.position.set(this.proj.x, this.proj.y);
         const sizePx = clamp(
@@ -850,6 +1264,13 @@ export class Model {
           SMUDGE_MIN_PX,
           SMUDGE_MAX_PX,
         );
+        // Same cull as the catalog, at the smudge's own drawn radius — so a
+        // source whose center is just off the edge still shows the part of it
+        // that overlaps the screen, and still answers a thumb there.
+        if (this.offscreen(this.proj.x, this.proj.y, w, h, radiusPx + 8)) {
+          item.sprite.visible = false;
+          continue;
+        }
         item.sprite.visible = true;
         item.sprite.position.set(this.proj.x, this.proj.y);
         item.sprite.scale.set(radiusPx / (GLOW_TEX_SIZE / 2));
@@ -870,7 +1291,12 @@ export class Model {
       this.projectBackdrop(cx, cy, focal, w, h, sinAz, cosAz, sinEl, cosEl);
     }
 
-    this.drawOrrery(cx, cy, focal);
+    // The home system, and only when it is on screen at all: below the band
+    // this is several hundred projections and a rebuilt Graphics path per
+    // frame, and at sixty light-years there is nothing there to see.
+    const sysAlpha = 1 - fadeIn(this.dist, SYS_FADE_LO, SYS_FADE_HI);
+    this.drawSystem(cx, cy, focal, w, h, sinAz, cosAz, sinEl, cosEl, sysAlpha);
+
     this.drawHome(cx, cy, focal, sinAz, cosAz, sinEl, cosEl, nearAlpha);
     this.drawSelection();
   };
@@ -1202,54 +1628,183 @@ export class Model {
     }
   }
 
+  /**
+   * The pull-back. `dist` moves EXPONENTIALLY, not linearly: the dolly runs
+   * from a couple of AU to sixty light-years, six orders of magnitude, and a
+   * linear lerp across that spends ninety-nine per cent of the animation
+   * inside the last decade — you would watch a still frame and then a jump.
+   * In log space each decade takes the same share of the run, which is what
+   * "pulling back" has always meant.
+   */
   private stepPullback(): void {
     const t = (performance.now() - this.animStart) / PULLBACK_MS;
     const p = smoothstep(t);
-    this.dist = lerp(DIST_HOME, DIST_VOLUME, p);
+    this.pullT = p;
+    this.dist = this.animFrom * Math.pow(DIST_VOLUME / this.animFrom, p);
     this.az = lerp(HOME_AZ, VOLUME_AZ, p);
     this.el = lerp(HOME_EL, VOLUME_EL, p);
-    // Rings fade out over the first ~two-thirds of the pull-back.
-    this.orreryAlpha = 1 - smoothstep((t - 0.1) / 0.55);
     if (t >= 1) {
       this.animating = false;
-      this.orreryAlpha = 0;
+      this.pullT = 1;
+      this.dist = DIST_VOLUME;
     }
   }
 
-  private drawOrrery(cx: number, cy: number, focal: number): void {
-    const g = this.orreryGfx;
-    if (g === null) return;
-    g.clear();
-    if (this.orreryAlpha <= 0.001) {
-      g.visible = false;
+  /**
+   * THE HOME SYSTEM. Gold hairline orbits, the local sun as a class-tinted
+   * glow, small shaded discs for the other worlds and the cradle's own plate
+   * for this one — all of it projected through the same camera as everything
+   * else, so the orbits foreshorten honestly and the camera can fly inside
+   * the outer ones.
+   */
+  private drawSystem(
+    cx: number,
+    cy: number,
+    focal: number,
+    w: number,
+    h: number,
+    sinAz: number,
+    cosAz: number,
+    sinEl: number,
+    cosEl: number,
+    sysAlpha: number,
+  ): void {
+    const layer = this.systemLayer;
+    const gfx = this.orbitGfx;
+    const system = this.system;
+    if (layer === null || gfx === null) return;
+
+    this.homePlanetScreen.ok = false;
+    if (system === null || sysAlpha <= 0.004) {
+      layer.visible = false;
       return;
     }
-    g.visible = true;
-    const a = this.orreryAlpha;
-    // The home system is at the camera target → screen center, depth = dist.
-    const scale = focal / this.dist;
-    // A few concentric rings + faint spokes + a warm central star (03-02).
-    const ringRadii = [1.4, 2.4, 3.6, 5.0];
-    for (const rly of ringRadii) {
-      g.circle(cx, cy, rly * scale).stroke({
-        width: 1,
-        color: COLOR_ORRERY,
-        alpha: 0.28 * a,
-      });
+    layer.visible = true;
+    layer.alpha = sysAlpha;
+
+    // One number decides every drawn size in here: how many pixels an AU
+    // spans at the star's own depth (which is `dist` — the star IS the camera
+    // target, so it sits dead center at depth dist, every frame).
+    const pxPerAu = (focal * AU_LY) / this.dist;
+    const tSec = (performance.now() - this.systemT0) / 1000;
+
+    // The star. Bigger and much softer than any catalog point: from in here
+    // it is not one of the field's stars, it is the daylight.
+    const hz = system.habitableAu;
+    const glow = this.sunGlow;
+    if (glow !== null) {
+      glow.position.set(cx, cy);
+      const au = Math.min(SUN_GLOW_AU, hz * SUN_GLOW_HZ);
+      const r = clamp(au * pxPerAu, SUN_GLOW_PX_MIN, SUN_GLOW_PX_MAX);
+      glow.scale.set(r / (GLOW_TEX_SIZE / 2));
+      glow.alpha = SUN_GLOW_ALPHA;
+      glow.zIndex = -this.dist;
     }
-    const spokeR = 5.0 * scale;
-    for (let i = 0; i < 4; i++) {
-      const ang = (Math.PI / 4) * i;
-      const dx = Math.cos(ang) * spokeR;
-      const dy = Math.sin(ang) * spokeR;
-      g.moveTo(cx - dx, cy - dy)
-        .lineTo(cx + dx, cy + dy)
-        .stroke({ width: 1, color: COLOR_ORRERY, alpha: 0.1 * a });
+    const core = this.sunCore;
+    if (core !== null) {
+      core.position.set(cx, cy);
+      const au = Math.min(SUN_CORE_AU, hz * SUN_CORE_HZ);
+      const r = clamp(au * pxPerAu, SUN_CORE_PX_MIN, SUN_CORE_PX_MAX);
+      core.scale.set(r / 16);
+      core.zIndex = -this.dist + 1e-9;
     }
-    g.circle(cx, cy, Math.max(2, 0.25 * scale)).fill({
-      color: COLOR_ORRERY_STAR,
-      alpha: 0.9 * a,
-    });
+
+    // Orbit paths. Sampled in world space and projected point by point — a
+    // screen-space ellipse would be right only from face-on, and the whole
+    // reason the plane is tilted is that we are never quite there.
+    gfx.clear();
+    const p0 = this.orbitPoint;
+    for (const item of this.planets) {
+      const radiusPx = item.planet.aAu * pxPerAu;
+      if (radiusPx < ORBIT_MIN_PX) continue;
+      let drawing = false;
+      let any = false;
+      for (let i = 0; i <= ORBIT_SEGMENTS; i++) {
+        const nu = (i / ORBIT_SEGMENTS) * Math.PI * 2;
+        orbitPointLy(system, item.planet, nu, p0);
+        this.projectInto(
+          this.homePos.x + p0.x,
+          this.homePos.y + p0.y,
+          this.homePos.z + p0.z,
+          cx, cy, focal, sinAz, cosAz, sinEl, cosEl,
+        );
+        // A ring the camera is INSIDE has a stretch of itself behind the near
+        // plane, and either side of that gap runs off toward infinity. Break
+        // the path at both — at the clip, and at the point where a sample is
+        // so far off screen that carrying the line to it is a few thousand
+        // square pixels of tessellation nobody will ever see.
+        if (!this.proj.ok || Math.abs(this.proj.x) > ORBIT_REACH_PX || Math.abs(this.proj.y) > ORBIT_REACH_PX) {
+          drawing = false;
+          continue;
+        }
+        if (drawing) {
+          gfx.lineTo(this.proj.x, this.proj.y);
+        } else {
+          gfx.moveTo(this.proj.x, this.proj.y);
+          drawing = true;
+        }
+        any = true;
+      }
+      if (any) {
+        gfx.stroke({
+          width: 1,
+          color: COLOR_ORRERY,
+          alpha: item.isHome ? 0.34 : 0.2,
+        });
+      }
+    }
+
+    // The planets themselves, crawling.
+    const atmo = this.atmosphere;
+    if (atmo !== null) atmo.visible = false;
+    for (const item of this.planets) {
+      const nu = trueAnomalyAt(item.planet, tSec);
+      orbitPointLy(system, item.planet, nu, p0);
+      this.projectInto(
+        this.homePos.x + p0.x,
+        this.homePos.y + p0.y,
+        this.homePos.z + p0.z,
+        cx, cy, focal, sinAz, cosAz, sinEl, cosEl,
+      );
+      const a = item.planet.aAu;
+      const sizePx = item.isHome
+        ? clamp(
+            Math.min(HOME_PLANET_AU, a * HOME_PLANET_ORBIT_FRAC) * pxPerAu,
+            HOME_PLANET_PX_MIN,
+            HOME_PLANET_PX_MAX,
+          )
+        : clamp(
+            Math.min(item.planet.sizeMul * PLANET_AU, a * PLANET_ORBIT_FRAC) * pxPerAu,
+            PLANET_PX_MIN,
+            PLANET_PX_MAX,
+          );
+      if (!this.proj.ok || this.offscreen(this.proj.x, this.proj.y, w, h, sizePx * 2 + 24)) {
+        item.sprite.visible = false;
+        continue;
+      }
+      item.sprite.visible = true;
+      item.sprite.position.set(this.proj.x, this.proj.y);
+      // Against the sprite's OWN texture width: the home world's plate is
+      // twice the size of the generic disc, and a shared divisor would draw
+      // it at twice the diameter it was asked for.
+      item.sprite.scale.set(sizePx / item.sprite.texture.width);
+      item.sprite.zIndex = -this.proj.depth;
+      if (!item.isHome) continue;
+
+      this.homePlanetScreen.ok = true;
+      this.homePlanetScreen.x = this.proj.x;
+      this.homePlanetScreen.y = this.proj.y;
+      this.homePlanetScreen.r = sizePx / 2;
+      // A hair of air at the limb — enough to say the world has some, not
+      // enough to become a second ring around it.
+      if (atmo !== null && sizePx > 8) {
+        atmo.visible = true;
+        atmo.position.set(this.proj.x, this.proj.y);
+        atmo.scale.set((sizePx * 0.78) / (GLOW_TEX_SIZE / 2));
+        atmo.alpha = 0.3;
+        atmo.zIndex = -this.proj.depth - 1e-9;
+      }
+    }
   }
 
   private drawHome(
@@ -1284,36 +1839,56 @@ export class Model {
       this.homeLabel.style.opacity = "0";
       return;
     }
-    const x = this.proj.x;
-    const y = this.proj.y;
+    const starX = this.proj.x;
+    const starY = this.proj.y;
 
     // HOME is the way back, so it is drawn at a fixed pixel size at every
-    // zoom — from four light-years to four hundred million, the cyan mote is
-    // always findable. What it does give up at extreme distance is loudness:
-    // the ring stands down so it stops being the brightest thing in a sky
-    // that by then contains a hundred thousand galaxies.
+    // zoom — from a couple of AU to four hundred million light-years, the
+    // cyan mote is always findable. What it does give up at extreme distance
+    // is loudness: the ring stands down so it stops being the brightest thing
+    // in a sky that by then contains a hundred thousand galaxies.
     const homeSoft = 1 - 0.72 * fadeIn(this.dist, HOME_SOFT_LO, HOME_SOFT_HI);
 
+    // THE HAND-OFF. Far out, "you" is the star system as one point. Close in,
+    // "you" is the world your civ woke on. The ring lerps between the two
+    // SCREEN positions rather than switching: at half a light-year the star
+    // and its planet are the same pixel, so the transfer costs nothing and
+    // there is never a second ring anywhere.
+    const planet = this.homePlanetScreen;
+    const toPlanet = planet.ok ? 1 - fadeIn(this.dist, RING_HANDOFF_LO, RING_HANDOFF_HI) : 0;
+    const x = lerp(starX, planet.x, toPlanet);
+    const y = lerp(starY, planet.y, toPlanet);
+    // ...and the ring opens up to hold whatever the world is drawn at, so it
+    // rings the planet instead of being swallowed by it.
+    const ringPx = lerp(HOME_RING_PX, Math.max(HOME_RING_PX, planet.r + 7), toPlanet);
+
+    // The cyan point is the "too small to resolve" reading, and it holds until
+    // the world under it is genuinely a body rather than three pixels of
+    // texture — keyed on the DRAWN size, not on the layer's fade, because an
+    // M dwarf's world is still a mote long after its system has arrived.
+    const bodyRead = planet.ok
+      ? smoothstep((planet.r * 2 - BODY_READ_PX_LO) / (BODY_READ_PX_HI - BODY_READ_PX_LO))
+      : 0;
     mote.visible = true;
     mote.position.set(x, y);
     mote.scale.set(HOME_PX / 12);
-    mote.alpha = clamp(homeSoft + 0.28, 0, 1);
+    mote.alpha = clamp(homeSoft + 0.28, 0, 1) * (1 - bodyRead);
 
     // Thin cyan ring — the one present-tense object.
     gfx
-      .circle(x, y, HOME_RING_PX)
+      .circle(x, y, ringPx)
       .stroke({ width: 1, color: COLOR_HOME, alpha: 0.85 * homeSoft });
     gfx
-      .circle(x, y, HOME_RING_PX + 3)
+      .circle(x, y, ringPx + 3)
       .stroke({ width: 1, color: COLOR_HOME, alpha: 0.18 * homeSoft });
 
-    // Track the DOM HOME label just to the right of the mote (hidden while
-    // the rings still dominate the pull-back, and gone once the neighborhood
-    // it names has faded out from under it).
-    const base = this.animating ? clamp((1 - this.orreryAlpha) * 0.9, 0, 0.75) : 0.75;
+    // Track the DOM HOME label just to the right of the ring (arriving a
+    // beat into the pull-back rather than on its first frame, and gone once
+    // the neighborhood it names has faded out from under it).
+    const base = this.animating ? clamp((this.pullT - 0.12) / 0.4, 0, 1) * 0.75 : 0.75;
     const labelAlpha = base * nearAlpha;
     this.homeLabel.style.opacity = String(labelAlpha);
-    this.homeLabel.style.transform = `translate(${x + HOME_RING_PX + 8}px, ${y - 8}px)`;
+    this.homeLabel.style.transform = `translate(${x + ringPx + 8}px, ${y - 8}px)`;
   }
 
   private drawSelection(): void {
