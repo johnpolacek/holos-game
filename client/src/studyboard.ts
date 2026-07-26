@@ -1579,13 +1579,13 @@ export class StudyBoard {
     const meta = document.createElement("div");
     meta.className = "tend-row-meta";
     const chip = document.createElement("div");
-    chip.className = "tend-chip holos-caps";
+    chip.className = "tend-badge tend-chip";
     chip.textContent = row.costClass.toUpperCase();
     const state = document.createElement("div");
     state.className =
       row.state === "silent"
-        ? "tend-row-state holos-caps tend-row-state--silent"
-        : "tend-row-state holos-caps";
+        ? "tend-badge tend-row-state tend-row-state--silent"
+        : "tend-badge tend-row-state";
     state.textContent = WORK_STATE_LABEL[row.state];
     meta.append(chip, state);
 

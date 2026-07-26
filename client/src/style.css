@@ -153,9 +153,10 @@ body {
 .study-project-label,
 .study-hyp-label,
 .study-archive-tag,
-/* Tend: row titles and a report's headline. */
+/* Tend: row titles, a report's headline, and the row's class/state badges. */
 .tend-row-label,
 .tend-report-headline,
+.tend-badge,
 /* The chips and the one-word verbs — a pill must never break mid-phrase. */
 .study-chip,
 .study-verb-btn,
@@ -1546,16 +1547,41 @@ body {
   overflow: hidden;
 }
 
+/* The class and the state ride side by side and wrap to a second line when
+   they do not fit — a long state ("BEYOND THE HORIZON") drops under its
+   class rather than eating the label's column. Capped so the badges can
+   never take more of the row than the name they annotate. */
 .tend-row-meta {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.25rem;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.28rem;
   flex-shrink: 0;
+  max-width: 46%;
+}
+
+/* Badges, not label lines: the titling face inside a hairline pill, in the
+   same gold the row's rule is drawn in. They sit at --holos-text-xs like
+   every other label — the scale has no step below it, and the token block
+   says what to do instead: these read smaller than the letterspaced sans
+   caps they replace by dropping the tracking and the weight step and by
+   being enclosed, not by going under the floor. Never breaks mid-word. */
+.tend-badge {
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-xs);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.2rem 0.42rem;
 }
 
 .tend-chip {
   color: var(--holos-ink-faint);
+  border-color: rgba(211, 185, 130, 0.34);
 }
 
 .tend-row-state {
@@ -1564,6 +1590,7 @@ body {
 
 .tend-row-state--silent {
   color: var(--holos-error);
+  border-color: rgba(240, 131, 106, 0.5);
 }
 
 .tend-row-next {
