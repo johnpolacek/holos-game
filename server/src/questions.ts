@@ -70,6 +70,14 @@ export type RoleShift = Readonly<Partial<Record<HypothesisRole, number>>>;
 export interface QuestionDef {
   readonly id: QuestionId;
   readonly label: string; // "WEIGH IT" — chrome, ALL CAPS, ≤6 words
+  /**
+   * The question's name as it reads inside a sentence — `label` is chrome
+   * (ALL CAPS, R-24) and cannot be dropped into prose. The report's record
+   * sentences name the question this way ("The weighing on Hearth came
+   * back"), so the sentence-case form lives with the catalog, exactly as
+   * missions.ts's `missionProseName` does.
+   */
+  readonly proseName: string;
   readonly line: string; // what it would tell apart, plain words
   readonly costCompute: number;
   readonly integrationYears: number;
@@ -91,6 +99,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
   {
     id: "weigh-it",
     label: "WEIGH IT",
+    proseName: "weighing",
     line: "how heavy it is, and whether the warmth matches the weight",
     costCompute: 60,
     integrationYears: 12,
@@ -99,6 +108,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
   {
     id: "temperature-over-time",
     label: "TAKE ITS TEMPERATURE",
+    proseName: "temperature watch",
     line: "whether it is cooling the way nature cools, or being held",
     costCompute: 45,
     integrationYears: 24,
@@ -107,6 +117,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
   {
     id: "read-its-lines",
     label: "READ ITS LINES",
+    proseName: "line reading",
     line: "what it is made of, and what has been done to its air",
     costCompute: 75,
     integrationYears: 8,
@@ -115,6 +126,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
   {
     id: "time-its-shadows",
     label: "TIME ITS SHADOWS",
+    proseName: "shadow timing",
     line: "whether the crossings keep a clock, and what kind",
     costCompute: 40,
     integrationYears: 18,
@@ -123,6 +135,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
   {
     id: "catch-its-edges",
     label: "CATCH ITS EDGES",
+    proseName: "edge look",
     line: "how the light comes off it — air answers differently than surface",
     costCompute: 90,
     integrationYears: 6,
@@ -131,6 +144,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
   {
     id: "listen-off-axis",
     label: "LISTEN OFF-AXIS",
+    proseName: "off-axis listening",
     line: "what spills around the edge of the signal, and who the middle is for",
     costCompute: 55,
     integrationYears: 10,

@@ -76,6 +76,11 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | Frame explainer — age chip | `voice.ts` ageChipLine | Observatory deadpan | 0 |
 | Frame explainer — compute | `voice.ts` computeLine | Observatory deadpan | 0 |
 | Clock line | `voice.ts` clockLine | The mind stating physics; shared across archetypes | 1 |
+| Frame explainer — epoch | `voice.ts` epochLine | Observatory deadpan | 0 |
+| Report record sentence | `voice.ts` record builders | Observatory deadpan; dated, past tense | 0 |
+| Report epoch stamp | `voice.ts` epochStamp | Observatory deadpan | 0 |
+| Report triage header | `voice.ts` reportHeader | Observatory deadpan | 0 |
+| Report remark | `voice.ts` REPORT_REMARKS | Archetype voice, free-standing, fact-free | 2 |
 | Docs narration | `docs/*.md` prose | Essayist, analytical | 1 |
 | In-doc quoted interface prose | walkthrough scene quotes | The quoted archetype's own voice | 3 |
 
@@ -100,6 +105,16 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
   interchangeability §4's DON'T column diagnoses. It is also the boundary
   runtime generation (AV4) works across: record sentences pass through
   pinned; the remark is what a model may rewrite.
+- **The report is the observatory's record, presented by the mind.** It is
+  not the mind's diary. The entries are instrument output — dated, past
+  tense, wit 0 — and the mind is only allowed a sentence *beside* them, so
+  the remark's ceiling is **2, not 3**: an arrival line is the mind
+  introducing itself and can afford 3, while a remark stands next to a
+  measurement and would sound glib at that height. And the ceiling is not
+  the only limit — **at most one remark rides a whole report** (R-31).
+  That is R-4's one-wit-beat-per-string applied at surface scale: a page
+  of dated entries each with its own quip is the overwitting failure mode
+  with a scrollbar attached.
 
 ---
 
@@ -165,11 +180,33 @@ Named mechanics of the register. Apply **at most one** per short string.
   literal appears inside a bank string; no bank uses a bare template
   interpolation. Enforced by the type (`line`'s interpolations are `Fact`),
   checked at review by grepping the banks for digits outside `line` tags.
+- **R-29a Remarks carry nothing pinned.** The archetype's free-standing
+  sentence beside a record sentence contains **no numeral**, and also no §8
+  pinned label, no designation, and no player-authored source name. R-29
+  says a fact must arrive through a `Fact`; R-29a says the remark has no
+  business holding one in the first place — it is precisely the part
+  runtime generation may rewrite, so there must be nothing in it that
+  rewriting could break. Checked by grepping the remark banks for digits
+  and for §8's values; both must return zero.
 - **R-30 One register per sentence.** A sentence that carries a pinned fact
   stays observatory deadpan; the archetype's stance goes in its own
   sentence. A witty sentence containing a number is a rejection on sight —
   it violates M4 and puts R-1 inside the part runtime generation is allowed
   to rewrite.
+- **R-33 Epoch dating is frozen.** Every date a player reads is that
+  civilization's own count from its own ascension (`year n AE`, §8's
+  chronicle-dating row); the cohort's absolute year never reaches the wire
+  or a surface. Its companion: **a remote entry's light age at its own
+  stamp year is exactly the distance.** A record line prints the distance
+  in years, never a difference of two years — an annal does not re-age its
+  entries when they are re-read, and a line dated `year 160 AE` says the
+  same thing forever.
+- **R-34 The report derives from wire snapshots only.** `report.ts` imports
+  no truth-side and no knowledge-layer symbol — not `civTruthAt`,
+  `emissionAt`, `occupancyAt`, `peekTruth`, `observeCiv`, `lightConeFor`.
+  Everything it needs is already on the assembled snapshots, which have
+  passed the no-leak boundary once. Structural rather than reviewed: grep
+  the module's import list.
 
 **Wit discipline:**
 - **R-4 One wit-beat max per short string.** Two is trying too hard.
@@ -178,6 +215,17 @@ Named mechanics of the register. Apply **at most one** per short string.
 - **R-6 No homogeneous wit.** Each archetype's wit is drawn from its own
   material (appetite, liturgy, work, parliament…). Reject any string whose
   humor would fit another archetype unchanged.
+- **R-31 One remark per served report.** However many entries a report
+  carries, at most one of them gets the mind's sentence — the
+  highest-ranked new entry, by family precedence `unspoken` > `spoken` >
+  `settled` > `refused` > `sent`. Remarks are also **family-scoped**: a
+  remark must read correctly for *every* entry its family can produce, so
+  it names no specific thing (which reading won, which question refused,
+  where the probe went, why it fell silent). Swap test, per family: if two
+  archetypes' remarks in the same family could trade places without either
+  becoming wrong, both fail R-6. A remark is 1–2 sentences, ≤ 22 words,
+  wit ceiling 2, at most one craft move — shorter than an arrival line
+  because it is read beside a measurement, not instead of one.
 
 **Punctuation and house style (grep-checkable):**
 - **R-7 No exclamation marks** anywhere in game-facing prose.
@@ -220,6 +268,12 @@ Named mechanics of the register. Apply **at most one** per short string.
   wit 0; any number in one is a pinned fact (R-29).
 - **R-28** Clock line: 1–2 sentences, ≤ 34 words; every time figure derived
   from `clock.ts`'s `REAL_MS_PER_GAME_YEAR`, never written as a literal.
+- **R-32** Record sentence: 1–2 sentences, ≤ 34 words; past tense; wit 0;
+  colon for a reveal, spaced em-dash for an aside. Where a record sentence
+  passes an already-authored passage through (a study annotation, a
+  project's effect line), the bound governs the framing clause — the
+  passage is bounded at its own source and is never re-cut to fit. The
+  remark that may accompany one is bounded separately, by R-31.
 
 ---
 
@@ -420,6 +474,7 @@ restyle that edits a bank without its doc sync is incomplete.
 | `dials.ts` labels / questions | `act2-design.md` | Labels byte-exact; question wording tracks |
 | Interface prose quoted in the walkthrough | `walkthrough.md` | Voice must be consistent with the speaking archetype (§4) |
 | `voice.ts` VOICE_CARDS | this guide, §4 | **Verbatim** — a projection of §4's signature / wit / DON'T columns, never an edit of them |
+| `voice.ts` REPORT_REMARKS / record builders | this guide, §2 register rows | Register and ceilings track the §2 rows; R-29a, R-31 and R-32 are grep- or script-checkable, and family scope + archetype legibility (the swap test) stay a human read |
 
 ---
 
@@ -435,7 +490,11 @@ Load-bearing literals. Style passes must not rewrite them for wit or flow.
 | Model captions | `THE MODEL — WHAT WE BELIEVE`, `HOME` |
 | Cradle names / hosts | Every `name` and `host` in `cradles.ts` — real astronomy, never restyled |
 | Difficulty tiers | `Gentle`, `Temperate`, `Testing`, `Harsh`, `Brutal` |
-| Designation format | `HOL-nnnn` — a machine ID, never prose |
+| Designation format | `HOL-nnnn-i` — a machine ID, never prose |
+| Hypothesis labels | Every `label` in `studies.ts` MENUS — `brown dwarf`, `rogue world`, `cooled remnant`, `somebody's heart`, `debris and rings`, `natural transits`, `construction under way`, `young and sloppy`, `deliberate shine`, `a performance`, `stable biosphere`, `biosphere in crisis`, `pre-industrial civilization`, `industrial rise`, `meant for us`, `meant for someone near us`, `a repeat of an old message` |
+| Mission prose names | `The Assay`, `The Sentinel` (`missions.ts` `missionProseName`) |
+| Question prose names | `weighing`, `temperature watch`, `line reading`, `shadow timing`, `edge look`, `off-axis listening` (`questions.ts` `proseName`) |
+| Report headlines | Every `headline` in `missions.ts` — `OCCUPIED — HOLDING AT RANGE`, `INHABITED — HOLDING AT RANGE`, `A LIVING WORLD, NO WORKS`, `A LIVING WORLD, BUILDING`, `OCCUPIED AND WORKING`, `COLD AND STILL`, `NOTHING NEW TO REPORT`, `TREND CONTINUES`, `POWER MARGIN FAILING`, `OFF-CADENCE REPORT` — ALL-CAPS set phrases (R-24), quoted into prose, never restyled into it |
 | Age chip | `AS OF n Y AGO` |
 | Chronicle dating | Epoch-relative — each civilization counts from its own founding event (the `year n AE` family); the cohort's global year never reaches a player surface |
 | Color rule | cyan = you / HOME (present tense); amber = other / belief. Prose must never call HOME amber or a source cyan. |
@@ -447,6 +506,26 @@ in-world dial labels in display form — all-caps with an em dash (e.g.
 typography. The pinned form above, spaced middot (`Reach · Depth`),
 governs prose; R-2's byte-exact rule applies to prose, not to display
 typography.
+
+**Designation format, amended (2026-07).** This row previously read
+`HOL-nnnn`. The shipped format is `HOL-nnnn-i` — a four-digit catalog
+number and an index, e.g. `HOL-0413-7` (`galaxy.ts`, where the
+designation is built as `HOL-${four digits}-${i}`). §7's rule decides
+which way the correction runs: **the code banks are canonical and docs
+mirror them**, so the doc moves to the code, not the code to the doc. The
+index is what keeps designations unique when two generated sources draw
+the same catalog number, so dropping it to match the old row would be a
+collision, not a tidy-up.
+
+**Why the report's new rows are pinned.** Hypothesis labels, mission and
+question prose names, and report headlines all enter player prose
+*verbatim*, dropped into a record sentence through a `Fact` (R-29). They
+are the sentence's payload, not its phrasing: a restyle that improved
+`construction under way` into something better-sounding would silently
+disagree with the study card that shows the same reading an inch away.
+Question prose names are the sentence-case forms of the ALL-CAPS chrome
+labels, which never enter prose at all — `WEIGH IT` is a button, `the
+weighing` is a thing that came back.
 
 **Capitalization families.** Named events and singular artifacts take a
 capital, like `the Vault` and `the Model`: `the Refusal` (and its agent, the

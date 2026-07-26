@@ -204,6 +204,21 @@ mind's digest — every entry dated, the question's answer moving a
 study's bars, the probe's flight underway — and every line survives the
 register map.
 
+*Amendment, recorded during the build.* The brief above says entries
+about remote sources are "generated at the moment their light arrives".
+Taken literally that has no referent: a Durable Object asleep between
+sessions has no moment to generate anything in, and the only machinery
+that could manufacture one — the alarm queue — must not become a source
+of truth about what happened. So the model is **stamped at arrival,
+materialized on the next derive**: an entry carries its true home-side
+arrival year as its stamp, and comes into existence the next time the
+server derives the report from the already-assembled snapshots. A
+civilization that slept for four hundred years reconstructs on the next
+read with the identical stamps it would have had if someone had been
+watching, which is the property that actually matters and the one the
+literal reading was reaching for. The alarm queue stays what it was: a
+scheduler, non-authoritative, free to fire late or not at all.
+
 ### AV3 — The mind proposes
 
 The default path from "what is going on" to "what do I do."
