@@ -481,6 +481,36 @@ export interface ReportPayload {
   readonly entries: readonly ReportEntry[];
 }
 
+// ── AV3: the mind proposes ─────────────────────────────────────────────
+// The floor's candidate enumerator (server/src/proposals.ts) derives these
+// from the same wire snapshots `sky` already assembles; only the rendered
+// reason and a resolved route cross the wire — the VoiceLines/ReportEntry
+// precedent, one more time. Banks (voice.ts) and fingerprints
+// (proposals.ts's ProposalCandidate) never leave the server.
+
+/** Where accepting a proposal routes. Every arm names an EXISTING client
+ *  entry point; no arm opens anything AV3 builds. */
+export type ProposalRoute =
+  | { readonly kind: "study-brief"; readonly starId: string }
+  | { readonly kind: "question"; readonly starId: string; readonly questionId: string }
+  | { readonly kind: "launch"; readonly starId: string }
+  | { readonly kind: "project"; readonly projectId: string };
+
+/**
+ * One proposal, resolved server-side. `line` is the deadpan reason (facts
+ * pinned); `verb` is the accept label; `stance` is the mind's own
+ * free-standing sentence and is ALWAYS null at the AV3 floor — AV4's
+ * counsel seam is the only thing that ever fills it (ReportEntry.remark's
+ * exact shape, above).
+ */
+export interface Proposal {
+  readonly id: string;
+  readonly line: string;
+  readonly verb: string;
+  readonly stance: string | null;
+  readonly route: ProposalRoute;
+}
+
 // client → server (UNTRUSTED — every field guarded on parse)
 export type CohortClientMessage =
   | { type: "hello"; token: string | null }
@@ -496,7 +526,9 @@ export type CohortClientMessage =
   // ── AV1 ──
   | { type: "voiceSeen"; key: VoiceKey }
   // ── AV2 ──
-  | { type: "requestReport" };
+  | { type: "requestReport" }
+  // ── AV3 ──
+  | { type: "declineProposal"; id: string };
 
 // server → client
 export type CohortServerMessage =
@@ -515,7 +547,9 @@ export type CohortServerMessage =
       /** The CURRENT effective probe speed (years per light-year), derived
        *  from landed probe-haste projects at nowYear — lets the launch
        *  sheet preview a mission's clock before committing. */
-      probeFlightYearsPerLy: number }
+      probeFlightYearsPerLy: number;
+      // ── AV3 ──
+      proposals: readonly Proposal[] }
   | { type: "sourceNamed"; starId: string; name: string }
   // ── AV1 ──
   | { type: "voice"; lines: VoiceLines }
@@ -668,6 +702,16 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
     return { type: "requestReport" };
   }
 
+  // AV3: no error code on a malformed declineProposal, and none on an
+  // unknown id at the handler either. It is pure bookkeeping — dropping it
+  // means the proposal shows once more — and the client's global error
+  // handler releases in-flight purchase flags on ANY "error" message
+  // (studyboard.ts's global error handler), so an error code here would
+  // cancel a real in-progress buy/launch for a bookkeeping miss.
+  if (msg["type"] === "declineProposal" && typeof msg["id"] === "string") {
+    return { type: "declineProposal", id: msg["id"] };
+  }
+
   return null;
 }
 
@@ -695,6 +739,53 @@ function isReportRoute(v: unknown): v is ReportRoute {
 
 function isStringOrNull(v: unknown): v is string | null {
   return v === null || typeof v === "string";
+}
+
+/** AV3: the twin of isReportRoute above — discriminant against the closed
+ *  ProposalRoute set, each kind's own id field checked by name. */
+function isProposalRoute(v: unknown): v is ProposalRoute {
+  if (typeof v !== "object" || v === null) return false;
+  const r = v as { kind?: unknown };
+  switch (r.kind) {
+    case "study-brief":
+    case "launch":
+      return typeof (v as { starId?: unknown }).starId === "string";
+    case "question":
+      return (
+        typeof (v as { starId?: unknown }).starId === "string" &&
+        typeof (v as { questionId?: unknown }).questionId === "string"
+      );
+    case "project":
+      return typeof (v as { projectId?: unknown }).projectId === "string";
+    default:
+      return false;
+  }
+}
+
+/** AV3: field-by-field like parseReportPayload above, not the wholesale
+ *  A1-era cast — a malformed proposal would render as a bogus row rather
+ *  than a dropped message. Any mismatch anywhere drops the whole array (and
+ *  its caller drops the whole `sky`). */
+function parseProposals(v: unknown): readonly Proposal[] | null {
+  if (!Array.isArray(v)) return null;
+  const out: Proposal[] = [];
+  for (const raw of v as readonly unknown[]) {
+    if (typeof raw !== "object" || raw === null) return null;
+    const p = raw as {
+      id?: unknown;
+      line?: unknown;
+      verb?: unknown;
+      stance?: unknown;
+      route?: unknown;
+    };
+    if (typeof p.id !== "string") return null;
+    if (typeof p.line !== "string") return null;
+    if (typeof p.verb !== "string") return null;
+    if (!isStringOrNull(p.stance)) return null;
+    if (!isProposalRoute(p.route)) return null;
+    out.push({ id: p.id, line: p.line, verb: p.verb, stance: p.stance, route: p.route });
+  }
+  return out;
 }
 
 /** AV2: field-by-field like `voice` above, not a wholesale cast — a
@@ -744,10 +835,20 @@ export function parseCohortServerMessage(raw: string): CohortServerMessage | nul
   switch (msg.type) {
     case "welcome":
     case "offer":
-    case "sky":
     case "sourceNamed":
     case "error":
       return data as CohortServerMessage;
+    // AV3: validate `proposals` field-by-field rather than trusting the
+    // whole `sky` payload wholesale — a proposal row carries a tap that
+    // navigates, so a malformed one should drop the message rather than
+    // render a bogus row. Every other `sky` field keeps the A1-era
+    // wholesale cast, the same two-tier discipline `report` below already
+    // set: new payloads get real parsing, old ones keep their cast.
+    case "sky": {
+      const proposals = parseProposals((data as { proposals?: unknown }).proposals);
+      if (proposals === null) return null;
+      return { ...(data as Record<string, unknown>), proposals } as unknown as CohortServerMessage;
+    }
     // AV1: unlike the cases above, validate `lines` field-by-field rather
     // than trusting the shape wholesale — the payload's whole contract is
     // "a key present means unseen," so a malformed key/value here would

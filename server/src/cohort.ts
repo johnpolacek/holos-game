@@ -109,6 +109,12 @@ import {
   type ReportState,
 } from "./report";
 import {
+  DECLINE_CAP,
+  enumerateProposals,
+  serveProposals,
+  type ProposalState,
+} from "./proposals";
+import {
   parseCohortClientMessage,
   toWireSource,
   validateName,
@@ -326,6 +332,9 @@ export class Cohort extends Server<CohortEnv> {
         return;
       case "requestReport":
         await this.onRequestReport(conn);
+        return;
+      case "declineProposal":
+        await this.onDeclineProposal(conn, msg.id);
         return;
     }
   }
@@ -555,6 +564,50 @@ export class Cohort extends Server<CohortEnv> {
       version: 1,
       seen: [...voiceState.seen, key],
     });
+  }
+
+  /**
+   * AV3: record a decline. Not placed → silent return (onVoiceSeen's
+   * rationale, above — pure bookkeeping, no error code). The id is
+   * validated by RE-ENUMERATING against an EMPTY declined set and matching:
+   * an id that is not currently a candidate is a no-op, so nothing a client
+   * sends can put an arbitrary string into storage. Enumerating against an
+   * empty set (rather than this token's real declined set) is deliberate —
+   * a candidate already declined would not appear in the real filtered
+   * list, so a duplicate decline needs the unfiltered list to still find
+   * it. The fingerprint recorded is the SERVER's current one for that id,
+   * never a client-supplied value — the client never holds a fingerprint at
+   * all (protocol.ts's Proposal carries no such field).
+   */
+  private async onDeclineProposal(conn: Connection, id: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) return;
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    const assembled = await this.assembleSkyState(state.token, state.civId, nowYear);
+    const budget: ComputeBudget = {
+      free: freeComputeAt(assembled.projectState, nowYear),
+      ratePerYear: ratePerYearAt(assembled.projectState, nowYear),
+      asOfYear: nowYear,
+    };
+    const probeFlightYearsPerLy = effectiveFlightYearsPerLy(assembled.projectState, nowYear);
+    const all = enumerateProposals({
+      sources: assembled.sources,
+      studies: assembled.studies,
+      missions: assembled.missions,
+      projects: assembled.projects,
+      budget,
+      localNames: assembled.localNames,
+      designations: assembled.designations,
+      probeFlightYearsPerLy,
+      declined: new Set(),
+    });
+    const hit = all.find((c) => c.id === id);
+    if (hit === undefined) return;
+    const stored = await this.loadProposalState(state.token);
+    if (stored.declined.includes(hit.fingerprint)) return; // idempotent, skip the write
+    const declined = [...stored.declined, hit.fingerprint].slice(-DECLINE_CAP);
+    await this.saveProposalState(state.token, { version: 1, declined });
+    await this.sendSky(conn, state.token, state.civId);
   }
 
   /**
@@ -920,6 +973,25 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
+   * AV3: a run placed before this stage has no stored proposal record,
+   * which means it has declined nothing — accepted, deliberately: a
+   * pre-AV3 token sees proposals on its very next sky. Pure read, exactly
+   * loadVoiceState's idiom above (not loadReportState's lazy-create-and-
+   * persist): there is nothing here to anchor at first read, so a missing
+   * record is simply the empty default and the first decline is the first
+   * write.
+   */
+  private async loadProposalState(token: string): Promise<ProposalState> {
+    const stored = await this.ctx.storage.get<ProposalState>(`proposals:${token}`);
+    if (stored === undefined) return { version: 1, declined: [] };
+    return stored;
+  }
+
+  private async saveProposalState(token: string, state: ProposalState): Promise<void> {
+    await this.ctx.storage.put(`proposals:${token}`, state);
+  }
+
+  /**
    * AV2: unlike loadVoiceState's pure read, a missing report record is
    * created AND PERSISTED here, immediately (loadProjectState's
    * lazy-create-and-persist-once idiom, not loadVoiceState's). `sinceYear`
@@ -1181,6 +1253,27 @@ export class Cohort extends Server<CohortEnv> {
     });
     const probeFlightYearsPerLy = effectiveFlightYearsPerLy(projectState, nowYear);
 
+    // AV3: enumerate + serve this player's proposals with everything else
+    // this sky send has already assembled — proposals ride `sky` and only
+    // `sky` (av3-design.md §4), so they can never contradict the
+    // budget/studies shown beside them. loadProposalState is a pure read
+    // (loadVoiceState's idiom): a pre-AV3 token has simply declined
+    // nothing yet.
+    const proposalState = await this.loadProposalState(token);
+    const proposals = serveProposals(
+      enumerateProposals({
+        sources,
+        studies,
+        missions,
+        projects,
+        budget,
+        localNames,
+        designations,
+        probeFlightYearsPerLy,
+        declined: new Set(proposalState.declined),
+      }),
+    );
+
     await this.materializeReport(token, civId, nowYear, {
       studies,
       missions,
@@ -1203,6 +1296,7 @@ export class Cohort extends Server<CohortEnv> {
       missions,
       tend,
       probeFlightYearsPerLy,
+      proposals,
     });
   }
 
@@ -1374,6 +1468,11 @@ export class Cohort extends Server<CohortEnv> {
     const relevantStarIds = new Set<string>([
       ...studies.map((s) => s.starId),
       ...missions.map((m) => m.starId),
+      // AV3: first-watch/widen proposals name a currently-visible source
+      // that has no study yet — report.ts never needed this (it only ever
+      // names a study's or mission's star), but proposals.ts's nameFor
+      // needs the designation fallback to cover every visible source too.
+      ...sources.map((s) => s.starId),
     ]);
     const designations: Record<string, string> = {};
     for (const starId of relevantStarIds) {

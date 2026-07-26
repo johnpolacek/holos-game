@@ -81,6 +81,10 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | Report epoch stamp | `voice.ts` epochStamp | Observatory deadpan | 0 |
 | Report triage header | `voice.ts` reportHeader | Observatory deadpan | 0 |
 | Report remark | `voice.ts` REPORT_REMARKS | Archetype voice, free-standing, fact-free | 2 |
+| Proposal reason | `voice.ts` reason builders | Observatory deadpan; present tense | 0 |
+| Proposal accept verb | `voice.ts` PROPOSAL_VERBS | Observatory deadpan (chrome) | 0 |
+| Proposal block header | `studyboard.ts` chrome | Observatory deadpan | 0 |
+| Proposal stance (AV4) | counsel seam | Archetype voice, free-standing, fact-free | 2 |
 | Docs narration | `docs/*.md` prose | Essayist, analytical | 1 |
 | In-doc quoted interface prose | walkthrough scene quotes | The quoted archetype's own voice | 3 |
 
@@ -105,6 +109,16 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
   interchangeability §4's DON'T column diagnoses. It is also the boundary
   runtime generation (AV4) works across: record sentences pass through
   pinned; the remark is what a model may rewrite.
+- **The proposal is the report's tense-mirror.** The report says what
+  happened — past, dated, frozen at materialization. The proposal says what
+  could be done — present, live, re-derived and re-rendered on every sky
+  send (`proposals.ts`'s Pin B). They share the facts/stance split and
+  nothing else: a proposal's reason is the record-sentence side (observatory
+  deadpan, wit 0, pinned facts, present tense), and its stance is the
+  remark side (archetype voice, free-standing, fact-free) — AV3 ships the
+  stance always `null`; AV4's counsel seam is the only thing that ever
+  fills it. Neither surface ever appears on the other's — a proposal never
+  rides the report, and a report entry never carries a verb.
 - **The report is the observatory's record, presented by the mind.** It is
   not the mind's diary. The entries are instrument output — dated, past
   tense, wit 0 — and the mind is only allowed a sentence *beside* them, so
@@ -207,6 +221,19 @@ Named mechanics of the register. Apply **at most one** per short string.
   Everything it needs is already on the assembled snapshots, which have
   passed the no-leak boundary once. Structural rather than reviewed: grep
   the module's import list.
+- **R-35 Proposal reason.** 1–3 sentences, ≤ 34 words in the framing
+  clauses, **present tense** (the report's past tense is its own), wit 0;
+  colon for the reveal, spaced em-dash for the aside. A passed-through
+  catalog passage (a question's `line`, a project's `effectLine`) is
+  bounded at its own source, the same rule R-32 states for the report.
+- **R-35a A proposal names no fact the player cannot also see on the
+  surface it opens.** The reason quotes the price, the clock, the reading
+  and the class that the brief / study / launch sheet / project card will
+  show an inch later. A proposal that knows something its destination does
+  not is a leak with good manners.
+- **R-36 Proposal stance carries nothing pinned** — R-29a, restated for the
+  AV4 tenant, and trivially satisfied at the AV3 floor, where it is always
+  `null`.
 
 **Wit discipline:**
 - **R-4 One wit-beat max per short string.** Two is trying too hard.
@@ -475,6 +502,8 @@ restyle that edits a bank without its doc sync is incomplete.
 | Interface prose quoted in the walkthrough | `walkthrough.md` | Voice must be consistent with the speaking archetype (§4) |
 | `voice.ts` VOICE_CARDS | this guide, §4 | **Verbatim** — a projection of §4's signature / wit / DON'T columns, never an edit of them |
 | `voice.ts` REPORT_REMARKS / record builders | this guide, §2 register rows | Register and ceilings track the §2 rows; R-29a, R-31 and R-32 are grep- or script-checkable, and family scope + archetype legibility (the swap test) stay a human read |
+| `voice.ts` reason builders / PROPOSAL_VERBS | this guide, §2 register rows | Register and ceilings track; R-35 is grep-checkable |
+| `voice.ts` SIGNAL_CLASS_LABEL | this guide, §8's signal-class row, and `client/src/sourcecard.ts` CLASS_LABEL | **Verbatim, three-way** |
 
 ---
 
@@ -494,6 +523,7 @@ Load-bearing literals. Style passes must not rewrite them for wit or flow.
 | Hypothesis labels | Every `label` in `studies.ts` MENUS — `brown dwarf`, `rogue world`, `cooled remnant`, `somebody's heart`, `debris and rings`, `natural transits`, `construction under way`, `young and sloppy`, `deliberate shine`, `a performance`, `stable biosphere`, `biosphere in crisis`, `pre-industrial civilization`, `industrial rise`, `meant for us`, `meant for someone near us`, `a repeat of an old message` |
 | Mission prose names | `The Assay`, `The Sentinel` (`missions.ts` `missionProseName`) |
 | Question prose names | `weighing`, `temperature watch`, `line reading`, `shadow timing`, `edge look`, `off-axis listening` (`questions.ts` `proseName`) |
+| Proposal chrome | `WHAT WE WOULD DO NEXT`, `READ THE BRIEF`, `OPEN THE STUDY`, `OPEN THE LAUNCH SHEET`, `READ THE PROJECT`, `LEAVE IT` |
 | Report headlines | Every `headline` in `missions.ts` — `OCCUPIED — HOLDING AT RANGE`, `INHABITED — HOLDING AT RANGE`, `A LIVING WORLD, NO WORKS`, `A LIVING WORLD, BUILDING`, `OCCUPIED AND WORKING`, `COLD AND STILL`, `NOTHING NEW TO REPORT`, `TREND CONTINUES`, `POWER MARGIN FAILING`, `OFF-CADENCE REPORT` — ALL-CAPS set phrases (R-24), quoted into prose, never restyled into it |
 | Age chip | `AS OF n Y AGO` |
 | Chronicle dating | Epoch-relative — each civilization counts from its own founding event (the `year n AE` family); the cohort's global year never reaches a player surface |

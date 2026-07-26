@@ -14,6 +14,11 @@
 import type { ArchetypeId } from "./minds";
 import { REAL_MS_PER_GAME_YEAR } from "./clock";
 import { createRng } from "./rng";
+// AV3: typed by protocol.ts's re-export, never by importing knowledge.ts
+// directly — the truth-side module stays off this file's import list, the
+// same discipline proposals.ts's Pin A enforces for itself.
+import type { SignalClass } from "./protocol";
+import type { ProposalKind } from "./proposals";
 
 // ---------------------------------------------------------------------------
 // The pinned-fact scheme (prose-style.md R-1/R-2: facts and labels
@@ -28,6 +33,7 @@ export type FactKind =
   | "years"
   | "count"
   | "tally"
+  | "compute"
   | "percent"
   | "label"
   | "designation"
@@ -90,6 +96,12 @@ export const F = {
     const rounded = Math.round(n);
     return { kind: "tally", text: `${rounded} ${rounded === 1 ? one : many}` };
   },
+  /**
+   * "60 compute" — the currency named in prose (AV3). Chrome prints "60
+   * COMPUTE UNCOMMITTED" (studyboard.ts's budget line); a sentence says it
+   * this way. Whole compute; the allocation has no fractional face.
+   */
+  compute: (n: number): Fact => ({ kind: "compute", text: `${Math.round(n)} compute` }),
   /** "71%" from a 0–1 share. Whole percent; the observatory does not
    *  print a precision it does not have. */
   percent: (x: number): Fact => ({ kind: "percent", text: `${Math.round(x * 100)}%` }),
@@ -783,4 +795,135 @@ export const REPORT_REMARKS: ByArchetype<
  */
 export function reportRemark(a: ArchetypeId, f: RemarkFamily, entryId: string): string {
   return createRng(`remark/${entryId}`).pick(REPORT_REMARKS[a][f]);
+}
+
+// ---------------------------------------------------------------------------
+// AV3 — the proposal bank (the mind proposes).
+//
+// The AV3 floor ships NO archetype stance at all — proposals.ts's
+// ProposalCandidate has no stance-shaped input, and protocol.ts's wire
+// `Proposal.stance` is always null at this stage. Every string below is
+// therefore the whole of what the mind says about a proposal: observatory
+// deadpan, PRESENT tense (never the report's past tense — proposals are
+// live and re-rendered on every sky send, Pin B in proposals.ts; the
+// report's tense-mirror opposite, prose-style.md §2), wit 0.
+//
+// Reason builders follow the AV2 record-builder mold exactly: each takes
+// PRIMITIVES and constructs its Facts internally, so proposals.ts (the pure
+// enumerator) cannot hand this module a pre-formatted string — a
+// pre-formatted string is a fact that escaped R-29.
+// ---------------------------------------------------------------------------
+
+/**
+ * prose-style.md §8's "Signal-class labels" row, byte-exact, and byte-exact
+ * with client/src/sourcecard.ts's CLASS_LABEL. The server has no other copy
+ * of this table before AV3.
+ */
+export const SIGNAL_CLASS_LABEL: Readonly<Record<SignalClass, string>> = {
+  "infrared-excess": "DARK NODE",
+  "transit-shadows": "TRANSIT SHADOWS",
+  "directed-beam": "DIRECTED BEAM",
+  "broadcast-leakage": "BROADCAST LEAKAGE",
+  biosignature: "LIVING WORLD",
+};
+
+/**
+ * The accept verbs — a closed, archetype-neutral chrome table (R-24: ≤ 6
+ * words, ALL-CAPS set phrases). Each names the SURFACE a tap opens, never
+ * the act it does not perform: accepting a proposal is pure navigation,
+ * never a commitment (proposals.ts's edge-case note on why there is no
+ * `acceptProposal` message).
+ */
+export const PROPOSAL_VERBS: Readonly<Record<ProposalKind, string>> = {
+  "first-watch": "READ THE BRIEF",
+  question: "OPEN THE STUDY",
+  probe: "OPEN THE LAUNCH SHEET",
+  project: "READ THE PROJECT",
+  widen: "READ THE BRIEF",
+};
+
+/**
+ * The one gesture a new player has: a clean reading and no study yet. The
+ * second sentence restates in prose what the brief screen it opens already
+ * says in chrome ("NO COMPUTE · NO CLOCK · REVERSIBLE") — R-35a, a proposal
+ * names no fact its destination does not also show.
+ */
+export function reasonFirstWatch(
+  sourceName: string,
+  classLabel: string,
+  distanceLy: number,
+  confidence: number,
+): PinnedLine {
+  return line`${F.source(sourceName)} carries one reading and no study: ${F.label(classLabel)}, ${F.years(distanceLy)} away, at ${F.percent(confidence)} confidence. A watch costs no compute and can be put down again.`;
+}
+
+/**
+ * The returning-player case: every open study is waiting on light and
+ * nothing is affordable, so the honest move is a free one. Same shape as
+ * `reasonFirstWatch` minus the confidence figure — a watch is offered on
+ * its own merits here, not as "the sharpest smudge."
+ */
+export function reasonWiden(sourceName: string, classLabel: string, distanceLy: number): PinnedLine {
+  return line`Every study open is waiting on light, and nothing on any of them is affordable. ${F.source(sourceName)} is unwatched: ${F.label(classLabel)}, ${F.years(distanceLy)} away. Watching costs nothing.`;
+}
+
+/**
+ * A study with nothing under way while the allocation would cover it.
+ * `questionLine` is questions.ts's own already-authored plain-words gloss,
+ * passed through verbatim (the `recordSkyArrival` precedent) and set as an
+ * aside because it is lowercase and unterminated in its own catalog entry.
+ */
+export function reasonQuestion(
+  sourceName: string,
+  questionProseName: string,
+  questionLine: string,
+  costCompute: number,
+  integrationYears: number,
+): PinnedLine {
+  return line`Nothing is under way on the ${F.source(sourceName)} study. The ${F.label(questionProseName)} — ${F.label(questionLine)} — costs ${F.compute(costCompute)} and answers in ${F.years(integrationYears)}.`;
+}
+
+/**
+ * The instrument plateaued — questions.ts's own limit, not a die roll (see
+ * `recordQuestionPlateaued`'s "the instrument could not separate one
+ * explanation from another") — and the ground is the honest next step.
+ * `missionName` is always `The Assay` at this stage (§8-pinned).
+ */
+export function reasonProbePlateau(
+  sourceName: string,
+  questionProseName: string,
+  missionName: string,
+  costCompute: number,
+  firstWordYears: number,
+): PinnedLine {
+  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back empty, and the board has not moved. ${F.label(missionName)} costs ${F.compute(costCompute)}, and its first word reaches us ${F.years(firstWordYears)} after launch.`;
+}
+
+/**
+ * Every question this signal class admits has been bought and the board is
+ * still undecided (studies.ts's own bar for keeping the watch line) — the
+ * same case as `reasonProbePlateau`, minus a single question to name.
+ */
+export function reasonProbeExhausted(
+  sourceName: string,
+  missionName: string,
+  costCompute: number,
+  firstWordYears: number,
+): PinnedLine {
+  return line`Every question this class admits has been put to ${F.source(sourceName)}, and no reading holds. ${F.label(missionName)} costs ${F.compute(costCompute)}, and its first word reaches us ${F.years(firstWordYears)} after launch.`;
+}
+
+/**
+ * The shelf is idle and the allocation is deep enough. `effectLine` is the
+ * project's own receipt, passed through byte-exact — the
+ * `recordProjectLanded` precedent, and why the imperative `projectLabel` is
+ * quoted after a colon rather than used as a subject.
+ */
+export function reasonProject(
+  projectLabel: string,
+  costCompute: number,
+  durationYears: number,
+  effectLine: string,
+): PinnedLine {
+  return line`Nothing is being built. One project is within the allocation: ${F.label(projectLabel)}, ${F.compute(costCompute)}, standing ${F.years(durationYears)} later. ${F.label(effectLine)}`;
 }
