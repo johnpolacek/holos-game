@@ -72,6 +72,10 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | UI chrome / captions | `model.ts`, `sourcecard.ts` | Observatory deadpan | 0 |
 | work-list rows / states | `tend.ts`, `studyboard.ts` | Observatory deadpan | 0 |
 | Ceremony microcopy | `ceremony.ts` labels/hints | Observatory deadpan | 1 |
+| Arrival line | `voice.ts` ARRIVAL_LINES | Archetype voice, the mind's first address to the player | 3 |
+| Frame explainer — age chip | `voice.ts` ageChipLine | Observatory deadpan | 0 |
+| Frame explainer — compute | `voice.ts` computeLine | Observatory deadpan | 0 |
+| Clock line | `voice.ts` clockLine | The mind stating physics; shared across archetypes | 1 |
 | Docs narration | `docs/*.md` prose | Essayist, analytical | 1 |
 | In-doc quoted interface prose | walkthrough scene quotes | The quoted archetype's own voice | 3 |
 
@@ -86,6 +90,16 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
   telescope.
 - A charter must survive being read **straight**, as a line carved over a
   door (R-11).
+- **The facts/stance split (the voice surfaces).** Voice surfaces compose
+  two kinds of sentence: a *record sentence* (observatory deadpan, wit 0,
+  carries every pinned fact, authored once for all ten archetypes) and a
+  *remark* (archetype voice, carries no facts, authored per archetype).
+  They never share a sentence. This is what keeps R-6 satisfiable at
+  scale: a remark is free-standing, so its wit comes from its own
+  material rather than from a clause slotted into a shared spine — the
+  interchangeability §4's DON'T column diagnoses. It is also the boundary
+  runtime generation (AV4) works across: record sentences pass through
+  pinned; the remark is what a model may rewrite.
 
 ---
 
@@ -145,6 +159,17 @@ Named mechanics of the register. Apply **at most one** per short string.
   "flare star → do not be exposed", "crushing gravity → leaving is
   hardest"). Before restyling a fingerprint, list its load-bearing clauses;
   the new text must still assert every one.
+- **R-29 Fact-bearing prose is a `PinnedLine`.** A number, year, percentage,
+  designation, or §8 label reaches voice prose only through a `Fact`
+  constructor interpolated into the `line` tag (`voice.ts`). No numeric
+  literal appears inside a bank string; no bank uses a bare template
+  interpolation. Enforced by the type (`line`'s interpolations are `Fact`),
+  checked at review by grepping the banks for digits outside `line` tags.
+- **R-30 One register per sentence.** A sentence that carries a pinned fact
+  stays observatory deadpan; the archetype's stance goes in its own
+  sentence. A witty sentence containing a number is a rejection on sight —
+  it violates M4 and puts R-1 inside the part runtime generation is allowed
+  to rewrite.
 
 **Wit discipline:**
 - **R-4 One wit-beat max per short string.** Two is trying too hard.
@@ -188,6 +213,13 @@ Named mechanics of the register. Apply **at most one** per short string.
 - **R-23** Chronicle line: ≤ 30 words.
 - **R-24** Chrome: ≤ 6 words; ALL-CAPS set phrases per §8.
 - **R-25** Microcopy: ≤ 12 words; sentence case.
+- **R-26** Arrival line: 1–3 sentences, ≤ 34 words, and **no numerals** —
+  an arrival line states no fact from state, which also makes it trivially
+  safe for runtime generation (nothing to pin).
+- **R-27** Frame explainer: 1–2 sentences, ≤ 34 words; sentence case;
+  wit 0; any number in one is a pinned fact (R-29).
+- **R-28** Clock line: 1–2 sentences, ≤ 34 words; every time figure derived
+  from `clock.ts`'s `REAL_MS_PER_GAME_YEAR`, never written as a literal.
 
 ---
 
@@ -387,6 +419,7 @@ restyle that edits a bank without its doc sync is incomplete.
 | `cradles.ts` fingerprints | `act1-cradles.md` | **Verbatim** |
 | `dials.ts` labels / questions | `act2-design.md` | Labels byte-exact; question wording tracks |
 | Interface prose quoted in the walkthrough | `walkthrough.md` | Voice must be consistent with the speaking archetype (§4) |
+| `voice.ts` VOICE_CARDS | this guide, §4 | **Verbatim** — a projection of §4's signature / wit / DON'T columns, never an edit of them |
 
 ---
 
