@@ -227,6 +227,35 @@ body {
   transition: opacity 320ms ease;
 }
 
+/* The names of the places in the backdrop (cosmos.ts): Andromeda, the
+   Magellanic Clouds, Virgo, Coma. They are scenery, so they sit a tier below
+   the game's own ink and never take the cyan (HOME) or the amber (sources).
+   Each one is faded in and out by the Model, per zoom band. */
+.model-landmark-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--holos-ink-faint);
+  letter-spacing: 0.18em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  will-change: transform, opacity;
+  transition: opacity 400ms ease;
+}
+
+/* The scale readout — how far out the camera is, as an honest distance. The
+   zoom crosses eight orders of magnitude, and without a number on it the
+   middle of that range stops meaning anything. */
+.model-scale {
+  position: absolute;
+  left: max(0.9rem, env(safe-area-inset-left));
+  bottom: max(0.9rem, env(safe-area-inset-bottom));
+  color: var(--holos-ink-faint);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+}
+
 /* ── Source card (the thin observatory, Act 3 A1) ────────────────────── */
 /* While a thumb drives the sheet, the drag is the only thing moving it —
    otherwise every frame eases over 320ms and the sheet lags the finger. */
