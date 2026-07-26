@@ -545,9 +545,14 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
-   * buyQuestion: commission one inference on an open study, against free
-   * compute. Requires a visible source (so the class is known) and an
-   * existing study on it (systems-a.md §5.4).
+   * buyQuestion: commission one inference against free compute. Requires a
+   * visible source (so the class is known); it does NOT require an open
+   * study — the spend is the statement of intent, so it opens the study
+   * when none exists and reopens a shelved one (stamping `openedYear`
+   * exactly as onOpenStudy would). The one status a spend does not override
+   * is grounded: grounded is closed until the player deliberately reopens
+   * it, because reopening restamps `openedYear` and with it what the
+   * grounded exit measures against (observatory-design.md § The exits).
    */
   private async onBuyQuestion(conn: Connection, starId: string, questionId: string): Promise<void> {
     const state = this.conns.get(conn.id);
@@ -565,18 +570,11 @@ export class Cohort extends Server<CohortEnv> {
     }
     const studyState = await this.loadStudyState(state.token, nowYear);
     const existing = studyState.studies[starId];
-    if (existing === undefined) {
-      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no study there" });
-      return;
-    }
-    // A2.2b: a closed study buys nothing. Grounded is closed until the player
-    // reopens it, and a shelved vigil is passive by definition — allocation
-    // drops to zero (observatory-design.md § The exits).
-    if (existing.status !== "open") {
+    if (existing !== undefined && existing.status === "grounded") {
       this.sendMsg(conn, {
         type: "error",
         code: "question-unavailable",
-        message: "the study is not open",
+        message: "the study is grounded",
       });
       return;
     }
@@ -585,7 +583,7 @@ export class Cohort extends Server<CohortEnv> {
       this.sendMsg(conn, { type: "error", code: "unknown-question", message: "no such question" });
       return;
     }
-    const alreadyBought = existing.bought.some((b) => b.id === def.id);
+    const alreadyBought = (existing?.bought ?? []).some((b) => b.id === def.id);
     if (!def.appliesTo.includes(source.signal.classification) || alreadyBought) {
       this.sendMsg(conn, {
         type: "error",
@@ -607,9 +605,20 @@ export class Cohort extends Server<CohortEnv> {
     }
 
     const bought: BoughtQuestion = { id: def.id, boughtYear: nowYear };
+    // An already-open study keeps its record (onOpenStudy's spread-don't-
+    // replace rule) and its `openedYear`; a missing or shelved study opens
+    // with this purchase, `openedYear` stamped now.
     const studies: Record<string, StoredStudy> = {
       ...studyState.studies,
-      [starId]: { ...existing, bought: [...existing.bought, bought] },
+      [starId]:
+        existing !== undefined && existing.status === "open"
+          ? { ...existing, bought: [...existing.bought, bought] }
+          : {
+              starId,
+              status: "open",
+              bought: [...(existing?.bought ?? []), bought],
+              openedYear: nowYear,
+            },
     };
     await this.saveStudyState(state.token, { version: 3, studies });
 

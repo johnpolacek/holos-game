@@ -621,9 +621,16 @@ Handlers **validate, mutate, persist, and re-send the sky**. No
 derivation lives in a handler.
 
 **`buyQuestion`** requires: a placed connection; a **visible source** (so
-the class is known); an **existing study** on that star; a known question
-that `appliesTo` the source's class and has not already been bought; and
-`freeCompute ≥ effectiveCostFor(def, nowYear, …)`. It then appends the
+the class is known); that any existing study on that star is **not
+grounded**; a known question that `appliesTo` the source's class and has
+not already been bought; and
+`freeCompute ≥ effectiveCostFor(def, nowYear, …)`. It does **not** require
+an open study — the spend is the statement of intent: buying on a star
+with no study opens one, and buying on a shelved study reopens it, in both
+cases stamping `openedYear` exactly as `openStudy` would (an already-open
+study keeps its `openedYear`). Grounded alone still refuses, because
+reopening a grounded study restamps what the grounded exit measures
+against and must stay a deliberate act. The handler then appends the
 `BoughtQuestion {id, boughtYear: nowYear}`, commits the cost against the
 one allocation, and pushes a wake for `answersYear`.
 
