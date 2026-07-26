@@ -1357,7 +1357,11 @@ body {
 
 /* position: relative (rather than static) so this paints above the
  * absolutely-positioned scrim despite coming first in the root's flex
- * layout — both become "positioned" boxes painted in DOM order. */
+ * layout — both become "positioned" boxes painted in DOM order. The
+ * vignette quiets what sits directly behind the words (the beat lands at
+ * viewport center, exactly where the HOME label lives after the
+ * pull-back) without darkening the sky the line is spoken over — caught
+ * on the phone check, where HOME's cyan read through the text. */
 .voice-beat {
   position: relative;
   display: flex;
@@ -1365,6 +1369,12 @@ body {
   align-items: center;
   gap: 1rem;
   max-width: 24em;
+  padding: 2.5rem 1.5rem;
+  background: radial-gradient(
+    closest-side,
+    rgba(9, 11, 16, 0.82),
+    rgba(9, 11, 16, 0)
+  );
   text-align: center;
   opacity: 0;
   transform: translateY(0.5rem);
