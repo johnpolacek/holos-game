@@ -1238,8 +1238,9 @@ export class StudyBoard {
       const base = `${q.costCompute} COMPUTE · ANSWERS IN ${formatClockPair(q.integrationYears)}`;
 
       if (!buyable) {
-        // A closed study buys nothing (the server refuses it too): the menu
-        // still reads, so the player can see what reopening would cost.
+        // A grounded study buys nothing (the server refuses it too): the menu
+        // still reads, so the player can see what reopening would offer. A
+        // shelved study IS buyable — the spend reopens it server-side.
         btn.disabled = true;
         btn.classList.add("study-project-row--disabled");
         meta.textContent = base;
@@ -2074,7 +2075,7 @@ export class StudyBoard {
 
     const evidenceIds = new Set(s.evidence.map((e) => e.id));
     for (const q of s.openQuestions) {
-      oqSection.append(this.buildQuestionRow(starId, q, evidenceIds, s.status === "open"));
+      oqSection.append(this.buildQuestionRow(starId, q, evidenceIds, s.status !== "grounded"));
     }
     this.body.append(oqSection);
 
