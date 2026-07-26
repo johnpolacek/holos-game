@@ -59,7 +59,10 @@
   // A key on its own turns nothing on; both the flag and the key are
   // preconditions. Locally, override both in `.dev.vars` (gitignored).
   "vars": {
-    "HOLOS_VOICE_GEN": "off",
+    // Renderer on (2026-07): generated remark pools, gate + template
+    // underneath. Counsel stays off until its picks read well on a dev
+    // cohort (build-voice.md § AV4).
+    "HOLOS_VOICE_GEN": "on",
     "HOLOS_COUNSEL_GEN": "off"
   },
   "dev": {
