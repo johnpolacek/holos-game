@@ -127,8 +127,13 @@ break that widens. Running it on a phone-sized viewport is also what
 caught a real A2.2 bug — a Sentinel that had kept every appointment read
 SILENT, on exact float equality between two identical schedules.
 
-**→ Next to build: A2.3 — the contest and study tripwires.** Launch
-brief: [build-a2.md](./build-a2.md), with
+**→ Next to build: AV — the voice (the narrator slice).** Decided
+2026-07: the shipped game has the machinery but no narrator — the
+pull-back is wordless, nothing states the frame, and the mind never
+speaks. AV fixes what a new player finds confusing, which sits on the
+critical path of A2's fun gate, so it runs before A2.3. Launch brief:
+[build-voice.md](./build-voice.md). **Then A2.3 — the contest and study
+tripwires.** Launch brief: [build-a2.md](./build-a2.md), with
 [observatory-design.md](./observatory-design.md) as the vigil's spec and
 [build-a2-stages.md](./build-a2-stages.md) as the per-stage handoff
 prompts.
@@ -296,6 +301,31 @@ the next begins.
 complete detect → vigil → hail → traffic across real light-lag, and
 the exchange is *worth screenshotting* — this is the fun gate; if it fails,
 we tune here before building anything else.
+
+### AV — The voice (the narrator slice)
+
+Inserted 2026-07, before A2.3: the mind becomes the voice of the
+interface. The story is fully designed (walkthrough.md is the script,
+prose-style.md the voice spec) but the build never speaks it — this
+slice closes that gap. Full brief: [build-voice.md](./build-voice.md).
+
+- [ ] **AV1 — The first line and the frame**: the mind's arrival line
+      after the pull-back (per archetype), and one-time explainers for
+      the age chip, compute, and the clock.
+- [ ] **AV2 — The report**: sessions open on *what the light brought
+      while you were away* — per-player, light-cone-legal, dated entries
+      in the mind's voice; the Cohort DO's event machinery grows the
+      per-player log it needs. Calm: no badges, the report waits.
+- [ ] **AV3 — The mind proposes**: a deterministic proposal engine
+      surfaces 1–2 candidate undertakings from the state of the sky,
+      each a framing line routing into the existing brief/sheet. The
+      mind proposes, the player chooses; nothing irreversible, no
+      nagging.
+- [ ] **AV4 — The generated voice (flagged)**: the Cohort DO can render
+      an entry via the Claude API — prompt boundary = the knowledge
+      layer, facts pinned byte-exact, output style-gated, cached forever
+      in DO storage, template fallback always, flag off by default. The
+      seam A2.5's LLM-run counterpart civ later builds on.
 
 ### A3 — The light echo
 
