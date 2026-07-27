@@ -365,6 +365,116 @@ const SCENARIOS = [
       budget: budget(30),
     },
   },
+
+  // -------------------------------------------------------------------------
+  // Four more genuinely crowded boards (the fix this file exists for). Of the
+  // seven above, only `crowded` enumerates more than one candidate — every
+  // other board forces a single answer, so `wouldTake` there is arithmetic,
+  // not judgement. These four fire two or three rules at once, in shapes
+  // `crowded` does not: a plain probe/question pair with no project to soften
+  // the choice, a cost-and-horizon contrast, a different three-way (explore
+  // vs double-down vs build, instead of ask vs launch vs build), and the
+  // first-watch/project edge case where the floor's own exclusivity rule
+  // hides a candidate from the player that AV4's counsel still has to weigh.
+  //
+  // A fifth shape from the brief — two candidates of the SAME kind (two
+  // live probes, two affordable questions) — cannot be built honestly.
+  // `ruleQuestion`, `ruleProbe` and `ruleProject` each reduce their own
+  // pool to a single winner (a `.sort()` then `pairs[0]` / `picks[0]` /
+  // the `pick` accumulator) before ever building a `ProposalCandidate`, so
+  // `enumerateProposals` can never hold two candidates of one kind — it is
+  // at most one per rule, five rules, one list. Forcing it would mean
+  // patching the enumerator, which the brief rules out. Likewise a
+  // four-or-five-candidate board turns out not to exist: `first-watch`
+  // requires `studies.length === 0`, which excludes probe/question/widen
+  // outright, and `widen`'s own affordability check (`anyAffordable`) is
+  // the exact negation of what makes `question` fire, so those two are
+  // mutually exclusive too. The reachable maximum is three live candidates
+  // at once (probe + question + project, or probe + widen + project) —
+  // `crowded` already sits at that ceiling, and `three-way` below reaches it
+  // by the other route. `c4`/`c5` stay empty on every real board.
+  // -------------------------------------------------------------------------
+
+  {
+    id: "twin-inquiry",
+    note: "A probe worth launching on one star, a cheap decisive question waiting on another — no project to blur it. The floor leads with the costly probe; is that the mind's own pick, or just the priority order?",
+    input: {
+      ...base,
+      sources: [MID, source("star-3390", "broadcast-leakage", 7, 0.8, 0.6)],
+      studies: [
+        study("star-4471", "transit-shadows", LEAD_TIGHT, [Q_PLATEAU]),
+        study(
+          "star-3390",
+          "broadcast-leakage",
+          LEAD_CLEAR,
+          [question("read-its-lines", "READ ITS LINES", "what it is made of, and what has been done to its air", 8, 3, "offered", ["industry", "natural"])],
+        ),
+      ],
+      budget: budget(120),
+    },
+  },
+  {
+    id: "cheap-now-costly-later",
+    note: "A quick, cheap project sits beside a probe to a source so far its first word will not land for over four centuries. The floor still puts the probe first.",
+    input: {
+      ...base,
+      sources: [source("star-9247", "transit-shadows", 40, 0.6, 0.5)],
+      studies: [study("star-9247", "transit-shadows", LEAD_TIGHT, [Q_PLATEAU])],
+      projects: [
+        project(
+          "light-relay",
+          "EXTEND THE LIGHT RELAY",
+          "A cheap widening of the receiving dish, done in a handful of years.",
+          "Raises the compute income by 4 a year, for good.",
+          40,
+          5,
+          4,
+        ),
+      ],
+      budget: budget(150),
+    },
+  },
+  {
+    id: "three-way",
+    note: "The other route to a crowded board: a plateaued study worth probing, a bright unstudied source worth widening to, and a project within reach — double down, explore, or build, where `crowded` posed ask, launch, or build.",
+    input: {
+      ...base,
+      sources: [source("star-5502", "biosignature", 15, 0.5, 0.45), source("star-6634", "infrared-excess", 9, 0.85, 0.6)],
+      studies: [study("star-5502", "biosignature", LEAD_TIGHT, [Q_PLATEAU])],
+      projects: [
+        project(
+          "deep-array",
+          "EXTEND THE DEEP ARRAY",
+          "More collecting area, pointed at the quiet part of the sky.",
+          "Raises the compute income by 6 a year, for good.",
+          150,
+          15,
+          5,
+        ),
+      ],
+      budget: budget(300),
+    },
+  },
+  {
+    id: "first-look-or-build",
+    note: "A brand-new civilization's very first sky: nothing studied yet, but a project already within the allocation. The floor's first-watch exclusivity means the player never sees the project beside it — but the enumerator still hands both to counsel, so this is the one board where what the model is asked about and what the floor would ever serve quietly diverge.",
+    input: {
+      ...base,
+      sources: [source("star-7788", "broadcast-leakage", 6, 0.88, 0.65)],
+      projects: [
+        project(
+          "seed-array",
+          "SEED THE FIRST ARRAY",
+          "A modest dish, built before anything else is under way.",
+          "Raises the compute income by 3 a year, for good.",
+          50,
+          8,
+          3,
+        ),
+      ],
+      budget: budget(90),
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
