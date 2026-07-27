@@ -60,10 +60,22 @@
   // preconditions. Locally, override both in `.dev.vars` (gitignored).
   "vars": {
     // Renderer on (2026-07): generated remark pools, gate + template
-    // underneath. Counsel stays off until its picks read well on a dev
-    // cohort (build-voice.md § AV4).
+    // underneath.
+    //
+    // Counsel on (2026-07), by the owner's call. Note what that call did
+    // and did not rest on: the seam is verified structurally — gates,
+    // R-37, an offline run against a stubbed transport — and the prompt
+    // was rewritten after a seventy-call evaluation found the archetypes
+    // interchangeable. But no stance produced by the CURRENT prompt has
+    // been read by anyone; the key used for that evaluation was rotated
+    // before the decoupling landed. The floor still picks and serves, the
+    // model's authority is nil, and every stance passes the same gate
+    // with the template underneath it, so the exposure is one sentence
+    // beside a correct move. If a stance ever reads wrong, that is the
+    // thing to check first — and `wrangler tail` prints every accepted
+    // line (build-voice.md § AV4).
     "HOLOS_VOICE_GEN": "on",
-    "HOLOS_COUNSEL_GEN": "off"
+    "HOLOS_COUNSEL_GEN": "on"
   },
   "dev": {
     "port": 8787

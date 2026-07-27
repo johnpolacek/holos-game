@@ -387,9 +387,28 @@ at zero risk. This is still the stage's own caution taken seriously: the
 blast radii differ by orders of magnitude — a bad stance is a sentence
 that reads wrong beside a correct move, a bad pick spends the
 allocation — and the model is kept away from the second one entirely.
-Both flags shipped `off`; `HOLOS_VOICE_GEN` has since been turned on —
-the renderer was demonstrated on a dev cohort with a real key — and
-`HOLOS_COUNSEL_GEN` stays off until its stances read well the same way.
+Both flags shipped `off`. `HOLOS_VOICE_GEN` was turned on once the
+renderer had been demonstrated on a dev cohort with a real key.
+`HOLOS_COUNSEL_GEN` was turned on afterwards **without** that
+demonstration, by the owner's call, and the record should be plain about
+which of the stage's conditions that met and which it did not.
+
+It met the structural ones: the gates, R-37, the decoupling below that
+removes the model's last lever over what is served, and an offline run
+of the real seam against a stubbed transport. It did not meet the one
+the stage actually named — *the counsel flag stays off until its picks
+read well on a dev cohort* — because the key used for the seventy-call
+evaluation was rotated before the decoupling landed, so no stance
+produced by the current prompt has been read by anyone. The evaluation
+that drove the prompt rewrite was run against the PREVIOUS prompt.
+
+What makes that a defensible bet rather than a reversal of the caution:
+the floor still picks and still serves, the model's authority is nil,
+every stance clears the same gate, and the templated line sits
+underneath — so the exposure is one sentence beside a move that is
+correct either way. What it is not is evidence. The first real reading
+of these stances will happen in front of players, and if one reads
+wrong, this is the paragraph that explains why nobody caught it.
 
 *Why the stance is no longer gated on agreement (amended 2026-07).* The
 seam first shipped with the model choosing a move and the stance
