@@ -375,19 +375,66 @@ first line a player ever reads is not the place to find that out.
 
 *The counsel ships in conservative mode.* The floor picks and serves
 exactly as AV3 shipped; the model receives the closed candidate list as
-fixed slots and returns a pick plus a stance, and **the stance attaches
-only when its pick equals the row the floor already leads with.**
-Disagreement withholds the stance, serves the floor unchanged, and logs
-one `agree=0` line. This is the stage's own caution taken seriously: the
+fixed slots **with the floor's own row marked as the one being taken**,
+and writes its stance about that row. The stance therefore attaches
+whenever it is accepted, and the model's authority over what the player
+does is nil — it is never asked which move to make. It is asked,
+separately and for the record only, which move it *would* have taken;
+that answer is stored as `wouldTake`, logged as `agree=0/1`, and reaches
+no player, no wire message and no decision. That is the pick data a
+fuller mode would need to earn its way on, collected from the first day
+at zero risk. This is still the stage's own caution taken seriously: the
 blast radii differ by orders of magnitude — a bad stance is a sentence
 that reads wrong beside a correct move, a bad pick spends the
-allocation — and only one of the two is falsifiable at reading speed. It
-also collects the pick data the fuller mode would need to earn its way
-on, at zero risk, from the first day; because `pick` is in the cached
-record from the start, the records minted now stay valid if that mode is
-ever enabled. Both flags (`HOLOS_VOICE_GEN`, `HOLOS_COUNSEL_GEN`) ship
-`off`, and the counsel one stays off until its picks read well on a dev
-cohort with a real key.
+allocation — and the model is kept away from the second one entirely.
+Both flags shipped `off`; `HOLOS_VOICE_GEN` has since been turned on —
+the renderer was demonstrated on a dev cohort with a real key — and
+`HOLOS_COUNSEL_GEN` stays off until its stances read well the same way.
+
+*Why the stance is no longer gated on agreement (amended 2026-07).* The
+seam first shipped with the model choosing a move and the stance
+attaching **only** when that choice matched the floor's row. Seventy
+real calls showed that gate inverted. Six of the seven evaluation
+scenarios enumerate exactly one candidate, so "agreement" there was
+arithmetic rather than judgement; the seventh is the only genuine
+three-way board, and there the model disagreed with the floor
+unanimously — fourteen of fourteen accepted minds, across two
+independent runs on two different prompts, preferred the project to the
+floor's probe. So the stance was attaching precisely where the player
+had no decision to make and being withheld precisely where they had one,
+and the withheld lines were the best writing in the run. Telling the
+model which row is taken keeps every bit of the caution and removes the
+model's last lever over what is served — strictly less authority than
+before, since the old pick decided whether the player heard their
+civilization at all. The record schema went to `v: 2` and the field was
+renamed rather than redefined, so no record from either world can be
+read as the other; `PROMPT_VERSION` (`v3`) already mints a fresh
+keyspace.
+
+*The unanimity is itself an open question, and it is not AV4's to
+close.* Fourteen minds out of fourteen preferring the project over the
+probe admits two readings, and the evidence here cannot separate them.
+Either the enumerator's priority order is wrong — in which case it is
+mis-steering every human player's proposals today, flag or no flag — or
+the model is pulled toward whichever candidate is described as
+permanent compounding gain ("raises the compute income … for good"),
+which is a known shape of language-model preference and would be a bias
+rather than a judgement. Settling it needs a balance call about the
+economy, not another eval run: decide what a strong player should
+actually do on that board, and the reading follows. **`wouldTake` exists
+to keep accumulating that evidence in the meantime**, which is the whole
+reason it survived the gate's removal.
+
+Two consequences worth naming now. The evaluation harness itself is
+weak evidence until it carries more boards where the choice is real —
+six of seven scenarios offering one candidate is a harness that mostly
+measures nothing. And the failure mode behind all of this, ten minds
+converging on one voice, is not confined to this tenant: **A2.5's
+LLM-run counterpart civilizations answer hails "in the archetype's
+register" on this same seam**, so a model that flattens ten minds under
+a proposal will flatten ten civilizations under a signal. Whatever
+finally keeps the archetypes apart here is a precondition for that
+slice, not a detail of this one.
 
 *Gates in CI.* `npm run audit:banned` holds `bannedterms.ts` to
 prose-style §6, `npm run audit:voice` runs every shipped bank string

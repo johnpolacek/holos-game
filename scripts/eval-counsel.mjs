@@ -24,13 +24,19 @@
 //
 // WHAT IT MEASURES, in two halves.
 //
-//   MECHANICAL — the agreement rate. How often the model's pick equals the
-//   floor's. Production logs this per call as `agree=0/1`; here it is
-//   gathered in bulk. In conservative mode a disagreement simply withholds
-//   the stance, so this number is not a pass/fail bar: it says how much the
-//   fuller pick mode would change if it were ever enabled, and it says
-//   whether the model understands the situation well enough to arrive where
-//   the floor's heuristic already is.
+//   MECHANICAL — the agreement rate. How often the move the mind says it
+//   WOULD have taken is the move the floor leads with. Production logs this
+//   per call as `agree=0/1`; here it is gathered in bulk. It is purely
+//   observational and changes nothing that is served — the mind is told
+//   which move is being taken and writes its stance about that one, so a
+//   disagreement costs the player nothing and withholds nothing. The number
+//   says how much a fuller pick mode would change if it were ever enabled,
+//   and whether the model arrives where the floor's heuristic already is.
+//
+//   Read it knowing what the scenarios can carry: a scenario that enumerates
+//   ONE candidate cannot disagree, so its agreement is arithmetic rather
+//   than judgement, and only a genuinely crowded board makes the number mean
+//   anything.
 //
 //   JUDGMENTAL — the stances themselves, which is the half that actually
 //   decides the flag and which NO SCRIPT CAN SCORE. The gate already proves
@@ -43,8 +49,8 @@
 //   interchangeable sentences, the seam is not earning its cost even though
 //   every check is green.
 //
-// COST. One model call per (scenario, archetype) — the default matrix is 6
-// scenarios by 4 archetypes, so 24 short calls. `--archetypes all` widens it
+// COST. One model call per (scenario, archetype) — the default matrix is
+// every scenario by 4 archetypes. `--archetypes all` widens it
 // to every mind, `--scenario <id>` narrows it to one.
 
 import { readFileSync, mkdtempSync, writeFileSync, rmSync } from "node:fs";
@@ -501,14 +507,15 @@ for (const scenario of scenarios) {
     }
 
     tally.accepted += 1;
-    const agree = record.pick === record.floorPick;
+    // Observational only. The stance below was written about the floor's row
+    // whatever this says, and it is what production serves either way.
+    const agree = record.wouldTake !== null && record.wouldTake === record.floorPick;
     if (agree) tally.agreed += 1;
-    const verdict = agree ? "agrees" : `PICKS ${record.pick} (floor: ${record.floorPick})`;
+    const verdict = agree
+      ? "would take the floor's move"
+      : `WOULD TAKE ${record.wouldTake ?? "nothing on the list"} (floor: ${record.floorPick})`;
     console.log(`  ${name} ${verdict}`);
     console.log(wrap(`“${record.stance}”`, 6));
-    if (!agree) {
-      console.log("      (conservative mode: the stance is WITHHELD in production)");
-    }
   }
 }
 
@@ -516,7 +523,7 @@ console.log(`\n${rule("━")}`);
 console.log("SUMMARY");
 console.log(`  calls           ${tally.calls}`);
 console.log(`  accepted        ${tally.accepted}`);
-console.log(`  agreed w/ floor ${tally.agreed}${tally.accepted > 0 ? `  (${Math.round((100 * tally.agreed) / tally.accepted)}% of accepted)` : ""}`);
+console.log(`  would take it   ${tally.agreed}${tally.accepted > 0 ? `  (${Math.round((100 * tally.agreed) / tally.accepted)}% of accepted)` : ""}`);
 if (tally.rejected.size > 0) {
   console.log("  gate rejections:");
   for (const [why, n] of tally.rejected) console.log(`    ${why}: ${n}`);

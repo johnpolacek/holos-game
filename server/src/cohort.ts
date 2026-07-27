@@ -1412,9 +1412,10 @@ export class Cohort extends Server<CohortEnv> {
 
     // AV4 tenant 2, conservative mode: the floor picked and served above,
     // untouched. This reads the cached counsel record and attaches a stance to
-    // the row the floor already leads with — and only when the model's own
-    // pick agrees with that row. It NEVER awaits the API: the read is memory
-    // or storage, and the kick is fired after the message is on the wire.
+    // the row the floor already leads with — the row the model was told about
+    // and wrote for, so the stance never speaks for a move that is not on
+    // screen. It NEVER awaits the API: the read is memory or storage, and the
+    // kick is fired after the message is on the wire.
     // The flag test is here rather than only inside the seam so a flag-off
     // send does not even build a payload surface it will not use.
     const counsel = counselEnabled(this.env)
