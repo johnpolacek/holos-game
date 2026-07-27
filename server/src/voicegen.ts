@@ -122,8 +122,23 @@ const MODEL = "claude-opus-5";
  */
 const MAX_TOKENS = 2_000;
 
-/** Milliseconds. The deferred task must not hang on a stalled socket. */
-const TIMEOUT_MS = 8_000;
+/**
+ * Milliseconds. The deferred task must not hang on a stalled socket — but the
+ * bound that stops a hang is not the bound a healthy call should ever meet,
+ * and at eight seconds it was. A measured remark pool (three lines, adaptive
+ * thinking) took 7425ms against that bound: a coin flip dressed as a timeout.
+ *
+ * The asymmetry sets this number. The call is out-of-band behind `waitUntil`
+ * and never on the path of anything a player waits for, so waiting longer
+ * costs nothing. Timing out spends one of MAX_ATTEMPTS and puts the key on
+ * the backoff ladder — five minutes, thirty, four hours, a day — after which
+ * it is templated forever.
+ *
+ * MUST STAY UNDER LEASE_MS. The lease is what stops a DO that restarted
+ * mid-call from re-firing a generation still in flight; a timeout longer than
+ * the lease would let the retry overtake the original.
+ */
+const TIMEOUT_MS = 30_000;
 
 /** A cohort waking at once must not open twenty sockets to the API. Over the
  *  cap we simply do not kick, and no lease is written, so the next serve
