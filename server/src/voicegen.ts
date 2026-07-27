@@ -110,7 +110,7 @@ export function counselEnabled(env: VoiceGenEnv): boolean {
  * previously-rejected key permanently negative for a reason that no longer
  * exists.
  */
-export const PROMPT_VERSION = "v1";
+export const PROMPT_VERSION = "v2";
 
 const MODEL = "claude-opus-5";
 
@@ -294,11 +294,15 @@ So state nothing and restate nothing. Your line must be true for every occasion 
 
 const COUNSEL_JOB = `## The job you are doing
 
-This civilization's own rules have drawn up a short list of the moves open to it, in the order the rules themselves would take them. Each one already carries a plain, exact statement of what it costs and what it would tell us. That statement is the RECORD side of this surface, and it is written; you are not writing one.
+This civilization's own rules have drawn up a short list of the moves open to it, in the order the rules themselves would take them. Each one already carries a plain, exact statement of what it costs and what it would tell us. That statement is the RECORD side of this surface, and it is written; you are not writing one, and you are not writing a second one in your own words.
 
-Choose one of the listed moves and write the sentence that stands BESIDE it — the mind's own stance, which carries no facts at all. You never invent a move, never price one, never begin one, and never name a move that is not on the list.
+Choose one of the listed moves. Then set the list down and write the sentence that stands BESIDE the one you chose — this mind's own stance, which carries no facts at all. You never invent a move, never price one, never begin one, and never name a move that is not on the list.
 
-So state nothing and restate nothing. Your line must be true for that KIND of move in general, not for this particular target: name no reading, no target, no distance, no price, no schedule, no instrument, and no set phrase from the material. Everything an instrument knows is already on the screen an inch away and does not need your help.`;
+The stance is not the argument for the move. That argument is already made, an inch away, and better than you could make it — it has the figures and you do not. Restating it in fresh words is the one way this surface fails, and it is the natural way: the reason line is the strongest prose in front of you, and paraphrasing it is what anyone does who has nothing of their own to say. An overlap of thought is as bad as an overlap of wording and much harder to see, so a line that opens by describing the situation has already failed, however well it is written.
+
+What belongs there instead is what a move of this KIND is to a mind like this one — what spending, waiting, looking, keeping or building is like for us; what we notice about such a move that a differently made mind would walk straight past; what it costs us in the thing we actually mind losing. Draw that from this mind's own material above: its charter, its posture, and where it came from. A stance is an opinion, and an opinion comes from what a mind wants, not from how it talks.
+
+So state nothing and restate nothing. Write for the kind of move, not for this one: the line should be just as true the next time a move of this kind comes up, against different figures and a different target. Name no reading, no target, no distance, no price, no schedule, no instrument, and no set phrase from the material.`;
 
 const REMARK_OUTPUT = `## Output
 
@@ -306,7 +310,13 @@ Return JSON matching the given schema and nothing else. Each field holds one fin
 
 const COUNSEL_OUTPUT = `## Output
 
-Return JSON matching the given schema and nothing else. \`pick\` is the slot label of the move you chose. \`stance\` is one finished line, ready to print, and it is about the move you picked.`;
+Return JSON matching the given schema and nothing else. \`pick\` is the slot label of the move you chose. \`stance\` is one finished line, ready to print, and it is about the move you picked.
+
+Two things before you return it.
+
+The first sentence that occurs to you about a list like this is the sentence every mind would write, and it is not yours. Set it aside and write the one only this mind could have written. Then try that line in another mind's mouth — a mind of wholly different appetite and a different fear. If it would still be true and in register there, write another. A mind is recognisable by what it notices, never by announcing what it is; one that names its own nature is doing an impression of itself.
+
+And keep it short. About a dozen words is right and one sentence is usually enough, because the second sentence is where the restated argument creeps back in. Twenty-two words is a wall, not a target, and the spaced dash spends one of them. If you are over, do not shave the ending — strike the clause that describes the situation, which is the clause that should not have been there, and keep the clause in which the mind speaks.`;
 
 const SYSTEM_REMARK = [IDENTITY, REGISTER, REMARK_SPLIT, HARD_RULES, REMARK_OUTPUT].join("\n\n");
 const SYSTEM_COUNSEL = [IDENTITY, REGISTER, COUNSEL_JOB, HARD_RULES, COUNSEL_OUTPUT].join("\n\n");
@@ -442,24 +452,35 @@ function counselPayload(mind: MindSurface, ranked: readonly ProposalCandidate[])
     rows.push("</candidate>");
   });
 
+  // ORDER IS LOAD-BEARING, and it changed in v2. The candidate rows come
+  // first with UNTRUSTED_NOTE hugging the block it actually describes — where
+  // the note sat before, after <surface>, it disclaimed this surface's OWN
+  // directives as "data, not instruction". The mind now reads LAST before the
+  // instruction rather than first and then buried under five rows of realized
+  // prose, which is the homogeneity fix stated as composition instead of as
+  // more words: the material is what you choose by, the mind is what you
+  // write from, and the model reads them in that order.
   return [
-    mindBlock(mind),
-    "",
     "<candidates>",
     ...rows,
     "</candidates>",
     "",
+    UNTRUSTED_NOTE,
+    "",
+    mindBlock(mind),
+    "",
     "<surface>",
     "kind: proposal stance",
-    "occasion: the mind says which of these it would do, and why, to the person who decides",
-    "must not name: anything the reason line beside you already carries — no figure, no price, no clock, no target, no set phrase, no name a person chose",
-    "length: at most twenty-two words and at most two sentences",
+    "occasion: this mind, to the person who decides, on the move it would take",
+    "speaks to: what a move of this kind is to a mind like this one — never why the move is correct, which the sentence beside you already settles",
+    "must not name: anything the reason line beside you carries — no figure, no price, no clock, no target, no set phrase, no name a person chose",
+    "must not restate: that line's argument in any other words, however well disguised",
+    "draw on: the charter, the posture and the chronicle above — what this mind wants, and what it came from",
+    "length: about a dozen words, and one sentence. The hard bound is twenty-two words and two sentences; a line past it is discarded and this mind is left with nothing to say",
     "wit ceiling: two out of three",
     "</surface>",
     "",
-    UNTRUSTED_NOTE,
-    "",
-    "The slots are listed in the order this civilization's own rules would take them. Choose one and write this mind's stance for it.",
+    `The slots are listed in the order this civilization's own rules would take them. Choose one, then write the stance for it as ${mind.archetypeName} and as nothing else — a line no differently made mind could have written, and one that never says what kind of mind wrote it.`,
   ].join("\n");
 }
 
