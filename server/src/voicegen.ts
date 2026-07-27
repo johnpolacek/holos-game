@@ -110,7 +110,7 @@ export function counselEnabled(env: VoiceGenEnv): boolean {
  * previously-rejected key permanently negative for a reason that no longer
  * exists.
  */
-export const PROMPT_VERSION = "v2";
+export const PROMPT_VERSION = "v3";
 
 const MODEL = "claude-opus-5";
 
@@ -122,8 +122,25 @@ const MODEL = "claude-opus-5";
  */
 const MAX_TOKENS = 2_000;
 
-/** Milliseconds. The deferred task must not hang on a stalled socket. */
-const TIMEOUT_MS = 8_000;
+/**
+ * Milliseconds. The deferred task must not hang on a stalled socket — but the
+ * bound that stops a hang is not the bound that a healthy call should ever
+ * meet, and at eight seconds it was. A measured remark pool (three lines,
+ * adaptive thinking) took 7425ms against that bound, which is a coin flip
+ * dressed as a timeout.
+ *
+ * The asymmetry is what sets this number. The call is out-of-band, behind
+ * `waitUntil`, and never on the path of anything a player is waiting for, so
+ * waiting longer costs nothing. Timing out costs one of MAX_ATTEMPTS and puts
+ * the key on the backoff ladder — five minutes, then thirty, then four hours,
+ * then a day — after which it is templated forever. Spending seconds to avoid
+ * that trade is free; the reverse is not.
+ *
+ * MUST STAY UNDER LEASE_MS. The lease is what stops a DO that restarted
+ * mid-call from re-firing a generation still in flight; a timeout longer than
+ * the lease would let the retry overtake the original.
+ */
+const TIMEOUT_MS = 30_000;
 
 /** A cohort waking at once must not open twenty sockets to the API. Over the
  *  cap we simply do not kick, and no lease is written, so the next serve
@@ -190,9 +207,16 @@ function counselKey(token: string, setFp: string): string {
  */
 export type GenState = "accepted" | "rejected" | "refused" | "failed";
 
+/**
+ * The fields both tenants' records share. THE SCHEMA VERSION IS NOT ONE OF
+ * THEM: it describes a concrete shape, and the two shapes now version
+ * independently. Tenant 1's is untouched at `v: 1`; tenant 2's moved to
+ * `v: 2` when its stance stopped being gated on the model's pick (see
+ * `CounselRecord`). One shared literal would have forced a bump on a tenant
+ * whose shape did not change, which is how a schema version stops meaning
+ * anything.
+ */
 interface GenRecordBase {
-  /** Record schema version — NOT the prompt version. */
-  readonly v: 1;
   readonly state: GenState;
   /** Why this key is templated. Never rendered; forensics and the eval log. */
   readonly why: string | null;
@@ -205,19 +229,47 @@ interface GenRecordBase {
 
 /** Tenant 1. `lines` is the accepted pool; empty means serve the bank. */
 export interface RemarkPoolRecord extends GenRecordBase {
+  /** Record schema version — NOT the prompt version. */
+  readonly v: 1;
   readonly lines: readonly string[];
 }
 
-/** Tenant 2. `pick` and `stance` are non-null only when accepted. */
+/**
+ * Tenant 2. `stance` is non-null only when accepted.
+ *
+ * `v: 2`, AND THE FIELD THAT WAS `pick` IS GONE RATHER THAN REDEFINED. Under
+ * the old shape the model chose a move and `pick` decided whether its stance
+ * was served at all; under this one the model is TOLD which move is taken,
+ * writes about that one, and separately reports only what it WOULD have
+ * taken. Same slot vocabulary, opposite authority — the most dangerous kind
+ * of field to reuse. PROMPT_VERSION lives in the key, so no old record is
+ * ever read here; but a record dumped from storage or read by the eval
+ * harness has to say which world it came from without anyone consulting the
+ * key, and a renamed field plus a bumped schema version says it twice. An
+ * old record read as this one yields `undefined`, loudly. A redefined `pick`
+ * would have yielded a plausible wrong answer, which is worse.
+ */
 export interface CounselRecord extends GenRecordBase {
-  readonly pick: string | null;
+  /** Record schema version — NOT the prompt version. */
+  readonly v: 2;
+  /**
+   * The candidate id this mind says it would have taken, had the choice been
+   * its own. PURELY OBSERVATIONAL: recorded and logged, and reaching no
+   * player, no wire message and no decision. It is the data a fuller counsel
+   * mode (or A2.5's tenant) would need to earn its way on, collected from
+   * the first day at zero risk. Null when the answer was missing or did not
+   * name a listed move — which never costs the stance; see `runCounsel`.
+   */
+  readonly wouldTake: string | null;
+  /** The line. Written about `floorPick`, and about nothing else. */
   readonly stance: string | null;
-  /** What the floor served first, for the agreement log. */
+  /** The row the floor led with — the row this stance was written about, and
+   *  therefore the only row it may ever attach to. */
   readonly floorPick: string | null;
 }
 
 function permanent(state: GenState, why: string, attempts: number): GenRecordBase {
-  return { v: 1, state, why, attempts, nextEligibleAtMs: null, atMs: Date.now() };
+  return { state, why, attempts, nextEligibleAtMs: null, atMs: Date.now() };
 }
 
 // ---------------------------------------------------------------------------
@@ -296,13 +348,15 @@ const COUNSEL_JOB = `## The job you are doing
 
 This civilization's own rules have drawn up a short list of the moves open to it, in the order the rules themselves would take them. Each one already carries a plain, exact statement of what it costs and what it would tell us. That statement is the RECORD side of this surface, and it is written; you are not writing one, and you are not writing a second one in your own words.
 
-Choose one of the listed moves. Then set the list down and write the sentence that stands BESIDE the one you chose — this mind's own stance, which carries no facts at all. You never invent a move, never price one, never begin one, and never name a move that is not on the list.
+One move on that list is marked as the one being taken. That is settled: the rules have taken it, the person who decides is already looking at it, and nothing you write moves it. Set the list down and write the sentence that stands BESIDE the marked move — this mind's own stance on it, which carries no facts at all. You never invent a move, never price one, never begin one, and never write your stance about a move other than the marked one.
 
 The stance is not the argument for the move. That argument is already made, an inch away, and better than you could make it — it has the figures and you do not. Restating it in fresh words is the one way this surface fails, and it is the natural way: the reason line is the strongest prose in front of you, and paraphrasing it is what anyone does who has nothing of their own to say. An overlap of thought is as bad as an overlap of wording and much harder to see, so a line that opens by describing the situation has already failed, however well it is written.
 
 What belongs there instead is what a move of this KIND is to a mind like this one — what spending, waiting, looking, keeping or building is like for us; what we notice about such a move that a differently made mind would walk straight past; what it costs us in the thing we actually mind losing. Draw that from this mind's own material above: its charter, its posture, and where it came from. A stance is an opinion, and an opinion comes from what a mind wants, not from how it talks.
 
-So state nothing and restate nothing. Write for the kind of move, not for this one: the line should be just as true the next time a move of this kind comes up, against different figures and a different target. Name no reading, no target, no distance, no price, no schedule, no instrument, and no set phrase from the material.`;
+So state nothing and restate nothing. Write for the kind of move, not for this one: the line should be just as true the next time a move of this kind comes up, against different figures and a different target. Name no reading, no target, no distance, no price, no schedule, no instrument, and no set phrase from the material.
+
+You are asked one other thing, and it is not part of the stance. Say which move on the list you would have taken yourself, if the choice had been yours. It may be the marked move or any other. Answer it plainly and honestly, as this mind: it is written down and never shown to anyone, and it changes nothing about which move is taken or which sentence is read. Do not bend it to agree with the line you wrote, and do not bend the line to agree with it — they are asked separately because they are separate.`;
 
 const REMARK_OUTPUT = `## Output
 
@@ -310,7 +364,9 @@ Return JSON matching the given schema and nothing else. Each field holds one fin
 
 const COUNSEL_OUTPUT = `## Output
 
-Return JSON matching the given schema and nothing else. \`pick\` is the slot label of the move you chose. \`stance\` is one finished line, ready to print, and it is about the move you picked.
+Return JSON matching the given schema and nothing else. \`stance\` is one finished line, ready to print, and it is about the marked move — the one being taken. \`wouldTake\` is the slot label of the move you would have taken yourself; it is filed away, never printed, and never read aloud beside anything.
+
+Write the stance first, and write it as though the marked move were the only one on the list. Then answer the other question.
 
 Two things before you return it.
 
@@ -442,12 +498,37 @@ function remarkPayload(mind: MindSurface, family: RemarkFamily): string {
 /** Fixed slot labels. See `COUNSEL_SCHEMA` for why they are not candidate ids. */
 const SLOTS: readonly string[] = ["c1", "c2", "c3", "c4", "c5"];
 
-function counselPayload(mind: MindSurface, ranked: readonly ProposalCandidate[]): string {
+/**
+ * THE WHOLE LIST IS STILL SHOWN, AND ONE ROW IS MARKED AS TAKEN.
+ *
+ * Both halves are load-bearing. The list stays whole because the model is
+ * asked, separately, which move it would have taken — a question with one
+ * row on the table is not a question, and the answer is the only signal this
+ * seam collects about whether the floor's priority order matches a mind's
+ * judgement. The mark exists because the model no longer chooses the move
+ * whose stance it writes: it is told, so the stance always concerns the row
+ * the player is actually looking at.
+ *
+ * The mark HANDS OVER NO FACT. The rows are already stated to be in the
+ * order this civilization's own rules would take them, and the floor takes
+ * the first of them — so "which one is taken" was already derivable from a
+ * payload the model was already holding, and marking it adds emphasis, not
+ * information. Nothing about the sky, the price or the target crosses that
+ * the reason lines did not already carry, and the fact-free discipline is
+ * untouched: the stance still may not name anything in any row, marked or
+ * not, and `forbiddenToken` still checks it against EVERY row's pinned
+ * tokens rather than only the marked one.
+ */
+function counselPayload(
+  mind: MindSurface,
+  ranked: readonly ProposalCandidate[],
+  leadSlot: string,
+): string {
   const rows: string[] = [];
   ranked.forEach((c, i) => {
     const slot = SLOTS[i];
     if (slot === undefined) return;
-    rows.push(`<candidate slot="${slot}" kind="${c.kind}">`);
+    rows.push(`<candidate slot="${slot}" kind="${c.kind}" taken="${slot === leadSlot ? "yes" : "no"}">`);
     rows.push(`<reason>${render(c.reason)}</reason>`);
     rows.push("</candidate>");
   });
@@ -471,7 +552,8 @@ function counselPayload(mind: MindSurface, ranked: readonly ProposalCandidate[])
     "",
     "<surface>",
     "kind: proposal stance",
-    "occasion: this mind, to the person who decides, on the move it would take",
+    "occasion: this mind, to the person who decides, on the move it is about to make",
+    "writes about: the one candidate marked taken, and no other; the mark is not yours to argue with",
     "speaks to: what a move of this kind is to a mind like this one — never why the move is correct, which the sentence beside you already settles",
     "must not name: anything the reason line beside you carries — no figure, no price, no clock, no target, no set phrase, no name a person chose",
     "must not restate: that line's argument in any other words, however well disguised",
@@ -480,7 +562,7 @@ function counselPayload(mind: MindSurface, ranked: readonly ProposalCandidate[])
     "wit ceiling: two out of three",
     "</surface>",
     "",
-    `The slots are listed in the order this civilization's own rules would take them. Choose one, then write the stance for it as ${mind.archetypeName} and as nothing else — a line no differently made mind could have written, and one that never says what kind of mind wrote it.`,
+    `The slots are listed in the order this civilization's own rules would take them, and the one marked taken is the move being made. Write its stance as ${mind.archetypeName} and as nothing else — a line no differently made mind could have written, and one that never says what kind of mind wrote it. Then, separately and for the record only, name the slot you would have taken.`,
   ].join("\n");
 }
 
@@ -524,14 +606,26 @@ const POOL_SCHEMA: Readonly<Record<string, unknown>> = {
  * logged verbatim. The enumerator returns at most five candidates, one per
  * rule, in a total order, so five fixed slots are exactly as expressive and
  * compile once for the life of PROMPT_VERSION.
+ *
+ * FIELD ORDER IS LOAD-BEARING. Structured output is generated in property
+ * order, so `stance` is written before `wouldTake` is named. That way the
+ * line is composed with the taken move as the only thing on the table; a
+ * model that had just announced a preference for some other row would be
+ * writing the marked row's stance in the shadow of its own dissent, and a
+ * hedged or sour stance is a player-visible failure. The cost is the mirror
+ * risk — a would-take bent afterwards to look consistent with the line just
+ * written — and it is the smaller one, because the stance is fact-free and
+ * pitched at the KIND of move, so it is a weak thing to be consistent with.
+ * The prompt names that trap explicitly rather than relying on the ordering
+ * alone.
  */
 const COUNSEL_SCHEMA: Readonly<Record<string, unknown>> = {
   type: "object",
   additionalProperties: false,
-  required: ["pick", "stance"],
+  required: ["stance", "wouldTake"],
   properties: {
-    pick: { type: "string", enum: [...SLOTS] },
     stance: { type: "string" },
+    wouldTake: { type: "string", enum: [...SLOTS] },
   },
 };
 
@@ -751,17 +845,17 @@ export class VoiceGen {
 
     const user = remarkPayload(mind, family);
     if (!digitFree(user) || !digitFree(SYSTEM_REMARK)) {
-      await this.writePool(deps, key, { ...permanent("rejected", "payload-digit", attempts), lines: [] });
+      await this.writePool(deps, key, { ...permanent("rejected", "payload-digit", attempts), v: 1, lines: [] });
       return;
     }
 
-    await this.writePool(deps, key, { ...this.lease(attempts), lines: [] });
+    await this.writePool(deps, key, { ...this.lease(attempts), v: 1, lines: [] });
 
     const started = Date.now();
     const result = await callModel({ apiKey, system: SYSTEM_REMARK, user, schema: POOL_SCHEMA });
     const outcome = this.classify(result);
     if (outcome !== null) {
-      const record: RemarkPoolRecord = { ...outcome(attempts), lines: [] };
+      const record: RemarkPoolRecord = { ...outcome(attempts), v: 1, lines: [] };
       await this.writePool(deps, key, record);
       this.log("remark", `family=${family} arch=${mind.archetype}`, record, started);
       return;
@@ -771,7 +865,7 @@ export class VoiceGen {
     const parsed = parseJson(result.text);
     const raw = ["first", "second", "third"].map((f) => stringField(parsed, f));
     if (raw.some((line) => line === null)) {
-      const record = { ...permanent("rejected", "malformed", attempts), lines: [] };
+      const record: RemarkPoolRecord = { ...permanent("rejected", "malformed", attempts), v: 1, lines: [] };
       await this.writePool(deps, key, record);
       this.log("remark", `family=${family} arch=${mind.archetype}`, record, started);
       return;
@@ -791,7 +885,7 @@ export class VoiceGen {
     const record: RemarkPoolRecord =
       lines.length > 0
         ? { v: 1, state: "accepted", why: null, attempts, nextEligibleAtMs: null, atMs: Date.now(), lines }
-        : { ...permanent("rejected", firstReason ?? "gate", attempts), lines: [] };
+        : { ...permanent("rejected", firstReason ?? "gate", attempts), v: 1, lines: [] };
     await this.writePool(deps, key, record);
     this.log("remark", `family=${family} arch=${mind.archetype} kept=${lines.length}`, record, started);
   }
@@ -799,17 +893,35 @@ export class VoiceGen {
   // --- tenant 2: the counsel stance ----------------------------------------
 
   /**
-   * HOT PATH. Reads the record, attaches a stance if one was accepted AND the
-   * model's pick agrees with the row the floor already leads with, and hands
-   * back a kick for the caller to fire after the message is on the wire.
+   * HOT PATH. Reads the record, attaches an accepted stance to the row the
+   * floor leads with, and hands back a kick for the caller to fire after the
+   * message is on the wire.
    *
-   * CONSERVATIVE MODE, and this is the whole of the counsel's authority in
-   * AV4: the floor picks and serves exactly as AV3 shipped. Disagreement
-   * degrades to the floor — visibly to us in one logged `agree=0` line, and
-   * invisibly to the player. While the model's judgement disagrees with the
-   * rules, the player sees the rules. The pick is recorded from the first
-   * day, so the records minted now stay valid if a later flag hands the model
-   * real picking authority.
+   * CONSERVATIVE MODE, AND MORE CONSERVATIVE THAN IT WAS. The floor picks and
+   * serves exactly as AV3 shipped; the model is TOLD which row that is and
+   * writes its stance about that row, so its authority over what the player
+   * does is not merely bounded but nil. It was not nil before: the model
+   * chose a move, the stance attached only if that choice matched the floor's,
+   * and so the model decided whether the player heard their civilization
+   * speak at all.
+   *
+   * That gate was withdrawn because seventy real calls showed it inverted.
+   * Six of the seven evaluation scenarios enumerate exactly one candidate, so
+   * "agreement" there was arithmetic, not judgement; the seventh is the only
+   * genuine three-way choice, and every accepted mind across two runs and two
+   * prompts disagreed with the floor. The stance was therefore attaching
+   * precisely where the player had no decision to make and being discarded
+   * precisely where they had one — and the discarded lines were the best in
+   * the run. What the model would have taken is still collected, on every
+   * call, as `wouldTake`; it is now purely observational, which is what lets
+   * that disagreement signal keep accumulating instead of being spent.
+   *
+   * The attach condition is `floorPick === lead.id`: this stance was written
+   * about that row, so that row is the only one it may sit beside. Belt and
+   * braces, since the set fingerprint determines each candidate's id and the
+   * serve order is a pure function of the same list — but if the serve rules
+   * ever change under a live record, a stance written for one row must not
+   * silently reappear beside another.
    */
   async counselFor(
     deps: GenDeps,
@@ -829,7 +941,7 @@ export class VoiceGen {
     const record = await this.readCounsel(deps, key);
 
     if (record !== undefined) {
-      if (record.state === "accepted" && record.pick === lead.id && record.stance !== null) {
+      if (record.state === "accepted" && record.floorPick === lead.id && record.stance !== null) {
         const stance = record.stance;
         return {
           proposals: [{ ...lead, stance }, ...served.slice(1)],
@@ -841,6 +953,17 @@ export class VoiceGen {
 
     const apiKey = this.apiKeyFor(deps.env, true);
     if (apiKey === null) return noop;
+
+    // The lead's SLOT, found by id rather than assumed to be the first row.
+    // It is the first row — `serveProposals` sorts by the comparator the
+    // enumerator already applied — but the payload's mark is only honest if
+    // it is derived from the row actually served, and a lead that fell
+    // outside the slot vocabulary would be a row the model could not be
+    // pointed at, so we generate nothing rather than mark the wrong one.
+    const leadIndex = ranked.findIndex((c) => c.id === lead.id);
+    const leadSlot = leadIndex >= 0 ? SLOTS[leadIndex] : undefined;
+    if (leadSlot === undefined) return noop;
+
     const floorPick = lead.id;
     return {
       proposals: served,
@@ -848,7 +971,7 @@ export class VoiceGen {
         if (!this.mayKick(key)) return;
         this.inflight.add(key);
         deps.waitUntil(
-          this.runCounsel(deps, key, apiKey, mind, ranked, floorPick, resendSky)
+          this.runCounsel(deps, key, apiKey, mind, ranked, floorPick, leadSlot, resendSky)
             .catch(() => undefined)
             .finally(() => this.inflight.delete(key)),
         );
@@ -863,17 +986,26 @@ export class VoiceGen {
     mind: MindSurface,
     ranked: readonly ProposalCandidate[],
     floorPick: string,
+    leadSlot: string,
     resendSky: () => Promise<void>,
   ): Promise<void> {
     const prior = await this.readCounsel(deps, key);
     if (prior !== undefined && !this.isEligible(prior)) return;
     const attempts = prior?.attempts ?? 0;
-    const blank = { pick: null, stance: null, floorPick };
+    // Annotated, not inferred: the schema version must stay the literal `2`
+    // through every spread below, and an inferred `number` would only fail at
+    // the far end of the function.
+    const blank: Pick<CounselRecord, "v" | "wouldTake" | "stance" | "floorPick"> = {
+      v: 2,
+      wouldTake: null,
+      stance: null,
+      floorPick,
+    };
 
     await this.writeCounsel(deps, key, { ...this.lease(attempts), ...blank });
 
     const started = Date.now();
-    const user = counselPayload(mind, ranked);
+    const user = counselPayload(mind, ranked, leadSlot);
     const result = await callModel({ apiKey, system: SYSTEM_COUNSEL, user, schema: COUNSEL_SCHEMA });
     const outcome = this.classify(result);
     if (outcome !== null) {
@@ -885,47 +1017,53 @@ export class VoiceGen {
     if (result.kind !== "text") return; // unreachable; classify() covered every other arm
 
     const parsed = parseJson(result.text);
-    const slot = stringField(parsed, "pick");
     const stanceRaw = stringField(parsed, "stance");
-    if (slot === null || stanceRaw === null) {
+    if (stanceRaw === null) {
       await this.finishCounsel(deps, key, { ...permanent("rejected", "malformed", attempts), ...blank }, mind, started, resendSky);
       return;
     }
 
-    // The schema makes the pick STRUCTURALLY a member of the closed slot set;
-    // this makes it a member of THIS list. There is no path by which a
-    // candidate id the enumerator did not produce this turn reaches the wire.
-    const index = SLOTS.indexOf(slot);
-    const picked = index >= 0 ? ranked[index] : undefined;
-    if (picked === undefined) {
-      await this.finishCounsel(deps, key, { ...permanent("rejected", "slot-out-of-range", attempts), ...blank }, mind, started, resendSky);
-      return;
-    }
+    // The would-take, resolved from a slot label to a candidate id — and
+    // NEVER a reason to discard anything. A missing field or a label past the
+    // end of this turn's list degrades to null and the stance is judged on
+    // its own merits, because the whole point of this shape is that the
+    // model's preference has no say in whether the player hears their
+    // civilization. The old code rejected an out-of-range slot outright,
+    // which was correct when the slot chose the served row and is exactly the
+    // authority being removed. The label is still resolved through THIS
+    // turn's list, so nothing but an id the enumerator produced this turn can
+    // ever be written down.
+    const slot = stringField(parsed, "wouldTake");
+    const index = slot === null ? -1 : SLOTS.indexOf(slot);
+    const wouldTake = (index >= 0 ? ranked[index]?.id : undefined) ?? null;
+    const observed = { ...blank, wouldTake };
 
     const verdict = gateFactFree(stanceRaw, LIMITS.stance);
     if (!verdict.ok) {
-      await this.finishCounsel(deps, key, { ...permanent("rejected", verdict.reason, attempts), ...blank }, mind, started, resendSky);
+      await this.finishCounsel(deps, key, { ...permanent("rejected", verdict.reason, attempts), ...observed }, mind, started, resendSky);
       return;
     }
 
     // The load-bearing check: the stance must echo nothing from the material
     // it stands beside — which is where the pinned facts, the player-authored
     // source name, and therefore the only realistic injection payoff all live.
+    // EVERY row's tokens, not the marked row's: the model was shown the whole
+    // list, so the whole list is what it must not echo.
     const tokens = ranked.flatMap((c) => [...pinnedTokens(c.reason)]);
     const echoed = forbiddenToken(verdict.line, tokens);
     if (echoed !== null) {
-      await this.finishCounsel(deps, key, { ...permanent("rejected", "pinned-token", attempts), ...blank }, mind, started, resendSky);
+      await this.finishCounsel(deps, key, { ...permanent("rejected", "pinned-token", attempts), ...observed }, mind, started, resendSky);
       return;
     }
 
     const record: CounselRecord = {
-      v: 1,
+      v: 2,
       state: "accepted",
       why: null,
       attempts,
       nextEligibleAtMs: null,
       atMs: Date.now(),
-      pick: picked.id,
+      wouldTake,
       stance: verdict.line,
       floorPick,
     };
@@ -941,22 +1079,36 @@ export class VoiceGen {
     resendSky: () => Promise<void>,
   ): Promise<void> {
     await this.writeCounsel(deps, key, record);
-    const agrees = record.state === "accepted" && record.pick === record.floorPick;
+    // `agree` SURVIVES, WITH THE SAME NAME AND THE SAME COLUMN, and means
+    // something narrower and more useful: would-take against the floor's row.
+    // It no longer describes what was served — nothing does, because the
+    // stance now attaches on acceptance alone — so it is a pure observation,
+    // which is precisely what makes it worth accumulating. A `wouldTake` of
+    // none (a failure record, or an answer that named no listed move) is not
+    // agreement and is not counted as one.
+    const agrees = record.wouldTake !== null && record.wouldTake === record.floorPick;
     this.log(
       "counsel",
-      `arch=${mind.archetype} floor=${record.floorPick ?? "none"} pick=${record.pick ?? "none"} agree=${agrees ? 1 : 0}`,
+      `arch=${mind.archetype} floor=${record.floorPick ?? "none"} would=${record.wouldTake ?? "none"} agree=${agrees ? 1 : 0}`,
       record,
       started,
     );
     // The acceptance push, on the onAlarm precedent: sendSky is event-driven,
-    // so "the next sky serves it" can mean "next session". Only a record that
-    // would actually change the surface pushes, so no loop is reachable — the
-    // resent sky finds the record accepted, attaches the stance, and kicks
-    // nothing. A rejected or failed record changes nothing for the player and
-    // pushes nothing. The report tenant pushes nothing either: the report
-    // waits to be read, and a remark must not rewrite a panel under the
-    // player's eyes.
-    if (agrees) await resendSky();
+    // so "the next sky serves it" can mean "next session". The condition is
+    // and always was "this record would change what a live connection sees",
+    // which used to coincide with agreement and no longer does: a stance now
+    // attaches whenever it was accepted, so that is when we push. Pushing on
+    // agreement here would strand the very stances this change exists to
+    // serve — written, stored, attachable, and invisible until the next
+    // session happened to resend the sky.
+    //
+    // No loop is reachable: the resent sky finds the record accepted,
+    // attaches the stance, and kicks nothing. A rejected or failed record
+    // changes nothing for the player and pushes nothing. The report tenant
+    // pushes nothing either: the report waits to be read, and a remark must
+    // not rewrite a panel under the player's eyes.
+    const attaches = record.state === "accepted" && record.stance !== null;
+    if (attaches) await resendSky();
   }
 
   // --- shared machinery ----------------------------------------------------
@@ -1003,7 +1155,6 @@ export class VoiceGen {
    *  per generation, never one per serve. */
   private lease(attempts: number): GenRecordBase {
     return {
-      v: 1,
       state: "failed",
       why: "in-flight",
       attempts,
@@ -1043,7 +1194,6 @@ export class VoiceGen {
   private failure(priorAttempts: number, why: string): GenRecordBase {
     const attempts = priorAttempts + 1;
     return {
-      v: 1,
       state: "failed",
       why,
       attempts,
