@@ -67,8 +67,19 @@
   },
   "dev": {
     "port": 8787
-  }
-  // Once the holosgame.com DNS zone is added to the Cloudflare account,
-  // uncomment to serve the game there (Worker custom domain):
-  // "routes": [{ "pattern": "holosgame.com", "custom_domain": true }]
+  },
+  // The custom domain. Live: the playholos.com zone went ACTIVE on this
+  // account on 2026-07-27 (registrar stays Porkbun; only DNS moved), which
+  // is the precondition for shipping this block — `wrangler deploy`
+  // resolves each route's zone at deploy time and fails with "Could not
+  // find zone" when it is absent, and `main` auto-deploys, so a route
+  // ahead of its zone breaks production. `--dry-run` never contacts
+  // Cloudflare, so CI cannot catch that; docs/deploy.md carries the check.
+  //
+  // Apex is canonical (client/index.html); www serves the same Worker so
+  // no one lands on a dead hostname.
+  "routes": [
+    { "pattern": "playholos.com", "custom_domain": true },
+    { "pattern": "www.playholos.com", "custom_domain": true }
+  ]
 }
