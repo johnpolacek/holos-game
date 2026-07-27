@@ -63,21 +63,21 @@ exist passes dry-run and fails the real deploy. The zone move is a
 prerequisite, not a parallel task.
 
 So the routes block in `wrangler.jsonc` stays **commented out** until
-step 3 below verifies the zone is active. That is the entire gate.
+step 3 verifies the zone is active. That is the entire gate.
 
 ### Step 0 — where things stand
 
-As of 2026-07-26 the zone has **not** moved. `playholos.com` still
-delegates to Porkbun:
+**Done, 2026-07-27.** The zone is ACTIVE on the account and
+`playholos.com` delegates to `daniella.ns.cloudflare.com` /
+`houston.ns.cloudflare.com`. The routes block is uncommented and live.
 
-```
-curitiba.ns.porkbun.com.   fortaleza.ns.porkbun.com.
-maceio.ns.porkbun.com.     salvador.ns.porkbun.com.
-```
+Steps 1-3 below are kept as the record of what was done — and because
+the same sequence applies to any second domain. Step 4 is the part
+worth re-reading before touching routes again.
 
-The apex and `www` resolve to Porkbun's parking page
-(207.207.210.36 / .50), and MX points at Porkbun email forwarding
-(`fwd1.porkbun.com`, `fwd2.porkbun.com`). All three matter below.
+Before the move, the apex and `www` served Porkbun's parking page
+(207.207.210.36 / .50) and MX pointed at Porkbun email forwarding
+(`fwd1.porkbun.com`, `fwd2.porkbun.com`). Both facts drive step 1.2.
 
 ### Step 1 — add the zone to Cloudflare
 
@@ -145,8 +145,12 @@ stale DS record from step 2.1.
 
 ### Step 4 — ship the routes
 
-Only once step 3 passes. In `wrangler.jsonc`, uncomment the routes
-block at the bottom:
+Only once step 3 passes. **First delete any DNS record already sitting
+on `playholos.com` or `www.playholos.com`** in the Cloudflare zone —
+Cloudflare's importer carries the old parking records over, and
+`wrangler deploy` cannot create a custom domain on a name that already
+has a record. Then uncomment the routes block at the bottom of
+`wrangler.jsonc`:
 
 ```jsonc
 "routes": [
