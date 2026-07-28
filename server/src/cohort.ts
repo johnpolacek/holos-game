@@ -11,7 +11,10 @@
 // those land per-slice from A1 on), gated to local development hosts so
 // every commit stays shippable to production.
 //
-// HTTP surface (wrangler dev only), under /parties/cohort/:name :
+// HTTP surface, under /parties/cohort/:name . Every route below is gated to
+// local development hosts EXCEPT /dev/forget, which ships to production too
+// — see onRequest for why:
+//   POST /dev/forget   {token}                         erase one run (prod too)
 //   POST /dev/seed     {seedKey?, radiusLy?, aiCivs?}  create + persist a galaxy
 //   GET  /dev/state                                    truth overview (dev eyes only)
 //   GET  /dev/observe?observer=ID&target=ID            the light-delayed view
@@ -1789,11 +1792,21 @@ export class Cohort extends Server<CohortEnv> {
 
   async onRequest(request: Request): Promise<Response> {
     const url = new URL(request.url);
-    if (!isLocalDev(url)) return json({ error: "not found" }, 404);
-
     const parts = url.pathname.split("/").filter((p) => p.length > 0);
     const devIdx = parts.indexOf("dev");
     const action = devIdx >= 0 ? parts.slice(devIdx + 1).join("/") : "";
+
+    // `forget` is the one route that answers in production: production is a
+    // playtest surface at this stage, and a playtester who wants to start
+    // over has no other way back to the ceremony. It is safe to expose
+    // because the token in the body IS the authorization — a randomUUID the
+    // caller could only hold by owning that run — and every effect is scoped
+    // to it. The rest stay local-only: they either hand out truth the
+    // knowledge layer exists to withhold (state/observe/sky) or move the
+    // shared world for everyone (seed/skip/event).
+    if (request.method === "POST" && action === "forget") return this.devForget(request);
+
+    if (!isLocalDev(url)) return json({ error: "not found" }, 404);
 
     if (request.method === "POST" && action === "seed") return this.devSeed(request);
     if (request.method === "GET" && action === "state") return this.devState();
@@ -2057,6 +2070,94 @@ export class Cohort extends Server<CohortEnv> {
       fromYear,
       nowYear: gameYearAt(next, Date.now()),
       pendingEvents: pending.length,
+    });
+  }
+
+  /**
+   * forget: erase one token's run so a playtester can start over. Deletes
+   * every per-token key, drops the token's civ out of the galaxy (which
+   * returns its star to pickPlayerHome's pool rather than leaving an
+   * unpiloted ghost), prunes the wakes that run armed, and sends any live
+   * tab on that token back to a fresh ceremony offer.
+   *
+   * This is a playtest reset, not a game verb, and it does something the
+   * game itself never does: it rewrites truth other players have already
+   * seen. Every view is derived from the galaxy at read time, so a
+   * forgotten civ's past light leaves the sky along with the civ — no
+   * departure, no fading record. Nothing in the fiction works this way.
+   *
+   * Idempotent: forgetting an unknown token succeeds and reports
+   * `hadRun: false`, so a playtester can fire it without checking first.
+   * The caller still owns its own localStorage — clearing `holos.token`
+   * after this call is what makes the next run a NEW identity, because a
+   * reused token re-derives the same `civ-p-` id it just gave up.
+   */
+  private async devForget(request: Request): Promise<Response> {
+    const body = await parseBody(request);
+    const token = stringField(body, "token");
+    if (token === undefined) return json({ error: "token (string) required" }, 400);
+
+    // A forget can be the first thing a cold DO ever handles; seeding here
+    // keeps the offer below (and requireGalaxy) on solid ground.
+    await this.ensureSeeded();
+    const run = await this.ctx.storage.get<RunRecord>(`run:${token}`);
+
+    // Every prefix that hangs off a run. A token with no run still sweeps:
+    // a player who quit mid-ceremony has an `offerYear:` and nothing else.
+    await this.ctx.storage.delete([
+      `run:${token}`,
+      `offerYear:${token}`,
+      `voice:${token}`,
+      `report:${token}`,
+      `studies:${token}`,
+      `missions:${token}`,
+      `projects:${token}`,
+      `proposals:${token}`,
+    ]);
+
+    const civId = run?.civId ?? `civ-p-${token.slice(0, 12)}`;
+    const galaxy = this.requireGalaxy();
+    const civs = galaxy.civs.filter((c) => c.seed.id !== civId);
+    const removed = civs.length !== galaxy.civs.length;
+    if (removed) {
+      this.galaxy = { ...galaxy, civs };
+      await this.ctx.storage.put("galaxy:civs", civs);
+    }
+
+    // A wake belongs to the run that armed it; a forgotten run has none.
+    const pending = (await this.ctx.storage.get<ScheduledEvent[]>("events")) ?? [];
+    const keep = pending.filter((e) => e.token !== token);
+    if (keep.length !== pending.length) {
+      await this.ctx.storage.put("events", keep);
+      if (keep.length === 0) await this.ctx.storage.deleteAlarm();
+      else await this.armAlarm(keep);
+    }
+
+    // Live tabs on this token go straight back to the ceremony — the offer
+    // is re-anchored to now, since `offerYear:` went with the rest. Every
+    // OTHER placed connection gets a fresh sky, the same membership-changed
+    // push `become` sends, because a source just left their field.
+    const offerYear = await this.getOfferYear(token);
+    const candidates = this.makeCandidates(token, offerYear);
+    let connectionsReset = 0;
+    for (const state of this.conns.values()) {
+      if (state.token === token) {
+        state.civId = null;
+        state.reportBaselineYear = null;
+        this.sendMsg(state.conn, { type: "offer", candidates });
+        connectionsReset += 1;
+      } else if (state.civId !== null) {
+        await this.sendSky(state.conn, state.token, state.civId);
+      }
+    }
+
+    return json({
+      forgotten: token,
+      hadRun: run !== undefined,
+      civRemoved: removed ? civId : null,
+      starFreed: removed ? (run?.starId ?? null) : null,
+      connectionsReset,
+      note: "clear localStorage 'holos.token' too — a reused token re-derives the same civ id",
     });
   }
 }
