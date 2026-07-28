@@ -229,7 +229,7 @@ export function computeLine(): string {
  * is its inverse, "how many game years an hour of your day is".
  */
 const CLOCK_LINE: PinnedLine =
-  line`A year of ours takes ${F.realDuration(REAL_MS_PER_GAME_YEAR)} of yours; an hour of your day is ${F.ratio(3_600_000 / REAL_MS_PER_GAME_YEAR)} of our years. We go on without you, and the light goes on arriving.`;
+  line`A year of ours takes ${F.realDuration(REAL_MS_PER_GAME_YEAR)} of yours; an hour of your day is ${F.ratio(3_600_000 / REAL_MS_PER_GAME_YEAR)} of our years. We go on without you.`;
 
 export function clockLine(): string {
   return render(CLOCK_LINE);

@@ -890,44 +890,48 @@ export class StudyBoard {
   }
 
   /**
-   * AV3: one proposal — two SIBLING buttons, never nested. `.proposal-accept`
-   * carries the deadpan reason (plus the AV4 stance, when the mind has one)
-   * and the accept verb; `.proposal-decline` is the one-tap, no-confirmation
-   * "no". A distinct block from buildHubRow deliberately: a proposal is a
-   * sentence from a different speaker, not a place-name-over-sublabel browse
-   * row, and rendering it in the same clothes would blur that.
+   * AV3: one proposal — the deadpan reason (plus the AV4 stance, when the
+   * mind has one) as plain prose, then the two answers on one row beneath
+   * it: `.proposal-accept` is the verb, a pill you can see is tappable;
+   * `.proposal-decline` is the one-tap, no-confirmation "no" at the far
+   * end. Two SIBLING buttons, never nested. A distinct block from
+   * buildHubRow deliberately: a proposal is a sentence from a different
+   * speaker, not a place-name-over-sublabel browse row, and rendering it in
+   * the same clothes would blur that.
    */
   private buildProposalRow(p: Proposal): HTMLDivElement {
     const row = document.createElement("div");
     row.className = "proposal-row";
 
-    const accept = document.createElement("button");
-    accept.type = "button";
-    accept.className = "proposal-accept";
-    accept.addEventListener("click", () => this.followProposalRoute(p.route));
-
     const line = document.createElement("div");
     line.className = "proposal-line";
     line.textContent = p.line;
-    accept.append(line);
+    row.append(line);
 
     // AV4-only: always omitted at the AV3 floor, where stance is always null.
     if (p.stance !== null) {
       const stance = document.createElement("div");
       stance.className = "proposal-stance";
       stance.textContent = p.stance;
-      accept.append(stance);
+      row.append(stance);
     }
 
-    const verb = document.createElement("div");
-    verb.className = "proposal-verb holos-caps";
-    verb.textContent = p.verb;
-    accept.append(verb);
+    const actions = document.createElement("div");
+    actions.className = "proposal-actions";
+
+    const accept = document.createElement("button");
+    accept.type = "button";
+    accept.className = "proposal-accept holos-caps";
+    accept.textContent = p.verb;
+    // The reason is no longer inside the button, so the accessible name has
+    // to carry it: "READ THE BRIEF" alone says nothing about which source.
+    accept.setAttribute("aria-label", `${p.verb}: ${p.line}`);
+    accept.addEventListener("click", () => this.followProposalRoute(p.route));
 
     const decline = document.createElement("button");
     decline.type = "button";
-    decline.className = "proposal-decline holos-caps";
-    decline.textContent = "LEAVE IT";
+    decline.className = "proposal-decline";
+    decline.textContent = "Leave It";
     decline.setAttribute("aria-label", `Leave it: ${p.line}`);
     decline.addEventListener("click", () => {
       // Quiet, one tap, no confirmation — declining is free and costs
@@ -939,7 +943,8 @@ export class StudyBoard {
       this.renderHub();
     });
 
-    row.append(accept, decline);
+    actions.append(accept, decline);
+    row.append(actions);
     return row;
   }
 
@@ -1338,7 +1343,7 @@ export class StudyBoard {
     this.body.append(
       this.buildBriefSection(
         "WHAT A STUDY IS",
-        "A standing watch on one source. Its light goes on arriving at its own delay, and every arrival is filed here and read against the stories still in play.",
+        "A standing watch on one source. Its light reaches us at its own delay, and every arrival is filed here and read against the stories still in play.",
       ),
     );
 
@@ -1389,12 +1394,15 @@ export class StudyBoard {
     verbRow.className = "study-verb-row";
     const verbBtn = document.createElement("button");
     verbBtn.type = "button";
-    verbBtn.className = "study-verb-btn study-verb-btn--primary";
+    // The one commit on this screen, and the only one outside the ceremony
+    // that costs the player a decision — so it wears the ceremony's lit
+    // stone rather than the outlined pill the lesser verbs share.
+    verbBtn.className = "study-verb-btn study-verb-btn--ember";
     if (this.pendingBeginStarId === starId) {
       verbBtn.disabled = true;
-      verbBtn.textContent = "opening the watch…";
+      verbBtn.textContent = "Opening the Watch…";
     } else {
-      verbBtn.textContent = "begin the watch";
+      verbBtn.textContent = "Begin the Watch";
       verbBtn.addEventListener("click", () => {
         this.pendingBeginStarId = starId;
         this.socket.send({ type: "openStudy", starId });

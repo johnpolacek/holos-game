@@ -626,7 +626,7 @@ Load-bearing literals. Style passes must not rewrite them for wit or flow.
 | Hypothesis labels | Every `label` in `studies.ts` MENUS — `brown dwarf`, `rogue world`, `cooled remnant`, `somebody's heart`, `debris and rings`, `natural transits`, `construction under way`, `young and sloppy`, `deliberate shine`, `a performance`, `stable biosphere`, `biosphere in crisis`, `pre-industrial civilization`, `industrial rise`, `meant for us`, `meant for someone near us`, `a repeat of an old message` |
 | Mission prose names | `The Assay`, `The Sentinel` (`missions.ts` `missionProseName`) |
 | Question prose names | `weighing`, `temperature watch`, `line reading`, `shadow timing`, `edge look`, `off-axis listening` (`questions.ts` `proseName`) |
-| Proposal chrome | `WHAT WE WOULD DO NEXT`, `READ THE BRIEF`, `OPEN THE STUDY`, `OPEN THE LAUNCH SHEET`, `READ THE PROJECT`, `LEAVE IT` |
+| Proposal chrome | `WHAT WE WOULD DO NEXT`, `READ THE BRIEF`, `OPEN THE STUDY`, `OPEN THE LAUNCH SHEET`, `READ THE PROJECT`. The decline beside them is the one exception — `Leave It`, title case and body weight, so refusing never shouts back at the verb it declines |
 | Report headlines | Every `headline` in `missions.ts` — `OCCUPIED — HOLDING AT RANGE`, `INHABITED — HOLDING AT RANGE`, `A LIVING WORLD, NO WORKS`, `A LIVING WORLD, BUILDING`, `OCCUPIED AND WORKING`, `COLD AND STILL`, `NOTHING NEW TO REPORT`, `TREND CONTINUES`, `POWER MARGIN FAILING`, `OFF-CADENCE REPORT` — ALL-CAPS set phrases (R-24), quoted into prose, never restyled into it |
 | Age chip | `AS OF n Y AGO` |
 | Chronicle dating | Epoch-relative — each civilization counts from its own founding event (the `year n AE` family); the cohort's global year never reaches a player surface |

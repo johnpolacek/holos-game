@@ -172,6 +172,8 @@ body {
 /* The chips and the one-word verbs — a pill must never break mid-phrase. */
 .study-chip,
 .study-verb-btn,
+/* AV3: a proposal's decline. Its accept twin is .holos-caps, above. */
+.proposal-decline,
 .source-card-study-affordance,
 .source-card-mission-affordance,
 /* The source card's header. */
@@ -991,10 +993,11 @@ body {
 /* Hub view — AV3: the mind's proposals, above the standing rows and only
  * present when there is something to say. A proposal is a sentence from a
  * different speaker, not a place-over-sublabel browse row, so it is its own
- * block rather than another .study-hub-row. Two SIBLING buttons per row,
- * never nested: `.proposal-accept` carries the reason (and, from AV4 on,
- * the mind's own stance) plus the accept verb; `.proposal-decline` is the
- * quiet, one-tap "no" beside it. */
+ * block rather than another .study-hub-row. The reason (and, from AV4 on,
+ * the mind's own stance) is plain prose; the two answers sit on one row
+ * under it as SIBLING buttons, never nested — `.proposal-accept` is the
+ * verb as a visible pill, `.proposal-decline` the quiet one-tap "no" at the
+ * far end of the same line. */
 .proposal-row {
   display: flex;
   flex-direction: column;
@@ -1004,21 +1007,34 @@ body {
   padding: 0.65rem 0.1rem;
 }
 
-.proposal-accept {
+/* Yes and no on one line: the pill leads at the left, the free decline sits
+   at the far right, so the weight of the two answers reads off their
+   treatment rather than off their order down the column. */
+.proposal-actions {
   display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  width: 100%;
-  background: none;
-  border: none;
-  padding: 0;
-  text-align: left;
-  cursor: pointer;
-  color: var(--holos-ink);
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  margin-top: 0.2rem;
 }
 
+/* The one verb a proposal row exists to offer — the study-verb-btn--primary
+   precedent: an outlined pill holding the amber, not a call-to-action slab. */
+.proposal-accept {
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-family: var(--holos-font-body);
+  color: var(--holos-amber);
+  cursor: pointer;
+}
+
+/* The reason and the stance read at one size — the stance is quieter by ink,
+   not by type, which is the rule everywhere else in this file. Both sit at
+   the body size: this is the mind speaking, the loudest prose on the hub. */
 .proposal-line {
-  font-size: var(--holos-text-sm);
+  font-size: var(--holos-text-md);
   line-height: 1.4;
   color: var(--holos-ink);
 }
@@ -1027,25 +1043,24 @@ body {
    mind's own free-standing sentence, styled like the report's own remark:
    a little air, a step quieter than the reason above it. */
 .proposal-stance {
-  font-size: var(--holos-text-xs);
+  font-size: var(--holos-text-md);
+  line-height: 1.4;
   color: var(--holos-ink-dim);
   margin-top: 0.1rem;
 }
 
-/* The one verb a proposal row exists to offer — the study-verb-btn--primary
-   precedent: still a word, not a slab, but it holds the amber. */
-.proposal-verb {
-  color: var(--holos-amber);
-}
-
-/* Quiet, one tap, no confirmation — a tier under the accept verb's ink, but
-   never --holos-text-xxs: this is a sentence-length affordance, not an
-   enclosed classifier a thumb reads by shape. */
+/* Quiet, one tap, no confirmation — title case and body weight beside the
+   accept pill's caps, so declining never competes for the eye. Never
+   --holos-text-xxs: this is a sentence-length affordance, not an enclosed
+   classifier a thumb reads by shape. */
 .proposal-decline {
-  align-self: flex-end;
   background: none;
   border: none;
   padding: 0.2rem 0;
+  font-family: var(--holos-font-body);
+  font-size: var(--holos-text-sm);
+  font-weight: 450;
+  letter-spacing: 0.04em;
   color: var(--holos-ink-faint);
   cursor: pointer;
 }
@@ -1539,7 +1554,9 @@ body {
   padding: 0.3rem 0.6rem;
 }
 
-.study-verb-btn:hover {
+/* The ember modifier opts out: its text is the warm white of a lit surface,
+   and lifting it to ink on hover would put unlit prose on burning stone. */
+.study-verb-btn:not(.study-verb-btn--ember):hover {
   color: var(--holos-ink-dim);
 }
 
@@ -2234,17 +2251,21 @@ body {
   padding: 0.3rem 0 0.5rem;
 }
 
-/* Dramatic click-to-commit button. */
-.become-button {
+/* ── The ember stone ──────────────────────────────────────────────────
+ * The one lit surface in the game, shared by the only two buttons that
+ * commit you to something: the ceremony's BECOME and the brief's "Begin the
+ * Watch". Everything in this rule is the stone itself; size and label voice
+ * differ between the two and live in their own rules below. Keep the club
+ * small — a third ember button would spend the surface's whole meaning,
+ * which is "this one is not a browse row". */
+.become-button,
+.study-verb-btn--ember {
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 17rem;
   max-width: 100%;
-  height: 4.4rem;
-  padding: 0 1.6rem;
   border: 1px solid #ffb35c;
   border-radius: 999px;
   /* Molten orange stone: veined marble on top for a mythic, carved surface,
@@ -2267,7 +2288,6 @@ body {
      and pure #fff on the ember stone glares where a warm white doesn't. */
   color: #fdf7ee;
   cursor: pointer;
-  touch-action: none;
   -webkit-tap-highlight-color: transparent;
   box-shadow: inset 0 1px 0 rgba(255, 224, 170, 0.55),
     0 0 18px rgba(242, 138, 30, 0.55), 0 0 46px rgba(217, 95, 19, 0.3),
@@ -2276,18 +2296,52 @@ body {
     transform 120ms ease, color 240ms ease, opacity 240ms ease;
 }
 
-.become-button:not(:disabled):hover {
+/* Dramatic click-to-commit button — the ceremony's hero, alone on its
+   stage, so it takes the full size. */
+.become-button {
+  min-width: 17rem;
+  height: 4.4rem;
+  padding: 0 1.6rem;
+  touch-action: none;
+}
+
+/* The brief's begin: the same stone a size down. It closes a scrolling
+   sheet rather than owning a stage, and the ceremony's proportions here
+   would read as a second BECOME. Cinzel sets lowercase as small caps, so
+   "Begin the Watch" comes out engraved rather than shouted — the hub
+   labels' trick, lit. */
+.study-verb-btn--ember {
+  min-width: 14rem;
+  height: 3.6rem;
+  padding: 0 1.4rem;
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-lg);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-indent: 0.18em; /* optical centering against the tracking */
+  /* Dark translucent stroke around the warm white, painted behind the fill
+     so it hugs the glyph edges rather than thinning them (the become-label
+     precedent). */
+  -webkit-text-stroke: 0.7px rgba(0, 0, 0, 0.45);
+  paint-order: stroke fill;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.become-button:not(:disabled):hover,
+.study-verb-btn--ember:not(:disabled):hover {
   transform: translateY(-1px) scale(1.01);
   box-shadow: inset 0 1px 0 rgba(255, 232, 185, 0.65),
     0 0 24px rgba(242, 138, 30, 0.7), 0 0 58px rgba(217, 95, 19, 0.38),
     0 10px 30px rgba(0, 0, 0, 0.55);
 }
 
-.become-button:not(:disabled):active {
+.become-button:not(:disabled):active,
+.study-verb-btn--ember:not(:disabled):active {
   transform: translateY(0) scale(0.995);
 }
 
-.become-button:disabled {
+.become-button:disabled,
+.study-verb-btn--ember:disabled {
   /* Reads as "not yet" without going invisible — a disabled BECOME still has
      to be legible enough to tell you what you're waiting on. */
   opacity: 0.55;
