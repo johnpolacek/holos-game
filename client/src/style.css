@@ -199,6 +199,8 @@ body {
 .study-board-empty,
 .study-archive-empty,
 .study-project-line,
+/* An offered question's drill-in: how the observation is actually made. */
+.study-question-method,
 .tend-row-sub,
 .name-hint,
 .source-card-name-hint,
@@ -1204,6 +1206,72 @@ body {
 .study-project-row--disabled {
   cursor: default;
   opacity: 0.6;
+}
+
+/* Muted, but still a door. An OPEN QUESTIONS row you cannot buy right now
+   reads exactly as inert as it always did — the dim is what says "not from
+   here" while you scan the menu — but the tap it answers is the drill-in,
+   not the spend, so it keeps a pointer and stays tappable. */
+.study-project-row--muted {
+  opacity: 0.6;
+}
+
+/* ── An offered question: head, then the fold ────────────────────────────
+ * The row is a disclosure, never a buy button. The wrapper carries the
+ * divider so the fold sits INSIDE the question rather than under the line
+ * that ends it. */
+.study-question {
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+}
+
+.study-question-head {
+  border-bottom: none;
+}
+
+/* The name, and the caret that says the row opens. */
+.study-question-headline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
+  width: 100%;
+}
+
+.study-question-caret {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-faint);
+  flex-shrink: 0;
+}
+
+/* The fold: how the question is answered, what it can separate, and the one
+   button that spends the compute. Ruled off on the left, the brief's
+   reading-block precedent, so it reads as belonging to the row above it. */
+.study-question-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  border-left: 1px solid var(--holos-gold-dim);
+  padding: 0.1rem 0.1rem 0.6rem 0.7rem;
+  margin-bottom: 0.5rem;
+}
+
+/* The method paragraph — what this observation program actually is. Body
+   prose, one ink tier down from the row's name. */
+.study-question-method {
+  font-size: var(--holos-text-md);
+  color: var(--holos-ink-dim);
+  line-height: 1.5;
+}
+
+.study-question-subheader {
+  color: var(--holos-ink-faint);
+  padding-top: 0.15rem;
+}
+
+/* Why the BUY under it is dark: a shortfall, or a grounded study. */
+.study-question-hint {
+  text-align: center;
+  color: var(--holos-ink-faint);
 }
 
 /* Focused view */

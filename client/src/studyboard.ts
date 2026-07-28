@@ -51,6 +51,7 @@ import type {
   ProposalRoute,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
+import { QUESTION_METHOD } from "./questionmethod";
 import { CLASS_LABEL } from "./sourcecard";
 import { formatClockPair, formatCountdown, nowYear } from "./clock";
 // Inlined at build time rather than fetched: one more request for a 400-byte
@@ -220,6 +221,14 @@ export class StudyBoard {
   // confirming sky moves the question past "offered" (studies.ts's
   // assembleQuestion); handleServerError releases it on a rejection.
   private pendingQuestion: { readonly starId: string; readonly questionId: string } | null = null;
+
+  // The one offered question whose drill-in is open, if any. Tapping an
+  // offered row expands it — the spend is the BUY button inside, never the
+  // row — and a second tap folds it back. Lives on the panel, not in the
+  // DOM, because renderFocused() rebuilds the whole body every second
+  // (startTicking) and an expansion has to survive that. Star-scoped like
+  // pendingQuestion so a stale id can never open a row on a different study.
+  private expandedQuestion: { readonly starId: string; readonly questionId: string } | null = null;
 
   // A startProject in flight: released when the confirming sky moves the
   // project past "available" (the detail sheet then reads RUNNING with its
@@ -524,6 +533,8 @@ export class StudyBoard {
   focusStudy(starId: string): void {
     this.view = "focused";
     this.focusedStarId = starId;
+    // A board opened fresh opens with every question folded.
+    this.expandedQuestion = null;
     this.renderFocused(starId);
     this.openFlag = true;
     this.root.classList.add("open");
@@ -603,6 +614,10 @@ export class StudyBoard {
     this.view = "focused";
     this.focusedStarId = starId;
     this.highlightQuestionId = questionId;
+    // The route means "look at this question", so it lands on the drill-in
+    // rather than on a folded row the player would have to tap again. The
+    // spend still waits behind the BUY button inside it.
+    this.expandedQuestion = { starId, questionId };
     this.renderFocused(starId);
     this.openFlag = true;
     this.root.classList.add("open");
@@ -1693,19 +1708,44 @@ export class StudyBoard {
     q: OpenQuestion,
     evidenceIds: ReadonlySet<string>,
     buyable: boolean,
+    hypothesisLabels: ReadonlyMap<HypothesisId, string>,
   ): HTMLElement {
     if (q.state === "offered") {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "study-project-row";
+      // An offered question is a drill-in, not a buy button. The head folds
+      // and unfolds; the spend is the BUY inside the fold, so no tap on the
+      // menu can cost compute by itself.
+      const wrap = document.createElement("div");
+      wrap.className = "study-question";
       // AV3: tagged so a proposal's `question` route (focusStudyQuestion)
       // can find and scroll to this row — all three branches below carry
       // the same tag.
-      btn.dataset.questionId = q.id;
+      wrap.dataset.questionId = q.id;
 
+      const expanded =
+        this.expandedQuestion !== null &&
+        this.expandedQuestion.starId === starId &&
+        this.expandedQuestion.questionId === q.id;
+
+      const head = document.createElement("button");
+      head.type = "button";
+      head.className = "study-project-row study-question-head";
+      head.setAttribute("aria-expanded", expanded ? "true" : "false");
+      head.addEventListener("click", () => {
+        this.expandedQuestion = expanded ? null : { starId, questionId: q.id };
+        this.renderFocused(starId);
+      });
+
+      const headline = document.createElement("div");
+      headline.className = "study-question-headline";
       const label = document.createElement("div");
       label.className = "study-project-label holos-serif";
       label.textContent = q.label;
+      const caret = document.createElement("span");
+      caret.className = "study-question-caret";
+      caret.textContent = expanded ? "▾" : "▸";
+      caret.setAttribute("aria-hidden", "true");
+      headline.append(label, caret);
+
       const line = document.createElement("div");
       line.className = "study-project-line";
       line.textContent = q.line;
@@ -1719,34 +1759,97 @@ export class StudyBoard {
       const free = this.currentFreeCompute();
       const affordable = free >= q.costCompute;
       const base = `${q.costCompute} COMPUTE · ANSWERS IN ${formatClockPair(q.integrationYears)}`;
+      // The cost/clock line reads the same as it always did, shortfall and
+      // all — the only change is that the states below now dress the BUY
+      // button rather than the row, which stays tappable so a question can
+      // be read when it cannot be bought.
+      const shortfall = Math.ceil(q.costCompute - free);
+      meta.textContent = affordable || !buyable ? base : `${base} · ${shortfall} SHORT`;
+      if (!buyable || isPending || !affordable) head.classList.add("study-project-row--muted");
 
-      if (!buyable) {
-        // A grounded study buys nothing (the server refuses it too): the menu
-        // still reads, so the player can see what reopening would offer. A
-        // shelved study IS buyable — the spend reopens it server-side.
-        btn.disabled = true;
-        btn.classList.add("study-project-row--disabled");
-        meta.textContent = base;
-      } else if (isPending) {
-        btn.disabled = true;
-        btn.classList.add("study-project-row--disabled");
-        meta.textContent = base;
-      } else if (affordable) {
-        btn.addEventListener("click", () => {
-          this.pendingQuestion = { starId, questionId: q.id };
-          this.socket.send({ type: "buyQuestion", starId, questionId: q.id });
-          this.renderFocused(starId);
-        });
-        meta.textContent = base;
-      } else {
-        btn.disabled = true;
-        btn.classList.add("study-project-row--disabled");
-        const shortfall = Math.ceil(q.costCompute - free);
-        meta.textContent = `${base} · ${shortfall} SHORT`;
+      head.append(headline, line, meta);
+      wrap.append(head);
+
+      if (expanded) {
+        const detail = document.createElement("div");
+        detail.className = "study-question-detail";
+
+        // 1. How the question is answered. No new light, no launch: the
+        //    archive already holds the photons and the spend is the
+        //    inference (questionmethod.ts).
+        const method = document.createElement("div");
+        method.className = "study-question-method";
+        method.textContent = QUESTION_METHOD[q.id];
+        detail.append(method);
+
+        // 2. What it could tell apart — the server's class-shaped
+        //    `separates`, which names readings on this study's menu and
+        //    nothing about this source. Labels come from the same menu the
+        //    board above is showing; anything not on it is skipped, the
+        //    evidence-tag precedent.
+        const separatesLabels: string[] = [];
+        for (const id of q.separates) {
+          const lbl = hypothesisLabels.get(id);
+          if (lbl !== undefined) separatesLabels.push(lbl);
+        }
+        if (separatesLabels.length > 0) {
+          const sepHeader = document.createElement("div");
+          sepHeader.className = "study-question-subheader holos-caps";
+          sepHeader.textContent = "WHAT IT CAN TELL APART";
+          const tags = document.createElement("div");
+          tags.className = "study-archive-tags";
+          for (const lbl of separatesLabels) {
+            const tag = document.createElement("span");
+            tag.className = "study-archive-tag holos-caps";
+            tag.textContent = lbl;
+            tags.append(tag);
+          }
+          detail.append(sepHeader, tags);
+        }
+
+        // 3. The spend, and only here.
+        const verbRow = document.createElement("div");
+        verbRow.className = "study-verb-row";
+        const buyBtn = document.createElement("button");
+        buyBtn.type = "button";
+        buyBtn.className = "study-verb-btn study-verb-btn--primary";
+        buyBtn.textContent = "buy the question";
+        let hint = "";
+        if (!buyable) {
+          // A grounded study buys nothing (the server refuses it too): the
+          // menu still reads, so the player can see what reopening would
+          // offer. A shelved study IS buyable — the spend reopens it
+          // server-side.
+          buyBtn.disabled = true;
+          hint = "REOPEN THE STUDY TO BUY";
+        } else if (isPending) {
+          buyBtn.disabled = true;
+          buyBtn.textContent = "buying the question…";
+        } else if (affordable) {
+          buyBtn.addEventListener("click", () => {
+            this.pendingQuestion = { starId, questionId: q.id };
+            this.socket.send({ type: "buyQuestion", starId, questionId: q.id });
+            this.renderFocused(starId);
+          });
+        } else {
+          // Unaffordable. No hint: the head's meta line already carries the
+          // shortfall, and saying it twice in one fold is noise.
+          buyBtn.disabled = true;
+        }
+        verbRow.append(buyBtn);
+        detail.append(verbRow);
+
+        if (hint.length > 0) {
+          const hintEl = document.createElement("div");
+          hintEl.className = "study-question-hint holos-caps";
+          hintEl.textContent = hint;
+          detail.append(hintEl);
+        }
+
+        wrap.append(detail);
       }
 
-      btn.append(label, line, meta);
-      return btn;
+      return wrap;
     }
 
     if (q.state === "pending") {
@@ -2608,6 +2711,10 @@ export class StudyBoard {
 
     this.body.append(this.hairline());
 
+    // The menu's own wording, read by both the evidence tags below and an
+    // expanded question's "what it can tell apart" list.
+    const hypothesisLabels = new Map(s.hypotheses.map((h) => [h.id, h.label] as const));
+
     // WHAT THE LIGHT HAS SHOWN
     const archiveSection = document.createElement("div");
     archiveSection.className = "study-section";
@@ -2627,7 +2734,6 @@ export class StudyBoard {
       archiveIntro.textContent = "Each entry is how long ago the change happened.";
       archiveSection.append(archiveIntro);
 
-      const labelById = new Map(s.hypotheses.map((h) => [h.id, h.label] as const));
       for (const ev of s.evidence) {
         const row = document.createElement("div");
         row.className = "study-archive-row";
@@ -2653,7 +2759,7 @@ export class StudyBoard {
           const tags = document.createElement("div");
           tags.className = "study-archive-tags";
           for (const id of ev.moved) {
-            const lbl = labelById.get(id);
+            const lbl = hypothesisLabels.get(id);
             if (lbl === undefined) continue; // not in this study's menu — skip silently
             const tag = document.createElement("span");
             tag.className = "study-archive-tag holos-caps";
@@ -2669,8 +2775,9 @@ export class StudyBoard {
     this.body.append(archiveSection);
 
     // OPEN QUESTIONS — one row per OpenQuestion (questions.ts's catalog for
-    // this study's signal class, always non-empty). Offered buys directly
-    // (project-row pattern); pending shows a live countdown; answered either
+    // this study's signal class, always non-empty). Offered folds open into
+    // its method, what it can tell apart, and the BUY that spends the
+    // compute; pending shows a live countdown; answered either
     // points at the evidence entry above (a sharpen finding — studies.ts's
     // mergeEvidence already folded it in under `${starId}/q/${id}`) or, for
     // a plateau finding (never merged into evidence — assembleQuestion
@@ -2688,7 +2795,13 @@ export class StudyBoard {
     // (including the verb row below) is on the DOM.
     let highlightedQuestionEl: HTMLElement | null = null;
     for (const q of s.openQuestions) {
-      const questionRow = this.buildQuestionRow(starId, q, evidenceIds, s.status !== "grounded");
+      const questionRow = this.buildQuestionRow(
+        starId,
+        q,
+        evidenceIds,
+        s.status !== "grounded",
+        hypothesisLabels,
+      );
       if (this.highlightQuestionId !== null && q.id === this.highlightQuestionId) {
         highlightedQuestionEl = questionRow;
       }
