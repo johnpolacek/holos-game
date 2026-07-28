@@ -1578,6 +1578,47 @@ body {
  * Between tapping a candidate and opening the watch. A study costs nothing
  * and runs on no clock, so this screen states that plainly rather than
  * dressing up a transaction that does not exist. */
+/* The briefing's starmap: HOME and the source at their true bearing, the
+   neighborhood's other stars scattered at their real projected offsets
+   behind. The canvas draws the marks and the dotted sightline (studyboard.ts
+   mirrors the ink tokens there); only the labels are type, so they live in
+   the DOM on the tokens. The HOME label's cyan is the Tend-chip exception —
+   the one present-tense, yours thing this sheet ever charts (see
+   studyboard.ts's register note). */
+.study-brief-map {
+  position: relative;
+  height: 120px;
+  margin-top: 0.3rem;
+}
+
+.study-brief-map canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.study-brief-map-home,
+.study-brief-map-source,
+.study-brief-map-dist {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: var(--holos-text-xs);
+  white-space: nowrap;
+}
+
+.study-brief-map-home {
+  color: var(--holos-cyan);
+}
+
+.study-brief-map-source {
+  color: var(--holos-ink-dim);
+}
+
+.study-brief-map-dist {
+  color: var(--holos-ink-faint);
+}
+
 .study-brief-identity {
   display: flex;
   flex-direction: row;

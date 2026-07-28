@@ -292,6 +292,7 @@ export class App {
     // just update the Model and, if a card is open, its live source data.
     if (this.mountedScreen === "sky" && this.model !== null) {
       this.model.setSky(self, sources);
+      this.studyBoard?.setSelf(self);
       this.sourceCard?.setLocalNames(this.localNames);
       const openId = this.sourceCard?.currentStarId() ?? null;
       if (openId !== null) {
@@ -326,7 +327,13 @@ export class App {
     this.mount(() => {
       const model = new Model(this.root, this.catalog);
       const sourceCard = new SourceCard(this.root, this.socket);
-      const studyBoard = new StudyBoard(this.root, this.socket, this.menus, this.missionCatalog);
+      const studyBoard = new StudyBoard(
+        this.root,
+        this.socket,
+        this.menus,
+        this.missionCatalog,
+        this.catalog,
+      );
       this.model = model;
       this.sourceCard = sourceCard;
       this.studyBoard = studyBoard;
@@ -392,6 +399,7 @@ export class App {
       });
 
       model.setSky(self, sources);
+      studyBoard.setSelf(self);
       studyBoard.update(
         this.studies,
         this.sources,

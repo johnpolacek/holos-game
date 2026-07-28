@@ -21,11 +21,14 @@
 // the panel: cyan is the present tense and your own works, and everything
 // this surface shows is remote and old, so it is all amber/ink.
 //
-// The one exception, and it proves the rule: the Tend chip out on the sky.
-// It is chrome, not panel — and what it opens is the list of YOUR work,
-// which is the one thing here that is present-tense and yours. Its cyan is
-// the same cyan as the HOME mote (model.ts's COLOR_HOME), used for the same
-// reason. Nothing rendered into the sheet below may follow it.
+// Two exceptions, and they prove the rule — both are present-tense and
+// yours. The Tend chip out on the sky is chrome, not panel, and what it
+// opens is the list of YOUR work. The HOME end of the briefing's starmap is
+// your own star, charted so the source's distance reads as geometry; the
+// deeper rule (cyan = you / amber = other) wins there, because an amber
+// HOME would say "someone else". Both take the same cyan as the HOME mote
+// (model.ts's COLOR_HOME), for the same reason. Nothing else rendered into
+// the sheet may follow them.
 
 import type {
   StudySnapshot,
@@ -49,6 +52,8 @@ import type {
   ReportRoute,
   Proposal,
   ProposalRoute,
+  SelfView,
+  Star,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { QUESTION_METHOD } from "./questionmethod";
@@ -139,6 +144,10 @@ export class StudyBoard {
   /** The launch sheet's vocabulary (kinds + charter clauses), from `welcome`
    *  like `menus`. Null omits the sheet's catalog rows rather than guessing. */
   private readonly missionCatalog: MissionCatalog | null;
+  /** The public star catalog by id, from `welcome` like `menus` — the
+   *  briefing starmap's geometry. A DetectedSource carries no position (the
+   *  ObservedCiv boundary), but its STAR is public sky. */
+  private readonly starsById: ReadonlyMap<string, Star>;
 
   private readonly root: HTMLDivElement;
   private readonly chip: HTMLButtonElement;
@@ -216,6 +225,11 @@ export class StudyBoard {
   // error, so the verb can never sit stuck mid-flight.
   private pendingBeginStarId: string | null = null;
 
+  // The latest SelfView, handed over by the App just before every update()
+  // — the starmap's HOME end. Null only before the first sky, when nothing
+  // renders anyway; the map simply omits itself rather than guess.
+  private self: SelfView | null = null;
+
   // A buyQuestion in flight: the study it's on plus the question id, so the
   // trio can never be mistaken for a different study's purchase. The
   // confirming sky moves the question past "offered" (studies.ts's
@@ -292,10 +306,12 @@ export class StudyBoard {
     socket: CohortSocket,
     menus: HypothesisMenus | null,
     missionCatalog: MissionCatalog | null,
+    catalog: readonly Star[],
   ) {
     this.socket = socket;
     this.menus = menus;
     this.missionCatalog = missionCatalog;
+    this.starsById = new Map(catalog.map((s) => [s.id, s] as const));
 
     this.root = document.createElement("div");
     this.root.className = "study-board-root";
@@ -371,6 +387,12 @@ export class StudyBoard {
     this.attachSwipe();
     window.addEventListener("keydown", this.onKeyDown);
     this.renderList();
+  }
+
+  /** The player's own place in the sky, from every `sky` message — the App
+   *  calls this just before update(), so no render ever sees a stale HOME. */
+  setSelf(self: SelfView): void {
+    this.self = self;
   }
 
   update(
@@ -1322,6 +1344,10 @@ export class StudyBoard {
     this.briefReturn = from;
     this.pendingBeginStarId = null;
     this.renderBrief();
+    // The sheet body keeps its scroll across view swaps, and a picker
+    // scrolled deep would otherwise open the brief past its own starmap.
+    // Entry only — the sky-driven re-render must never yank a reader.
+    this.body.scrollTop = 0;
     this.openFlag = true;
     this.root.classList.add("open");
     this.startTicking();
@@ -1355,6 +1381,11 @@ export class StudyBoard {
       else this.openPicker();
     });
     this.body.append(back);
+
+    // The chart first: where this source actually sits relative to home —
+    // the brief opens on the geometry the whole watch is about.
+    const map = this.buildBriefStarmap(source);
+    if (map !== null) this.body.append(map);
 
     // The same identity block the picker row carries, so the source reads as
     // itself across the tap.
@@ -1453,6 +1484,182 @@ export class StudyBoard {
 
     section.append(h, p);
     return section;
+  }
+
+  /**
+   * The chart at the top of the briefing: HOME and this source at their true
+   * bearing through the neighborhood, joined by the sightline the light
+   * actually crosses. Everything on it is re-used vocabulary — the public
+   * catalog's positions, the Model's point-in-a-thin-cyan-ring HOME and its
+   * amber smudge law, the panel's hairline gold for the path — so it reads
+   * as the sky folded flat, not a new diagram. Null (no map at all) when the
+   * geometry isn't known: a DetectedSource carries no position (the
+   * ObservedCiv boundary), so the chart needs the star from the catalog and
+   * a SelfView, and it would rather be absent than invented.
+   */
+  private buildBriefStarmap(source: DetectedSource): HTMLDivElement | null {
+    if (this.self === null || !this.starsById.has(source.starId)) return null;
+
+    const wrap = document.createElement("div");
+    wrap.className = "study-brief-map";
+
+    const canvas = document.createElement("canvas");
+    wrap.append(canvas);
+
+    // The labels ride the canvas's geometry but live in the DOM, so they
+    // stay real type on the tokens (and the HOME cyan is one declaration in
+    // style.css, not a canvas constant).
+    const homeLabel = document.createElement("span");
+    homeLabel.className = "study-brief-map-home holos-caps";
+    homeLabel.textContent = "HOME";
+
+    const sourceLabel = document.createElement("span");
+    sourceLabel.className = "study-brief-map-source holos-caps";
+    sourceLabel.textContent = source.designation;
+
+    const distLabel = document.createElement("span");
+    distLabel.className = "study-brief-map-dist holos-caps";
+    distLabel.textContent = `${source.distanceLy.toFixed(1)} LY`;
+
+    wrap.append(homeLabel, sourceLabel, distLabel);
+
+    // The body this sits in was just rebuilt synchronously and has no
+    // layout yet, so widths are only real next frame — measure and paint
+    // then. A view change in the same beat disconnects the canvas and the
+    // frame is simply dropped (drawBriefStarmap's guard).
+    requestAnimationFrame(() =>
+      this.drawBriefStarmap(wrap, canvas, homeLabel, sourceLabel, distLabel, source),
+    );
+    return wrap;
+  }
+
+  /** Measure-and-paint half of the starmap — see buildBriefStarmap. */
+  private drawBriefStarmap(
+    wrap: HTMLDivElement,
+    canvas: HTMLCanvasElement,
+    homeLabel: HTMLSpanElement,
+    sourceLabel: HTMLSpanElement,
+    distLabel: HTMLSpanElement,
+    source: DetectedSource,
+  ): void {
+    const self = this.self;
+    const target = this.starsById.get(source.starId);
+    if (!canvas.isConnected || self === null || target === undefined) return;
+
+    const w = wrap.clientWidth;
+    const h = wrap.clientHeight;
+    if (w <= 0 || h <= 0) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    const ctx = canvas.getContext("2d");
+    if (ctx === null) return;
+    ctx.scale(dpr, dpr);
+
+    const home = self.position;
+    const dx = target.position.x - home.x;
+    const dy = target.position.y - home.y;
+    const dz = target.position.z - home.z;
+    const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    if (!Number.isFinite(dist) || dist <= 0) return;
+
+    // The chart's frame: u runs HOME → source and lies along the drawn
+    // line; v is any perpendicular (u × the world axis u leans on least).
+    // Background stars keep their true offsets along both, so the scatter
+    // is the real neighborhood seen side-on to the sightline — the same
+    // stars the Model draws, folded flat, not decoration.
+    const ux = dx / dist;
+    const uy = dy / dist;
+    const uz = dz / dist;
+    const kx = Math.abs(uy) < 0.9 ? 0 : 1;
+    const ky = 1 - kx;
+    let vx = -uz * ky;
+    let vy = uz * kx;
+    let vz = ux * ky - uy * kx;
+    const vLen = Math.sqrt(vx * vx + vy * vy + vz * vz);
+    vx /= vLen;
+    vy /= vLen;
+    vz /= vLen;
+
+    const xHome = w * 0.14;
+    const xSource = w * 0.86;
+    const yLine = h * 0.44;
+    const scale = (xSource - xHome) / dist;
+
+    // Canvas ink, mirroring style.css's tokens — gradient stops need an
+    // explicit alpha, so the vars can't be read straight in. (--holos-ink,
+    // --holos-gold, --holos-cyan, and .study-row-smudge's amber.)
+    const INK = "239, 233, 219";
+    const GOLD = "211, 185, 130";
+    const CYAN = "126, 233, 239";
+    const AMBER = "240, 172, 102";
+
+    // The rest of the neighborhood, faint, brighter by class the way the
+    // sky is. Skips the two endpoints (they get their own marks) and
+    // anything projected off the chart.
+    for (const star of this.starsById.values()) {
+      if (star.id === self.starId || star.id === target.id) continue;
+      const px = star.position.x - home.x;
+      const py = star.position.y - home.y;
+      const pz = star.position.z - home.z;
+      const sx = xHome + (px * ux + py * uy + pz * uz) * scale;
+      const sy = yLine + (px * vx + py * vy + pz * vz) * scale;
+      if (sx < 3 || sx > w - 3 || sy < 3 || sy > h - 3) continue;
+      const alpha =
+        star.spectralClass === "F" ? 0.4
+        : star.spectralClass === "G" ? 0.32
+        : star.spectralClass === "K" ? 0.24
+        : 0.16;
+      ctx.fillStyle = `rgba(${INK}, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // The source's smudge radius first — the sightline stops at its edge.
+    const conf = clamp01(source.signal.confidence);
+    const smudgeR = 8 + (1 - conf) * 8;
+
+    // The sightline: the panel's hairline gold, dotted, from the ring's
+    // edge to the smudge — the path the light crosses.
+    ctx.strokeStyle = `rgba(${GOLD}, 0.55)`;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([1.5, 4.5]);
+    ctx.beginPath();
+    ctx.moveTo(xHome + 9, yLine);
+    ctx.lineTo(xSource - smudgeR * 0.5, yLine);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // HOME: the Model's mark — a point inside a thin cyan ring.
+    ctx.fillStyle = `rgba(${CYAN}, 1)`;
+    ctx.beginPath();
+    ctx.arc(xHome, yLine, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(${CYAN}, 0.85)`;
+    ctx.beginPath();
+    ctx.arc(xHome, yLine, 5.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // The source: the same smudge law as everywhere else — radius grows as
+    // confidence falls, the core brightens as it rises (sourceSmudge's
+    // numbers, at map scale).
+    const core = 0.34 + conf * 0.52;
+    const grad = ctx.createRadialGradient(xSource, yLine, 0, xSource, yLine, smudgeR);
+    grad.addColorStop(0, `rgba(${AMBER}, ${core})`);
+    grad.addColorStop(0.55, `rgba(${AMBER}, ${core * 0.45})`);
+    grad.addColorStop(1, `rgba(${AMBER}, 0)`);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(xSource, yLine, smudgeR, 0, Math.PI * 2);
+    ctx.fill();
+
+    homeLabel.style.left = `${xHome}px`;
+    homeLabel.style.top = `${yLine + 12}px`;
+    sourceLabel.style.left = `${xSource}px`;
+    sourceLabel.style.top = `${yLine + 12}px`;
+    distLabel.style.left = `${(xHome + xSource) / 2}px`;
+    distLabel.style.top = `${yLine - 26}px`;
   }
 
   /** Releases any verb that no `sky` will ever confirm (the server answered
