@@ -1247,6 +1247,123 @@ endgame's mechanical layer later, per the vision's roadmap.
 
 ---
 
+## The silence, kept
+
+Holos seeds a populated galaxy, and a populated galaxy owes the player an
+answer to the obvious objection: humanity's real sky is empty, so where is
+everyone? The stance is that the paradox is **dissolved, not violated**.
+Pre-ascension humanity's silence is literally correct *at pre-ascension
+humanity's instruments*; the sky opens on the far side of the pivot, and
+the player is the one who gets to feel that turn over. Four pillars carry
+it, all four already half-modeled. They are stated here as constraints on
+seeding and tuning, not as a new system.
+
+1. **Loud is a phase, not a state.** A civilization leaks broadly across
+   the short stretch between industry and ascension — `civseed.ts`'s
+   industrial epoch, `LIVING WORLD` giving way to `BROADCAST LEAKAGE`.
+   What comes after radiates almost nothing for the amount of thinking it
+   does: an ascended civilization's whole output can sit under
+   `MADE_HEAT_FLOOR` and read as `DARK NODE`. The loud part is the
+   adolescence, and the adolescence is brief.
+2. **Some of the quiet is chosen.** Masks, the Voice ↔ Silence dial, the
+   `go-dark-if-answered` charter (systems-a.md §3.3), the ongoing
+   mask-versus-instrument contest (technology.md) — quiet is a doctrine
+   with a running cost, not the absence of anybody. Its mirror holds too:
+   loudness is also chosen, and a Beacon that shines forever is not a bug
+   in this pillar but the minority case it defines itself against.
+3. **The windows do not line up.** Light delay decorrelates every
+   emitter's loud centuries from every observer's looking. A neighbor's
+   adolescence can be entirely in your past or entirely in your future and
+   in both cases you see nothing of it; go dark today and observers keep
+   reading your bright years until the silence arrives (The Light Echo).
+   Overlap is the coincidence, not the default.
+4. **Detection at this fidelity is post-singularity work.** Collection is
+   free — the photons are already in the archive (knowledge.ts's F2) — and
+   the compute-priced verb is *reading a civilization out of a light
+   curve* (questions.ts, projects.ts). A pre-ascension observatory holds
+   the same photons and cannot pay for the inference, which is why the
+   silence before the pivot is evidence about the instruments and not
+   about the galaxy.
+
+### The constraint that can be checked
+
+**At any moment only a small fraction of seeded civilizations are in a
+loud phase.** Most of the sky must read dark or ambiguous *even to an
+ascended observer*, or the premise breaks — a neighborhood where half the
+sources shine is not a dissolved paradox, it is a crowded one.
+
+Operationally, a civilization is **loud** when its emission at the
+observed year is at or above `LEAKAGE_FLOOR` (knowledge.ts): the boundary
+above which `classify` stops returning `LIVING WORLD` or `DARK NODE` and
+starts returning something unambiguously made. The target is a minority —
+on the order of one seeded civilization in five. At the default
+`aiCivCount` of 8 the figure is quantized to eighths anyway, so in
+practice the constraint reads *one or two loud in a cohort, not four*.
+
+Note what the constraint is **not** about: the emptiness of the star
+catalog. `DEFAULT_GALAXY_CONFIG` puts 8 civilizations among ~262 stars in
+a 25 ly sphere, so ~97% of catalog objects host nobody. That part of the
+silence is satisfied by construction and is not the interesting half.
+
+### Where current seeding stands (measured, 2026-07)
+
+Measured over 500 generated cohorts (4,000 seeded civilizations) at
+`DEFAULT_GALAXY_CONFIG`, emission sampled through `emissionAt`:
+
+- **53% are loud in truth at year 0** — against a target near 20%. Seen
+  from inside the bubble the figure is worse at first (**~66%** of
+  observed sources at year 0, because peers' bright years are still in
+  flight), settling to **~49%** from about year 50 on and staying flat
+  from there.
+- The dominant term is **ascended bright postures: 35 of those 53
+  points**, permanently loud. A bright civilization's post-ascension epoch
+  is drawn at 0.45–0.95 and never ends (`drawEmissionHistory`), so every
+  bright elder and peer shines for the life of the cohort.
+- **14 points are young civilizations mid-industrial** — correct in
+  spirit, but frozen: `drawEmissionHistory` returns early for the young
+  band, so a young civilization never ascends and never quiets. Its brief
+  adolescence is, in the model, permanent.
+- **5 points are dark-posture peers whose turn has not landed yet** —
+  exactly the deliberate in-flight silence the knowledge layer exists to
+  serve, and the one term that is behaving as designed.
+
+So current seeding does **not** satisfy the constraint; it is off by
+roughly a factor of two and a half, and the shortfall is one number's
+fault. **Flagged, not retuned** — the fix is a tuning decision, not a bug
+fix, and it belongs to whoever owns the next galaxy-generation slice.
+
+**The tunable.** Posture is resolved per civilization inside
+`generateCivSeed`, from the species row and the archetype default
+(`row.posture === "either" ? archetypeById(archetype).defaultPosture`),
+which lands at ~45% bright with no galaxy-level knob anywhere. The
+smallest change that would enforce the constraint is a **posture mix at
+the galaxy level — the sibling of `drawAgeBand`**: draw a target posture
+per seeded civilization from an explicit weighting in `generateGalaxy` and
+let the catalog chain pick which bright or dark character fits it, exactly
+as the age band already constrains `drawAscensionYear`. Lowering the
+bright shine level is the wrong knob: a Beacon that does not shine is not
+a Beacon, and pillar 2 wants the ones who chose loudness to be
+unmistakable when you find them.
+
+**A second, smaller note for the same slice.** Nothing in the current
+model sits below `DETECTION_FLOOR`: a dark-turned civilization settles at
+0.02–0.06 and still mints a source, classified `DARK NODE`. That is
+defensible — `DARK NODE` *is* the Teeming Dark ambiguity, not silence —
+but it means no seeded civilization is ever simply not there. Every blank
+in the catalog is a star with no civilization on it. A later slice that
+wants "we looked, and there was nothing to look at" needs a floor beneath
+`DETECTION_FLOOR`, not a smaller number above it.
+
+### On screen
+
+The stance is stated **once**, in the game's own voice, as the sixth frame
+line (`silence`, voice.ts) on a source card after the age-chip line has
+had its turn — the surface where the class labels this section argues
+about are actually read. Once, and nowhere else: the rest of the argument
+is supposed to be felt through the sky, not read off it.
+
+---
+
 ## The arc of the act
 
 - **Opening.** The first sky: a quiet neighborhood, a handful of
