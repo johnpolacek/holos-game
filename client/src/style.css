@@ -1009,6 +1009,16 @@ body {
   padding: 0.65rem 0.1rem;
 }
 
+/* The reason and the stance, and the row's larger tap target: clicking the
+   prose does what the verb pill does. It owns the gap between its two lines
+   so the spacing is the same as when they were the row's own children. */
+.proposal-reason {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
 /* Yes and no on one line: the pill leads at the left, the free decline sits
    at the far right, so the weight of the two answers reads off their
    treatment rather than off their order down the column. */

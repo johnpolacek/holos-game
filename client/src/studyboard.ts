@@ -906,10 +906,10 @@ export class StudyBoard {
 
   /**
    * AV3: one proposal — the deadpan reason (plus the AV4 stance, when the
-   * mind has one) as plain prose, then the two answers on one row beneath
-   * it: `.proposal-accept` is the verb, a pill you can see is tappable;
-   * `.proposal-decline` is the one-tap, no-confirmation "no" at the far
-   * end. Two SIBLING buttons, never nested. A distinct block from
+   * mind has one) as prose that accepts on click, then the two answers on
+   * one row beneath it: `.proposal-accept` is the verb, a pill you can see
+   * is tappable; `.proposal-decline` is the one-tap, no-confirmation "no" at
+   * the far end. Two SIBLING buttons, never nested. A distinct block from
    * buildHubRow deliberately: a proposal is a sentence from a different
    * speaker, not a place-name-over-sublabel browse row, and rendering it in
    * the same clothes would blur that.
@@ -918,17 +918,28 @@ export class StudyBoard {
     const row = document.createElement("div");
     row.className = "proposal-row";
 
+    // The prose is the row's other tap target: clicking what the mind said
+    // does what its verb does. Deliberately NOT a second <button> — the pill
+    // below is already the labelled control, and a button wrapping the whole
+    // reason would double the tab stop and make a screen reader announce the
+    // sentence twice. This is pointer convenience; the pill carries the
+    // semantics.
+    const reason = document.createElement("div");
+    reason.className = "proposal-reason";
+    reason.addEventListener("click", () => this.followProposalRoute(p.route));
+    row.append(reason);
+
     const line = document.createElement("div");
     line.className = "proposal-line";
     line.textContent = p.line;
-    row.append(line);
+    reason.append(line);
 
     // AV4-only: always omitted at the AV3 floor, where stance is always null.
     if (p.stance !== null) {
       const stance = document.createElement("div");
       stance.className = "proposal-stance";
       stance.textContent = p.stance;
-      row.append(stance);
+      reason.append(stance);
     }
 
     const actions = document.createElement("div");
