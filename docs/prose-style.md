@@ -77,6 +77,7 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | Frame explainer — compute | `voice.ts` computeLine | Observatory deadpan | 0 |
 | Clock line | `voice.ts` clockLine | The mind stating physics; shared across archetypes | 1 |
 | Frame explainer — epoch | `voice.ts` epochLine | Observatory deadpan | 0 |
+| Frame explainer — silence | `voice.ts` silenceLine | The mind stating physics; shared across archetypes | 1 |
 | Report record sentence | `voice.ts` record builders | Observatory deadpan; dated, past tense | 0 |
 | Report epoch stamp | `voice.ts` epochStamp | Observatory deadpan | 0 |
 | Report triage header | `voice.ts` reportHeader | Observatory deadpan | 0 |
@@ -345,6 +346,14 @@ Named mechanics of the register. Apply **at most one** per short string.
   safe for runtime generation (nothing to pin).
 - **R-27** Frame explainer: 1–2 sentences, ≤ 34 words; sentence case;
   wit 0; any number in one is a pinned fact (R-29).
+- **R-27a** The **silence line** is the frame family's second wit-1 member
+  (the clock line is the first, bounded by R-28): 1–2 sentences, ≤ 34
+  words, and **no numerals** — it states a stance *about* physics rather
+  than a measurement, so there is nothing in it to pin and nothing in it
+  that a later retune of the seeding numbers could falsify. At most one
+  craft move. It is the only place the Fermi stance is ever stated on a
+  player surface (act3-design.md, *The silence, kept*); a second surface
+  restating it is a rejection on sight.
 - **R-28** Clock line: 1–2 sentences, ≤ 34 words; every time figure derived
   from `clock.ts`'s `REAL_MS_PER_GAME_YEAR`, never written as a literal.
 - **R-32** Record sentence: 1–2 sentences, ≤ 34 words; past tense; wit 0;

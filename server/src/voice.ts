@@ -250,6 +250,27 @@ export function epochLine(): string {
   return render(EPOCH_LINE);
 }
 
+/**
+ * The mind stating physics, wit 1 — the clock line's register, not the
+ * age chip's, because the second sentence is about the observer and not
+ * about the instrument. The sixth frame line, shown once, on a source
+ * card after the age-chip line has had its turn: the surface where
+ * DARK NODE and BROADCAST LEAKAGE are actually read is where the
+ * question "then why was our own sky empty?" is actually asked.
+ *
+ * It states the Fermi stance once and nowhere else (act3-design.md,
+ * *The silence, kept*): the paradox is dissolved, not violated — loud is
+ * a brief phase, much of the quiet is chosen, the windows do not line up,
+ * and reading a civilization out of a light curve is post-singularity
+ * work. Numeral-free, so nothing in it can drift against the sky.
+ */
+const SILENCE_LINE: PinnedLine =
+  line`The sky was never empty. It is slow, and most of what lives in it has learned not to shine; you can hear it at all only because of what you have become.`;
+
+export function silenceLine(): string {
+  return render(SILENCE_LINE);
+}
+
 // ---------------------------------------------------------------------------
 // The voice cards — prose-style.md §4, columns "Voice signature", "What
 // its wit sounds like", and "DON'T", transcribed VERBATIM. The code table

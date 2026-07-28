@@ -421,8 +421,8 @@ export interface MissionCatalog {
 // precedent — keeps voice.ts/minds.ts off the client). Nothing here concerns
 // any remote civ: these are the player's own civilization only.
 
-export type VoiceKey = "arrival" | "age" | "compute" | "clock" | "epoch";
-export const VOICE_KEYS: readonly VoiceKey[] = ["arrival", "age", "compute", "clock", "epoch"];
+export type VoiceKey = "arrival" | "age" | "compute" | "clock" | "epoch" | "silence";
+export const VOICE_KEYS: readonly VoiceKey[] = ["arrival", "age", "compute", "clock", "epoch", "silence"];
 export function isVoiceKey(v: unknown): v is VoiceKey {
   // Derived from VOICE_KEYS so the union, the array, and the guard cannot
   // drift apart (adding "epoch" to only two of the three cost a real bug:

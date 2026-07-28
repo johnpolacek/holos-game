@@ -45,7 +45,7 @@ import { emissionAt, lightConeFor, observeCiv, observeSky, visibleSky } from "./
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
-import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine } from "./voice";
+import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine, silenceLine } from "./voice";
 import {
   buildStudySnapshot,
   hypothesisMenus,
@@ -1061,8 +1061,8 @@ export class Cohort extends Server<CohortEnv> {
 
   /**
    * AV1: send the lines this player has not yet been shown — arrival (this
-   * civ's archetype), and the three frame explainers (age chip, compute,
-   * clock). Sent on placement only, right before that path's sendSky —
+   * civ's archetype), and the frame explainers (age chip, compute, clock,
+   * epoch, silence). Sent on placement only, right before that path's sendSky —
    * never from sendSky itself, which repeats on every alarm-driven resend
    * and every verb; the voice message would otherwise replay endlessly.
    * Sends `{ type: "voice", lines }` even when `lines` is empty: one
@@ -1082,6 +1082,9 @@ export class Cohort extends Server<CohortEnv> {
     // AV2: the epoch-dating explainer — the client shows it once, on the
     // first report open (the report is where "year n AE" first appears).
     if (!seen.has("epoch")) lines.epoch = epochLine();
+    // The Fermi stance — shown once, on a source card, after the age-chip
+    // line has been taken (act3-design.md, *The silence, kept*).
+    if (!seen.has("silence")) lines.silence = silenceLine();
     this.sendMsg(conn, { type: "voice", lines });
   }
 

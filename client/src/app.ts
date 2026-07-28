@@ -238,6 +238,17 @@ export class App {
     return text;
   }
 
+  /** At most one source-card explainer per open — the age chip first, the
+   *  silence note on a later open (the hub's compute-then-clock idiom,
+   *  applied to the sky's reading surface). The silence line states the
+   *  Fermi stance once and nowhere else: it belongs here because this is
+   *  where a class label is read, and it comes second because the age chip
+   *  teaches the physics the stance then leans on (act3-design.md, *The
+   *  silence, kept*). Idempotent by way of takeVoice. */
+  private takeSourceCardVoice(): string | null {
+    return this.takeVoice("age") ?? this.takeVoice("silence");
+  }
+
   /** The arrival beat is the exception to takeVoice's report-on-take: the
    *  tap is the acknowledgement, so `voiceSeen` is reported ON DISMISS, not
    *  here — a crash mid-beat replays it next session, the friendlier
@@ -327,7 +338,7 @@ export class App {
           sourceCard.open(source, this.localNames);
           sourceCard.setStudyStatus(this.findStudy(source.starId)?.status ?? null);
           sourceCard.setMissionState(this.findMissionState(source.starId));
-          sourceCard.setExplainer(this.takeVoice("age"));
+          sourceCard.setExplainer(this.takeSourceCardVoice());
         }
       });
       sourceCard.onClose(() => model.clearSelection());
@@ -338,7 +349,7 @@ export class App {
         sourceCard.open(source, this.localNames);
         sourceCard.setStudyStatus(this.findStudy(starId)?.status ?? null);
         sourceCard.setMissionState(this.findMissionState(starId));
-        sourceCard.setExplainer(this.takeVoice("age"));
+        sourceCard.setExplainer(this.takeSourceCardVoice());
       });
       sourceCard.onStudyAction((starId) => {
         if (this.findStudy(starId) !== undefined) {
