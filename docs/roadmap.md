@@ -127,7 +127,19 @@ break that widens. Running it on a phone-sized viewport is also what
 caught a real A2.2 bug — a Sentinel that had kept every appointment read
 SILENT, on exact float equality between two identical schedules.
 
-**→ Next to build: AV — the voice (the narrator slice).** Decided
+**A2.3 shipped (2026-07): the contest and study tripwires.** Mask
+upkeep as archetype rules over the seed (`contest.ts`), regression as
+temperature entering through `settleShares` (order preserved, the
+board contracts toward the even split), the banked one-sentence tell,
+three standing tripwires firing in-app as persisted transitions, and
+the `called` / `overtaken` exits inheriting grounded's closed-state
+and reopen rules. The stage's double-Opus confidence-model call was
+run and synthesized; systems-a.md §2.7 and §2.8 are the as-built
+record, and observatory-design's confidence-math open question is
+settled. The same session shipped the scarcity pass (the attention
+ceiling, systems-a.md §2.2b). **→ Next: A2.4 — the choice ceremony.**
+
+**→ Previously next (now shipped in code): AV — the voice.** Decided
 2026-07: the shipped game has the machinery but no narrator — the
 pull-back is wordless, nothing states the frame, and the mind never
 speaks. AV fixes what a new player finds confusing, which sits on the

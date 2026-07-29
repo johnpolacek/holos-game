@@ -355,9 +355,99 @@ because a report is not fresher than the light, only nearer:
 being built there. The finding came back from the ground. It is no newer
 than the light, only nearer."*
 
-`StudyStatus` is therefore `open | shelved | grounded`; `called` and
-`overtaken` still join in A2.3, and inherit grounded's closed-state and
-reopen rules rather than inventing their own.
+`StudyStatus` is therefore `open | shelved | grounded`, and A2.3
+(shipped 2026-07) added `called` and `overtaken`, both inheriting
+grounded's closed-state and reopen rules rather than inventing their
+own. See §2.7 and §2.8.
+
+### §2.7 The contest (A2.3, as built)
+
+The stage's double-Opus design call (observatory-design § Open
+questions: honest Bayes vs authored curves) was run and synthesized;
+the authored-curves core won on contest semantics. Sharpen is the
+observer winning, plateau is stalemate, regress is the target's spend
+outpacing the observer's instruments: confidence retreats.
+
+- **Mask upkeep is an archetype rule, not an economy** (`contest.ts`):
+  a pure function of the seed and a year, no state, no RNG.
+  `darkTurnYear` is the first emission epoch at or after ascension
+  below `MADE_HEAT_FLOOR` (the mask's onset is the same year the sky
+  sees the character change); `maskTierAt` is the monotone staircase
+  `floor((year - darkTurn) / cadenceYears)`, frozen by `lapseYears`
+  where the archetype's discipline ends. The table: cloister 60,
+  sowing 90, phoenix 120 (lapses at 1200), shepherd 150, monument 180,
+  engine 240; beacon, tide, herald and congress never pay. A bright
+  posture, an unascended civ, and a `pays: false` archetype are three
+  independent gates, so *a young Beacon never does* is true three
+  times over.
+- **The relevant window is the player's own pacing**: `(T_prev, T_now]`
+  in target years between this answer and the most recent previous
+  look on the same study, both endpoints frozen at purchase (§2.3's
+  effects-freeze). The first question on a study has no window and can
+  never regress. Mission reports are not looks.
+- **The instrument tier is what the observer can absorb**:
+  `(lift >= 0.05) + (lift >= 0.15) + min(2, floor(priorAnswers / 2))`,
+  with `lift` the confidence-lift landed by the purchase year. Rungs
+  gained beyond the tier regress the study; at or under it, the mask
+  holds and the answer is a cause-neutral plateau. Nothing new is
+  priced; the arms race runs entirely through the existing question
+  and project catalogs.
+- **Regression is temperature, never a repaint**: a regressing answer
+  contributes a `StudyMove` with an empty shift and `regress: true`,
+  and `distributionFor` folds the count into the sharpness exponent
+  (`SHARPNESS_MIN = 0.3`, `REGRESS_KEEP = 0.55`). Order is preserved
+  and every share contracts strictly toward the even split; repeated
+  regressions asymptote and never reach flat, the mirror of
+  `SHARE_CEIL`'s *watching never delivers certainty*. Regression
+  enters shares only through `settleShares`.
+- **The tell** is one banked wit-0 sentence on the wire
+  (`StudySnapshot.contestLine`): *"Nature does not get better at
+  hiding; something there is working against the look."* The evidence
+  trail's regressed row states only the observation (*"The later look
+  separates less than the earlier one..."*); cause lives in the tell.
+  A masked plateau (*"...consistent with every reading and decisive
+  about none."*) is indistinguishable on the surface from an
+  instrument-limit plateau, deliberately.
+- **No-leak**: `MaskRule`, `maskTierAt`, `ContestShape` and the tier
+  never cross the wire; `possibleShiftsFor` is unchanged, so the offer
+  menu cannot betray that a target masks.
+
+Invariant, mechanically verified: a never-masking target (bright
+archetype or dark non-payer) can plateau but never regress, at any
+window, any tier, any year.
+
+### §2.8 Tripwires and the closing exits (A2.3, as built)
+
+**Tripwires** are standing orders, not oracles: three kinds
+(`regress`, `leakage-stops`, `crosses` at the fixed
+`CROSS_SHARE = 0.7`), at most one arming per kind per study, free to
+arm. One predicate (`tripwireHolds`) serves both halves of the
+contract: the server refuses to arm a condition that already holds,
+and the sky-send fires an armed one as a persisted transition (the
+grounded exit's write-back, generalized to `studyWrites`), once per
+arming. No wake-queue entries: firing is in-app on next open. A closed
+study is never evaluated, which is how *called stays called* survives
+a standing order left on it.
+
+**Called** freezes the leading belief at the call (`StoredCall`: id,
+label, gloss, share, the call year and the light-age it rests on) and
+closes the study from `open` or `shelved`. No code path compares the
+frozen call against the live distribution: later light accrues to the
+archive silently, nothing warns, nothing penalizes, nothing reopens.
+Reopening is the player's own act (`openStudy`), which clears the call
+and restamps `openedYear` and `openedClass`.
+
+**Overtaken** is the source's own change of state: the sky's
+`classification` differing from the `openedClass` stamped at open.
+The transition freezes the lead it closed on (`StoredOvertaking`).
+Grounded wins ties (a probe was there; the sky only changed its mind).
+Migrated studies carry `openedClass: null` and are back-filled to the
+current class on the next sky-send, so no legacy study spuriously
+overtakes. The detection-floor drop is not a trigger: unreachable in
+v1, since dark emission levels sit above the floor.
+
+Persistence: `StudyState` v3 to v4 (`openedClass`, `called`,
+`overtaken`, `tripwires` on every stored study).
 
 ---
 

@@ -304,11 +304,16 @@ missions). Free-text hypotheses are not deferred; they are declined
 
 ## Open questions
 
-- **Confidence math.** Honest Bayesian updating against emission truth +
-  mask spend, or authored curves that fake it well? The regression tell
-  must be *earned* by the opponent's actual spend either way, or it
-  becomes a scripted jump-scare. Leaning honest-but-coarse: few
-  hypotheses, few evidence channels, real arithmetic.
+- **Confidence math.** *(Settled 2026-07, A2.3 — designed twice per the
+  stage's double-Opus call and synthesized; systems-a.md §2.7 is the
+  as-built record.)* The board's multiplicative role-weight update
+  stands as the one belief engine; the contest resolves outside it and
+  regression enters as temperature: a regressing answer carries no
+  shift and lowers the sharpness exponent, so the board loses
+  definition without changing its mind. Earned structurally: mask
+  upkeep is an archetype rule over the seed, the regressed branch is
+  unreachable for a never-masking target, and the first look on a
+  study has no window to regress from.
 - **Pacing constants.** Questions per study before the cheap ones are
   exhausted; how often a study *should* plateau; how rare regression must
   stay to keep its charge. Tuning targets for A2's fun gate, not
