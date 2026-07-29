@@ -192,6 +192,7 @@ body {
 .charter,
 .dial-reading,
 .study-brief-body,
+.study-brief-conf-gloss,
 .study-hyp-gloss,
 .study-annotation,
 .study-archive-text,
@@ -1619,12 +1620,21 @@ body {
   color: var(--holos-ink-faint);
 }
 
+/* No smudge here — the starmap above already draws the source. The block is
+   the identity text with the confidence gloss under it. */
 .study-brief-identity {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.9rem;
+  flex-direction: column;
+  gap: 0.4rem;
   padding: 0.6rem 0.1rem 0.9rem;
+}
+
+/* What the percentage on the belief line actually claims. Quiet, but still
+   reading type — the gloss tier the hypothesis rows use. */
+.study-brief-conf-gloss {
+  font-size: var(--holos-text-xs);
+  line-height: 1.4;
+  color: var(--holos-ink-faint);
 }
 
 .study-brief-section {

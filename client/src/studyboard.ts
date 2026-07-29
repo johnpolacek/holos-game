@@ -1388,11 +1388,20 @@ export class StudyBoard {
     if (map !== null) this.body.append(map);
 
     // The same identity block the picker row carries, so the source reads as
-    // itself across the tap.
+    // itself across the tap — minus the smudge, which the starmap directly
+    // above already draws (under the same sizing law), and which said the
+    // percentage a second time in a form nobody had asked for. The gloss
+    // takes its place: the one number on this screen, stated in words.
     const identity = document.createElement("div");
     identity.className = "study-brief-identity";
-    identity.append(this.sourceSmudge(source.signal.confidence));
     identity.append(this.buildSourceIdentity(source));
+    const confGloss = document.createElement("div");
+    confGloss.className = "study-brief-conf-gloss";
+    confGloss.textContent =
+      "The percentage is confidence in the reading, not a measure of the source: " +
+      "nearer and brighter light reads surer. The remainder belongs to the other " +
+      "stories the same light still allows.";
+    identity.append(confGloss);
     this.body.append(identity);
 
     this.body.append(this.hairline());
