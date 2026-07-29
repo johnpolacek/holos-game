@@ -180,6 +180,15 @@ body {
 .proposal-decline,
 .source-card-study-affordance,
 .source-card-mission-affordance,
+/* A2.4: the contact verb, the hub's one voice row, and the ceremony's own
+   chrome — the press affordance, the word that refuses, the coherence chip
+   and a year stamped out on the sky. Every one of them short and enclosed. */
+.source-card-contact-affordance,
+.study-voice-row,
+.contact-hint,
+.contact-staydark,
+.contact-cost-chip,
+.contact-stamp,
 /* The source card's header. */
 .source-card-name,
 .source-card-belief,
@@ -223,7 +232,11 @@ body {
 /* AV3: a proposal's reason and (AV4-only) the mind's stance — both
    sentences, never the caps chrome beside them. */
 .proposal-line,
-.proposal-stance {
+.proposal-stance,
+/* A2.4: the mind's objection to an act, and a server refusal stated back —
+   both sentences, spoken over the sky. */
+.contact-objection,
+.contact-reason {
   text-wrap: pretty;
 }
 
@@ -242,12 +255,17 @@ body {
   display: block;
 }
 
-/* DOM overlay: prose over places. Non-interactive — the canvas owns input. */
+/* DOM overlay: prose over places. Non-interactive — the canvas owns input.
+   A2.4 dims the whole layer while a ceremony is armed (the Model sets the
+   opacity directly): the scale readout, the HOME word and the landmark names
+   all stand down together, because during a ceremony none of them is what
+   you are looking at. */
 .model-overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 1;
+  transition: opacity 320ms ease;
 }
 
 .model-home-label {
@@ -1013,6 +1031,39 @@ body {
   /* Dim within the amber family — a switch to faint ink would read as a
      different kind of row, not a quieter one. */
   color: rgba(240, 172, 102, 0.5);
+}
+
+/* A2.4: THE VOICE's one row. On the hub-row chassis but in the verb voice
+   rather than the browse voice — letterspaced caps, ink, no sublabel. The
+   other rows open a list; this one opens the only irreversible thing in the
+   hub, and it should not read as one more place to go. Ink and not cyan:
+   this sheet's two cyan exceptions are named in studyboard.ts's header and
+   nothing else rendered into it may follow them. */
+.study-voice-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 52px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.5rem 0.1rem;
+  font-family: inherit;
+  font-size: var(--holos-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--holos-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* A shout already holds the channel: the row states since when and stops
+   being a verb, rather than offering a tap the server would refuse. */
+.study-voice-row--inert {
+  cursor: default;
+  color: var(--holos-ink-faint);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Hub view — AV3: the mind's proposals, above the standing rows and only
@@ -2140,6 +2191,34 @@ body {
   font-weight: 700;
 }
 
+/* A2.4: the contact row. Cyan, and the only cyan on this card — see
+   sourcecard.ts's header for why it earns the exception the rest of the
+   sheet does not get. The in-flight variant is a date rather than a verb,
+   so it drops the pointer entirely. */
+.source-card-contact-row {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.15rem;
+}
+
+.source-card-contact-affordance {
+  background: none;
+  border: none;
+  padding: 0.3rem 0.6rem;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--holos-text-xs);
+  color: var(--holos-cyan);
+  cursor: pointer;
+}
+
+.source-card-contact-affordance--active {
+  color: var(--holos-cyan-dim);
+  cursor: default;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Ceremony carousel ───────────────────────────────────────────────── */
 .ceremony {
   position: relative;
@@ -2684,5 +2763,230 @@ body {
 
   .civ-card:not(.focused) {
     opacity: 0.7;
+  }
+}
+
+/* ── The choice ceremony (A2.4) ───────────────────────────────────────────
+ * Hail one, speak to everyone, or stay dark — staged out on the Model, not
+ * inside a sheet. A sibling overlay root in the voicebeat.ts mold, and for
+ * the same reason: .model-overlay is pointer-events: none by contract and
+ * carries the HOME/landmark labels, which this dims rather than joins.
+ *
+ * z-index 5 puts it over the voice beat's 4, which is over the standing
+ * chips' 3. The two chips are also hidden outright while a ceremony is armed
+ * (.chrome-hidden below) — they opt themselves into pointer-events even
+ * though their root does not, and this layer is deliberately transparent to
+ * a thumb so the canvas underneath can be the press target.
+ *
+ * EVERYTHING HERE IS POINTER-TRANSPARENT except the one word that refuses. */
+.contact-ceremony-root {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.study-board-root.chrome-hidden .study-chip {
+  display: none;
+}
+
+/* The mind's objection, in the top third and above HOME: it has to stay
+   readable while a thumb is parked at the bottom of the screen. */
+.contact-objection-wrap {
+  position: absolute;
+  top: 22%;
+  left: max(1.1rem, env(safe-area-inset-left));
+  right: max(1.1rem, env(safe-area-inset-right));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  max-width: 26em;
+}
+
+.contact-objection,
+.contact-reason {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  transform: translateY(0.4rem);
+  transition:
+    opacity 440ms ease 260ms,
+    transform 440ms ease 260ms;
+}
+
+.contact-reason {
+  color: var(--holos-error);
+  transition:
+    opacity 260ms ease,
+    transform 260ms ease;
+}
+
+.contact-objection.visible,
+.contact-reason.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* The price of forcing it, said once and never again. Enclosed, so it reads
+   as a figure rather than as part of the sentence above it. */
+.contact-cost-chip {
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  color: var(--holos-ink-dim);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  transition: opacity 440ms ease 320ms;
+}
+
+.contact-cost-chip.visible {
+  opacity: 1;
+}
+
+/* The press affordance and its one alternative, bottom center. */
+.contact-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: max(1.4rem, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.contact-hint {
+  color: var(--holos-ink-faint);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  /* 260ms: the beat after the frame has settled and before anything is
+     asked of the player (storyboard §2). */
+  transition: opacity 320ms ease 260ms;
+}
+
+.contact-hint.visible {
+  opacity: 1;
+}
+
+/* Once the press lands the instruction has done its job and gets out of the
+   way — quickly, and with no delay to serve. */
+.contact-hint.pressed {
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+/* A press that arrived before the ceremony was ready: the line brightens
+   once and says nothing. */
+.contact-hint.nudge {
+  color: var(--holos-ink);
+}
+
+/* STAY DARK. One word, no border, no fill, no ember — the ember club is
+   capped at two and this is not a third member of it. It is not a cancel and
+   is never styled as one: choosing silence is a choice, and ranking it below
+   the other two with a dismissal's clothes would be the wrong claim. */
+.contact-staydark {
+  pointer-events: none;
+  background: none;
+  border: none;
+  padding: 0.5rem 0.9rem;
+  font-family: inherit;
+  font-size: var(--holos-text-xs);
+  font-weight: 450;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--holos-ink-dim);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0;
+  transition: opacity 320ms ease 260ms;
+}
+
+.contact-ceremony-root.open .contact-staydark.visible {
+  pointer-events: auto;
+}
+
+.contact-staydark.visible {
+  opacity: 1;
+}
+
+/* The years, stamped out on the sky at the wavefront and beside each source
+   it crosses. Ink and tabular, never cyan: the beam is yours, but a date is
+   just a date. The transform idiom is the landmark labels'. */
+.contact-stamps {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.contact-stamp {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: var(--holos-text-xs);
+  letter-spacing: 0.12em;
+  color: var(--holos-ink-dim);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  will-change: transform, opacity;
+}
+
+/* The leading edge's readout rides the top of the shell rather than sitting
+   beside a place. The inline transform owns the vertical offset, so the
+   horizontal centering is a negative margin here — about half the width of
+   the two stamped years and the arrow between them. */
+.contact-stamp--edge {
+  margin-left: -4em;
+}
+
+/* The commit: BECOME's beat, at HOME instead of on a card. The delay and the
+   duration are set inline from the timings in contactceremony.ts, so the one
+   place the ceremony's clock is written down stays the one place. */
+.contact-bloom {
+  position: absolute;
+  width: 46vmin;
+  height: 46vmin;
+  margin-left: -23vmin;
+  margin-top: -23vmin;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 50%, var(--holos-cyan-dim), transparent 62%);
+  animation-name: holos-bloom;
+  animation-timing-function: ease;
+  animation-fill-mode: forwards;
+}
+
+/* Each arrival year, announced once as it lands — the sweep is a sequence of
+   dates rather than a silent light show. */
+.contact-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Reduced motion: the hold stays a hold (the invariant does not bend) and
+   the stamps still land. What goes is the decoration — the writing-in, the
+   nudge, and the bloom's ramp, which becomes a plain presence. */
+@media (prefers-reduced-motion: reduce) {
+  .contact-objection,
+  .contact-reason,
+  .contact-cost-chip,
+  .contact-hint,
+  .contact-staydark {
+    transition: none;
+    transform: none;
+  }
+
+  .contact-bloom {
+    animation: none;
+    opacity: 0.3;
   }
 }

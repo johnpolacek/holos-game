@@ -54,13 +54,14 @@ import type {
   ReportRoute,
   Proposal,
   ProposalRoute,
+  ContactWire,
   SelfView,
   Star,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { QUESTION_METHOD } from "./questionmethod";
 import { CLASS_LABEL } from "./sourcecard";
-import { formatClockPair, formatCountdown, nowYear } from "./clock";
+import { formatAbsoluteYear, formatClockPair, formatCountdown, nowYear } from "./clock";
 // Inlined at build time rather than fetched: one more request for a 400-byte
 // mark is a request the sky does not need, and the markup carries
 // fill="currentColor", so the icon takes the chip's ink — including the
@@ -68,6 +69,12 @@ import { formatClockPair, formatCountdown, nowYear } from "./clock";
 import treeViewIcon from "@phosphor-icons/core/assets/light/tree-view-light.svg?raw";
 
 const SWIPE_CLOSE_PX = 56;
+
+/** How long a shout holds the channel, in game years — contact.ts's
+ *  BROADCAST_SHOUT_YEARS, spelled as chrome. The wire carries no such
+ *  number (there are no free numbers on it), so a retune there retunes this;
+ *  being wrong costs one refused tap and nothing else. */
+const BROADCAST_WINDOW_YEARS = 24;
 
 const WORK_STATE_LABEL: Record<WorkState, string> = {
   watching: "WATCHING",
@@ -107,12 +114,9 @@ function isClosedStudyStatus(status: StudyStatus): boolean {
   return status === "grounded" || status === "called" || status === "overtaken";
 }
 
-/** The Tend/mission-detail absolute-year chrome: "Y1204". Countdown-bearing
- *  dates always go through formatCountdown/formatClockPair; this is only for
- *  a date that has already passed (nothing left to count down to). */
-function formatAbsoluteYear(year: number): string {
-  return `Y${Math.round(year)}`;
-}
+// The Tend/mission-detail absolute-year chrome ("Y1204") moved to clock.ts
+// in A2.4: the choice ceremony stamps arrival years out on the sky and the
+// two surfaces must render the same date the same way.
 
 function clamp01(v: number): number {
   return Math.min(1, Math.max(0, v));
@@ -319,6 +323,15 @@ export class StudyBoard {
 
   private onInspectCb: ((starId: string) => void) | null = null;
 
+  // A2.4: the contact block from the latest `sky`, for THE VOICE section —
+  // whether a shout is already going out, and therefore whether the row is a
+  // verb or a status. Null until the first sky.
+  private contact: ContactWire | null = null;
+  private onVoiceActionCb: (() => void) | null = null;
+  // A one-shot: openHub("voice") scrolls the section into view on the render
+  // that follows, and clears itself. The HOME mote's tap is the only caller.
+  private hubScrollToVoice = false;
+
   // AV1: the one-time hub explainer (compute, then later the clock note).
   // renderHub() re-runs on every openHub() and on every sky (the 1s ticker
   // no longer re-runs it in full — see refreshHubBudget/AV3), so nothing
@@ -451,6 +464,7 @@ export class StudyBoard {
     tend: readonly TendRow[],
     probeFlightYearsPerLy: number,
     proposals: readonly Proposal[],
+    contact: ContactWire | null,
   ): void {
     this.studiesByStarId = new Map(studies.map((s) => [s.starId, s] as const));
     this.sourcesByStarId = new Map(sources.map((s) => [s.starId, s] as const));
@@ -462,6 +476,7 @@ export class StudyBoard {
     this.tend = tend;
     this.probeFlightYearsPerLy = probeFlightYearsPerLy;
     this.proposals = proposals;
+    this.contact = contact;
     this.updateChip();
 
     // A begin sent from the briefing: this sky either carries the new study
@@ -583,10 +598,11 @@ export class StudyBoard {
     this.startTicking();
   }
 
-  openHub(): void {
+  openHub(scrollTo?: "voice"): void {
     // Fires first, before renderHub(), so the App's setHubExplainer() (if it
     // calls one) is already in `explainerText` for the very first render.
     this.onHubOpenCb?.();
+    this.hubScrollToVoice = scrollTo === "voice";
     this.view = "hub";
     this.focusedStarId = null;
     this.renderHub();
@@ -811,6 +827,20 @@ export class StudyBoard {
     this.onInspectCb = cb;
   }
 
+  /** A2.4: fired when THE VOICE's one row is tapped. Like onInspect, the
+   *  panel reports the tap and stages nothing — the ceremony happens out on
+   *  the sky, which is the App's business. */
+  onVoiceAction(cb: () => void): void {
+    this.onVoiceActionCb = cb;
+  }
+
+  /** A2.4: hide the two standing chips while a ceremony is armed. They opt
+   *  themselves into pointer-events even though their root does not, so a
+   *  ceremony overlay cannot cover them — they have to stand down. */
+  setChromeHidden(hidden: boolean): void {
+    this.root.classList.toggle("chrome-hidden", hidden);
+  }
+
   /** Registers the callback fired as the FIRST step of every openHub(),
    *  before that call's renderHub() — so a setHubExplainer() the callback
    *  makes is already in `explainerText` for the very first render. */
@@ -945,6 +975,18 @@ export class StudyBoard {
 
     this.body.append(this.hairline());
 
+    // A2.4: THE VOICE. Its own one-row section, because speaking is not one
+    // more thing to start — it is the only irreversible verb in the hub, and
+    // it does not belong in a browse list beside "explore the sky". The row
+    // stays ink like everything else in this sheet: the cyan exceptions are
+    // named in this file's header and this is not one of them.
+    const voiceHeader = document.createElement("div");
+    voiceHeader.className = "study-section-header holos-caps";
+    voiceHeader.textContent = "THE VOICE";
+    this.body.append(voiceHeader);
+    this.body.append(this.buildVoiceRow());
+    this.body.append(this.hairline());
+
     if (this.studiesByStarId.size > 0) {
       this.body.append(
         this.buildHubRow(
@@ -967,6 +1009,41 @@ export class StudyBoard {
         () => this.openReport(),
       ),
     );
+  }
+
+  /**
+   * THE VOICE's one row. A verb while there is nothing going out, and the
+   * year the current shout left while there is — a shout occupies the
+   * channel for a while (contact.ts's shout window), and the server refuses
+   * a second one, so offering the verb anyway would be offering a refusal.
+   */
+  private buildVoiceRow(): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    // The latest shout, if any: repeated broadcasts are legal once the
+    // previous window has closed, so it is the newest one that decides.
+    let speaking: number | null = null;
+    for (const act of this.contact?.outbound ?? []) {
+      if (act.kind !== "broadcast") continue;
+      if (speaking === null || act.sentYear > speaking) speaking = act.sentYear;
+    }
+    const live = speaking !== null && nowYear() - speaking < BROADCAST_WINDOW_YEARS;
+    btn.className = live
+      ? "study-voice-row study-voice-row--inert holos-caps"
+      : "study-voice-row holos-caps";
+    if (live && speaking !== null) {
+      btn.textContent = `SPEAKING SINCE ${formatAbsoluteYear(speaking)}`;
+      btn.disabled = true;
+    } else {
+      btn.textContent = "SPEAK TO EVERYONE";
+      btn.addEventListener("click", () => this.onVoiceActionCb?.());
+    }
+    if (this.hubScrollToVoice) {
+      this.hubScrollToVoice = false;
+      // One frame later: the body is still being assembled right now.
+      requestAnimationFrame(() => btn.scrollIntoView({ block: "center" }));
+    }
+    return btn;
   }
 
   private buildHubRow(

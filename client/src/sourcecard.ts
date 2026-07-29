@@ -10,10 +10,17 @@
 // holds. NOTHING is ever drawn to the right of that edge; there is no
 // future here (concepts/03-01 shows future ticks — that is wrong).
 //
-// Read-and-name, plus two affordance rows: the study verb (A2.1) and the
-// mission verb (A2.2, DISPATCH A PROBE) — both fire a starId callback and
-// leave the App to decide what happens (open a sheet vs. focus something
-// already under way). No contact verbs, no time-scrubbing (later slices).
+// Read-and-name, plus three affordance rows of identical anatomy: the study
+// verb (A2.1), the mission verb (A2.2, DISPATCH A PROBE) and the contact verb
+// (A2.4, AIM A BEAM) — each fires a starId callback and leaves the App to
+// decide what happens (open a sheet, focus something already under way, or
+// stage the choice ceremony out on the sky). No time-scrubbing (later slices).
+//
+// The third row is the only cyan thing on this card, and it earns it: every
+// other line here is somebody else's light, arriving late, and that is why
+// they are amber and past tense. A beam you aim is yours and is happening
+// now. Once one is in flight the row stops being a verb and becomes the date
+// it lands on — there is nowhere to go from here, so it does not pretend.
 
 import {
   MAX_NAME_LEN,
@@ -24,6 +31,7 @@ import {
   type EmissionEpoch,
   type SignalClass,
 } from "@holos/protocol";
+import { formatAbsoluteYear } from "./clock";
 import type { CohortSocket } from "./net";
 
 /** In-world display labels for the five v1 signal classes (act3-design.md). */
@@ -41,6 +49,11 @@ export const CLASS_LABEL: Readonly<Record<SignalClass, string>> = {
  *  gone silent — the row still opens the launch sheet), "none" (nothing
  *  ever dispatched here). */
 export type MissionCardState = "none" | "live" | "inactive";
+
+/** The contact row's state, as App derives it from `sky.contact.outbound`:
+ *  the year a beam already aimed at this source lands, or null when none is
+ *  in flight and the row is still a verb. */
+export type ContactCardState = { readonly arrivesYear: number } | null;
 
 const SWIPE_CLOSE_PX = 56;
 const CHART_H = 46; // css px, the light-history strip's height
@@ -100,10 +113,12 @@ export class SourceCard {
   private readonly axisEl: HTMLDivElement;
   private readonly studyBtn: HTMLButtonElement;
   private readonly missionBtn: HTMLButtonElement;
+  private readonly contactBtn: HTMLButtonElement;
 
   private onCloseCb: (() => void) | null = null;
   private onStudyActionCb: ((starId: string) => void) | null = null;
   private onMissionActionCb: ((starId: string) => void) | null = null;
+  private onContactActionCb: ((starId: string) => void) | null = null;
 
   private source: DetectedSource | null = null;
   private localNames: ReadonlyMap<string, string> = new Map();
@@ -112,6 +127,7 @@ export class SourceCard {
   private nameOverride: NameOverride | null = null;
   private studyStatus: StudyStatus | null = null;
   private missionState: MissionCardState | null = null;
+  private contactState: ContactCardState = null;
   private explainerEl: HTMLDivElement | null = null;
 
   private dragStartY: number | null = null;
@@ -231,7 +247,30 @@ export class SourceCard {
     });
     missionRow.append(this.missionBtn);
 
-    this.sheet.append(this.grabzone, header, hr, beliefRow, chartWrap, studyRow, missionRow);
+    // Third affordance row, same anatomy again, the contact verb. The card
+    // sends nothing and stages nothing: the ceremony happens out on the sky,
+    // and the App is what knows that.
+    const contactRow = document.createElement("div");
+    contactRow.className = "source-card-contact-row";
+    this.contactBtn = document.createElement("button");
+    this.contactBtn.type = "button";
+    this.contactBtn.className = "source-card-contact-affordance";
+    this.contactBtn.textContent = "AIM A BEAM";
+    this.contactBtn.addEventListener("click", () => {
+      if (this.source !== null) this.onContactActionCb?.(this.source.starId);
+    });
+    contactRow.append(this.contactBtn);
+
+    this.sheet.append(
+      this.grabzone,
+      header,
+      hr,
+      beliefRow,
+      chartWrap,
+      studyRow,
+      missionRow,
+      contactRow,
+    );
     this.root.append(this.backdrop, this.sheet);
     container.append(this.root);
 
@@ -262,6 +301,14 @@ export class SourceCard {
     this.onMissionActionCb = cb;
   }
 
+  /** Fired when the contact-affordance row is tapped, with the open source's
+   *  starId. Same contract as the two rows above it: the card reports the
+   *  tap and nothing else. Never fires while a beam is already in flight to
+   *  this source — that variant is a date, not a verb. */
+  onContactAction(cb: (starId: string) => void): void {
+    this.onContactActionCb = cb;
+  }
+
   isOpen(): boolean {
     return this.source !== null;
   }
@@ -279,10 +326,12 @@ export class SourceCard {
     this.nameOverride = null;
     this.studyStatus = null;
     this.missionState = null;
+    this.contactState = null;
     this.setExplainer(null); // a second source never inherits the first's note
     this.renderAll();
     this.renderStudyRow();
     this.renderMissionRow();
+    this.renderContactRow();
     this.root.classList.add("open");
   }
 
@@ -318,6 +367,14 @@ export class SourceCard {
     this.renderMissionRow();
   }
 
+  /** A2.4: the contact-row state for the currently open source, derived by
+   *  the App from `sky.contact.outbound`. Called right after open() (and on
+   *  every later sky), mirroring setMissionState. */
+  setContactState(state: ContactCardState): void {
+    this.contactState = state;
+    this.renderContactRow();
+  }
+
   /** A later `sky` for the currently open source: refresh belief/age/chart.
    * Leaves an in-progress name edit untouched. */
   setSource(source: DetectedSource): void {
@@ -345,6 +402,7 @@ export class SourceCard {
     this.nameOverride = null;
     this.studyStatus = null;
     this.missionState = null;
+    this.contactState = null;
   }
 
   /** Route sourceNamed/error while this card is open. `error` lacks a
@@ -443,6 +501,24 @@ export class SourceCard {
       this.missionBtn.textContent = "DISPATCH A PROBE";
       this.missionBtn.className = "source-card-mission-affordance";
     }
+  }
+
+  private renderContactRow(): void {
+    const inFlight = this.contactState;
+    if (inFlight !== null) {
+      // A beam already aimed here. It states the year it lands and stops
+      // being tappable: there is nothing to open, and a verb that leads
+      // nowhere is worse than a date that says everything.
+      this.contactBtn.textContent =
+        `BEAM IN FLIGHT · ARRIVES ${formatAbsoluteYear(inFlight.arrivesYear)}`;
+      this.contactBtn.className =
+        "source-card-contact-affordance source-card-contact-affordance--active";
+      this.contactBtn.disabled = true;
+      return;
+    }
+    this.contactBtn.textContent = "AIM A BEAM";
+    this.contactBtn.className = "source-card-contact-affordance";
+    this.contactBtn.disabled = false;
   }
 
   private renderName(): void {

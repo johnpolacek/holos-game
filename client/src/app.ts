@@ -25,14 +25,16 @@ import type {
   VoiceKey,
   ReportPayload,
   Proposal,
+  ContactWire,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { StudyBoard } from "./studyboard";
 import { clearPendingBecome, hasPendingBecome, renderCeremony } from "./ceremony";
 import { Model } from "./model";
-import { SourceCard, type MissionCardState } from "./sourcecard";
+import { SourceCard, type ContactCardState, type MissionCardState } from "./sourcecard";
 import { setClockAnchor } from "./clock";
 import { VoiceBeat } from "./voicebeat";
+import { ContactCeremony } from "./contactceremony";
 
 /** Tend states that mean a mission is still under way — everything but a
  *  terminal returned/silent (missions.ts's missionWorkState never emits
@@ -79,6 +81,13 @@ export class App {
   // never appended, never re-sorted client-side (the server's ranked order
   // is load-bearing, per the AV3 design).
   private proposals: readonly Proposal[] = [];
+
+  // A2.4: the contact block from the latest `sky` — both stances (pushed,
+  // never preflighted, so the ceremony can render the mind's objection with
+  // no round trip) and the player's own committed acts. Null until the first
+  // sky, which is the only state in which no ceremony can be armed.
+  private contact: ContactWire | null = null;
+  private contactCeremony: ContactCeremony | null = null;
 
   // AV1: one-time lines the mind speaks. A key present means unseen — the
   // payload's whole shape carries no-replay, so this is just the latest
@@ -148,6 +157,7 @@ export class App {
         this.tend = message.tend;
         this.probeFlightYearsPerLy = message.probeFlightYearsPerLy;
         this.proposals = message.proposals;
+        this.contact = message.contact;
         this.showSky(message.self, message.sources);
         break;
       case "sourceNamed":
@@ -175,6 +185,9 @@ export class App {
         // release a begin that will never be confirmed by a `sky`.
         this.sourceCard?.handleServerMessage(message);
         this.studyBoard?.handleServerError();
+        // A2.4: only reacts while a commit of its own is in flight, and then
+        // it reverses the optimistic bloom and states the reason.
+        this.contactCeremony?.handleServerError(message.message);
         break;
     }
   }
@@ -208,6 +221,17 @@ export class App {
     if (onStar.some((m) => isLiveMissionState(m.state))) return "live";
     if (onStar.length > 0) return "inactive";
     return "none";
+  }
+
+  /** A2.4: the contact row's state for `starId` — the arrival year of a beam
+   *  already aimed there, or null. Straight off the server's own record of
+   *  the player's acts; nothing local ever fills this in. */
+  private findContactState(starId: string): ContactCardState {
+    const act = this.contact?.outbound.find(
+      (a) => a.kind === "hail" && a.starId === starId,
+    );
+    if (act === undefined || act.arrivesYear === null) return null;
+    return { arrivesYear: act.arrivesYear };
   }
 
   /** The one live mission on `starId`, if any — for the source card's
@@ -292,6 +316,8 @@ export class App {
     // just update the Model and, if a card is open, its live source data.
     if (this.mountedScreen === "sky" && this.model !== null) {
       this.model.setSky(self, sources);
+      this.model.setContact(this.contact);
+      this.contactCeremony?.setSky(sources);
       this.studyBoard?.setSelf(self);
       this.sourceCard?.setLocalNames(this.localNames);
       const openId = this.sourceCard?.currentStarId() ?? null;
@@ -301,6 +327,7 @@ export class App {
           this.sourceCard?.setSource(updated);
           this.sourceCard?.setStudyStatus(this.findStudy(openId)?.status ?? null);
           this.sourceCard?.setMissionState(this.findMissionState(openId));
+          this.sourceCard?.setContactState(this.findContactState(openId));
         }
         // else: the Model's setSky above already fired onSelectSource(null)
         // for a selection that no longer corresponds to a live source.
@@ -315,6 +342,7 @@ export class App {
         this.tend,
         this.probeFlightYearsPerLy,
         this.proposals,
+        this.contact,
       );
       this.maybeFocusPendingStudy();
       return;
@@ -334,9 +362,26 @@ export class App {
         this.missionCatalog,
         this.catalog,
       );
+      const contactCeremony = new ContactCeremony(this.root, model, this.socket);
       this.model = model;
       this.sourceCard = sourceCard;
       this.studyBoard = studyBoard;
+      this.contactCeremony = contactCeremony;
+
+      // While a ceremony is armed the sky belongs to it: the two standing
+      // chips stand down, so the only things a thumb can reach are the
+      // canvas (the press) and the one word that says no.
+      contactCeremony.onActive((active) => studyBoard.setChromeHidden(active));
+
+      /** Stage a ceremony. The three entry points all funnel through here so
+       *  there is one place that closes what is open, drops the selection
+       *  ring and hands the sky over. */
+      const stage = (arm: () => void): void => {
+        sourceCard.close();
+        model.clearSelection();
+        studyBoard.close();
+        arm();
+      };
 
       model.onSelectSource((source) => {
         if (source === null) {
@@ -345,6 +390,7 @@ export class App {
           sourceCard.open(source, this.localNames);
           sourceCard.setStudyStatus(this.findStudy(source.starId)?.status ?? null);
           sourceCard.setMissionState(this.findMissionState(source.starId));
+          sourceCard.setContactState(this.findContactState(source.starId));
           sourceCard.setExplainer(this.takeSourceCardVoice());
         }
       });
@@ -356,6 +402,7 @@ export class App {
         sourceCard.open(source, this.localNames);
         sourceCard.setStudyStatus(this.findStudy(starId)?.status ?? null);
         sourceCard.setMissionState(this.findMissionState(starId));
+        sourceCard.setContactState(this.findContactState(starId));
         sourceCard.setExplainer(this.takeSourceCardVoice());
       });
       sourceCard.onStudyAction((starId) => {
@@ -367,6 +414,27 @@ export class App {
           this.socket.send({ type: "openStudy", starId });
           this.pendingStudyFocus = starId;
         }
+      });
+      // A2.4: AIM A BEAM. The stance rides the same `sky` that produced this
+      // source, so the mind's objection (if it has one) is already in hand
+      // and the ceremony arms with no round trip.
+      sourceCard.onContactAction((starId) => {
+        const contact = this.contact;
+        if (contact === null) return;
+        stage(() => contactCeremony.armHail(starId, contact.hail, this.sources));
+      });
+      // A2.4: SPEAK TO EVERYONE, from the hub's own one-row section.
+      studyBoard.onVoiceAction(() => {
+        const contact = this.contact;
+        if (contact === null) return;
+        stage(() => contactCeremony.armBroadcast(contact.broadcast, this.sources));
+      });
+      // A2.4: the HOME mote is the one present-tense object on the sky, so
+      // tapping it goes to where the player's own voice lives.
+      model.onSelectHome(() => {
+        sourceCard.close();
+        model.clearSelection();
+        studyBoard.openHub("voice");
       });
       sourceCard.onMissionAction((starId) => {
         const live = this.findLiveMission(starId);
@@ -399,6 +467,7 @@ export class App {
       });
 
       model.setSky(self, sources);
+      model.setContact(this.contact);
       studyBoard.setSelf(self);
       studyBoard.update(
         this.studies,
@@ -410,6 +479,7 @@ export class App {
         this.tend,
         this.probeFlightYearsPerLy,
         this.proposals,
+        this.contact,
       );
       // AV2: a `report` message can (and on placement, does) arrive before
       // this board exists — handleMessage stored it on `this.reportPayload`
@@ -430,6 +500,7 @@ export class App {
         }, 600);
       }
       return () => {
+        contactCeremony.destroy();
         model.destroy();
         sourceCard.destroy();
         studyBoard.destroy();
@@ -438,6 +509,7 @@ export class App {
         if (this.model === model) this.model = null;
         if (this.sourceCard === sourceCard) this.sourceCard = null;
         if (this.studyBoard === studyBoard) this.studyBoard = null;
+        if (this.contactCeremony === contactCeremony) this.contactCeremony = null;
       };
     });
   }
