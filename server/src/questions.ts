@@ -45,6 +45,7 @@ import {
 } from "./knowledge";
 import {
   questionCostKeepFractionAt,
+  questionGrantProseNamesAt,
   questionYearsKeepFractionAt,
   type ProjectState,
 } from "./projects";
@@ -238,6 +239,44 @@ export function effectiveIntegrationYearsFor(
     def.integrationYears,
     questionYearsKeepFractionAt(projectState, def.id, atYear),
   );
+}
+
+// ---------------------------------------------------------------------------
+// Provenance — the receipt behind an effective number. When a landed
+// project has moved a question's cost or clock off its catalog base, the
+// player deserves to see the base and the grantor, or the effective number
+// reads as an arbitrary constant. Composed server-side (ProjectSnapshot's
+// effectLine precedent: the client never needs the effect union), caps to
+// match the chrome meta lines it renders among. Null whenever nothing has
+// landed, which is the common case and renders as nothing.
+// ---------------------------------------------------------------------------
+
+/** "the spectrograph bank" / "the pulsar clocks and the long baseline". */
+function joinProseNames(names: readonly string[]): string {
+  if (names.length === 1) return names[0] ?? "";
+  return names.slice(0, -1).join(", ") + " and " + (names[names.length - 1] ?? "");
+}
+
+/** The receipt under the COST row, or null if no discount has landed. */
+export function costProvenanceFor(
+  def: QuestionDef,
+  atYear: number,
+  projectState: ProjectState,
+): string | null {
+  const names = questionGrantProseNamesAt(projectState, def.id, atYear, "question-discount");
+  if (names.length === 0) return null;
+  return `DOWN FROM ${def.costCompute} COMPUTE · GRANTED BY ${joinProseNames(names).toUpperCase()}`;
+}
+
+/** The receipt under the ANSWERS IN row, or null if no haste has landed. */
+export function hasteProvenanceFor(
+  def: QuestionDef,
+  atYear: number,
+  projectState: ProjectState,
+): string | null {
+  const names = questionGrantProseNamesAt(projectState, def.id, atYear, "question-haste");
+  if (names.length === 0) return null;
+  return `DOWN FROM ${def.integrationYears} Y · GRANTED BY ${joinProseNames(names).toUpperCase()}`;
 }
 
 /**

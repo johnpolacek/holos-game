@@ -285,6 +285,17 @@ export interface OpenQuestion {
   readonly costClass: CostClass; // "investment"
   readonly costCompute: number;
   readonly integrationYears: number;
+  /**
+   * The receipt behind a discounted `costCompute`: the catalog base and
+   * the landed project(s) that granted the reduction, composed server-side
+   * (ProjectSnapshot's effectLine precedent) — e.g. "DOWN FROM 90 COMPUTE
+   * · GRANTED BY THE SPECTROGRAPH BANK". Null when no discount has landed,
+   * which is the common case. Live while `offered`, frozen at `boughtYear`
+   * once bought, exactly like the numbers it explains.
+   */
+  readonly costProvenance: string | null;
+  /** Same receipt for a hastened `integrationYears`, or null. */
+  readonly hasteProvenance: string | null;
   readonly separates: readonly HypothesisId[]; // derived per class at snapshot time
   readonly state: QuestionState;
   readonly boughtYear: number | null; // null iff offered

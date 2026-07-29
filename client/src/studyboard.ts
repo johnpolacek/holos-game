@@ -2037,9 +2037,18 @@ export class StudyBoard {
         // 3. The terms, stated where the decision is made — the project
         //    sheet's anatomy (cost row, clock row, allocation line), so
         //    the fold says what is spent, when the answer lands, and what
-        //    the allocation can bear, before the verb is offered.
+        //    the allocation can bear, before the verb is offered. Where a
+        //    landed project has moved a number off its catalog base, the
+        //    server's receipt line renders under the row it explains, so
+        //    an effective number is never mistaken for an arbitrary one.
         detail.append(this.buildClockRow("COST", `${q.costCompute} COMPUTE`));
+        if (q.costProvenance !== null) {
+          detail.append(this.buildProvenanceLine(q.costProvenance));
+        }
         detail.append(this.buildClockRow("ANSWERS IN", formatClockPair(q.integrationYears)));
+        if (q.hasteProvenance !== null) {
+          detail.append(this.buildProvenanceLine(q.hasteProvenance));
+        }
         detail.append(this.buildBudgetLine());
 
         // 4. The spend, and only here. The button names the spend itself:
@@ -2478,6 +2487,16 @@ export class StudyBoard {
   }
 
   // ── Render: mission detail ───────────────────────────────────────────
+
+  /** The receipt under a discounted cost/clock row — the server-composed
+   *  "DOWN FROM … · GRANTED BY …" line (OpenQuestion.costProvenance /
+   *  hasteProvenance). Faint: it explains a number, it is not one to act on. */
+  private buildProvenanceLine(text: string): HTMLDivElement {
+    const line = document.createElement("div");
+    line.className = "study-question-provenance holos-caps";
+    line.textContent = text;
+    return line;
+  }
 
   private buildClockRow(label: string, value: string): HTMLDivElement {
     const row = document.createElement("div");

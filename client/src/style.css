@@ -1279,6 +1279,14 @@ body {
   padding-top: 0.15rem;
 }
 
+/* The receipt under a discounted cost/clock row: catalog base and the
+   landed project that granted the reduction. Faint and tucked against the
+   row it explains — provenance, not a number to act on. */
+.study-question-provenance {
+  color: var(--holos-ink-faint);
+  margin-top: -0.25rem;
+}
+
 /* Why the BUY under it is dark: a shortfall, or a grounded study. */
 .study-question-hint {
   text-align: center;

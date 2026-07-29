@@ -89,6 +89,14 @@ export type ProjectEffect =
 export interface ProjectDef {
   readonly id: ProjectId;
   readonly label: string;
+  /**
+   * The project's name as it reads inside a sentence — `label` is a verb
+   * phrase ("Rebuild the spectrograph bank") and cannot be dropped into
+   * running text. questions.ts's provenance lines name the granting
+   * project this way ("granted by the spectrograph bank"), exactly as
+   * questions.ts's own `proseName` serves the report's record sentences.
+   */
+  readonly proseName: string;
   readonly line: string;
   /**
    * The grant, said plainly — what landing this project actually does, in
@@ -122,6 +130,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "deep-array",
     label: "Extend the deep array",
+    proseName: "the deep array",
     line: "More collecting area, and more patience. The data is the easy part; the inference is the spend.",
     effectLine: "Raises the compute income by 6 a year, for good.",
     costClass: "investment",
@@ -132,6 +141,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "standing-survey",
     label: "Commission the standing survey",
+    proseName: "the standing survey",
     line: "Every system inside the neighborhood, characterized to a fixed depth, on a schedule. A null result means something once you know where you looked.",
     effectLine: "Raises the compute income by 8 a year, for good.",
     costClass: "investment",
@@ -142,6 +152,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "cold-band-refit",
     label: "Refit the array to the cold band",
+    proseName: "the cold-band refit",
     line: "Thermal steadiness is the tell nature does not fake. The refit costs a season of sight to buy the band back sharper.",
     effectLine: "Raises the compute income by 12 a year, for good.",
     costClass: "investment",
@@ -152,6 +163,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "focal-line-observatory",
     label: "Emplace a focal-line observatory",
+    proseName: "the focal-line observatory",
     line: "An instrument riding the star's own focal line, hundreds of astronomical units downstream. The lens was free. The years are not.",
     effectLine: "Raises the compute income by 24 a year, for good.",
     costClass: "endeavor",
@@ -162,6 +174,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "long-baseline-optical",
     label: "Open the long baseline",
+    proseName: "the long baseline",
     line: "Two collectors an astronomical unit apart, holding phase to a fraction of a wavelength. Resolution was never about the mirror, only about how far apart you are willing to stand.",
     effectLine: "WEIGH IT and CATCH ITS EDGES answer 30% sooner, on every study.",
     costClass: "investment",
@@ -172,6 +185,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "occultation-network",
     label: "Spread the occultation net",
+    proseName: "the occultation net",
     line: "Stations strung across the whole system, so that when a foreground body clips a distant source, somebody is always standing in the shadow.",
     effectLine: "TIME ITS SHADOWS answers 50% sooner, on every study.",
     costClass: "investment",
@@ -182,6 +196,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "spectrograph-bank",
     label: "Rebuild the spectrograph bank",
+    proseName: "the spectrograph bank",
     line: "Split the light finer, and comb it against a frequency standard that does not drift, until a spectrum stops being a color and becomes a list of names.",
     effectLine: "READ ITS LINES costs 40% less compute, on every study.",
     costClass: "investment",
@@ -192,6 +207,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "pulsar-timing-array",
     label: "Enlist the pulsar clocks",
+    proseName: "the pulsar clocks",
     line: "A few dozen dead stars spinning with the steadiness of an atomic clock, older than the world we came from, adopted as the frame everything else gets measured against.",
     effectLine: "WEIGH IT and TIME ITS SHADOWS cost 30% less compute, on every study.",
     costClass: "investment",
@@ -206,6 +222,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "neutrino-watch",
     label: "Sink the neutrino watch",
+    proseName: "the neutrino watch",
     line: "A volume of cold matter deep enough to catch the particles that pass through everything else: heat can be shaped and delayed and diluted, and none of that touches a neutrino.",
     effectLine: "Holds the floor under every signal's confidence five points higher.",
     costClass: "investment",
@@ -216,6 +233,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "cold-logic-annex",
     label: "Cool the inference annex",
+    proseName: "the inference annex",
     line: "Thinking costs less the colder it is done, so the annex runs near the floor of what the universe permits: slow thoughts, cheap ones, and a very great many of them at once.",
     effectLine: "Raises the compute income by 30 a year, for good.",
     costClass: "endeavor",
@@ -229,6 +247,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "sky-vault",
     label: "Commit the sky to the Vault",
+    proseName: "the Vault",
     line: "Every arrival kept whole and referenced for as long as there is anyone left to ask, because a question put to a thousand years of record is half answered before it is bought.",
     effectLine: "Every question on every study answers 20% sooner.",
     costClass: "endeavor",
@@ -250,6 +269,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "launch-beam",
     label: "Raise the launch beam",
+    proseName: "the launch beam",
     line: "A phased emitter that pushes a departing sail through the first months of its flight, so a probe leaves faster than anything it could have carried the fuel to become.",
     effectLine: "Probes launched after this cruise at an eighth of lightspeed, up from a tenth.",
     costClass: "endeavor",
@@ -260,6 +280,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "focal-line-constellation",
     label: "Ring the focal line",
+    proseName: "the focal-line ring",
     line: "One instrument on the focal line for every bearing worth watching, out beyond five hundred and fifty astronomical units, with the star itself for a lens. After this, nothing in this sky is a smudge to anyone here again.",
     effectLine: "Holds the floor under every signal's confidence ten points higher.",
     costClass: "epochal",
@@ -445,6 +466,31 @@ export function questionYearsKeepFractionAt(
       ? effect.percent
       : null,
   );
+}
+
+/**
+ * The prose names of every LANDED project of `kind` naming `questionId` at
+ * `atYear` — the provenance behind the keep-fractions above, in started
+ * order. questions.ts composes these into the receipt line under a
+ * discounted cost/clock row; the aggregation stays here so the two reads
+ * (how much, and granted by whom) can never disagree about which projects
+ * count.
+ */
+export function questionGrantProseNamesAt(
+  state: ProjectState,
+  questionId: QuestionId,
+  atYear: number,
+  kind: "question-discount" | "question-haste",
+): readonly string[] {
+  const names: string[] = [];
+  for (const p of state.started) {
+    const def = projectById(p.id);
+    if (def === undefined || !hasLanded(def, p, atYear)) continue;
+    const effect = def.effect;
+    if (effect.kind !== kind || !effect.questionIds.includes(questionId)) continue;
+    names.push(def.proseName);
+  }
+  return names;
 }
 
 /**

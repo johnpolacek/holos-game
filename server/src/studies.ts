@@ -44,8 +44,10 @@ import type {
 import type { LightCone, ObservedSignal, SignalClass } from "./knowledge";
 import {
   answersYearFor,
+  costProvenanceFor,
   effectiveCostFor,
   effectiveIntegrationYearsFor,
+  hasteProvenanceFor,
   possibleShiftsFor,
   questionsFor,
   resolveQuestion,
@@ -847,6 +849,8 @@ function assembleQuestion(
         costClass: QUESTION_COST_CLASS,
         costCompute: effectiveCostFor(def, nowYear, projectState),
         integrationYears: effectiveIntegrationYearsFor(def, nowYear, projectState),
+        costProvenance: costProvenanceFor(def, nowYear, projectState),
+        hasteProvenance: hasteProvenanceFor(def, nowYear, projectState),
         separates,
         state: "offered",
         boughtYear: null,
@@ -860,6 +864,8 @@ function assembleQuestion(
   const answersYear = answersYearFor(def, bought, projectState);
   const costCompute = effectiveCostFor(def, bought.boughtYear, projectState);
   const integrationYears = effectiveIntegrationYearsFor(def, bought.boughtYear, projectState);
+  const costProvenance = costProvenanceFor(def, bought.boughtYear, projectState);
+  const hasteProvenance = hasteProvenanceFor(def, bought.boughtYear, projectState);
   const finding = resolveQuestion(galaxy, cone, def, bought, signal, projectState);
 
   if (finding === null) {
@@ -871,6 +877,8 @@ function assembleQuestion(
         costClass: QUESTION_COST_CLASS,
         costCompute,
         integrationYears,
+        costProvenance,
+        hasteProvenance,
         separates,
         state: "pending",
         boughtYear: bought.boughtYear,
@@ -910,6 +918,8 @@ function assembleQuestion(
       costClass: QUESTION_COST_CLASS,
       costCompute,
       integrationYears,
+      costProvenance,
+      hasteProvenance,
       separates,
       state: "answered",
       boughtYear: bought.boughtYear,
