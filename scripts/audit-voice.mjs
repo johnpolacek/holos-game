@@ -6,8 +6,11 @@
 // them pass. This is the highest-value check AV4 has: it validates the gate
 // against a hundred-odd lines of hand-authored, style-guide-conformant prose,
 // and it catches an over-strict rule — a §6 false positive, a word count off
-// by one, an em-dash tokenizing badly — BEFORE that rule can silently template
-// a generated surface forever. If it fails, the gate is wrong, not the banks.
+// by one, a punctuation rule reaching further than its guide row — BEFORE that
+// rule can silently template a generated surface forever. If it fails, the
+// gate is wrong, not the banks. (R-8's dash rule is the live example: the gate
+// learned it, and this audit is what proved no shipped bank string still had
+// one. Its authored-side companion is `npm run audit:dashes`.)
 //
 // It also makes the gate a retroactive test of the banks themselves: if a
 // shipped remark ever acquires a numeral or a banned term, CI now says so.

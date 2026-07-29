@@ -52,12 +52,16 @@ The dev client connects to `localhost:8787`; set `VITE_PARTYKIT_HOST` in
 There is no test suite yet. The checks that must pass are:
 
 ```sh
-npm run typecheck   # tsc --noEmit in both workspaces
-npm run build       # vite build (client) + tsc emit (server)
+npm run typecheck     # tsc --noEmit in both workspaces
+npm run build         # vite build (client) + tsc emit (server)
+npm run audit:dashes  # R-8: no em dash on a player surface
+npm run audit:banned  # prose-style.md §6 <-> bannedterms.ts
+npm run audit:voice   # every shipped bank string through the style gate
 ```
 
-CI (`.github/workflows/ci.yml`) runs both on every PR and must pass before
-merge.
+CI (`.github/workflows/ci.yml`) runs all of them on every PR and they must
+pass before merge. `audit:voice` imports the compiled gate, so it runs after
+`build`.
 
 ## Deployment
 
@@ -114,6 +118,16 @@ branch builds in the Workers Builds project settings.)
   that block — never a `text-wrap` declaration in the component rule. The
   block sits above every component so a later `white-space: nowrap` still
   wins (both set `text-wrap-mode`).
+- **No em dash reaches a player surface** (prose-style.md R-8). Not in
+  prose, not in a chrome label, not as a missing-value glyph, and not
+  disguised as an en dash or a double hyphen. A colon sets up a reveal, a
+  semicolon joins two whole clauses, a comma carries an aside, and a full
+  stop is always available; pick one, because the dash is what a sentence
+  reaches for when its clauses have not been decided about. Code comments
+  and `docs/*.md` narration are *not* surfaces and keep their dashes — this
+  file included. `npm run audit:dashes` draws the line mechanically (it
+  reads string literals, not files) and runs in CI; `stylegate.ts` enforces
+  the same rule on the lines AV4 generates at runtime.
 
 ## Build orchestration
 

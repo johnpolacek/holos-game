@@ -35,6 +35,7 @@ export type GateReason =
   | "markup"
   | "quote"
   | "exclamation"
+  | "em-dash"
   | "digit"
   | "percent"
   | "designation"
@@ -83,6 +84,15 @@ const MARKUP = /[<>`*#|_\[\]{}\\]/;
 const QUOTE = /["“”„‟]/;
 /** R-7. */
 const EXCLAMATION = /[!¡]/;
+/**
+ * R-8. No em dash reaches a player surface, and no near-miss stands in for one:
+ * em dash, horizontal bar, en dash, and the double hyphen a model reaches for
+ * when it has been told it cannot have the character. The en dash is legal
+ * typography between a range of numbers, but a generated line carries no digits
+ * (R-29a) and so has no range to set, which makes every en dash here a dash
+ * aside wearing a shorter coat.
+ */
+const EM_DASH = /[—–―]|--/;
 /** R-29a, Unicode-wide: catches 4, fullwidth four, one-half, Roman four. */
 const DIGIT = /\p{N}/u;
 /** R-29a. */
@@ -129,6 +139,7 @@ export function gateFactFree(raw: string, limits: GateLimits): GateVerdict {
   if (MARKUP.test(line)) return reject("markup");
   if (QUOTE.test(line)) return reject("quote");
   if (EXCLAMATION.test(line)) return reject("exclamation");
+  if (EM_DASH.test(line)) return reject("em-dash");
   if (DIGIT.test(line)) return reject("digit");
   if (PERCENT.test(line)) return reject("percent");
   if (DESIGNATION.test(line)) return reject("designation");

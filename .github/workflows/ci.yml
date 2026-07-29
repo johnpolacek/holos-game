@@ -51,6 +51,14 @@ jobs:
             exit 1
           fi
 
+      # prose-style.md §3 R-8 — no em dash reaches a player surface. Reads
+      # every string literal in the client and server sources (comments and
+      # regexes excluded; a comment is not a surface), plus the document head,
+      # the web manifest and the social-card tagline. Its runtime half is the
+      # style gate's EM_DASH rule, which covers the lines AV4 generates.
+      - name: Audit dashes (R-8)
+        run: npm run audit:dashes
+
       - name: Build (client + server)
         run: npm run build
 

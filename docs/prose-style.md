@@ -276,7 +276,7 @@ Named mechanics of the register. Apply **at most one** per short string.
   will be a later fact-carrying surface.
 - **R-35 Proposal reason.** 1–3 sentences, ≤ 34 words in the framing
   clauses, **present tense** (the report's past tense is its own), wit 0;
-  colon for the reveal, spaced em-dash for the aside. A passed-through
+  colon for the reveal, comma for the aside (R-8). A passed-through
   catalog passage (a question's `line`, a project's `effectLine`) is
   bounded at its own source, the same rule R-32 states for the report.
 - **R-35a A proposal names no fact the player cannot also see on the
@@ -309,10 +309,33 @@ Named mechanics of the register. Apply **at most one** per short string.
 
 **Punctuation and house style (grep-checkable):**
 - **R-7 No exclamation marks** anywhere in game-facing prose.
-- **R-8 Em-dash for the turn, colon for the reveal.** Spaced em-dash
-  (` — `) for asides and reversals; colon to set up a payoff.
+- **R-8 No em dash reaches a player surface.** Not one, anywhere in
+  game-facing prose: not spaced, not unspaced, not an en dash or a double
+  hyphen standing in for one, and not as a chrome separator or a
+  missing-value glyph. The dash is the punctuation mark of a sentence whose
+  clauses have not been decided about, and this voice decides: **a colon
+  sets up a reveal, a semicolon joins two whole clauses (R-9), a comma
+  carries an aside, and a full stop is always available.** Where the old
+  rule reached for a spaced em dash, use one of those four. The reveal
+  colon is the workhorse and the direct descendant of the rule this
+  replaces.
+
+  Rewriting means *rewriting*. Swapping ` — ` for ` – ` or ` -- ` is the
+  failure mode: it keeps the undecided clause and only shortens the mark.
+  If the sentence still reads as an aside bolted onto a main clause, it
+  has not been fixed.
+
+  Enforced twice, because the prose has two authors. `npm run audit:dashes`
+  (`scripts/audit-dashes.mjs`, in CI) reads every string literal in the
+  client and server sources plus the document head, the web manifest and
+  the social-card tagline, and fails on U+2014. `stylegate.ts`'s `EM_DASH`
+  rule rejects a generated line for the same reason (`em-dash`), covering
+  the half of the prose no author ever sees. A comment is not a surface,
+  and this guide's own narration is not a surface either; see §7's note on
+  what the audit does not cover.
 - **R-9 Semicolon joins two whole clauses only** — the balanced-opposition
-  beat the firstReads use.
+  beat the firstReads use. R-8 leans on it harder than it used to: a
+  reversal that would once have taken a dash usually wants this instead.
 - **R-10 Charters are authored without outer quotes** (ceremony.ts wraps
   them); straight quotes throughout the banks.
 
@@ -332,7 +355,8 @@ Named mechanics of the register. Apply **at most one** per short string.
 **Length bounds (derived from the current banks):**
 - **R-16** Charter: 1 sentence, 6–18 words.
 - **R-17** First read: 1 sentence, ≤ 16 words; at most one `;`.
-- **R-18** Wake line: 1 sentence, ≤ 32 words; one em-dash or colon.
+- **R-18** Wake line: 1 sentence, ≤ 32 words; at most one colon or
+  semicolon (R-8 removed the third option).
 - **R-19** Gloss: 1–2 sentences, 18–42 words.
 - **R-20** Question: 1 interrogative, ≤ 9 words.
 - **R-21** Cradle fingerprint: 1–2 sentences, ≤ 36 words (second sentence is
@@ -357,7 +381,7 @@ Named mechanics of the register. Apply **at most one** per short string.
 - **R-28** Clock line: 1–2 sentences, ≤ 34 words; every time figure derived
   from `clock.ts`'s `REAL_MS_PER_GAME_YEAR`, never written as a literal.
 - **R-32** Record sentence: 1–2 sentences, ≤ 34 words; past tense; wit 0;
-  colon for a reveal, spaced em-dash for an aside. Where a record sentence
+  colon for a reveal, comma for an aside (R-8). Where a record sentence
   passes an already-authored passage through (a study annotation, a
   project's effect line), the bound governs the framing clause — the
   passage is bounded at its own source and is never re-cut to fit. The
@@ -375,12 +399,12 @@ the joke lives in internet cadence, not the archetype's world.
 
 | Archetype | Voice signature | What its wit sounds like | Sample register line | DON'T |
 |---|---|---|---|---|
-| **The Beacon** | Warm, generous, unembarrassed | Self-aware about its own brightness; jokes at its vanity, never at others | *"We are, admittedly, the loudest thing in this sky. Someone had to be, and we volunteered before anyone thought to ask."* | "Surprise — it's us again, being magnificent." |
+| **The Beacon** | Warm, generous, unembarrassed | Self-aware about its own brightness; jokes at its vanity, never at others | *"We are, admittedly, the loudest thing in this sky. Someone had to be, and we volunteered before anyone thought to ask."* | "Surprise, it's us again, being magnificent." |
 | **The Tide** | Hungry, cheerful, unsentimental | Comic appetite; the cosmos as inventory, with genuine good humor | *"There is so much of everything. We mean to get to all of it, and we are making, we think, encouraging progress."* | "Nom nom, another galaxy for lunch." |
 | **The Monument** | Liturgical, grave, still | Dry as reliquary dust; understatement so deep it reads as ceremony | *"We keep everything. The question of what is worth keeping was settled long ago, in favor of everything."* | "We're basically a very serious library, ha." |
-| **The Cloister** | Cold, precise, sealed | Deadpan refusal; menace kept impeccably polite | *"We are not hiding. Hiding implies someone is looking, and we have gone to considerable trouble to ensure they are not."* | "Do not disturb — genius at work." |
+| **The Cloister** | Cold, precise, sealed | Deadpan refusal; menace kept impeccably polite | *"We are not hiding. Hiding implies someone is looking, and we have gone to considerable trouble to ensure they are not."* | "Do not disturb, genius at work." |
 | **The Shepherd** | Protective, patient, understated | Gentle irony that never lands on the ward; scale hidden inside care | *"They will never know we are here. That is the entire point, and, we will allow, occasionally a lonely one."* | "We got strong so the little guys wouldn't have to." |
-| **The Sowing** | Quiet, dispersed, wry | Comedy of absence — everywhere, announcing nothing | *"We are, at this moment, in more places than we could name. We would rather not name them, if it's all the same to you."* | "Ghosting the galaxy, one system at a time." |
+| **The Sowing** | Quiet, dispersed, wry | Comedy of absence: everywhere, announcing nothing | *"We are, at this moment, in more places than we could name. We would rather not name them, if it's all the same to you."* | "Ghosting the galaxy, one system at a time." |
 | **The Herald** | Elegiac, transmitting, contradictory | Bittersweet; lives openly in its own paradox and finds it funny | *"We built a vault no one may enter and a beacon no one may miss. We are aware these ambitions are in tension. We are shouting anyway."* | "Smash that subscribe on our eternal broadcast." |
 | **The Engine** | Cold, exact, work-fixed | Bureaucratic deadpan; sentiment logged as a tolerated error | *"Sentiment does not parse here. We have kept a small allocation for it regardless, in case it turns out to have been load-bearing."* | "Feelings? They don't scale." |
 | **The Congress** | Plural, deliberative, argumentative | The self already arguing; wit is the internal minority report | *"We have reached a decision. Three of us wish it noted that we reached it under protest, and one of us is drafting the objection now."* | "Motion to be hilarious carried unanimously." |
@@ -617,6 +641,16 @@ restyle that edits a bank without its doc sync is incomplete.
 | `voicegen.ts` FAMILY_SURFACE (the prompt's occasion / "must not name" table) | `voice.ts` REPORT_REMARKS doc comment | **Verbatim** — the doc comment is the real spec for family scope, and the prompt must state the same referents in the same words or generated remarks and templated ones drift apart in scope while both look fine alone. Human read |
 | `bannedterms.ts` | this guide, §6 (and §8's comms register) | **Generated, doc → code** — `npm run sync:banned` writes it, `npm run audit:banned` fails CI on any drift in either direction. This row RUNS BACKWARDS from the rule above it, and correctly: §6 is not a bank, it is a rule list whose canonical statement is this guide |
 
+**What R-8's audit does not cover, and why.** `npm run audit:dashes` reads
+strings, not files. The narration in `docs/*.md` — this paragraph included —
+is essayist prose *about* the game rather than prose *in* it, and it keeps
+its dashes; so does every code comment, for the same reason. The line the
+audit cannot draw is the one this table is about: **prose quoted out of a
+bank and into a doc is player prose sitting in a doc**, it is bound by R-8,
+and it stays a human read, because nothing mechanical distinguishes a
+quotation from a paraphrase. Every **Verbatim** row above is therefore also
+an R-8 row, and the walkthrough's scene quotes are the case to watch.
+
 ---
 
 ## §8 — Invariants (pinned vocabulary — never restyled)
@@ -628,7 +662,7 @@ Load-bearing literals. Style passes must not rewrite them for wit or flow.
 | Dial in-world labels | Reach · Depth, Voice · Silence, Garden · Forge, Monolith · Chorus, Memory · Renewal |
 | Archetype names | The Beacon, The Tide, The Monument, The Cloister, The Shepherd, The Sowing, The Herald, The Engine, The Congress, The Phoenix |
 | Signal-class labels | `DARK NODE`, `TRANSIT SHADOWS`, `DIRECTED BEAM`, `BROADCAST LEAKAGE`, `LIVING WORLD` |
-| Model captions | `THE MODEL — WHAT WE BELIEVE`, `HOME` |
+| Model captions | `THE MODEL · WHAT WE BELIEVE`, `HOME` |
 | Cradle names / hosts | Every `name` and `host` in `cradles.ts` — real astronomy, never restyled |
 | Difficulty tiers | `Gentle`, `Temperate`, `Testing`, `Harsh`, `Brutal` |
 | Designation format | `HOL-nnnn-i` — a machine ID, never prose |
@@ -636,18 +670,27 @@ Load-bearing literals. Style passes must not rewrite them for wit or flow.
 | Mission prose names | `The Assay`, `The Sentinel` (`missions.ts` `missionProseName`) |
 | Question prose names | `weighing`, `temperature watch`, `line reading`, `shadow timing`, `edge look`, `off-axis listening` (`questions.ts` `proseName`) |
 | Proposal chrome | `WHAT WE WOULD DO NEXT`, `READ THE BRIEF`, `OPEN THE STUDY`, `OPEN THE LAUNCH SHEET`, `READ THE PROJECT`. The decline beside them is the one exception — `Leave It`, title case and body weight, so refusing never shouts back at the verb it declines |
-| Report headlines | Every `headline` in `missions.ts` — `OCCUPIED — HOLDING AT RANGE`, `INHABITED — HOLDING AT RANGE`, `A LIVING WORLD, NO WORKS`, `A LIVING WORLD, BUILDING`, `OCCUPIED AND WORKING`, `COLD AND STILL`, `NOTHING NEW TO REPORT`, `TREND CONTINUES`, `POWER MARGIN FAILING`, `OFF-CADENCE REPORT` — ALL-CAPS set phrases (R-24), quoted into prose, never restyled into it |
+| Report headlines | Every `headline` in `missions.ts` — `OCCUPIED, HOLDING AT RANGE`, `INHABITED, HOLDING AT RANGE`, `A LIVING WORLD, NO WORKS`, `A LIVING WORLD, BUILDING`, `OCCUPIED AND WORKING`, `COLD AND STILL`, `NOTHING NEW TO REPORT`, `TREND CONTINUES`, `POWER MARGIN FAILING`, `OFF-CADENCE REPORT` — ALL-CAPS set phrases (R-24), quoted into prose, never restyled into it |
 | Age chip | `AS OF n Y AGO` |
 | Chronicle dating | Epoch-relative — each civilization counts from its own founding event (the `year n AE` family); the cohort's global year never reaches a player surface |
 | Color rule | cyan = you / HOME (present tense); amber = other / belief. Prose must never call HOME amber or a source cyan. |
 | House coinages | `Teeming Dark`, `Dark Node`, `Signature`, `the Vault`, `the Model`, `the Ledger`, `the work list`, `Visibility Collapse`, `cradle`, `charter`, `the Refusal` / `Refuser`, `the harness` / `harnessed intelligence`, `the Breakout`, `grave world`, `the Crossing`, `the Chronicle`, `Holocore`, `the Kernel`, `mask`, `ark`, `deep array`, `the cold berth`, `the black-hole tap`, `payload stack`, `worldhousing`, `throne world`, `the send`, `tight beam`, `undertaking`, `traffic`, `standing order` |
 
 **Display note on the pinned dial labels.** The UI may render the pinned
-in-world dial labels in display form — all-caps with an em dash (e.g.
-`REACH — DEPTH`) or an unspaced middot (`Reach·Depth`) — for chrome
-typography. The pinned form above, spaced middot (`Reach · Depth`),
-governs prose; R-2's byte-exact rule applies to prose, not to display
-typography.
+in-world dial labels in display form — all-caps (`REACH · DEPTH`) or an
+unspaced middot (`Reach·Depth`) — for chrome typography. The pinned form
+above, spaced middot (`Reach · Depth`), governs prose; R-2's byte-exact
+rule applies to prose, not to display typography.
+
+**This note used to license `REACH — DEPTH`, and R-8 withdrew it.** The
+middot is the separator in every form, display or prose. R-8 is not a
+prose-only rule that display typography can opt out of: a dash on a chip is
+a dash a player reads, and the carve-out would have been the one hole in an
+otherwise greppable ban. The same reasoning retired the em dash from two
+report headlines (`OCCUPIED, HOLDING AT RANGE` and `INHABITED, HOLDING AT
+RANGE`, both amended 2026-07), where the comma was already the family's own
+separator, and from the clock pair's missing-value glyph, which is an EN
+dash (`20 y · –`) so that no U+2014 survives anywhere on a surface.
 
 **Designation format, amended (2026-07).** This row previously read
 `HOL-nnnn`. The shipped format is `HOL-nnnn-i` — a four-digit catalog
@@ -706,6 +749,7 @@ is never shown to the player — only the in-world labels reach a surface.
 | Homogeneous wit | Every archetype tells the same joke | R-6 + §4's DON'T column |
 | Fact drift | A number or load-bearing fact quietly changes | R-1, R-3, R-12 |
 | Label drift | A pinned label gets "improved" | R-2 grep against §8 |
+| The undecided clause | An aside bolted on with a dash, in place of a decision about the sentence | R-8 + `npm run audit:dashes` + the gate's `em-dash` |
 
 To write a line: (1) identify the surface and pick the register from §2;
 (2) write it true and grand; (3) add at most one craft move from §3;

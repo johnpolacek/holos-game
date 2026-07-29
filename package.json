@@ -18,6 +18,7 @@
     "sync:banned": "node scripts/sync-banned-terms.mjs",
     "audit:banned": "node scripts/sync-banned-terms.mjs --check",
     "audit:voice": "node scripts/audit-voice.mjs",
+    "audit:dashes": "node scripts/audit-dashes.mjs",
     "eval:counsel": "node scripts/eval-counsel.mjs"
   },
   "devDependencies": {
