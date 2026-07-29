@@ -32,6 +32,7 @@
 
 import type {
   StudySnapshot,
+  StudyStatus,
   DetectedSource,
   Hypothesis,
   HypothesisId,
@@ -47,6 +48,7 @@ import type {
   CharterClauseId,
   WorkState,
   TendRow,
+  TripwireKind,
   ReportPayload,
   ReportEntry,
   ReportRoute,
@@ -77,6 +79,33 @@ const WORK_STATE_LABEL: Record<WorkState, string> = {
   silent: "SILENT",
   standing: "STANDING",
 };
+
+// A2.3: the chrome (client-side, per protocol.ts's tripwires comment) named
+// beside each of the three always-present kinds, in wire order. The 70% is
+// studies.ts's CROSS_SHARE spelled as chrome: the wire deliberately carries
+// no threshold (no free numbers), so a retune of CROSS_SHARE must retune
+// this label with it.
+const TRIPWIRE_LABEL: Record<TripwireKind, string> = {
+  regress: "IF IT REGRESSES",
+  "leakage-stops": "IF THE LEAKAGE STOPS",
+  crosses: "IF BELIEF CROSSES 70%",
+};
+
+const TRIPWIRE_STATE_LABEL: Record<"available" | "armed" | "tripped", string> = {
+  available: "ARM",
+  armed: "ARMED",
+  tripped: "TRIPPED",
+};
+
+/** A2.3: the three exits `isClosed` covers server-side (studies.ts). Kept as
+ *  its own client-side check rather than importing the server helper — the
+ *  board never imports studies.ts — so grounded/called/overtaken read
+ *  questions and tripwires the same inert way; shelved stays live (buying a
+ *  question or arming a tripwire while shelved is exactly what reopens it,
+ *  the existing grounded-only gate's precedent generalized). */
+function isClosedStudyStatus(status: StudyStatus): boolean {
+  return status === "grounded" || status === "called" || status === "overtaken";
+}
 
 /** The Tend/mission-detail absolute-year chrome: "Y1204". Countdown-bearing
  *  dates always go through formatCountdown/formatClockPair; this is only for
@@ -257,6 +286,23 @@ export class StudyBoard {
   // pendingBeginStarId's "begin the watch" → focusStudy.
   private pendingLaunchStarId: string | null = null;
   private pendingLaunchPriorMissionIds: ReadonlySet<string> = new Set();
+
+  // A2.3: the CALL IT two-step. The first tap arms the confirm (a starId,
+  // never a boolean, so a stale confirm can never read against the wrong
+  // study); the second tap sends `callStudy` and moves the star into
+  // pendingCallStarId instead. Reset whenever the focused view opens fresh
+  // (focusStudy, the expandedQuestion precedent) — a half-armed confirm
+  // never survives a close/reopen.
+  private callConfirmStarId: string | null = null;
+  // Released the moment the study's own status leaves open/shelved (the
+  // confirming sky), or by handleServerError on a "study-unavailable".
+  private pendingCallStarId: string | null = null;
+
+  // A2.3: tripwires in flight, keyed `${starId}:${kind}` — free to arm and
+  // instant, so this only guards against a double-tap outrunning the round
+  // trip. Cleared wholesale on the next `sky` (any real transition will have
+  // landed by then) and on any server error.
+  private pendingTripwireKeys = new Set<string>();
 
   // A single 1s ticker, live while the panel is open, so the hub's compute
   // allocation line and any running project's countdown stay current without
@@ -450,6 +496,21 @@ export class StudyBoard {
       }
     }
 
+    // A callStudy in flight: released the moment the study's own status
+    // leaves open/shelved (the confirming sky — it moved to "called"), or
+    // if the study vanished from this payload entirely (defensive).
+    if (this.pendingCallStarId !== null) {
+      const study = this.studiesByStarId.get(this.pendingCallStarId);
+      if (study === undefined || (study.status !== "open" && study.status !== "shelved")) {
+        this.pendingCallStarId = null;
+      }
+    }
+
+    // A2.3: tripwires are free and instant, so any real sky is proof enough
+    // that whatever was in flight either landed or was refused (in which
+    // case handleServerError already cleared it) — no per-key bookkeeping.
+    this.pendingTripwireKeys.clear();
+
     // A launchMission in flight: this sky either carries exactly one new
     // mission for the star (by id difference against the pre-send
     // snapshot) — hand straight to its detail view — or it does not, in
@@ -555,8 +616,10 @@ export class StudyBoard {
   focusStudy(starId: string): void {
     this.view = "focused";
     this.focusedStarId = starId;
-    // A board opened fresh opens with every question folded.
+    // A board opened fresh opens with every question folded and no CALL IT
+    // confirm armed.
     this.expandedQuestion = null;
+    this.callConfirmStarId = null;
     this.renderFocused(starId);
     this.openFlag = true;
     this.root.classList.add("open");
@@ -1191,8 +1254,12 @@ export class StudyBoard {
     const open = all.filter((s) => s.status === "open");
     // Closed studies keep their own sections, and grounded comes first: a
     // study a probe settled is a finding, and a shelved one is only a vigil
-    // put down.
+    // put down. A2.3's two other exits join grounded ahead of shelved for
+    // the same reason — called and overtaken are both closed, decided
+    // outcomes, not a vigil merely paused.
     const grounded = all.filter((s) => s.status === "grounded");
+    const called = all.filter((s) => s.status === "called");
+    const overtaken = all.filter((s) => s.status === "overtaken");
     const shelved = all.filter((s) => s.status === "shelved");
 
     for (const s of open) {
@@ -1202,6 +1269,8 @@ export class StudyBoard {
 
     for (const [label, group] of [
       ["GROUNDED", grounded],
+      ["CALLED", called],
+      ["OVERTAKEN", overtaken],
       ["SHELVED", shelved],
     ] as const) {
       if (group.length === 0) continue;
@@ -1241,11 +1310,31 @@ export class StudyBoard {
     btn.className = dimmed ? "study-row study-row--dim" : "study-row";
     btn.addEventListener("click", () => this.focusStudy(s.starId));
 
+    // A2.3: a called or overtaken card reads the belief FROZEN at the
+    // transition, never the live board — the live hypotheses keep accruing
+    // light in the background (protocol.ts's whole point of freezing
+    // `call`/`overtaking`), and the card would otherwise quietly disagree
+    // with the very record it is meant to preserve. Every other status
+    // (open, shelved, grounded) still reads the live leader, exactly as it
+    // always has.
+    const frozen =
+      s.status === "called" && s.call !== null
+        ? { label: s.call.label, gloss: s.call.gloss, share: s.call.share, ageYears: s.call.lightAgeYears }
+        : s.status === "overtaken" && s.overtaking !== null
+          ? {
+              label: s.overtaking.lead.label,
+              gloss: s.overtaking.lead.gloss,
+              share: s.overtaking.lead.share,
+              ageYears: s.overtaking.lightAgeYears,
+            }
+          : null;
+
     // Sized by the LEADING hypothesis rather than the raw signal confidence:
     // a study's blot tightens as its own belief firms, so the list shows
-    // progress the same way the focused sheet does.
+    // progress the same way the focused sheet does. A frozen card sizes off
+    // its own frozen share instead, the same rule at the year it stopped.
     const leader = leadingHypothesis(s.hypotheses);
-    btn.append(this.sourceSmudge(leader?.share ?? 0));
+    btn.append(this.sourceSmudge(frozen?.share ?? leader?.share ?? 0));
 
     const text = document.createElement("div");
     text.className = "study-row-text";
@@ -1267,7 +1356,15 @@ export class StudyBoard {
 
     const beliefLine = document.createElement("div");
     beliefLine.className = "study-row-beliefline";
-    if (leader !== undefined) {
+    if (frozen !== null) {
+      const label = document.createElement("span");
+      label.className = "study-row-class";
+      label.textContent = frozen.label;
+      const percent = document.createElement("span");
+      percent.className = "study-row-conf study-tabular";
+      percent.textContent = `${Math.round(clamp01(frozen.share) * 100)}%`;
+      beliefLine.append(label, percent);
+    } else if (leader !== undefined) {
       const pcts = hypothesisPercentages(s.hypotheses);
       const pct = pcts.get(leader.id) ?? Math.round(leader.share * 100);
       const label = document.createElement("span");
@@ -1279,11 +1376,32 @@ export class StudyBoard {
       beliefLine.append(label, percent);
     }
 
+    text.append(idLine, beliefLine);
+
+    // The gloss the label would otherwise need decoding without, exactly as
+    // the focused sheet's own hypothesis rows carry it — shown only for the
+    // frozen readings, where the card is the one place this belief is told.
+    if (frozen !== null) {
+      const gloss = document.createElement("div");
+      gloss.className = "study-row-gloss";
+      gloss.textContent = frozen.gloss;
+      text.append(gloss);
+    }
+
+    // Overtaken names what it used to be as well as what it reads as now —
+    // the card's whole reason for its own section, never shown elsewhere.
+    if (s.status === "overtaken" && s.overtaking !== null) {
+      const flag = document.createElement("div");
+      flag.className = "study-row-overtaken-flag holos-caps";
+      flag.textContent = `${CLASS_LABEL[s.overtaking.fromClass]} → ${CLASS_LABEL[s.overtaking.toClass]}`;
+      text.append(flag);
+    }
+
     const age = document.createElement("div");
     age.className = "study-row-age holos-caps";
-    age.textContent = `AS OF ${source.lightAgeYears.toFixed(1)} Y AGO`;
+    age.textContent = `AS OF ${(frozen?.ageYears ?? source.lightAgeYears).toFixed(1)} Y AGO`;
 
-    text.append(idLine, beliefLine, age);
+    text.append(age);
     btn.append(text);
     return btn;
   }
@@ -1702,9 +1820,26 @@ export class StudyBoard {
       this.pendingLaunchPriorMissionIds = new Set();
       releasedLaunch = true;
     }
+    // A2.3: "study-unavailable" (a stale callStudy) and "tripwire-unavailable"
+    // both render exactly like every error code above always has — releasing
+    // whatever was in flight, no toast, no special-cased text.
+    let releasedCall = false;
+    if (this.pendingCallStarId !== null) {
+      this.pendingCallStarId = null;
+      releasedCall = true;
+    }
+    let releasedTripwire = false;
+    if (this.pendingTripwireKeys.size > 0) {
+      this.pendingTripwireKeys.clear();
+      releasedTripwire = true;
+    }
 
     if (releasedBegin && this.view === "brief") this.renderBrief();
-    if (releasedQuestion && this.view === "focused" && this.focusedStarId !== null) {
+    if (
+      (releasedQuestion || releasedCall || releasedTripwire) &&
+      this.view === "focused" &&
+      this.focusedStarId !== null
+    ) {
       this.renderFocused(this.focusedStarId);
     }
     if (releasedProject && this.view === "project") this.renderProjectDetail();
@@ -2878,6 +3013,70 @@ export class StudyBoard {
     }
   }
 
+  // ── A2.3: the CALL IT confirm, and tripwires ─────────────────────────
+
+  /** The first tap arms the confirm; the second (this same starId, already
+   *  armed) sends `callStudy` and moves into pendingCallStarId instead —
+   *  never a hold-to-commit ceremony, just the one extra tap. */
+  private onCallItTap(starId: string): void {
+    if (this.callConfirmStarId === starId) {
+      this.callConfirmStarId = null;
+      this.pendingCallStarId = starId;
+      this.socket.send({ type: "callStudy", starId });
+    } else {
+      this.callConfirmStarId = starId;
+    }
+    this.renderFocused(starId);
+  }
+
+  /** Free and instant (design note §5): a tap toggles straight to the
+   *  opposite message, no confirm step. "available" and "tripped" both arm
+   *  — re-arming a tripped kind is a real request (the server refuses it
+   *  only while the condition still holds, "tripwire-unavailable", same
+   *  silent release as every other error code). */
+  private toggleTripwire(starId: string, kind: TripwireKind, state: "available" | "armed" | "tripped"): void {
+    const key = `${starId}:${kind}`;
+    if (this.pendingTripwireKeys.has(key)) return;
+    this.pendingTripwireKeys.add(key);
+    if (state === "armed") {
+      this.socket.send({ type: "disarmTripwire", starId, kind });
+    } else {
+      this.socket.send({ type: "armTripwire", starId, kind });
+    }
+    this.renderFocused(starId);
+  }
+
+  /** One row per tripwire kind, always all three, in wire order. `active`
+   *  is false on a closed study — visible, legible, not tappable, the
+   *  OPEN QUESTIONS precedent just above it in renderFocused. */
+  private buildTripwireRow(
+    starId: string,
+    tw: { readonly kind: TripwireKind; readonly state: "available" | "armed" | "tripped"; readonly firedYear: number | null },
+    active: boolean,
+  ): HTMLElement {
+    const pending = this.pendingTripwireKeys.has(`${starId}:${tw.kind}`);
+    const interactive = active && !pending;
+
+    const row = document.createElement(interactive ? "button" : "div") as HTMLButtonElement | HTMLDivElement;
+    if (row instanceof HTMLButtonElement) row.type = "button";
+    row.className =
+      "study-tripwire-row" + (interactive ? "" : " study-tripwire-row--inert");
+    if (interactive) {
+      row.addEventListener("click", () => this.toggleTripwire(starId, tw.kind, tw.state));
+    }
+
+    const label = document.createElement("div");
+    label.className = "study-tripwire-label holos-caps";
+    label.textContent = TRIPWIRE_LABEL[tw.kind];
+
+    const badge = document.createElement("div");
+    badge.className = `tend-badge study-tripwire-badge study-tripwire-badge--${tw.state}`;
+    badge.textContent = pending ? "…" : TRIPWIRE_STATE_LABEL[tw.state];
+
+    row.append(label, badge);
+    return row;
+  }
+
   // ── Render: focused view ─────────────────────────────────────────────
 
   private renderFocused(starId: string): void {
@@ -2973,6 +3172,19 @@ export class StudyBoard {
     annotation.textContent = s.annotationLine;
     this.body.append(annotation);
 
+    // A2.3: the mind's one sentence about a study that has regressed at
+    // least once — banked prose from the server (voice.ts), rendered
+    // verbatim. Its own quiet line under the bars, a tier dimmer than
+    // annotationLine right above it: annotationLine reads the board, this
+    // names a cause an instrument cannot, and the two claims stay apart
+    // (protocol.ts's StudySnapshot.contestLine comment).
+    if (s.contestLine !== null) {
+      const contestLine = document.createElement("div");
+      contestLine.className = "study-contest-line";
+      contestLine.textContent = s.contestLine;
+      this.body.append(contestLine);
+    }
+
     this.body.append(this.hairline());
 
     // The menu's own wording, read by both the evidence tags below and an
@@ -3058,12 +3270,13 @@ export class StudyBoard {
     // highlighted, so it can be scrolled into view once the whole render
     // (including the verb row below) is on the DOM.
     let highlightedQuestionEl: HTMLElement | null = null;
+    const closed = isClosedStudyStatus(s.status);
     for (const q of s.openQuestions) {
       const questionRow = this.buildQuestionRow(
         starId,
         q,
         evidenceIds,
-        s.status !== "grounded",
+        !closed,
         hypothesisLabels,
       );
       if (this.highlightQuestionId !== null && q.id === this.highlightQuestionId) {
@@ -3072,6 +3285,22 @@ export class StudyBoard {
       oqSection.append(questionRow);
     }
     this.body.append(oqSection);
+
+    this.body.append(this.hairline());
+
+    // TRIPWIRES — always all three kinds (protocol.ts's tripwires comment),
+    // inert on a closed study exactly as OPEN QUESTIONS already is above:
+    // visible so a reopen shows what would resume, never tappable.
+    const twSection = document.createElement("div");
+    twSection.className = "study-tripwires";
+    const twHeader = document.createElement("div");
+    twHeader.className = "study-section-header holos-caps";
+    twHeader.textContent = "TRIPWIRES";
+    twSection.append(twHeader);
+    for (const tw of s.tripwires) {
+      twSection.append(this.buildTripwireRow(starId, tw, !closed));
+    }
+    this.body.append(twSection);
 
     this.body.append(this.hairline());
 
@@ -3086,20 +3315,54 @@ export class StudyBoard {
       verbBtn.addEventListener("click", () => {
         this.socket.send({ type: "shelveStudy", starId });
       });
+    } else if (s.status === "shelved") {
+      // Grounded/called/overtaken and shelved both reopen through openStudy,
+      // but they are not the same act: resuming a shelved vigil picks the
+      // watch back up, while reopening a closed one is doubting (or
+      // outliving) a verdict that was there. The reopen stamps a new
+      // openedYear server-side (and clears called/overtaken — studies.ts's
+      // openStudy), so whatever closed this study can never close it again
+      // — only the next word can.
+      verbBtn.textContent = "resume the watch";
+      verbBtn.addEventListener("click", () => {
+        this.socket.send({ type: "openStudy", starId });
+      });
     } else {
-      // Grounded and shelved both reopen through openStudy, but they are not
-      // the same act: resuming a shelved vigil picks the watch back up, while
-      // reopening a grounded one is doubting a probe that was there. The
-      // reopen stamps a new openedYear server-side, so the report that closed
-      // this study can never close it again — only the next word can.
-      verbBtn.textContent =
-        s.status === "grounded" ? "reopen the study" : "resume the watch";
+      verbBtn.textContent = "reopen the study";
       verbBtn.addEventListener("click", () => {
         this.socket.send({ type: "openStudy", starId });
       });
     }
     verbRow.append(verbBtn);
     this.body.append(verbRow);
+
+    // A2.3: CALL IT — legal from open or shelved (protocol.ts's callStudy
+    // comment; a closed study cannot be closed again, "study-unavailable").
+    // Two-tap confirm, no hold-to-commit ceremony: the first tap only arms
+    // the button, the second actually sends.
+    if (s.status === "open" || s.status === "shelved") {
+      const callRow = document.createElement("div");
+      callRow.className = "study-verb-row";
+      const callBtn = document.createElement("button");
+      callBtn.type = "button";
+      const calling = this.pendingCallStarId === starId;
+      const confirming = this.callConfirmStarId === starId;
+      if (calling) {
+        callBtn.className = "study-verb-btn study-verb-btn--primary";
+        callBtn.disabled = true;
+        callBtn.textContent = "calling it…";
+      } else if (confirming) {
+        callBtn.className = "study-verb-btn study-verb-btn--primary study-verb-btn--confirm";
+        callBtn.textContent = "tap again to call it";
+        callBtn.addEventListener("click", () => this.onCallItTap(starId));
+      } else {
+        callBtn.className = "study-verb-btn study-verb-btn--primary";
+        callBtn.textContent = "call it";
+        callBtn.addEventListener("click", () => this.onCallItTap(starId));
+      }
+      callRow.append(callBtn);
+      this.body.append(callRow);
+    }
 
     // AV3: the one-shot scroll for a proposal's `question` route. Cleared
     // BEFORE scheduling so the 1s tick's re-render of this same view (which

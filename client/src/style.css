@@ -165,6 +165,10 @@ body {
 .study-project-label,
 .study-hyp-label,
 .study-archive-tag,
+/* A2.3: the overtaken card's from/to class flag, and a tripwire row's
+   chrome label ("IF IT REGRESSES" etc.) — both short chrome, never prose. */
+.study-row-overtaken-flag,
+.study-tripwire-label,
 /* Tend: row titles, a report's headline, and the row's class/state badges. */
 .tend-row-label,
 .tend-report-headline,
@@ -195,6 +199,10 @@ body {
 .study-brief-conf-gloss,
 .study-hyp-gloss,
 .study-annotation,
+/* A2.3: the mind's regress line, and a frozen call/overtaking's gloss —
+   both server prose, sentences like the rest of this list. */
+.study-contest-line,
+.study-row-gloss,
 .study-archive-text,
 .study-focus-lightage,
 .study-board-empty,
@@ -948,6 +956,20 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* A2.3: a CALLED/OVERTAKEN card's frozen gloss — the plain-language phrase
+ * under the frozen label, .study-hyp-gloss's own anatomy at list-row scale. */
+.study-row-gloss {
+  font-size: var(--holos-text-xs);
+  line-height: 1.3;
+  color: var(--holos-ink-faint);
+}
+
+/* A2.3: OVERTAKEN's from/to class flag, the .study-explore-flag/
+ * .study-project-flag "one small marker on the row" precedent. */
+.study-row-overtaken-flag {
+  color: var(--holos-ink-faint);
+}
+
 /* Hub view — the "+ START" chip's menu, one glance at everything the game
  * lets you start. Rows are sentence case (not holos-caps): this is a list of
  * verbs, not designations. */
@@ -1293,6 +1315,51 @@ body {
   color: var(--holos-ink-faint);
 }
 
+/* A2.3: TRIPWIRES — the study-question-head anatomy (chrome label left,
+ * one small state pill right), never a second copy of the hypothesis rows'
+ * track/glow: a tripwire is a standing order, not a share. */
+.study-tripwire-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  width: 100%;
+  min-height: 44px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.6rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--holos-ink);
+}
+
+/* A closed study's rows (or one already mid-round-trip): visible, legible,
+ * not tappable — the OPEN QUESTIONS rows' own inert dress just above. */
+.study-tripwire-row--inert {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.study-tripwire-badge {
+  flex-shrink: 0;
+}
+
+.study-tripwire-badge--available {
+  color: var(--holos-ink-faint);
+  border-color: rgba(211, 185, 130, 0.34);
+}
+
+.study-tripwire-badge--armed {
+  color: var(--holos-amber);
+  border-color: rgba(240, 172, 102, 0.5);
+}
+
+.study-tripwire-badge--tripped {
+  color: var(--holos-error);
+  border-color: rgba(240, 131, 106, 0.5);
+}
+
 /* Focused view */
 .study-back {
   align-self: flex-start;
@@ -1443,6 +1510,16 @@ body {
   padding: 0.6rem 0;
 }
 
+/* A2.3: the mind's own line about a study that has regressed, verbatim
+ * server prose. A tier dimmer and a size down from .study-annotation right
+ * above it, upright rather than italic — the two claims read as two
+ * different registers, not two sizes of the same one. */
+.study-contest-line {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-faint);
+  padding: 0 0 0.6rem;
+}
+
 .study-archive-row {
   display: flex;
   flex-direction: column;
@@ -1486,6 +1563,11 @@ body {
 /* Nothing buyable ships here yet (StudySnapshot.openQuestions is always []);
  * the container carries the state-of-the-watch line until A2.2 fills it. */
 .study-open-questions {
+  padding-top: 0.4rem;
+}
+
+/* A2.3: always exactly three rows (protocol.ts's tripwires comment). */
+.study-tripwires {
   padding-top: 0.4rem;
 }
 
@@ -1711,6 +1793,14 @@ body {
   color: var(--holos-ink-faint);
   border-color: rgba(211, 185, 130, 0.25);
   cursor: default;
+}
+
+/* A2.3: CALL IT's confirm step — the tend-row-state--silent/error-color
+ * precedent, so the one tap that actually closes the study reads as the
+ * moment of attention it is, without a second ceremony. */
+.study-verb-btn--confirm {
+  color: var(--holos-error);
+  border-color: rgba(240, 131, 106, 0.5);
 }
 
 /* ── The Tend, mission detail, and the launch sheet (Act 3, A2.2) ─────
