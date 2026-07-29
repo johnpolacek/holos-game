@@ -1125,7 +1125,7 @@ export class StudyBoard {
       "This civilization is given up: its studies, its projects, its missions " +
       "and everything it ever learned. Its star returns to the pool for whoever " +
       "inherits next, and the light it has already sent stops arriving for the " +
-      "others — nothing in the game itself works this way. You then inherit " +
+      "others. Nothing in the game itself works this way. You then inherit " +
       "again, from a fresh offer, at the cohort's current year.";
     this.body.append(note);
 
@@ -1167,7 +1167,8 @@ export class StudyBoard {
       await startOver();
     } catch {
       this.startOverPending = false;
-      this.startOverError = "The cohort would not let go of this run. Nothing was given up — try again.";
+      this.startOverError =
+        "The cohort would not let go of this run. Nothing was given up. Try again.";
       this.renderStartOver();
     }
   }

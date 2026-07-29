@@ -2222,7 +2222,7 @@ export class Cohort extends Server<CohortEnv> {
         civRemoved: removed ? civId : null,
         starFreed: removed ? (run?.starId ?? null) : null,
         connectionsReset,
-        note: "clear localStorage 'holos.token' too — a reused token re-derives the same civ id",
+        note: "clear localStorage 'holos.token' too: a reused token re-derives the same civ id",
       },
       200,
       FORGET_CORS,
