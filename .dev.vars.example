@@ -7,6 +7,15 @@
 HOLOS_VOICE_GEN = "off"
 HOLOS_COUNSEL_GEN = "off"
 
+# The local-only dev HTTP surface on the Cohort DO (/dev/state, /dev/seed,
+# /dev/skip, …). Since the playholos.com routes went live, `wrangler dev`
+# presents the request to the Worker as http://playholos.com/…, so the
+# hostname half of the gate no longer fires locally and this flag is what
+# opens those endpoints. Keep it HERE and never in wrangler.jsonc's `vars`:
+# there it would ship, and /dev/state hands out other civilizations'
+# present. (/dev/forget is ungated by design and needs no flag.)
+HOLOS_DEV_ENDPOINTS = "on"
+
 # In production this is a Workers secret, never a var and never in the repo:
 #   npx wrangler secret put ANTHROPIC_API_KEY
 # A key with the flags off generates nothing; a flag on with no key serves

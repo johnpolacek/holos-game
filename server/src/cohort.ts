@@ -12,8 +12,9 @@
 // every commit stays shippable to production.
 //
 // HTTP surface, under /parties/cohort/:name . Every route below is gated to
-// local development hosts EXCEPT /dev/forget, which ships to production too
-// — see onRequest for why:
+// local development (a local hostname, or HOLOS_DEV_ENDPOINTS=on in
+// `.dev.vars` — see devEndpointsOpen) EXCEPT /dev/forget, which ships to
+// production too — see onRequest for why:
 //   POST /dev/forget   {token}                         erase one run (prod too)
 //   POST /dev/seed     {seedKey?, radiusLy?, aiCivs?}  create + persist a galaxy
 //   GET  /dev/state                                    truth overview (dev eyes only)
@@ -199,6 +200,10 @@ interface GalaxyMeta {
  */
 export interface CohortEnv extends VoiceGenEnv {
   Cohort: DurableObjectNamespace;
+  /** Opens the local-only half of the dev HTTP surface. "on" enables;
+   *  anything else, absence included, is off. Belongs in `.dev.vars` and
+   *  nowhere else — see devEndpointsOpen. */
+  readonly HOLOS_DEV_ENDPOINTS?: string;
 }
 
 /**
@@ -250,9 +255,40 @@ function json(data: unknown, status = 200): Response {
   });
 }
 
-/** Dev endpoints exist only where wrangler dev serves: local hosts. */
+/** The request arrived at a hostname only a local wrangler dev serves. */
 function isLocalDev(url: URL): boolean {
   return ["localhost", "127.0.0.1", "0.0.0.0", "[::1]"].includes(url.hostname);
+}
+
+/**
+ * Whether the local-only dev endpoints answer at all.
+ *
+ * The hostname check above used to be the whole gate, and it stopped
+ * firing the day the playholos.com routes went live: `wrangler dev`
+ * rewrites the request URL to the route it matched, so a request typed at
+ * localhost:8787 reaches this Worker as http://playholos.com/… . The gate
+ * kept doing its job in production and silently 404'd the entire dev
+ * surface on the dev machine it exists for.
+ *
+ * So the gate takes either signal. The hostname stays because it is still
+ * true wherever wrangler is not rewriting (no routes configured, a
+ * different config, `--host` overridden) and can never be true in
+ * production, where the hostname IS the route. `HOLOS_DEV_ENDPOINTS=on` is
+ * the one that fires today.
+ *
+ * That flag belongs in `.dev.vars` (gitignored) and NOWHERE else. In
+ * wrangler.jsonc's `vars` it would ship, and what it unlocks is precisely
+ * the truth the knowledge layer exists to withhold — /dev/state and
+ * /dev/observe hand out other civilizations' present. Deny by default:
+ * absence, "true", "1", and every other value read as off.
+ *
+ * Config rather than a request header, because a header would be a
+ * client's claim about itself. `url.hostname` is Cloudflare's routing
+ * decision and an env var is the operator's; neither is the caller's.
+ * (/dev/forget sits above this gate — it ships on purpose. See onRequest.)
+ */
+function devEndpointsOpen(env: CohortEnv, url: URL): boolean {
+  return env.HOLOS_DEV_ENDPOINTS === "on" || isLocalDev(url);
 }
 
 /**
@@ -1806,7 +1842,7 @@ export class Cohort extends Server<CohortEnv> {
     // shared world for everyone (seed/skip/event).
     if (request.method === "POST" && action === "forget") return this.devForget(request);
 
-    if (!isLocalDev(url)) return json({ error: "not found" }, 404);
+    if (!devEndpointsOpen(this.env, url)) return json({ error: "not found" }, 404);
 
     if (request.method === "POST" && action === "seed") return this.devSeed(request);
     if (request.method === "GET" && action === "state") return this.devState();
