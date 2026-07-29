@@ -83,6 +83,9 @@ import type { TendRow } from "./tend";
 // The tripwire vocabulary is studies.ts's (it owns the conditions and the
 // stored record); the wire borrows the id set, the TendRow precedent exactly.
 import type { TripwireKind } from "./studies";
+// A2.4: same borrowing, one more time — contact.ts owns the act vocabulary
+// and the stored ContactAct; the wire takes the id set only.
+import type { ContactKind } from "./contact";
 
 // Re-exports the client needs to render. Types are erased; DIAL_AXES is the
 // ONE runtime value the client genuinely needs (in-world dial pole labels),
@@ -114,6 +117,7 @@ export type {
 // it is named here rather than reached for through the message union.
 export type { TendRow } from "./tend";
 export type { TripwireKind } from "./studies";
+export type { ContactKind } from "./contact";
 
 /** Clock anchor; the client computes nowYear locally (no time polling). */
 export interface ClockWire {
@@ -583,6 +587,59 @@ export interface Proposal {
   readonly route: ProposalRoute;
 }
 
+// ── A2.4: the choice ceremony ──────────────────────────────────────────
+// Hail one, speak to everyone, or stay dark. Everything rides `sky`: there
+// is no new server message and no commit acknowledgment, because the commit
+// handler sends a fresh sky immediately and that sky is the truth the client
+// re-derives its stamps from. Nothing in this block is about anyone else —
+// both stances are functions of the player's OWN dial sheet, and `outbound`
+// is the player's own acts.
+
+/**
+ * Whether the mind objects to one kind of act, and what forcing it anyway
+ * would cost. PUSHED, NEVER PREFLIGHTED: `contested` and `coherenceCost` are
+ * pure functions of the civ's own dials, so the client can render the
+ * objection before the ceremony arms, with no round trip and no staleness.
+ *
+ * `coherenceCost` is a number and the client renders the chip (the
+ * `OpenQuestion.costCompute` precedent). `line` carries no numeral and could
+ * not: the mind's sentence is fact-free prose, and the style gate rejects
+ * digits in it.
+ */
+export interface ContactStance {
+  readonly kind: ContactKind;
+  readonly contested: boolean;
+  /** The archetype's objection. Non-null iff `contested`. */
+  readonly line: string | null;
+  /** What the server will charge. 0 iff uncontested. */
+  readonly coherenceCost: number;
+}
+
+/**
+ * One of the player's own committed acts — the "your echo" view. It crosses
+ * nothing new: a hail's `starId` is a source the player aimed at and already
+ * sees, and `distanceLy` is already on the matching DetectedSource, so the
+ * client computes every per-source arrival stamp locally.
+ */
+export interface OutboundAct {
+  readonly id: string;
+  readonly kind: ContactKind;
+  /** Hail: the star aimed at. Broadcast: null, it is aimed at nobody. */
+  readonly starId: string | null;
+  readonly sentYear: number;
+  /** Hail only: `sentYear + distanceLy`. */
+  readonly arrivesYear: number | null;
+  /** Broadcast only: `nowYear − sentYear`, the shell swept so far. */
+  readonly shellRadiusLy: number | null;
+}
+
+export interface ContactWire {
+  readonly hail: ContactStance;
+  readonly broadcast: ContactStance;
+  /** The player's own acts, in commit order. */
+  readonly outbound: readonly OutboundAct[];
+}
+
 // client → server (UNTRUSTED — every field guarded on parse)
 export type CohortClientMessage =
   | { type: "hello"; token: string | null }
@@ -607,7 +664,15 @@ export type CohortClientMessage =
   // ── AV2 ──
   | { type: "requestReport" }
   // ── AV3 ──
-  | { type: "declineProposal"; id: string };
+  | { type: "declineProposal"; id: string }
+  // ── A2.4 ──
+  // `choice` is parsed as a bare string and validated in the handler, the
+  // `launchMission.kind` precedent again. `acknowledged` is CONSENT, NEVER
+  // PRICE: the server recomputes the resistance at commit and charges what
+  // it computes, so a client that lies about this flag still pays the
+  // server's number and a client that never rendered the objection cannot
+  // silently wound the mind.
+  | { type: "commitContact"; choice: string; starId: string | null; acknowledged: boolean };
 
 // server → client
 export type CohortServerMessage =
@@ -628,7 +693,9 @@ export type CohortServerMessage =
        *  sheet preview a mission's clock before committing. */
       probeFlightYearsPerLy: number;
       // ── AV3 ──
-      proposals: readonly Proposal[] }
+      proposals: readonly Proposal[];
+      // ── A2.4 ──
+      contact: ContactWire }
   | { type: "sourceNamed"; starId: string; name: string }
   /** A re-anchored clock, pushed when the server moves the anchor under a
    *  live connection (today only the dev time-skip; a future ratio retune
@@ -651,7 +718,14 @@ export type CohortErrorCode =
   | "mission-unavailable" // a live mission of this kind already runs on this star
   // ── A2.3 ──
   | "study-unavailable" // not open or shelved: a closed study cannot be closed again
-  | "tripwire-unavailable"; // no such kind, or the condition already holds
+  | "tripwire-unavailable" // no such kind, or the condition already holds
+  // ── A2.4 ──
+  // Two codes, not five. Every way of naming a star that cannot be hailed
+  // answers `bad-message` instead, deliberately: "unknown star", "star with
+  // no civilization on it" and "star whose light has not reached you" must
+  // be indistinguishable from outside, or the error code becomes an oracle.
+  | "contact-unavailable" // already hailing them, already shouting, or the log is full
+  | "contact-contested"; // the mind objects and the client did not acknowledge it
 
 /** Parse-time bound on the untrusted `launchMission.charter` array (a parse
  *  concern); the 2–3 count rule and one-per-group rule are handler concerns
@@ -816,6 +890,24 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
   // cancel a real in-progress buy/launch for a bookkeeping miss.
   if (msg["type"] === "declineProposal" && typeof msg["id"] === "string") {
     return { type: "declineProposal", id: msg["id"] };
+  }
+
+  // A2.4: the parse layer checks TYPES; the handler owns the vocabulary and
+  // the error code (the `launchMission.kind` precedent). `starId` is
+  // nullable on the wire because a broadcast is aimed at nobody and stay
+  // dark aims at nothing at all.
+  if (
+    msg["type"] === "commitContact" &&
+    typeof msg["choice"] === "string" &&
+    (msg["starId"] === null || typeof msg["starId"] === "string") &&
+    typeof msg["acknowledged"] === "boolean"
+  ) {
+    return {
+      type: "commitContact",
+      choice: msg["choice"],
+      starId: msg["starId"],
+      acknowledged: msg["acknowledged"],
+    };
   }
 
   return null;

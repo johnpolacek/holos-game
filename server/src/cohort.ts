@@ -31,6 +31,7 @@ import {
 import {
   civAtStar,
   civById,
+  civDistanceLy,
   DEFAULT_GALAXY_CONFIG,
   distanceLy,
   generateGalaxy,
@@ -42,6 +43,18 @@ import {
   type Star,
 } from "./galaxy";
 import { emissionAt, lightConeFor, observeCiv, observeSky, visibleSky } from "./knowledge";
+import {
+  actsFrom,
+  appendAct,
+  applyBroadcast,
+  broadcastInFlight,
+  buildContactWire,
+  hasUnansweredHail,
+  resistanceFor,
+  MAX_ACTS_PER_CIV,
+  type ContactAct,
+  type ContactKind,
+} from "./contact";
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
@@ -142,6 +155,7 @@ import {
   type ReportPayload,
   type SelfView,
   isVoiceKey,
+  type ContactWire,
   type VoiceKey,
 } from "./protocol";
 // AV4: the generated voice. Imported ONLY here — the client never imports
@@ -189,6 +203,11 @@ const MAX_PENDING_EVENTS = 256;
  *  lifecycle question (A2.2b's grounded exit compares arrival against the
  *  year a study was opened). */
 const YEAR_EPS = 1e-6;
+
+/** A2.4: a hair past an arrival year, so the wake that resends a sky lands
+ *  on the far side of the comparison it exists to reveal. About three real
+ *  seconds at the shipped clock ratio. */
+const WAKE_SLOP_YEARS = 0.01;
 
 interface GalaxyMeta {
   readonly seedKey: string;
@@ -332,9 +351,13 @@ export class Cohort extends Server<CohortEnv> {
     const meta = await this.ctx.storage.get<GalaxyMeta>("galaxy:meta");
     const stars = await this.ctx.storage.get<Star[]>("galaxy:stars");
     const civs = await this.ctx.storage.get<PlacedCiv[]>("galaxy:civs");
+    // A2.4: the contact log. An absent key IS the migration — no stored
+    // shape changed, so a cohort seeded before this stage loads with an
+    // empty log and behaves exactly as it did.
+    const acts = await this.ctx.storage.get<ContactAct[]>("galaxy:acts");
     this.galaxy =
       meta !== undefined && stars !== undefined && civs !== undefined
-        ? { seedKey: meta.seedKey, config: meta.config, stars, civs }
+        ? { seedKey: meta.seedKey, config: meta.config, stars, civs, acts: acts ?? [] }
         : null;
   }
 
@@ -396,6 +419,9 @@ export class Cohort extends Server<CohortEnv> {
       case "declineProposal":
         await this.onDeclineProposal(conn, msg.id);
         return;
+      case "commitContact":
+        await this.onCommitContact(conn, msg.choice, msg.starId, msg.acknowledged);
+        return;
     }
   }
 
@@ -413,6 +439,7 @@ export class Cohort extends Server<CohortEnv> {
     const run = await this.ctx.storage.get<RunRecord>(`run:${token}`);
     if (run !== undefined) {
       this.conns.set(conn.id, { conn, token, civId: run.civId, reportBaselineYear: null });
+      await this.rememberCivToken(run.civId, token);
       this.sendMsg(conn, {
         type: "welcome",
         token,
@@ -527,6 +554,7 @@ export class Cohort extends Server<CohortEnv> {
 
     const run: RunRecord = { token, civId, starId: star.id, localNames: {} };
     await this.ctx.storage.put(`run:${token}`, run);
+    await this.rememberCivToken(civId, token);
     state.civId = civId;
 
     // This connection sees its own sky (and, this being its first placement,
@@ -1168,6 +1196,202 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
+   * A2.4: the token that owns a civ, so an arrival wake can find whom to
+   * push. Idempotent, and written from every placement path — which
+   * back-fills every returning pre-A2.4 run on its next hello. Used for
+   * nothing else; it is not a second run record.
+   */
+  private async rememberCivToken(civId: string, token: string): Promise<void> {
+    await this.ctx.storage.put(`civToken:${civId}`, token);
+  }
+
+  /**
+   * commitContact: hail one civilization, speak to everyone, or stay dark.
+   *
+   * PRESENCE RULE (act3-design.md, the absence charter): irreversible acts
+   * require presence. This is THE ONLY caller of appendAct and
+   * applyBroadcast in the whole server, and its first statement resolves a
+   * LIVE socket from `this.conns` — an in-memory entry deleted on close.
+   * Nothing else in this object may produce a ContactAct: alarms are
+   * wake-ups and never truth, the proposal route has no contact arm and
+   * gains none (the mind may not propose a hail into existence), tripwires
+   * fire beliefs rather than acts, and AI civs have no path here in v1.
+   *
+   * THE ORDER OF THE VALIDATION TABLE BELOW IS LOAD-BEARING. The visibility
+   * test is `visibleSky` membership and nothing more — byte-identical to the
+   * test that produced the client's own `sources` — and unknown star, star
+   * with no civilization, and star whose light has not reached this observer
+   * all answer the SAME code, so the error can never be used as an oracle
+   * for what is out there. Requiring an open study instead would also price
+   * the ceremony in Compute, which is the wrong altitude: a hail's price is
+   * coherence and irreversibility, not inference.
+   */
+  private async onCommitContact(
+    conn: Connection,
+    choice: string,
+    starId: string | null,
+    acknowledged: boolean,
+  ): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    if (choice !== "hail" && choice !== "broadcast" && choice !== "stay-dark") {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no such choice" });
+      return;
+    }
+    // Stay dark WRITES NOTHING and sends nothing (the voiceSeen /
+    // declineProposal silent-bookkeeping precedent). Physics has no record
+    // of a non-event, the light cone has nothing to serve, and a stored
+    // `lastDarkYear` would be a fact no observer could ever read. The arm
+    // exists so the ceremony's vocabulary is complete and A2.5's declined
+    // answer has a home; the sky it leaves behind is byte-identical.
+    if (choice === "stay-dark") return;
+
+    const kind: ContactKind = choice;
+    const civId = state.civId;
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    // Captured AFTER the last await, as onBecome's comment requires: no
+    // storage read yields between here and the splice below, so a
+    // concurrent commit on another connection cannot be lost.
+    const galaxy = this.requireGalaxy();
+    const selfCiv = civById(galaxy, civId);
+
+    let toCivId: string | null = null;
+    if (kind === "hail") {
+      const visible = visibleSky(galaxy, civId, nowYear);
+      const target = starId === null ? undefined : civAtStar(galaxy, starId);
+      if (
+        starId === null ||
+        !visible.some((o) => o.starId === starId) ||
+        target === undefined ||
+        target.seed.id === civId
+      ) {
+        this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
+        return;
+      }
+      toCivId = target.seed.id;
+      if (hasUnansweredHail(galaxy.acts, civId, toCivId)) {
+        this.sendMsg(conn, {
+          type: "error",
+          code: "contact-unavailable",
+          message: "a beam is already aimed there",
+        });
+        return;
+      }
+    } else if (broadcastInFlight(galaxy.acts, civId, nowYear)) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "contact-unavailable",
+        message: "already speaking to everyone",
+      });
+      return;
+    }
+    if (actsFrom(galaxy.acts, civId).length >= MAX_ACTS_PER_CIV) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "contact-unavailable",
+        message: "too many acts committed",
+      });
+      return;
+    }
+
+    // The server recomputes the resistance and charges WHAT IT COMPUTES;
+    // `acknowledged` only decides whether a contested commit may proceed. So
+    // a client that never rendered the objection cannot silently wound the
+    // mind, and a client that lies about the flag still pays this number.
+    const resistance = resistanceFor(selfCiv.seed, kind);
+    if (resistance.contested && acknowledged !== true) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "contact-contested",
+        message: "the mind objects",
+      });
+      return;
+    }
+
+    // --- the writes ------------------------------------------------------
+    // A hail gets ONE append and no emission-history write: a beam is aimed,
+    // and putting it in the broadband history would broadcast it to every
+    // observer, which is exactly the leak the class exists to exclude. A
+    // broadcast gets two writes, the act and the residue.
+    const charged = Math.min(resistance.coherenceCost, selfCiv.seed.stocks.coherence);
+    const act: ContactAct = {
+      id: `act-${galaxy.acts.length}`,
+      kind,
+      fromCivId: civId,
+      toCivId,
+      sentYear: nowYear,
+      coherenceCost: charged,
+    };
+    const updatedSelf: PlacedCiv = {
+      ...selfCiv,
+      seed: {
+        ...selfCiv.seed,
+        emissionHistory:
+          kind === "broadcast"
+            ? applyBroadcast(selfCiv.seed.emissionHistory, nowYear)
+            : selfCiv.seed.emissionHistory,
+        stocks: {
+          ...selfCiv.seed.stocks,
+          // Floored at zero. v1 CHARGES AND DISPLAYS only: coherence's
+          // thresholds (fragmentation, wobbling endeavors) are the economy's
+          // later work and nothing here presumes them.
+          coherence: Math.max(0, selfCiv.seed.stocks.coherence - charged),
+        },
+      },
+    };
+    const civs = galaxy.civs.map((c) => (c.seed.id === civId ? updatedSelf : c));
+    this.galaxy = appendAct({ ...galaxy, civs }, act);
+    await this.ctx.storage.put("galaxy:civs", this.galaxy.civs);
+    await this.ctx.storage.put("galaxy:acts", this.galaxy.acts);
+
+    await this.scheduleContactWakes(this.galaxy, act);
+
+    // This connection sees the debit and its own echo immediately (the
+    // client re-derives every stamp from this sky, so the seam is one round
+    // trip). Every OTHER placed connection gets a fresh sky too: the
+    // membership of their sky can change on a commit, exactly as it does on
+    // a placement.
+    await this.sendSky(conn, state.token, civId);
+    for (const [id, other] of this.conns) {
+      if (id === conn.id) continue;
+      if (other.civId === null) continue;
+      await this.sendSky(other.conn, other.token, other.civId);
+    }
+  }
+
+  /**
+   * Wake the observers this act will eventually reach, at the year it
+   * reaches them: the target for a hail, every player-controlled civ for a
+   * broadcast. A wake still only resends a sky computed through the cone, so
+   * it can never surface anything early, and a dropped queue costs nothing
+   * but a push the client would compute itself on its next `requestSky`
+   * (onAlarm's contract).
+   */
+  private async scheduleContactWakes(galaxy: Galaxy, act: ContactAct): Promise<void> {
+    const observers: string[] =
+      act.kind === "hail"
+        ? act.toCivId === null
+          ? []
+          : [act.toCivId]
+        : galaxy.civs
+            .filter((c) => c.controller === "player" && c.seed.id !== act.fromCivId)
+            .map((c) => c.seed.id);
+    for (const observerId of observers) {
+      const token = await this.ctx.storage.get<string>(`civToken:${observerId}`);
+      if (token === undefined) continue; // never placed through a live socket
+      const arrivesYear = act.sentYear + civDistanceLy(galaxy, act.fromCivId, observerId);
+      await this.pushWakeEvent({
+        token,
+        atYear: arrivesYear + WAKE_SLOP_YEARS,
+        key: `c/${act.id}/${observerId}`,
+      });
+    }
+  }
+
+  /**
    * startProject: commission a project against the civ's free compute. No
    * derivation here beyond calling projects.ts functions: validate, mutate
    * state, persist, then a fresh sky.
@@ -1591,6 +1815,9 @@ export class Cohort extends Server<CohortEnv> {
     await this.ctx.storage.put("galaxy:meta", { seedKey, config } satisfies GalaxyMeta);
     await this.ctx.storage.put("galaxy:stars", galaxy.stars);
     await this.ctx.storage.put("galaxy:civs", galaxy.civs);
+    // A2.4: written explicitly at seed time so a re-seed cannot inherit the
+    // previous galaxy's contact log. `onStart` still tolerates its absence.
+    await this.ctx.storage.put("galaxy:acts", galaxy.acts);
     await this.ctx.storage.put("events", []);
     await this.ctx.storage.put("eventLog", []);
   }
@@ -1627,6 +1854,7 @@ export class Cohort extends Server<CohortEnv> {
       projects,
       projectState,
       designations,
+      contact,
     } = await this.assembleSkyState(token, civId, nowYear);
 
     const budget: ComputeBudget = {
@@ -1709,6 +1937,7 @@ export class Cohort extends Server<CohortEnv> {
       tend,
       probeFlightYearsPerLy,
       proposals: counsel.proposals,
+      contact,
     });
 
     // AFTER the send, always. Generation is considered only once the message
@@ -1754,6 +1983,7 @@ export class Cohort extends Server<CohortEnv> {
     readonly projects: readonly ProjectSnapshot[];
     readonly projectState: ProjectState;
     readonly designations: Readonly<Record<string, string>>;
+    readonly contact: ContactWire;
   }> {
     const galaxy = this.requireGalaxy();
     const selfCiv = civById(galaxy, civId);
@@ -1976,7 +2206,22 @@ export class Cohort extends Server<CohortEnv> {
       designations[starId] = starById(galaxy.stars, starId).designation;
     }
 
-    return { self, sources, localNames, studies, missions, projects, projectState, designations };
+    // A2.4: the ceremony's whole block, derived from this civ's own dial
+    // sheet and its own acts. Nothing in it is about anyone else, which is
+    // why it needs no cone.
+    const contact = buildContactWire(galaxy, selfCiv, nowYear);
+
+    return {
+      self,
+      sources,
+      localNames,
+      studies,
+      missions,
+      projects,
+      projectState,
+      designations,
+      contact,
+    };
   }
 
   /**
@@ -2221,6 +2466,9 @@ export class Cohort extends Server<CohortEnv> {
     } satisfies GalaxyMeta);
     await this.ctx.storage.put("galaxy:stars", galaxy.stars);
     await this.ctx.storage.put("galaxy:civs", galaxy.civs);
+    // A2.4: written explicitly at seed time so a re-seed cannot inherit the
+    // previous galaxy's contact log. `onStart` still tolerates its absence.
+    await this.ctx.storage.put("galaxy:acts", galaxy.acts);
     await this.ctx.storage.put("events", []);
     await this.ctx.storage.put("eventLog", []);
     await this.ctx.storage.deleteAlarm();

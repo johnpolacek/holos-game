@@ -19,6 +19,7 @@
 
 import type { CivId, CivSeed, EmissionEpoch } from "./civseed";
 import { lightDelayYears } from "./clock";
+import { beamCrossing, BEAM_RECEIVED_LEVEL } from "./contact";
 import { civById, civDistanceLy, starById, type Galaxy } from "./galaxy";
 
 // ---------------------------------------------------------------------------
@@ -241,8 +242,29 @@ export function observeCiv(
   const asOfYear = nowYear - lightDelayYears(distance);
   const truth = civTruthAt(target.seed, asOfYear);
 
+  // A2.4: is a directed beam from the target landing on THIS observer as of
+  // this observer's own light-departure year? The check rides the cone
+  // already derived above and reads no clock of its own, so a beam can never
+  // surface early; it is filtered on the recipient, so no other observer
+  // sees anything but the sender's ordinary broadband light; and it
+  // short-circuits DETECTION_FLOOR, which is the entire point — a silent
+  // civilization reveals itself TO THEM ALONE. See contact.ts.
+  const beam =
+    observerId === targetId
+      ? null
+      : beamCrossing(galaxy.acts, targetId, observerId, asOfYear);
+
   let signal: ObservedSignal | null = null;
-  if (truth.emissionLevel >= DETECTION_FLOOR) {
+  if (beam !== null) {
+    signal = {
+      emissionLevel: Math.max(truth.emissionLevel, BEAM_RECEIVED_LEVEL),
+      classification: "directed-beam",
+      confidence: confidenceFor(distance, BEAM_RECEIVED_LEVEL),
+      // Broadband, unchanged: the arrival adds a CLASS, never a fake
+      // history. A beam is aimed and leaves no trace in the light curve.
+      lightHistory: target.seed.emissionHistory.filter((e) => e.fromYear <= asOfYear),
+    };
+  } else if (truth.emissionLevel >= DETECTION_FLOOR) {
     signal = {
       emissionLevel: truth.emissionLevel,
       classification: classify(truth, target.seed),

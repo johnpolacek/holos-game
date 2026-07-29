@@ -119,6 +119,20 @@ function sortedHistory(history: readonly EmissionEpoch[]): EmissionEpoch[] {
  * OWN emissionHistory rather than from a posture flag, because the mask's
  * onset has to be the same year the sky sees the character change: the epoch
  * that makes the light go quiet is the epoch upkeep starts paying for.
+ *
+ * A2.4 STRAIN, RECORDED AND TEST-WORTHY. `contact.ts`'s `applyBroadcast`
+ * now mutates the emission history this reads: a broadcast inserts a loud
+ * epoch at the commit year and a resume epoch a shout later. The FIRST
+ * qualifying epoch still wins, so a civilization that already went dark
+ * keeps the dark turn it had, and its mask tier is unchanged — the
+ * broadcast's epochs are later and are never reached. A broadcast BEFORE a
+ * dark turn is likewise inert here (it sits above the made-heat floor). The
+ * one case worth a test rather than a code change is a shout whose resume
+ * epoch lands below the floor and earlier than the seed's own turn, which
+ * only a broadcast committed inside an existing dark window can produce.
+ * Player civs commit those, and the resume epoch carries exactly the level
+ * history already had, so the turn year it would name is the one already
+ * named. No behavior changes; the reasoning is why.
  */
 export function darkTurnYear(seed: CivSeed): number | null {
   for (const epoch of sortedHistory(seed.emissionHistory)) {

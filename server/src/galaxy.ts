@@ -12,6 +12,9 @@
 // which also matches the cradle catalog's skew.
 
 import { generateCivSeed, type CivId, type CivSeed } from "./civseed";
+// Type-only, so nothing of contact.ts's runtime is pulled in behind the
+// galaxy record (contact.ts imports this module in turn; the cycle is erased).
+import type { ContactAct } from "./contact";
 import type { Rng } from "./rng";
 
 export type StarId = string;
@@ -126,6 +129,15 @@ export interface Galaxy {
   readonly config: GalaxyConfig;
   readonly stars: readonly Star[];
   readonly civs: readonly PlacedCiv[];
+  /**
+   * A2.4: the append-only contact log (contact.ts). It lives HERE, on the
+   * truth record, so `observeCiv(galaxy, …)` can reach it without a
+   * signature change anywhere and the light-cone gate stays the only way
+   * into truth. Persisted at its own DO key; an absent key loads as `[]`,
+   * which IS the migration — no stored shape changed, so existing cohorts
+   * keep working untouched.
+   */
+  readonly acts: readonly ContactAct[];
 }
 
 /** Minimum separation between civilization home stars, in light-years. */
@@ -189,7 +201,7 @@ export function generateGalaxy(
       controller: "ai",
     });
   }
-  return { seedKey, config, stars, civs };
+  return { seedKey, config, stars, civs, acts: [] };
 }
 
 /**

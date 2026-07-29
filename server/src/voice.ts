@@ -17,7 +17,7 @@ import { createRng } from "./rng";
 // AV3: typed by protocol.ts's re-export, never by importing knowledge.ts
 // directly — the truth-side module stays off this file's import list, the
 // same discipline proposals.ts's Pin A enforces for itself.
-import type { SignalClass, TripwireKind } from "./protocol";
+import type { ContactKind, SignalClass, TripwireKind } from "./protocol";
 import type { ProposalKind } from "./proposals";
 
 // ---------------------------------------------------------------------------
@@ -1053,4 +1053,90 @@ export function reasonProject(
   effectLine: string,
 ): PinnedLine {
   return line`Nothing is being built. One project is within the allocation: ${F.label(projectLabel)}, ${F.compute(costCompute)}, standing ${F.years(durationYears)} later. ${F.label(effectLine)}`;
+}
+
+// ---------------------------------------------------------------------------
+// A2.4 — the resistance bank (the mind objects to being made to speak).
+//
+// One line per archetype per act, and no pool: the objection is not a mood,
+// it is the same mind saying the same thing every time it is asked, so there
+// is nothing here to pick between and NO RNG anywhere on this path. That is
+// also what makes the stance pushable — the client renders the objection
+// before the ceremony arms, and it is byte-identical to the one the server
+// would state at the charge.
+//
+// Total over all ten archetypes, including the bright four that will rarely
+// reach it (a broadcast contests above a Silence position of +0.10 and a
+// hail above +0.35, so a Voice-leaning mind simply never objects). Every
+// bank here is total; a partial one would be a crash waiting on a dial.
+//
+// Every string obeys, without exception (LIMITS.remark, prose-style.md §4,
+// R-29a):
+//  - a plain string, not a PinnedLine: there is nothing in it to pin;
+//  - ≤ 22 words, 1–2 sentences, wit ceiling 2;
+//  - first person PLURAL, no numerals, no exclamation, no dash of any kind;
+//  - FAMILY-SCOPED, and the family here is narrow on purpose: the line may
+//    name only THE KIND OF ACT and WHAT IT COSTS THE MIND. Never the target,
+//    never the distance, never who is listening — a particular in this
+//    sentence would be the mind telling the player something the light has
+//    not brought yet;
+//  - unmistakably its own archetype (§4, R-6): swapping any two must break
+//    both.
+//
+// The price is a chip, never a clause: no line names a number, because the
+// wound is rendered beside it and a sentence that also carried it could
+// disagree with it.
+// ---------------------------------------------------------------------------
+
+export const RESISTANCE_LINES: ByArchetype<Readonly<Record<ContactKind, string>>> = {
+  beacon: {
+    hail: "We have never once aimed our voice at a single listener. Narrowing it to one feels like turning most of ourselves off.",
+    broadcast: "Everyone is already welcome to us. Saying so again on purpose is less courage than an occasion we arranged for ourselves.",
+  },
+  tide: {
+    hail: "One listener. We have never wanted only one of anything, and the appetite is complaining about it now.",
+    broadcast: "Announcing ourselves to everything at once is the only serving size we approve of. The cost is that everything gets to answer.",
+  },
+  monument: {
+    hail: "We keep everything, including this. The record will say we spoke first, and it will say so for a very long time.",
+    broadcast: "This will be kept forever, by us and by everyone it reaches. We have never made a record we could not close.",
+  },
+  cloister: {
+    hail: "A door for one visitor is still a door. We did not seal this system in order to put one back in.",
+    broadcast: "We have spent an age being difficult to find. You are asking us to undo that in an afternoon.",
+  },
+  shepherd: {
+    hail: "Speaking to one is the smallest thing you could ask. It is still a thing the ones we stand over cannot undo.",
+    broadcast: "We grew large quietly so nothing would come looking. Being heard everywhere is how something comes looking, and not for us alone.",
+  },
+  sowing: {
+    hail: "One of us speaks and all of us are implicated. We have avoided that by never being the one who speaks.",
+    // The approved exemplar, with its closing clause tightened by one word:
+    // at twenty-three words the original sat over LIMITS.remark and
+    // `npm run audit:voice` refused it. The first sentence is verbatim, and
+    // nothing else moved. (No double quote may appear anywhere inside this
+    // declaration: the audit scrapes the block for quoted literals.)
+    broadcast: "We are in a great many places, and none of them has ever been announced. Announce one and you announce them all.",
+  },
+  herald: {
+    hail: "We have spent everything we are speaking outward. Aiming it at one listener is the only shape of speech we never learned.",
+    broadcast: "This is the one thing we were made for, and still we hesitate. What leaves as a voice arrives as a memory.",
+  },
+  engine: {
+    hail: "Nothing in the schedule required a recipient. Adding one is a change of scope, and the objection is logged rather than raised.",
+    broadcast: "An output with no defined consumer runs forever at our expense. We have costed it, and we do not recommend it.",
+  },
+  congress: {
+    hail: "A majority of us can be brought to agree. The minority wishes it recorded that they were not persuaded, only outvoted.",
+    broadcast: "The vote is close and the losing side is drafting already. Whatever goes out goes out over objections that will outlive it.",
+  },
+  phoenix: {
+    hail: "Someone will answer a self that no longer exists. We are used to that, and we have never once found it comfortable.",
+    broadcast: "Whoever hears this will meet a mind we shed long before the sound arrived. We would rather not be held to it.",
+  },
+};
+
+/** The mind's objection to one kind of act. No pick, no draw, no clock. */
+export function resistanceLine(a: ArchetypeId, kind: ContactKind): string {
+  return RESISTANCE_LINES[a][kind];
 }
