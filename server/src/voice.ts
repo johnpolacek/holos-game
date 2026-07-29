@@ -17,7 +17,7 @@ import { createRng } from "./rng";
 // AV3: typed by protocol.ts's re-export, never by importing knowledge.ts
 // directly — the truth-side module stays off this file's import list, the
 // same discipline proposals.ts's Pin A enforces for itself.
-import type { ContactKind, SignalClass, TripwireKind } from "./protocol";
+import type { CeremonyKind, SignalClass, TripwireKind } from "./protocol";
 import type { ProposalKind } from "./proposals";
 
 // ---------------------------------------------------------------------------
@@ -1088,7 +1088,7 @@ export function reasonProject(
 // disagree with it.
 // ---------------------------------------------------------------------------
 
-export const RESISTANCE_LINES: ByArchetype<Readonly<Record<ContactKind, string>>> = {
+export const RESISTANCE_LINES: ByArchetype<Readonly<Record<CeremonyKind, string>>> = {
   beacon: {
     hail: "We have never once aimed our voice at a single listener. Narrowing it to one feels like turning most of ourselves off.",
     broadcast: "Everyone is already welcome to us. Saying so again on purpose is less courage than an occasion we arranged for ourselves.",
@@ -1136,7 +1136,203 @@ export const RESISTANCE_LINES: ByArchetype<Readonly<Record<ContactKind, string>>
   },
 };
 
-/** The mind's objection to one kind of act. No pick, no draw, no clock. */
-export function resistanceLine(a: ArchetypeId, kind: ContactKind): string {
+/** The mind's objection to one kind of act. No pick, no draw, no clock.
+ *  Keyed over CeremonyKind, not ContactKind: A2.5's `signal` is never
+ *  contested, so there is no cell here for it and no caller that wants one. */
+export function resistanceLine(a: ArchetypeId, kind: CeremonyKind): string {
   return RESISTANCE_LINES[a][kind];
 }
+
+// ---------------------------------------------------------------------------
+// A2.5 — the traffic banks.
+//
+// A counterpart's reply is TWO FACT-FREE CLAUSES, COMPOSED:
+//
+//   body = SIGNAL_OBSERVATIONS[observation] + " " + SIGNAL_VOICE[archetype]…
+//
+// The OBSERVATION clause is the trigger rule made prose: it is selected by
+// real state and it states that state QUALITATIVELY. The VOICE clause is
+// §4's archetype register and says nothing about the player at all. Nothing
+// interpolates, because EVERY NUMBER LIVES ON THE PHYSICS STAMP RENDERED
+// ABOVE THE PAYLOAD and none of it may also live in the prose, where the two
+// could disagree. That is why A2.5 needs no pinned-fact machinery: no fact
+// can originate in a template that has no slot to put one in.
+//
+// Every string here obeys LIMITS.remark on its own (≤ 22 words, ≤ 2
+// sentences, ≤ 200 chars) and `npm run audit:voice` proves it; the COMPOSED
+// line is gated against LIMITS.signal at its one call site in traffic.ts,
+// which falls back to the observation clause alone on a rejection. Two
+// gate-clean clauses can only compose into a too-long line, never a dirty
+// one, so the fallback is a length backstop and nothing more.
+//
+// House rules, as everywhere else in this file: first person plural, no
+// numerals, no exclamation, no dash of any width, no quotes, terminated,
+// wit ceiling 2, and unmistakably its own archetype.
+// ---------------------------------------------------------------------------
+
+/**
+ * WHAT THE COUNTERPART NOTICED — one per (class, situation), nine in all.
+ * Flat and TOTAL rather than nested under CounterpartClass: every name below
+ * belongs to exactly one class already, and a nested record would need three
+ * dead cells for the silent class, which never speaks.
+ *
+ * The clause may name only what the counterpart's OWN LIGHT-VIEW of the
+ * player carries — your quiet, your bright years, the crossing itself. Never
+ * a distance, never a year, never anything the trigger did not read.
+ */
+export type SignalObservation =
+  // whisperer: it answers a proven silence, and it leaves when the silence ends
+  | "heldDark"
+  | "unchanged"
+  | "turnedBright"
+  // lantern: it answers everything, and sometimes it does not wait to be asked
+  | "answered"
+  | "continued"
+  | "unprompted"
+  // congress: it votes, it minutes the vote, and sometimes the vote is close
+  | "carried"
+  | "reconvened"
+  | "deferred";
+
+// EVERY KEY IN THIS DECLARATION IS A BARE IDENTIFIER, and no double quote may
+// appear anywhere inside it: `npm run audit:voice` scrapes the block for
+// quoted literals, and a quoted key would be audited as a bank string and
+// rejected as an unterminated fragment (the RESISTANCE_LINES block carries
+// the same warning for the same reason).
+export const SIGNAL_OBSERVATIONS: Readonly<Record<SignalObservation, string>> = {
+  heldDark:
+    "Your quiet had held a very long time when this left, and it was not the quiet of a dead world.",
+  unchanged:
+    "Nothing in your light has changed since the last of these crossed. That is the whole reason there is another.",
+  turnedBright:
+    "Something bright began in your light after this thread opened. The quiet ones speak only to the quiet.",
+  answered:
+    "We had your bright years on record before your beam arrived, and we had been hoping to be spoken to.",
+  continued:
+    "Your last carried further than the one before it. We have kept every word of both.",
+  unprompted:
+    "Your bright years reached us and we did not wait to be asked. Something there was loud, and we answer loud things.",
+  carried:
+    "A motion was put and it carried, though not by as much as the sending of this suggests.",
+  reconvened:
+    "The same body met again on your account. Attendance was better and the argument was worse.",
+  deferred:
+    "The vote was too close to call an answer, so what crossed instead is a record of the disagreement.",
+};
+
+/** Where in a thread the counterpart is speaking from. */
+export type SignalBeat = "open" | "follow" | "withdraw";
+
+/**
+ * WHO IS SPEAKING — §4's register, and nothing about the player in any of
+ * it. `follow` carries two variants because a thread is the one surface a
+ * player reads the same archetype on repeatedly, and the pick is seeded
+ * (traffic.ts) so a re-derivation cannot change a line already delivered.
+ *
+ * `withdraw` is non-null for exactly the four whisperer archetypes, which
+ * are the only ones that ever leave. The record stays total in SHAPE — a
+ * null is a cell that says the archetype has no such beat, which is a
+ * statement, where a missing key would be a crash waiting on a dial.
+ *
+ * Phoenix is authored in full and is UNREACHABLE in A2.5: it is the silent
+ * class, and the self you hailed is gone. The cells exist so the bank stays
+ * total and so the day phoenix acquires a voice is a rule change, not an
+ * authoring sprint.
+ */
+export interface SignalVoice {
+  readonly open: string;
+  readonly follow: readonly string[];
+  readonly withdraw: string | null;
+}
+
+export const SIGNAL_VOICE: ByArchetype<SignalVoice> = {
+  beacon: {
+    open: "We have never been difficult to find, and we are pleased that someone finally went to the trouble of aiming.",
+    follow: [
+      "We have told everyone that you wrote to us. Nobody asked us to, and we did it anyway.",
+      "We are not good at brevity and we have stopped pretending otherwise. Every word of ours goes out at full volume.",
+    ],
+    withdraw: null,
+  },
+  tide: {
+    open: "There is so much of everything out here and almost none of it answers back. You did, and we want more.",
+    follow: [
+      "We would like more of these, and we would like them closer together. Appetite is the only honest thing about us.",
+      "There is never enough of anything out here, including this. We will take whatever else you are willing to send.",
+    ],
+    withdraw: null,
+  },
+  monument: {
+    open: "We keep everything, and we have kept you since long before this. The record simply lacked your side of it.",
+    follow: [
+      "Both of these are in the record now, filed beside each other. Nothing we keep is ever taken out again.",
+      "The file on you is no longer one-sided, which is a small thing, and it is written down.",
+    ],
+    withdraw:
+      "The record will show that we spoke and then stopped. It will not show why, because we are not writing that down.",
+  },
+  cloister: {
+    open: "The door has been shut for an age, and it opens for this alone. We would rather it were not mentioned again.",
+    follow: [
+      "Nothing outside this system has decided anything here in a very long time. This exchange is the exception, and it remains one.",
+      "This remains the only opening, and it is not widening. We would not know how to want visitors.",
+    ],
+    withdraw:
+      "The door is shut again and it will not open twice. Nothing you send after this will be read here.",
+  },
+  shepherd: {
+    open: "There are things here that will never know this happened, and that is the point. Speaking to you costs them nothing yet.",
+    follow: [
+      "The ones we stand over still know nothing of this, and they will not. Their not knowing is the whole work.",
+      "We keep this exchange well away from what we tend. Nothing you have sent has reached them, and nothing will.",
+    ],
+    withdraw:
+      "What we stand over cannot be near anything that loud. We are stepping back between it and you now.",
+  },
+  sowing: {
+    open: "One of us answers and all of us are implicated. That is the arrangement, and we have made our peace with it.",
+    follow: [
+      "Copies of this are already elsewhere, as copies of everything here are. None of them has an address you could find.",
+      "You are speaking to one place and being heard in a great many. We have never seen a reason to explain that.",
+    ],
+    withdraw:
+      "We were never the ones who announce things. We will go back to not being them, and you will not notice when.",
+  },
+  herald: {
+    open: "We were made to speak outward and were never once answered. Being aimed at is new, and we will keep it.",
+    follow: [
+      "Everything we send outlives the sending. Yours will be read here long after both of us have stopped meaning it.",
+      "We are still speaking outward while we answer you. The two are the same act, and neither one stops.",
+    ],
+    withdraw: null,
+  },
+  engine: {
+    open: "The schedule had no line for this and now it has one. The allocation is small and it is not being questioned.",
+    // The approved exemplar, with one word removed from its closing clause:
+    // at twenty-three words the original sat over LIMITS.remark and
+    // `npm run audit:voice` refused it, exactly as it refused the sowing
+    // broadcast objection above. The first sentence is verbatim and nothing
+    // else moved.
+    follow: [
+      "The line remains open and the ledger remains balanced. Sentiment does not parse here, and an allocation is kept for it anyway.",
+      "This is a recurring item now, and recurring items are cheap. The cost of answering has been rounded to nothing.",
+    ],
+    withdraw: null,
+  },
+  congress: {
+    open: "Most of us wished this sent. The rest wish it recorded that they were outvoted, and they are drafting as it leaves.",
+    follow: [
+      "The motion carried again, by a smaller margin and a longer sitting. The minority has asked that its objection be attached.",
+      "Half of us wanted a different answer and half of us wanted no answer. What crossed is what survived that.",
+    ],
+    withdraw: null,
+  },
+  phoenix: {
+    open: "Whoever you aimed at is not who reads this. We have shed that self, and we answer for it anyway.",
+    follow: [
+      "The self that read your last is already gone, and this one has read it too. We are used to inheriting.",
+      "We keep no more of the previous self than we must. What we kept of you is the part that answered.",
+    ],
+    withdraw: null,
+  },
+};

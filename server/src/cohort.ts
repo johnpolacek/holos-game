@@ -49,12 +49,18 @@ import {
   applyBroadcast,
   broadcastInFlight,
   buildContactWire,
-  hasUnansweredHail,
+  hasHailed,
   resistanceFor,
   MAX_ACTS_PER_CIV,
+  MAX_SIGNALS_PER_THREAD,
+  SIGNAL_COOLDOWN_YEARS,
+  type CeremonyKind,
   type ContactAct,
-  type ContactKind,
 } from "./contact";
+// A2.5. Every symbol here is READ-SIDE: `buildThreads` feeds the sky and
+// `deriveAiSignals` feeds the wake queue, and neither appears inside a
+// handler that mutates `this.galaxy` (traffic.ts's derivation rule).
+import { buildThreads, deriveAiSignals } from "./traffic";
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
@@ -139,6 +145,7 @@ import {
 } from "./proposals";
 import {
   parseCohortClientMessage,
+  sanitizeSignalText,
   toWireSource,
   validateName,
   type StudyGrounding,
@@ -209,6 +216,12 @@ const YEAR_EPS = 1e-6;
  *  seconds at the shipped clock ratio. */
 const WAKE_SLOP_YEARS = 0.01;
 
+/** A2.5: how far ahead the per-sky horizon pass queues derived arrivals.
+ *  Two hundred game years is well past any thread's round trip in a 25 ly
+ *  neighborhood, and bounding it is what keeps the pass from filling the
+ *  queue with a lantern's hail scheduled for the deep future. */
+const WAKE_HORIZON_YEARS = 200;
+
 interface GalaxyMeta {
   readonly seedKey: string;
   readonly config: GalaxyConfig;
@@ -264,6 +277,11 @@ interface ConnState {
    *  promoted remark survive a reopen instead of vanishing on the first
    *  refresh (the design's "a refresh reuses the same header"). */
   reportBaselineYear: number | null;
+  /** A2.5: which thread this CONNECTION has open, so `sky` can carry its
+   *  detail. Per-connection UI state with NO DO KEY behind it — two tabs may
+   *  read different threads, and a reconnect re-sends `openThread`. Storing
+   *  it would make a scroll position into durable truth, which it is not. */
+  openThreadStarId: string | null;
 }
 
 function json(data: unknown, status = 200): Response {
@@ -422,6 +440,12 @@ export class Cohort extends Server<CohortEnv> {
       case "commitContact":
         await this.onCommitContact(conn, msg.choice, msg.starId, msg.acknowledged);
         return;
+      case "sendSignal":
+        await this.onSendSignal(conn, msg.starId, msg.text);
+        return;
+      case "openThread":
+        await this.onOpenThread(conn, msg.starId);
+        return;
     }
   }
 
@@ -438,7 +462,13 @@ export class Cohort extends Server<CohortEnv> {
     const token = tokenIn ?? crypto.randomUUID();
     const run = await this.ctx.storage.get<RunRecord>(`run:${token}`);
     if (run !== undefined) {
-      this.conns.set(conn.id, { conn, token, civId: run.civId, reportBaselineYear: null });
+      this.conns.set(conn.id, {
+        conn,
+        token,
+        civId: run.civId,
+        reportBaselineYear: null,
+        openThreadStarId: null,
+      });
       await this.rememberCivToken(run.civId, token);
       this.sendMsg(conn, {
         type: "welcome",
@@ -454,7 +484,13 @@ export class Cohort extends Server<CohortEnv> {
       await this.sendSky(conn, token, run.civId);
       return;
     }
-    this.conns.set(conn.id, { conn, token, civId: null, reportBaselineYear: null });
+    this.conns.set(conn.id, {
+      conn,
+      token,
+      civId: null,
+      reportBaselineYear: null,
+      openThreadStarId: null,
+    });
     this.sendMsg(conn, {
       type: "welcome",
       token,
@@ -1209,13 +1245,16 @@ export class Cohort extends Server<CohortEnv> {
    * commitContact: hail one civilization, speak to everyone, or stay dark.
    *
    * PRESENCE RULE (act3-design.md, the absence charter): irreversible acts
-   * require presence. This is THE ONLY caller of appendAct and
-   * applyBroadcast in the whole server, and its first statement resolves a
-   * LIVE socket from `this.conns` — an in-memory entry deleted on close.
-   * Nothing else in this object may produce a ContactAct: alarms are
-   * wake-ups and never truth, the proposal route has no contact arm and
-   * gains none (the mind may not propose a hail into existence), tripwires
-   * fire beliefs rather than acts, and AI civs have no path here in v1.
+   * require presence. This is the ONLY caller of applyBroadcast in the whole
+   * server and one of exactly TWO callers of appendAct (the other is
+   * `onSendSignal`), and — the invariant that actually matters — its first
+   * statement resolves a LIVE socket from `this.conns`, an in-memory entry
+   * deleted on close. Nothing else in this object may produce a ContactAct:
+   * alarms are wake-ups and never truth, the proposal route has no contact
+   * arm and gains none (the mind may not propose a hail into existence),
+   * tripwires fire beliefs rather than acts, and no AI civilization has a
+   * path here at any stage — its answers are DERIVED and stored nowhere
+   * (traffic.ts).
    *
    * THE ORDER OF THE VALIDATION TABLE BELOW IS LOAD-BEARING. The visibility
    * test is `visibleSky` membership and nothing more — byte-identical to the
@@ -1249,7 +1288,7 @@ export class Cohort extends Server<CohortEnv> {
     // answer has a home; the sky it leaves behind is byte-identical.
     if (choice === "stay-dark") return;
 
-    const kind: ContactKind = choice;
+    const kind: CeremonyKind = choice;
     const civId = state.civId;
     const nowYear = gameYearAt(this.requireClock(), Date.now());
     // Captured AFTER the last await, as onBecome's comment requires: no
@@ -1272,7 +1311,7 @@ export class Cohort extends Server<CohortEnv> {
         return;
       }
       toCivId = target.seed.id;
-      if (hasUnansweredHail(galaxy.acts, civId, toCivId)) {
+      if (hasHailed(galaxy.acts, civId, toCivId)) {
         this.sendMsg(conn, {
           type: "error",
           code: "contact-unavailable",
@@ -1363,16 +1402,179 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
+   * sendSignal: a follow-up inside a thread you already opened.
+   *
+   * PRESENCE RULE, second and final call site. Its first statement resolves a
+   * LIVE socket from `this.conns`, exactly as `onCommitContact`'s does; that
+   * — not a count of one — is the invariant contact.ts's header states.
+   *
+   * NO CEREMONY AND NO RESISTANCE. The mind objected once, at the door, and
+   * does not relitigate the conversation, so a signal costs no coherence and
+   * `CeremonyKind` never widened to admit it.
+   *
+   * THE ORDER OF THE VALIDATION TABLE IS LOAD-BEARING, and it inherits
+   * A2.4's oracle discipline whole: the visibility test is `visibleSky`
+   * membership and nothing more — byte-identical to the test that produced
+   * the client's own `sources` — and unknown star, star with no
+   * civilization, and star whose light has not reached this observer all
+   * answer the SAME code. Sanitation runs FIRST, ahead of any lookup, because
+   * its verdict depends only on the sender's own bytes, so a malformed
+   * payload never gets to probe the sky at all.
+   */
+  private async onSendSignal(
+    conn: Connection,
+    starId: string,
+    text: string,
+  ): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    // The one door player prose comes through. It is not gated and never
+    // will be: this is the player's own sentence, not generated prose.
+    const clean = sanitizeSignalText(text);
+    if (clean === null) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "signal-rejected",
+        message: "signal is invalid",
+      });
+      return;
+    }
+
+    const civId = state.civId;
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    // Captured AFTER the last await (onBecome's rule): no storage read yields
+    // between here and the splice below.
+    const galaxy = this.requireGalaxy();
+    const visible = visibleSky(galaxy, civId, nowYear);
+    const target = civAtStar(galaxy, starId);
+    if (
+      !visible.some((o) => o.starId === starId) ||
+      target === undefined ||
+      target.seed.id === civId
+    ) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
+      return;
+    }
+    const toCivId = target.seed.id;
+
+    // THE FORMAT RULE, and its one throw site in the whole server:
+    //   grep -rn "freeform-forbidden" server/src
+    // A2.5 ships freeform to seeded counterparts only. Human-to-human threads
+    // are a moderation surface with none of the machinery a moderation
+    // surface needs, and shipping them by omission is how that happens.
+    if (target.controller === "player") {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "freeform-forbidden",
+        message: "no freeform there",
+      });
+      return;
+    }
+
+    const mine = actsFrom(galaxy.acts, civId).filter(
+      (a) => (a.kind === "hail" || a.kind === "signal") && a.toCivId === toCivId,
+    );
+    // The thread exists iff you opened it. ANSWERING SOMEONE WHO HAILED YOU
+    // COSTS THE HAIL CEREMONY — the client routes there instead, which is the
+    // beat, not an omission.
+    if (!hasHailed(galaxy.acts, civId, toCivId)) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "thread-unavailable",
+        message: "no thread there",
+      });
+      return;
+    }
+    const last = mine[mine.length - 1];
+    if (last !== undefined && nowYear - last.sentYear < SIGNAL_COOLDOWN_YEARS) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "contact-unavailable",
+        message: "too soon after the last",
+      });
+      return;
+    }
+    if (mine.filter((a) => a.kind === "signal").length >= MAX_SIGNALS_PER_THREAD) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "contact-unavailable",
+        message: "this thread is full",
+      });
+      return;
+    }
+    if (actsFrom(galaxy.acts, civId).length >= MAX_ACTS_PER_CIV) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "contact-unavailable",
+        message: "too many acts committed",
+      });
+      return;
+    }
+
+    // --- the write -------------------------------------------------------
+    // ONE append and no emission-history write, for exactly the reason a hail
+    // gets none: a signal is aimed, and putting it in the broadband history
+    // would broadcast it to every observer.
+    //
+    // `inReplyTo` is deliberately UNSET. The only thing this could be
+    // answering is a derived reply, whose id names nothing in this log, and a
+    // stored pointer into derived material would dangle the moment the
+    // derivation moved (contact.ts, ContactAct.inReplyTo).
+    const act: ContactAct = {
+      id: `act-${galaxy.acts.length}`,
+      kind: "signal",
+      fromCivId: civId,
+      toCivId,
+      sentYear: nowYear,
+      coherenceCost: 0,
+      text: clean,
+    };
+    this.galaxy = appendAct(galaxy, act);
+    await this.ctx.storage.put("galaxy:acts", this.galaxy.acts);
+
+    await this.scheduleContactWakes(this.galaxy, act);
+
+    // Only this connection is resent. The target is a seeded counterpart (a
+    // player target was refused above), so no other player's sky can have
+    // changed — the beam is filtered on its recipient and nothing broadband
+    // moved.
+    await this.sendSky(conn, state.token, civId);
+  }
+
+  /**
+   * openThread: which thread this CONNECTION is reading. Per-connection UI
+   * state, no DO key, no error code — bookkeeping, the `declineProposal`
+   * precedent. A starId naming no thread yields a null detail, which is also
+   * what a starId naming nothing at all yields, so this cannot be used as an
+   * oracle for what is out there.
+   */
+  private async onOpenThread(conn: Connection, starId: string | null): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) return;
+    state.openThreadStarId = starId;
+    await this.sendSky(conn, state.token, state.civId);
+  }
+
+  /**
    * Wake the observers this act will eventually reach, at the year it
-   * reaches them: the target for a hail, every player-controlled civ for a
-   * broadcast. A wake still only resends a sky computed through the cone, so
-   * it can never surface anything early, and a dropped queue costs nothing
-   * but a push the client would compute itself on its next `requestSky`
-   * (onAlarm's contract).
+   * reaches them: the target for a hail or signal, every player-controlled
+   * civ for a broadcast. A wake still only resends a sky computed through the
+   * cone, so it can never surface anything early, and a dropped queue costs
+   * nothing but a push the client would compute itself on its next
+   * `requestSky` (onAlarm's contract).
+   *
+   * A2.5 extends it and does not change its nature. NO WAKE IS REQUIRED FOR
+   * CORRECTNESS ANYWHERE — that sentence is the invariant, and it is why
+   * calling `deriveAiSignals` from here is a read and not a write: the
+   * derived arrival happens whether or not anything is queued for it, and
+   * this method mutates nothing at all.
    */
   private async scheduleContactWakes(galaxy: Galaxy, act: ContactAct): Promise<void> {
     const observers: string[] =
-      act.kind === "hail"
+      act.kind === "hail" || act.kind === "signal"
         ? act.toCivId === null
           ? []
           : [act.toCivId]
@@ -1389,6 +1591,83 @@ export class Cohort extends Server<CohortEnv> {
         key: `c/${act.id}/${observerId}`,
       });
     }
+
+    // A2.5: an act aimed at a SEEDED counterpart wakes the SENDER twice over
+    // — once when their own beam lands (the thread's chip flips from
+    // in-flight to awaiting) and once at each derived arrival that is still
+    // in the future. The counterpart itself has no token and needs none:
+    // nothing is delivered to it, because nothing about it is stored.
+    if (act.toCivId === null) return;
+    const target = civById(galaxy, act.toCivId);
+    if (target.controller !== "ai") return;
+    const senderToken = await this.ctx.storage.get<string>(`civToken:${act.fromCivId}`);
+    if (senderToken === undefined) return;
+    const distance = civDistanceLy(galaxy, act.fromCivId, act.toCivId);
+    await this.pushWakeEvents([
+      {
+        token: senderToken,
+        atYear: act.sentYear + distance + WAKE_SLOP_YEARS,
+        key: `t/${act.id}/landed`,
+      },
+      ...this.threadWakes(galaxy, act.fromCivId, act.toCivId, senderToken, act.sentYear),
+    ]);
+  }
+
+  /**
+   * The wakes one pair wants: every derived arrival still ahead of `fromYear`,
+   * optionally bounded by a horizon. Idempotent by key — a derived signal's id
+   * is stable across derivations, so re-pushing overwrites the entry at the
+   * same id instead of growing the queue.
+   *
+   * PURE, and the point bears repeating: it computes a list. Its callers own
+   * the single storage write, and nothing here is truth. Wipe the queue and
+   * every one of these arrivals still lands, one `requestSky` later.
+   */
+  private threadWakes(
+    galaxy: Galaxy,
+    playerId: string,
+    aiId: string,
+    token: string,
+    fromYear: number,
+    horizonYears: number | null = null,
+  ): { readonly token: string; readonly atYear: number; readonly key: string }[] {
+    const wakes: { readonly token: string; readonly atYear: number; readonly key: string }[] = [];
+    for (const signal of deriveAiSignals(galaxy, aiId, playerId)) {
+      if (signal.arrivesYear <= fromYear) continue;
+      if (horizonYears !== null && signal.arrivesYear > fromYear + horizonYears) continue;
+      wakes.push({
+        token,
+        atYear: signal.arrivesYear + WAKE_SLOP_YEARS,
+        key: `t/${signal.id}`,
+      });
+    }
+    return wakes;
+  }
+
+  /**
+   * The horizon pass: on every sky send, queue a wake for each derived
+   * arrival within WAKE_HORIZON_YEARS. Self-healing, and the reason the queue
+   * can be wiped without losing anything — the arrivals are derived, so all a
+   * lost wake ever costs is a push.
+   *
+   * Runs over every SEEDED counterpart rather than over open threads: a
+   * lantern's unprompted hail arrives before any thread exists, and a pass
+   * that only looked at threads could never deliver it.
+   */
+  private async scheduleThreadHorizon(
+    token: string,
+    civId: string,
+    nowYear: number,
+  ): Promise<void> {
+    const galaxy = this.requireGalaxy();
+    const wakes = galaxy.civs
+      .filter((civ) => civ.controller === "ai")
+      .flatMap((civ) =>
+        this.threadWakes(galaxy, civId, civ.seed.id, token, nowYear, WAKE_HORIZON_YEARS),
+      );
+    // ONE read-modify-write for the whole pass, and none at all when there is
+    // nothing ahead.
+    await this.pushWakeEvents(wakes);
   }
 
   /**
@@ -1855,7 +2134,20 @@ export class Cohort extends Server<CohortEnv> {
       projectState,
       designations,
       contact,
-    } = await this.assembleSkyState(token, civId, nowYear);
+    } = await this.assembleSkyState(
+      token,
+      civId,
+      nowYear,
+      this.conns.get(conn.id)?.openThreadStarId ?? null,
+    );
+
+    // A2.5, THE HORIZON PASS. Self-healing delivery: every derived arrival
+    // inside WAKE_HORIZON_YEARS gets a wake on every sky send, so a player
+    // returning after a week gets everything on their first sky whatever the
+    // queue did or did not survive. It runs over every seeded counterpart and
+    // not merely over open threads, because a lantern's unprompted hail is
+    // the one arrival that exists before any thread does.
+    await this.scheduleThreadHorizon(token, civId, nowYear);
 
     const budget: ComputeBudget = {
       free: freeComputeAt(projectState, nowYear),
@@ -1974,6 +2266,10 @@ export class Cohort extends Server<CohortEnv> {
     token: string,
     civId: string,
     nowYear: number,
+    /** A2.5: which thread the ASKING CONNECTION has open. Defaults to null,
+     *  so every caller that is not serving a socket (AV2's report
+     *  materialization) pays for no detail it would not render. */
+    openThreadStarId: string | null = null,
   ): Promise<{
     readonly self: SelfView;
     readonly sources: readonly DetectedSource[];
@@ -2206,10 +2502,16 @@ export class Cohort extends Server<CohortEnv> {
       designations[starId] = starById(galaxy.stars, starId).designation;
     }
 
-    // A2.4: the ceremony's whole block, derived from this civ's own dial
-    // sheet and its own acts. Nothing in it is about anyone else, which is
-    // why it needs no cone.
-    const contact = buildContactWire(galaxy, selfCiv, nowYear);
+    // A2.4: the ceremony's stances, derived from this civ's own dial sheet
+    // and its own acts. Nothing in either of them is about anyone else, which
+    // is why they need no cone.
+    //
+    // A2.5: the threads are the one part of this block that IS about somebody
+    // else, so they are built through traffic.ts and CALLED THROUGH — derived
+    // at read time, stored nowhere, and filtered at `arrivesYear <= nowYear`
+    // inside `buildThreads` so an answer in flight reaches no field here.
+    const threads = buildThreads(galaxy, civId, nowYear, openThreadStarId);
+    const contact = buildContactWire(galaxy, selfCiv, nowYear, threads);
 
     return {
       self,
@@ -2327,10 +2629,30 @@ export class Cohort extends Server<CohortEnv> {
     readonly key: string;
     readonly missionId?: string;
   }): Promise<void> {
+    await this.pushWakeEvents([input]);
+  }
+
+  /**
+   * The same write for SEVERAL wakes at once: one read, one put, one arm,
+   * however many events. A2.5's horizon pass runs on every sky send and can
+   * queue a wake per derived arrival per counterpart, and paying a
+   * read-modify-write for each of those would put a dozen storage round trips
+   * under an ordinary sky (the design note's own recorded risk: measure the
+   * sky weight). An empty batch writes nothing at all.
+   */
+  private async pushWakeEvents(
+    inputs: readonly {
+      readonly token: string;
+      readonly atYear: number;
+      readonly key: string;
+      readonly missionId?: string;
+    }[],
+  ): Promise<void> {
+    if (inputs.length === 0) return;
     const pending = (await this.ctx.storage.get<ScheduledEvent[]>("events")) ?? [];
-    const event = this.buildWakeEvent(input);
-    const withoutDup = pending.filter((e) => e.id !== event.id);
-    let queue = [...withoutDup, event];
+    const events = inputs.map((input) => this.buildWakeEvent(input));
+    const ids = new Set(events.map((e) => e.id));
+    let queue = [...pending.filter((e) => !ids.has(e.id)), ...events];
     if (queue.length > MAX_PENDING_EVENTS) {
       queue = queue.sort((a, b) => a.atYear - b.atYear).slice(0, MAX_PENDING_EVENTS);
     }

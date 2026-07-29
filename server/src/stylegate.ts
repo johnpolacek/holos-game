@@ -26,7 +26,7 @@
 import { BANNED_RULES } from "./bannedterms.js";
 
 /** The generated surfaces the gate is calibrated for. */
-export type GenSurface = "remark" | "arrival" | "stance" | "record";
+export type GenSurface = "remark" | "arrival" | "stance" | "record" | "signal";
 
 export type GateReason =
   | "empty"
@@ -70,6 +70,12 @@ export const LIMITS: Readonly<Record<GenSurface, GateLimits>> = {
   arrival: { maxWords: 34, maxSentences: 3, maxChars: 320 }, // R-26
   stance: { maxWords: 22, maxSentences: 2, maxChars: 200 }, // R-36
   record: { maxWords: 34, maxSentences: 2, maxChars: 400 }, // R-32 — no call sites
+  // A2.5: a counterpart's reply is TWO remark-sized clauses composed — the
+  // observation clause and the voice clause — so its bound is two remarks
+  // with a word of slack and nothing more. Each clause is audited ALONE
+  // against `remark` by `npm run audit:voice`; this limit governs only the
+  // composition, at its one call site in traffic.ts.
+  signal: { maxWords: 44, maxSentences: 4, maxChars: 400 },
 };
 
 // --- the compiled rule table ----------------------------------------------

@@ -85,11 +85,36 @@ const contest = tagged(block("const CONTEST_LINES: Readonly<Record<\"tell\", Pin
 // fact-free by construction — the objection names the kind of act and nothing
 // particular about the target — so it is checked against the remark bounds.
 const resistance = quoted(block("export const RESISTANCE_LINES: ByArchetype<"));
+// A2.5's traffic banks. A counterpart's reply is an observation clause and a
+// voice clause COMPOSED, and each half is authored to remark size on its own —
+// so each half is audited against LIMITS.remark here, exactly like every other
+// fact-free bank, and the COMPOSITION is gated against LIMITS.signal at its one
+// call site in traffic.ts. Auditing the halves is the stronger test: it is what
+// guarantees the fallback path (observation clause alone, on a rejected
+// composition) can only ever emit a line the gate already accepts.
+const observations = quoted(block("export const SIGNAL_OBSERVATIONS: Readonly<"));
+const signalVoice = quoted(block("export const SIGNAL_VOICE: ByArchetype<"));
 
 const arrivalCount = check("arrival line", arrivals, LIMITS.arrival);
 const remarkCount = check("report remark", remarks, LIMITS.remark);
 const contestCount = check("contest line", contest, LIMITS.remark);
 const resistanceCount = check("resistance line", resistance, LIMITS.remark);
+const observationCount = check("signal observation", observations, LIMITS.remark);
+const signalVoiceCount = check("signal voice", signalVoice, LIMITS.remark);
+
+// The composition is what actually ships, so prove it fits: every observation
+// against every voice clause of the classes that can draw it would be the
+// exhaustive test, but the bound is decided by the LONGEST of each, and a
+// cross product of the two worst cases is the only pair that can fail.
+const longest = (pool) =>
+  pool.reduce((best, s) => (s.split(/\s+/).length > best.split(/\s+/).length ? s : best), "");
+const worstComposition = `${longest(observations)} ${longest(signalVoice)}`;
+const composed = gateFactFree(worstComposition, LIMITS.signal);
+if (!composed.ok) {
+  fail(
+    `signal composition: the longest observation and the longest voice clause compose to "${composed.reason}"\n      ${worstComposition}`,
+  );
+}
 
 // The fact-carrying gate has ZERO call sites in AV4 (every generated surface
 // is fact-free by construction), so it is exercised here instead — masking a
@@ -113,6 +138,8 @@ console.log(`arrival lines   ${arrivalCount}`);
 console.log(`report remarks  ${remarkCount}`);
 console.log(`contest lines   ${contestCount}`);
 console.log(`resistance      ${resistanceCount}`);
+console.log(`observations    ${observationCount}`);
+console.log(`signal voice    ${signalVoiceCount}`);
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} failure(s):`);

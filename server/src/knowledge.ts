@@ -21,6 +21,12 @@ import type { CivId, CivSeed, EmissionEpoch } from "./civseed";
 import { lightDelayYears } from "./clock";
 import { beamCrossing, BEAM_RECEIVED_LEVEL } from "./contact";
 import { civById, civDistanceLy, starById, type Galaxy } from "./galaxy";
+// A2.5: the derived half of the beam branch. Imported for its FUNCTION
+// REFERENCE only, resolved at call time — traffic.ts imports `lightConeFor`
+// and `peekTruth` from here in turn, and neither module reads the other at
+// module-initialization time (contact.ts's header states the same cycle for
+// the same reason).
+import { aiBeamCrossing } from "./traffic";
 
 // ---------------------------------------------------------------------------
 // Truth (server-side only)
@@ -254,8 +260,21 @@ export function observeCiv(
       ? null
       : beamCrossing(galaxy.acts, targetId, observerId, asOfYear);
 
+  // A2.5: the same question asked of the DERIVED half of the log. A
+  // counterpart's reply (and a lantern's unprompted opener) is a beam on
+  // exactly the same terms — aimed, filtered on the recipient, compared only
+  // against this observer's own light-departure year — and it lights the same
+  // class. Consulted only when the stored half found nothing, so a live
+  // outbound beam of the player's own is never overwritten by one of theirs.
+  // NO RECURSION: `aiBeamCrossing` reads seeds, distances and the player's
+  // acts, and never calls back into `observeCiv` (traffic.ts's header, §1).
+  const derivedBeam =
+    beam !== null || observerId === targetId
+      ? null
+      : aiBeamCrossing(galaxy, targetId, observerId, asOfYear);
+
   let signal: ObservedSignal | null = null;
-  if (beam !== null) {
+  if (beam !== null || derivedBeam !== null) {
     signal = {
       emissionLevel: Math.max(truth.emissionLevel, BEAM_RECEIVED_LEVEL),
       classification: "directed-beam",

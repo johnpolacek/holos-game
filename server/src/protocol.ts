@@ -85,7 +85,12 @@ import type { TendRow } from "./tend";
 import type { TripwireKind } from "./studies";
 // A2.4: same borrowing, one more time — contact.ts owns the act vocabulary
 // and the stored ContactAct; the wire takes the id set only.
-import type { ContactKind } from "./contact";
+import type { CeremonyKind, ContactKind } from "./contact";
+// A2.5: the stamp is measured in traffic.ts (it is derived from the distance
+// and nothing else) and rendered by the client, so it is named here the way
+// ObservedSignal is — a type-only re-export, erased at build, pulling no
+// truth-side runtime behind it.
+import type { PhysicsStamp } from "./traffic";
 
 // Re-exports the client needs to render. Types are erased; DIAL_AXES is the
 // ONE runtime value the client genuinely needs (in-world dial pole labels),
@@ -117,7 +122,8 @@ export type {
 // it is named here rather than reached for through the message union.
 export type { TendRow } from "./tend";
 export type { TripwireKind } from "./studies";
-export type { ContactKind } from "./contact";
+export type { CeremonyKind, ContactKind } from "./contact";
+export type { PhysicsStamp } from "./traffic";
 
 /** Clock anchor; the client computes nowYear locally (no time polling). */
 export interface ClockWire {
@@ -607,7 +613,9 @@ export interface Proposal {
  * digits in it.
  */
 export interface ContactStance {
-  readonly kind: ContactKind;
+  /** CeremonyKind, not ContactKind: a signal is never contested, so there is
+   *  no stance about one to render. */
+  readonly kind: CeremonyKind;
   readonly contested: boolean;
   /** The archetype's objection. Non-null iff `contested`. */
   readonly line: string | null;
@@ -623,14 +631,86 @@ export interface ContactStance {
  */
 export interface OutboundAct {
   readonly id: string;
+  /**
+   * A2.5 widens this to the full ContactKind and adds NOTHING else: a signal
+   * already has a `starId` and an `arrivesYear`, which is the whole in-flight
+   * render, so the Model's outbound pass generalizes with no new field.
+   */
   readonly kind: ContactKind;
-  /** Hail: the star aimed at. Broadcast: null, it is aimed at nobody. */
+  /** Hail/signal: the star aimed at. Broadcast: null, it is aimed at nobody. */
   readonly starId: string | null;
   readonly sentYear: number;
-  /** Hail only: `sentYear + distanceLy`. */
+  /** Hail/signal only: `sentYear + distanceLy`. */
   readonly arrivesYear: number | null;
   /** Broadcast only: `nowYear − sentYear`, the shell swept so far. */
   readonly shellRadiusLy: number | null;
+}
+
+// ── A2.5: threads ──────────────────────────────────────────────────────────
+//
+// A thread is one ordered pair (you, them) and the log's own order; it has no
+// stored identity, which is why every shape below is keyed by `starId`.
+//
+// THE NO-LEAK AUDIT, written where the shapes are so it cannot drift from
+// them:
+//  - `nextEventYear` NEVER carries a pending reply. Knowing that an answer is
+//    coming is knowing their present. Once your signal lands, the state is
+//    `awaiting` and `nextEventYear` is null.
+//  - An inbound signal reaches this wire only once `arrivesYear <= nowYear`.
+//    Future-dated derived signals are legal, ordinary, and INVISIBLE.
+//  - No inbound arc renders on the Model. You cannot see a beam before it
+//    lands, and there is no field here that would let you.
+
+/**
+ * Where a thread stands, from YOUR side of the light.
+ *
+ * `silent` is a statement about your own arithmetic and not about them: the
+ * window in which an answer could have arrived has passed. It leaks nothing,
+ * because you computed it from the distance you already knew and a bound on
+ * deliberation that is the same for every counterpart of that class.
+ */
+export type ThreadState =
+  | "unopened"
+  | "in-flight"
+  | "awaiting"
+  | "answered"
+  | "silent"
+  | "withdrawn";
+
+export interface ThreadSignal {
+  readonly id: string;
+  readonly from: "you" | "them";
+  readonly kind: ContactKind;
+  readonly sentYear: number;
+  readonly arrivesYear: number;
+  /** Their prose, or yours. Null on a hail, which carries no payload. */
+  readonly body: string | null;
+  /**
+   * The instrument readout, rendered ABOVE the payload. Non-null only on a
+   * signal you RECEIVED: a stamp measures an arriving beam, and you have no
+   * instrument at the far end of your own. Your own landing year is your own
+   * arithmetic, never a receipt.
+   */
+  readonly stamp: PhysicsStamp | null;
+  readonly inReplyTo: string | null;
+}
+
+export interface ThreadSummary {
+  readonly starId: string;
+  readonly state: ThreadState;
+  readonly signalCount: number;
+  readonly lastEventYear: number;
+  /** YOUR OWN next arrival only. NEVER a predicted reply. */
+  readonly nextEventYear: number | null;
+  /** You have hailed them and the thread has room: the composer is live. */
+  readonly canSpeak: boolean;
+}
+
+export interface ThreadDetail extends ThreadSummary {
+  /** Oldest to newest, by the year YOU learned of each: at most
+   *  MAX_SIGNALS_ON_WIRE, newest kept. */
+  readonly signals: readonly ThreadSignal[];
+  readonly truncated: boolean;
 }
 
 export interface ContactWire {
@@ -638,6 +718,12 @@ export interface ContactWire {
   readonly broadcast: ContactStance;
   /** The player's own acts, in commit order. */
   readonly outbound: readonly OutboundAct[];
+  // ── A2.5 ──
+  /** One row per thread, list view. */
+  readonly threads: readonly ThreadSummary[];
+  /** The one thread this CONNECTION has open, in full. Per-connection UI
+   *  state with no DO key behind it: a reconnect re-sends `openThread`. */
+  readonly openThread: ThreadDetail | null;
 }
 
 // client → server (UNTRUSTED — every field guarded on parse)
@@ -672,7 +758,20 @@ export type CohortClientMessage =
   // it computes, so a client that lies about this flag still pays the
   // server's number and a client that never rendered the objection cannot
   // silently wound the mind.
-  | { type: "commitContact"; choice: string; starId: string | null; acknowledged: boolean };
+  | { type: "commitContact"; choice: string; starId: string | null; acknowledged: boolean }
+  // ── A2.5 ──
+  // `text` is parsed for TYPE and for MAX_SIGNAL_LEN only (a parse concern: a
+  // bound on the untrusted payload before anything walks it). Every other
+  // question about it — controls, bidi, mark stacking, the collapse to one
+  // paragraph — belongs to `sanitizeSignalText`, which the handler calls and
+  // answers with its own code, the `validateName` precedent exactly.
+  | { type: "sendSignal"; starId: string; text: string }
+  // Which thread is on screen is per-CONNECTION UI state. Null closes it.
+  // There is no DO key behind this and there is deliberately no error code:
+  // it is bookkeeping (the declineProposal precedent), and a starId naming
+  // no thread simply produces a null detail, which is also the answer for a
+  // starId naming nothing at all — so it cannot be used as an oracle.
+  | { type: "openThread"; starId: string | null };
 
 // server → client
 export type CohortServerMessage =
@@ -725,7 +824,18 @@ export type CohortErrorCode =
   // no civilization on it" and "star whose light has not reached you" must
   // be indistinguishable from outside, or the error code becomes an oracle.
   | "contact-unavailable" // already hailing them, already shouting, or the log is full
-  | "contact-contested"; // the mind objects and the client did not acknowledge it
+  | "contact-contested" // the mind objects and the client did not acknowledge it
+  // ── A2.5 ──
+  // The oracle discipline above is UNCHANGED and extends to these: unknown
+  // star, star with no civilization, and star whose light has not reached
+  // you still all answer `bad-message`. What is new is only what can be said
+  // once the target has resolved through the SAME visibleSky test the
+  // client's own `sources` came from.
+  | "thread-unavailable" // no thread there: you have not hailed them
+  | "signal-rejected" // sanitizeSignalText refused the payload
+  | "freeform-forbidden"; // the target is another player, and A2.5 has no
+// human-to-human freeform. One throw site, in onSendSignal:
+//   grep -rn "freeform-forbidden" server/src
 
 /** Parse-time bound on the untrusted `launchMission.charter` array (a parse
  *  concern); the 2–3 count rule and one-per-group rule are handler concerns
@@ -759,6 +869,66 @@ export function validateName(raw: string): string | null {
       return null;
     }
   }
+  return collapsed;
+}
+
+/** Max signal payload length, in CODE POINTS, after cleaning. */
+export const MAX_SIGNAL_LEN = 280;
+
+/** How many signals one thread detail may carry. The newest are kept, and
+ *  `ThreadDetail.truncated` says the older ones exist. */
+export const MAX_SIGNALS_ON_WIRE = 24;
+
+/**
+ * The one door player prose comes through. Returns the cleaned signal, or
+ * null if it may not be sent at all.
+ *
+ * `validateName`'s code-point table is the FLOOR here, not the whole of it —
+ * the same controls and the same invisible/bidi block, plus a bound on
+ * combining-mark stacking, which a name's 24 characters made uninteresting
+ * and 280 do not.
+ *
+ * WHAT THIS DELIBERATELY DOES NOT DO: it strips no markup, polices no
+ * punctuation, and runs no style gate. THIS IS NOT GENERATED PROSE. The gate
+ * exists so no fact originates in a model; a player writing to another
+ * civilization may write badly, may use a dash, and may shout, and none of
+ * that is the gate's business. Two rules carry the safety instead: the
+ * payload is rendered with `textContent` and never as markup, and it is
+ * NEVER HANDED TO VOICEGEN — stated again in voicegen.ts beside the
+ * untrusted-source-name comment, and greppable from both ends.
+ */
+export function sanitizeSignalText(raw: string): string | null {
+  // 1. One canonical form, so the length bound and the mark scan below both
+  //    measure what a reader will actually see.
+  const normalized = raw.normalize("NFC");
+  // 2. A SIGNAL IS ONE PARAGRAPH: every whitespace run, newlines included,
+  //    collapses to a single space. This is a shape rule, not a filter — the
+  //    composer suppresses newlines client-side and this is what makes that
+  //    non-authoritative.
+  const collapsed = normalized.replace(/\s+/g, " ").trim();
+  // 3. The same controls and the same invisible/bidi block validateName
+  //    rejects: a signal must be what it looks like.
+  for (const ch of collapsed) {
+    const code = ch.codePointAt(0);
+    if (code === undefined) continue;
+    if (code < 0x20 || (code >= 0x7f && code <= 0x9f)) return null;
+    if (
+      (code >= 0x200b && code <= 0x200f) ||
+      (code >= 0x202a && code <= 0x202e) ||
+      (code >= 0x2060 && code <= 0x206f) ||
+      code === 0xfeff
+    ) {
+      return null;
+    }
+  }
+  // 4. Combining-mark stacking: a run this long is not a language, it is a
+  //    line-height attack on whoever reads the thread.
+  if (/\p{M}{9,}/u.test(collapsed)) return null;
+  // 5. Length in CODE POINTS, not UTF-16 units, so an astral character costs
+  //    one and not two.
+  const points = [...collapsed].length;
+  if (points < 1 || points > MAX_SIGNAL_LEN) return null;
+  // 6. That is the whole door. See the contract above for what is not here.
   return collapsed;
 }
 
@@ -908,6 +1078,27 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
       starId: msg["starId"],
       acknowledged: msg["acknowledged"],
     };
+  }
+
+  // A2.5. The parse layer bounds the untrusted payload and checks types; the
+  // handler owns everything else and every error code. The length test here
+  // is on the RAW string and is a totality backstop — it keeps a megabyte of
+  // text from reaching the normalizer at all — so it is deliberately looser
+  // than the post-clean bound `sanitizeSignalText` enforces.
+  if (
+    msg["type"] === "sendSignal" &&
+    typeof msg["starId"] === "string" &&
+    typeof msg["text"] === "string" &&
+    msg["text"].length <= 4 * MAX_SIGNAL_LEN
+  ) {
+    return { type: "sendSignal", starId: msg["starId"], text: msg["text"] };
+  }
+
+  if (
+    msg["type"] === "openThread" &&
+    (msg["starId"] === null || typeof msg["starId"] === "string")
+  ) {
+    return { type: "openThread", starId: msg["starId"] };
   }
 
   return null;
