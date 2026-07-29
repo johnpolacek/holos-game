@@ -23,6 +23,16 @@
 // or, for listen-off-axis, of there being nothing on-axis to catch the
 // edge of. No RNG anywhere in this module.
 //
+// THE CONTEST RUNS LAST, AND ONLY EVER SUBTRACTS. contest.ts knows what the
+// target has been spending to stay unreadable; this module asks it only
+// AFTER the honest table has already produced an answer, and only ever
+// downgrades that answer (to a cause-neutral plateau, or to a regression
+// that moves no share). It cannot invent an answer, cannot change which
+// reading an answer favors, and cannot run at all before `peekTruth` has
+// admitted the year. That ordering is the whole of the no-leak story on this
+// side: what a player observes is their own instrument losing ground, never
+// a fact about the target's behavior.
+//
 // EFFECTS FREEZE AT PURCHASE (synthesis.md §4). A question bought at year
 // B answers on the discount/haste granted by projects LANDED BY B — never
 // retroactively. Because a project's landing year is itself an immutable
@@ -34,6 +44,7 @@
 // frozen "pending"/"answered" reading (atYear = bought.boughtYear).
 
 import type { LadderStages } from "./civseed";
+import { instrumentTierAt, resolveContest } from "./contest";
 import { civById, type Galaxy } from "./galaxy";
 import {
   occupancyAt,
@@ -44,6 +55,7 @@ import {
   type SignalClass,
 } from "./knowledge";
 import {
+  confidenceLiftAt,
   questionCostKeepFractionAt,
   questionGrantProseNamesAt,
   questionYearsKeepFractionAt,
@@ -67,6 +79,29 @@ export type QuestionId =
  * does not exist on the menus.
  */
 export type RoleShift = Readonly<Partial<Record<HypothesisRole, number>>>;
+
+/**
+ * The multiplier ladder every finding in this module is built from — the
+ * exact shipped numbers, named. NOT a retune: the six values below are the
+ * six values the tables already used, hoisted so a finding's strength is
+ * stated in words ("firmly for the quiet reading") rather than in a decimal
+ * a reader has to compare against every other decimal in the file.
+ *
+ * Naming them also makes membership structural: a shift can only be built
+ * from rungs of this ladder, so there is no runtime audit to write and no
+ * seventh magnitude to accidentally invent. The ladder lives here rather
+ * than in studies.ts because a RoleShift is a question's output and
+ * questions.ts must not import runtime values from studies.ts (studies.ts
+ * imports THIS module at runtime; the other direction would be a cycle).
+ */
+export const LADDER = {
+  strong: 3.0,
+  firm: 1.8,
+  slight: 1.3,
+  slightAgainst: 0.8,
+  against: 0.55,
+  strongAgainst: 0.3,
+} as const;
 
 export interface QuestionDef {
   readonly id: QuestionId;
@@ -306,11 +341,19 @@ export interface Finding {
   readonly id: string; // e.g. "weigh-it/too-little-mass-for-the-heat"
   readonly annotation: string; // observatory deadpan, one or two sentences
   readonly shift: RoleShift;
-  readonly shape: "sharpen" | "plateau";
+  /** sharpen: the board moves toward a reading. plateau: the instrument
+   *  could not separate anything, and the board does not move at all.
+   *  regress: the board moves, but only in temperature — every share loses
+   *  definition and none of them changes rank (studies.ts's sharpness fold). */
+  readonly shape: "sharpen" | "plateau" | "regress";
 }
 
 function plateau(id: QuestionId, slug: string, annotation: string): Finding {
   return { id: `${id}/${slug}`, annotation, shift: {}, shape: "plateau" };
+}
+
+function regressed(id: QuestionId, slug: string, annotation: string): Finding {
+  return { id: `${id}/${slug}`, annotation, shift: {}, shape: "regress" };
 }
 
 function sharpen(id: QuestionId, slug: string, annotation: string, shift: RoleShift): Finding {
@@ -331,14 +374,14 @@ function weighItFinding(occupancy: Occupancy, signal: ObservedSignal): Finding {
         "weigh-it",
         "too-little-mass-for-the-heat",
         "The wobble puts far less mass there than the heat requires. Whatever is warm is spread thin and wide. Nothing that formed on its own is built like that.",
-        { built: 3.0, mundane: 0.3, quiet: 0.55 },
+        { built: LADDER.strong, mundane: LADDER.strongAgainst, quiet: LADDER.against },
       );
     case "banked":
       return sharpen(
         "weigh-it",
         "mass-and-heat-agree-on-cold",
         "Mass and heat agree: an ordinary body, cooling. There is nothing here the mass cannot account for.",
-        { quiet: 1.8, mundane: 1.3, built: 0.55 },
+        { quiet: LADDER.firm, mundane: LADDER.slight, built: LADDER.against },
       );
     case "living-quiet":
     case "living-industrial":
@@ -346,7 +389,7 @@ function weighItFinding(occupancy: Occupancy, signal: ObservedSignal): Finding {
         "weigh-it",
         "planetary-mass",
         "A world's mass, on a world's orbit. Too light for a failed star and too heavy to be debris.",
-        { mundane: 1.8, open: 1.8, built: 0.55 },
+        { mundane: LADDER.firm, open: LADDER.firm, built: LADDER.against },
       );
   }
 }
@@ -369,7 +412,7 @@ function temperatureOverTimeFinding(
         "temperature-over-time",
         "held-against-the-curve",
         "It is not cooling. Across the whole record it sits at one temperature, which is a thing that has to be done on purpose.",
-        { built: 3.0, quiet: 0.3, mundane: 0.55 },
+        { built: LADDER.strong, quiet: LADDER.strongAgainst, mundane: LADDER.against },
       );
     case "banked":
       if (ladders.integration >= 3) {
@@ -377,14 +420,14 @@ function temperatureOverTimeFinding(
           "temperature-over-time",
           "too-steady-for-its-age",
           "It is cold, and it is cold at exactly one temperature. Cooling bodies drift. This one does not.",
-          { built: 1.3, quiet: 0.8 },
+          { built: LADDER.slight, quiet: LADDER.slightAgainst },
         );
       }
       return sharpen(
         "temperature-over-time",
         "cooling-on-schedule",
         "It is cooling the way things cool: fast at first, slower since. The curve is ordinary all the way down.",
-        { quiet: 3.0, built: 0.3 },
+        { quiet: LADDER.strong, built: LADDER.strongAgainst },
       );
     case "living-quiet":
     case "living-industrial":
@@ -392,7 +435,7 @@ function temperatureOverTimeFinding(
         "temperature-over-time",
         "a-worlds-thermostat",
         "The temperature swings the way a world with air and water swings, and settles back where it started.",
-        { mundane: 1.8, built: 0.8 },
+        { mundane: LADDER.firm, built: LADDER.slightAgainst },
       );
   }
 }
@@ -411,28 +454,28 @@ function readItsLinesFinding(occupancy: Occupancy, signal: ObservedSignal): Find
         "read-its-lines",
         "biosignature-gases-only",
         "Gases in the air that only living things keep in the air, and nothing else. No smoke, no metals, no chemistry anyone had to invent.",
-        { mundane: 3.0, open: 1.8, built: 0.3 },
+        { mundane: LADDER.strong, open: LADDER.firm, built: LADDER.strongAgainst },
       );
     case "living-industrial":
       return sharpen(
         "read-its-lines",
         "industrial-chemistry",
         "Compounds in that air that no volcano makes and no ocean makes. Somebody down there is running a chemistry.",
-        { built: 3.0, mundane: 0.55, quiet: 0.55 },
+        { built: LADDER.strong, mundane: LADDER.against, quiet: LADDER.against },
       );
     case "working":
       return sharpen(
         "read-its-lines",
         "lines-of-worked-material",
         "The lines are of worked material: refined, uniform, and nothing like a rock's. There is no atmosphere here to speak of. There are surfaces.",
-        { built: 3.0, mundane: 0.3, quiet: 0.55 },
+        { built: LADDER.strong, mundane: LADDER.strongAgainst, quiet: LADDER.against },
       );
     case "banked":
       return sharpen(
         "read-its-lines",
         "lines-of-rock-and-dust",
         "Rock, dust, and old ice. Whatever the lines had to say, they said it a long time ago.",
-        { quiet: 1.8, mundane: 1.3, built: 0.55 },
+        { quiet: LADDER.firm, mundane: LADDER.slight, built: LADDER.against },
       );
   }
 }
@@ -451,14 +494,14 @@ function timeItsShadowsFinding(occupancy: Occupancy, signal: ObservedSignal): Fi
         "time-its-shadows",
         "shadows-that-do-not-keep-time",
         "The crossings do not repeat. Their depths change, their spacing changes, and the pattern is different at the end of the record than at the start. Orbits do not do that. Work does.",
-        { built: 3.0, mundane: 0.3, quiet: 0.55 },
+        { built: LADDER.strong, mundane: LADDER.strongAgainst, quiet: LADDER.against },
       );
     case "banked":
       return sharpen(
         "time-its-shadows",
         "clockwork-and-a-wide-belt",
         "The crossings keep perfect time, and they are broad and soft: a lot of small things on the same path.",
-        { quiet: 1.8, mundane: 1.3, built: 0.55 },
+        { quiet: LADDER.firm, mundane: LADDER.slight, built: LADDER.against },
       );
     case "living-quiet":
     case "living-industrial":
@@ -466,7 +509,7 @@ function timeItsShadowsFinding(occupancy: Occupancy, signal: ObservedSignal): Fi
         "time-its-shadows",
         "clockwork",
         "Every crossing arrives when the one before it said it would. This is a solar system doing what solar systems do.",
-        { mundane: 3.0, built: 0.3 },
+        { mundane: LADDER.strong, built: LADDER.strongAgainst },
       );
   }
 }
@@ -489,7 +532,7 @@ function catchItsEdgesFinding(
         "catch-its-edges",
         "flat-faces-in-ranks",
         "The light comes back polarized, in one plane, from a great many flat faces held at the same angle. Nature makes flat faces. It does not line them up.",
-        { built: 3.0, mundane: 0.3, quiet: 0.55 },
+        { built: LADDER.strong, mundane: LADDER.strongAgainst, quiet: LADDER.against },
       );
     case "banked":
       if (ladders.energy >= 3) {
@@ -497,14 +540,14 @@ function catchItsEdgesFinding(
           "catch-its-edges",
           "flatter-than-rubble",
           "Mostly rock and dust, but flatter, in places, than rubble has any reason to be.",
-          { built: 1.3, quiet: 0.8 },
+          { built: LADDER.slight, quiet: LADDER.slightAgainst },
         );
       }
       return sharpen(
         "catch-its-edges",
         "rock-and-regolith",
         "Rough, unsorted, and scattering light in every direction. Rock and the dust rock makes.",
-        { quiet: 1.8, mundane: 1.3, built: 0.55 },
+        { quiet: LADDER.firm, mundane: LADDER.slight, built: LADDER.against },
       );
     case "living-quiet":
     case "living-industrial":
@@ -512,7 +555,7 @@ function catchItsEdgesFinding(
         "catch-its-edges",
         "an-atmosphere-and-a-sea",
         "A glint that moves with the phase: deep water under air. It is a world, and it is wet.",
-        { mundane: 1.8, open: 1.8, built: 0.55 },
+        { mundane: LADDER.firm, open: LADDER.firm, built: LADDER.against },
       );
   }
 }
@@ -530,7 +573,7 @@ function listenOffAxisFinding(occupancy: Occupancy, ladders: LadderStages): Find
         "listen-off-axis",
         "spill-in-every-direction",
         "It spills the same in every direction we can measure. Nobody aimed this. It is simply getting out.",
-        { mundane: 3.0, built: 0.3 },
+        { mundane: LADDER.strong, built: LADDER.strongAgainst },
       );
     case "working":
       if (ladders.integration >= 3) {
@@ -538,14 +581,14 @@ function listenOffAxisFinding(occupancy: Occupancy, ladders: LadderStages): Find
           "listen-off-axis",
           "aimed-past-us",
           "There is structure off the main axis, and the structure is not centered on us. Some of what we are hearing was meant for somebody else.",
-          { quiet: 1.8, built: 1.3, mundane: 0.55 },
+          { quiet: LADDER.firm, built: LADDER.slight, mundane: LADDER.against },
         );
       }
       return sharpen(
         "listen-off-axis",
         "structure-in-the-spill",
         "The spill has edges and a shape. Something is being pointed, and we are catching the sides of it.",
-        { built: 3.0, mundane: 0.3 },
+        { built: LADDER.strong, mundane: LADDER.strongAgainst },
       );
     case "banked":
       // Nothing is being transmitted, so there are no sidelobes to catch
@@ -584,6 +627,47 @@ function findingFor(
   }
 }
 
+// ---------------------------------------------------------------------------
+// The contested rows — what the honest table's answer becomes when the
+// target's mask has gained ground on the instrument (contest.ts).
+// ---------------------------------------------------------------------------
+
+/**
+ * ONE cause-neutral sentence, shared by every question. A masked plateau and
+ * a gate plateau MUST be indistinguishable on the surface: naming the cause
+ * here would tell the player, for free, that somebody over there is paying to
+ * be unreadable — which is exactly the fact the mask is buying. The tell for
+ * a contest lives one level up and only after a REGRESSION has been earned
+ * (studies.ts's contestLine), never here.
+ */
+const MASKED_PLATEAU_LINE =
+  "The look came back consistent with every reading and decisive about none.";
+
+/**
+ * ONE shared annotation, and it states only what the instrument did: this
+ * measurement, run again on a longer record, separated less than it did
+ * before. It makes NO claim about why. The cause claim is the mind's, and it
+ * is made once, in the tell.
+ */
+const REGRESSED_LINE =
+  "The later look separates less than the earlier one: the same measurement, on a longer record, came back worse.";
+
+function byQuestion(build: (id: QuestionId) => Finding): Readonly<Record<QuestionId, Finding>> {
+  const out = {} as Record<QuestionId, Finding>;
+  for (const def of QUESTIONS) out[def.id] = build(def.id);
+  return out;
+}
+
+/** Keyed per question so the finding id stays question-scoped (the client
+ *  and the report both key off it), with one authored sentence behind them. */
+const MASKED_PLATEAU: Readonly<Record<QuestionId, Finding>> = byQuestion((id) =>
+  plateau(id, "no-separation", MASKED_PLATEAU_LINE),
+);
+
+const REGRESSED: Readonly<Record<QuestionId, Finding>> = byQuestion((id) =>
+  regressed(id, "look-worse", REGRESSED_LINE),
+);
+
 /**
  * Every RoleShift a question's findings can produce, across every
  * occupancy/ladder branch (excluding plateau's `{}` — a plateau moves
@@ -591,49 +675,113 @@ function findingFor(
  * any purchase has picked a specific branch: studies.ts unions
  * `movedFromShift` over each of these to get the full set of readings the
  * question COULD move on a given class.
+ *
+ * THE CONTESTED ROWS ARE DELIBERATELY ABSENT and this list must never gain
+ * them. `separates` is printed on the OFFER, before anything is bought; a
+ * menu that quietly said less about a masking target than about an honest
+ * one would betray the mask on a surface the player reads for free. Both
+ * contested rows carry `{}`, so their union contribution is empty and the
+ * offer is bit-identical either way.
  */
 export function possibleShiftsFor(id: QuestionId): readonly RoleShift[] {
   switch (id) {
     case "weigh-it":
       return [
-        { built: 3.0, mundane: 0.3, quiet: 0.55 },
-        { quiet: 1.8, mundane: 1.3, built: 0.55 },
-        { mundane: 1.8, open: 1.8, built: 0.55 },
+        { built: LADDER.strong, mundane: LADDER.strongAgainst, quiet: LADDER.against },
+        { quiet: LADDER.firm, mundane: LADDER.slight, built: LADDER.against },
+        { mundane: LADDER.firm, open: LADDER.firm, built: LADDER.against },
       ];
     case "temperature-over-time":
       return [
-        { built: 3.0, quiet: 0.3, mundane: 0.55 },
-        { built: 1.3, quiet: 0.8 },
-        { quiet: 3.0, built: 0.3 },
-        { mundane: 1.8, built: 0.8 },
+        { built: LADDER.strong, quiet: LADDER.strongAgainst, mundane: LADDER.against },
+        { built: LADDER.slight, quiet: LADDER.slightAgainst },
+        { quiet: LADDER.strong, built: LADDER.strongAgainst },
+        { mundane: LADDER.firm, built: LADDER.slightAgainst },
       ];
     case "read-its-lines":
       return [
-        { mundane: 3.0, open: 1.8, built: 0.3 },
-        { built: 3.0, mundane: 0.55, quiet: 0.55 },
-        { built: 3.0, mundane: 0.3, quiet: 0.55 },
-        { quiet: 1.8, mundane: 1.3, built: 0.55 },
+        { mundane: LADDER.strong, open: LADDER.firm, built: LADDER.strongAgainst },
+        { built: LADDER.strong, mundane: LADDER.against, quiet: LADDER.against },
+        { built: LADDER.strong, mundane: LADDER.strongAgainst, quiet: LADDER.against },
+        { quiet: LADDER.firm, mundane: LADDER.slight, built: LADDER.against },
       ];
     case "time-its-shadows":
       return [
-        { built: 3.0, mundane: 0.3, quiet: 0.55 },
-        { quiet: 1.8, mundane: 1.3, built: 0.55 },
-        { mundane: 3.0, built: 0.3 },
+        { built: LADDER.strong, mundane: LADDER.strongAgainst, quiet: LADDER.against },
+        { quiet: LADDER.firm, mundane: LADDER.slight, built: LADDER.against },
+        { mundane: LADDER.strong, built: LADDER.strongAgainst },
       ];
     case "catch-its-edges":
       return [
-        { built: 3.0, mundane: 0.3, quiet: 0.55 },
-        { built: 1.3, quiet: 0.8 },
-        { quiet: 1.8, mundane: 1.3, built: 0.55 },
-        { mundane: 1.8, open: 1.8, built: 0.55 },
+        { built: LADDER.strong, mundane: LADDER.strongAgainst, quiet: LADDER.against },
+        { built: LADDER.slight, quiet: LADDER.slightAgainst },
+        { quiet: LADDER.firm, mundane: LADDER.slight, built: LADDER.against },
+        { mundane: LADDER.firm, open: LADDER.firm, built: LADDER.against },
       ];
     case "listen-off-axis":
       return [
-        { mundane: 3.0, built: 0.3 },
-        { quiet: 1.8, built: 1.3, mundane: 0.55 },
-        { built: 3.0, mundane: 0.3 },
+        { mundane: LADDER.strong, built: LADDER.strongAgainst },
+        { quiet: LADDER.firm, built: LADDER.slight, mundane: LADDER.against },
+        { built: LADDER.strong, mundane: LADDER.strongAgainst },
       ];
   }
+}
+
+// ---------------------------------------------------------------------------
+// The relevant window — which stretch of TARGET years a look is contested
+// over. Both endpoints are `answersYear − distanceLy`, and both are frozen
+// the moment they are bought (the effects-freeze above), so a window is
+// immutable forever once its later purchase has been made.
+// ---------------------------------------------------------------------------
+
+/**
+ * T_prev: the greatest target year among purchases at a strictly LOWER index
+ * in the study's `bought` record whose answer lands strictly earlier than
+ * this one's. Null when there is no such purchase, and that null is
+ * load-bearing: the FIRST question on a study has no earlier look to
+ * separate less than, so it can never regress. Two questions bought in the
+ * same breath give a window of essentially zero length and nothing can be
+ * lost across it; a study left to sit for centuries between looks hands the
+ * target every one of those years. The pacing is the player's.
+ */
+function priorTargetYearFor(
+  purchases: readonly BoughtQuestion[],
+  index: number,
+  answersYear: number,
+  distanceLy: number,
+  projectState: ProjectState,
+): number | null {
+  let best: number | null = null;
+  for (let i = 0; i < index; i++) {
+    const earlier = purchases[i];
+    if (earlier === undefined) continue;
+    const earlierDef = questionById(earlier.id);
+    if (earlierDef === undefined) continue;
+    const earlierAnswers = answersYearFor(earlierDef, earlier, projectState);
+    if (earlierAnswers >= answersYear) continue;
+    const targetYear = earlierAnswers - distanceLy;
+    if (best === null || targetYear > best) best = targetYear;
+  }
+  return best;
+}
+
+/** How many purchases at a lower index answer at or before this one — the
+ *  study's own accumulated baseline, the second channel of instrumentTierAt. */
+function priorAnswerCount(
+  purchases: readonly BoughtQuestion[],
+  index: number,
+  answersYear: number,
+  projectState: ProjectState,
+): number {
+  let count = 0;
+  for (let i = 0; i < index; i++) {
+    const earlier = purchases[i];
+    if (earlier === undefined) continue;
+    const earlierDef = questionById(earlier.id);
+    if (earlierDef === undefined) continue;
+    if (answersYearFor(earlierDef, earlier, projectState) <= answersYear) count++;
+  }
+  return count;
 }
 
 /**
@@ -643,6 +791,20 @@ export function possibleShiftsFor(id: QuestionId): readonly RoleShift[] {
  * identical finding. The whole no-leak story: ask `peekTruth` for the
  * answer's target year, and if it is still above the light cone, the
  * answer is `null` — arithmetic, not a guard.
+ *
+ * `purchases` is the study's WHOLE purchase record in buy order, and `bought`
+ * is one of its entries. It is passed because a look is contested against the
+ * looks that came before it on the same study (contest.ts), and both the
+ * window and the instrument tier are derived from that record rather than
+ * stored — the same "an immutable historical fact needs no storage" argument
+ * the effects-freeze makes.
+ *
+ * ORDER OF RESOLUTION (I9): the honest table answers FIRST, and the contest
+ * can only ever take away an answer the player would otherwise have had. A
+ * plateau is already the instrument's limit and cannot be limited further, so
+ * it short-circuits; the contest never invents an answer, never changes which
+ * reading an answer favors, and never runs before `peekTruth` has admitted
+ * the year, which is what keeps every contested row inside the light cone.
  */
 export function resolveQuestion(
   galaxy: Galaxy,
@@ -651,10 +813,37 @@ export function resolveQuestion(
   bought: BoughtQuestion,
   signal: ObservedSignal,
   projectState: ProjectState,
+  purchases: readonly BoughtQuestion[],
 ): Finding | null {
   const answersYear = answersYearFor(def, bought, projectState);
-  const truth = peekTruth(galaxy, cone, answersYear - cone.distanceLy);
+  const targetYear = answersYear - cone.distanceLy;
+  const truth = peekTruth(galaxy, cone, targetYear);
   if (truth === null) return null;
-  const ladders = civById(galaxy, cone.targetId).seed.ladders;
-  return findingFor(def.id, occupancyAt(truth), ladders, signal);
+  const seed = civById(galaxy, cone.targetId).seed;
+  const base = findingFor(def.id, occupancyAt(truth), seed.ladders, signal);
+  if (base.shape === "plateau") return base;
+
+  const index = purchases.findIndex((b) => b.id === bought.id);
+  if (index < 0) return base; // defensive: `bought` is always one of `purchases`
+  const priorTargetYear = priorTargetYearFor(
+    purchases,
+    index,
+    answersYear,
+    cone.distanceLy,
+    projectState,
+  );
+  if (priorTargetYear === null) return base; // a first look has no window
+
+  const instrumentTier = instrumentTierAt(
+    confidenceLiftAt(projectState, bought.boughtYear),
+    priorAnswerCount(purchases, index, answersYear, projectState),
+  );
+  switch (resolveContest({ seed, targetYear, priorTargetYear, instrumentTier }).shape) {
+    case "clear":
+      return base;
+    case "masked":
+      return MASKED_PLATEAU[def.id];
+    case "regressed":
+      return REGRESSED[def.id];
+  }
 }

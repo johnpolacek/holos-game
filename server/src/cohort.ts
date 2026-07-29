@@ -49,9 +49,15 @@ import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine, silenceLin
 import {
   buildStudySnapshot,
   hypothesisMenus,
+  isClosed,
+  leadHypothesisOf,
   migrateStudyState,
   newStudyState,
+  tripwireHolds,
+  TRIPWIRE_KINDS,
+  type OvertakingTrigger,
   type StoredStudy,
+  type StoredTripwire,
   type StudyMove,
   type StudyState,
   type StoredStudyState,
@@ -372,6 +378,15 @@ export class Cohort extends Server<CohortEnv> {
       case "launchMission":
         await this.onLaunchMission(conn, msg.starId, msg.kind, msg.charter);
         return;
+      case "callStudy":
+        await this.onCallStudy(conn, msg.starId);
+        return;
+      case "armTripwire":
+        await this.onArmTripwire(conn, msg.starId, msg.kind);
+        return;
+      case "disarmTripwire":
+        await this.onDisarmTripwire(conn, msg.starId, msg.kind);
+        return;
       case "voiceSeen":
         await this.onVoiceSeen(conn, msg.key);
         return;
@@ -673,7 +688,8 @@ export class Cohort extends Server<CohortEnv> {
     const galaxy = this.requireGalaxy();
     const nowYear = gameYearAt(this.requireClock(), Date.now());
     const visible = visibleSky(galaxy, state.civId, nowYear);
-    if (!visible.some((o) => o.starId === starId)) {
+    const source = visible.find((o) => o.starId === starId);
+    if (source === undefined) {
       this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
       return;
     }
@@ -686,6 +702,13 @@ export class Cohort extends Server<CohortEnv> {
     // the grounded exit measures a report's arrival against, so reopening a
     // grounded study genuinely reopens it — the report that closed it has
     // already arrived and can never close it again.
+    //
+    // A2.3: `openedClass` is restamped for the same reason, and the two
+    // frozen exits are CLEARED. Reopening a called study drops the call
+    // (there is no path that reopens one by itself, so the player has said
+    // so); reopening an overtaken one starts the watch on what the source is
+    // now, which is exactly what its closing line offered. `tripwires`
+    // survives untouched: an order left standing is left standing.
     const existing = studyState.studies[starId];
     const studies: Record<string, StoredStudy> = {
       ...studyState.studies,
@@ -695,9 +718,13 @@ export class Cohort extends Server<CohortEnv> {
         status: "open",
         bought: existing?.bought ?? [],
         openedYear: nowYear,
+        openedClass: source.signal.classification,
+        called: null,
+        overtaken: null,
+        tripwires: existing?.tripwires ?? [],
       },
     };
-    await this.saveStudyState(state.token, { version: 3, studies });
+    await this.saveStudyState(state.token, { version: 4, studies });
     await this.sendSky(conn, state.token, state.civId);
   }
 
@@ -723,7 +750,216 @@ export class Cohort extends Server<CohortEnv> {
       ...studyState.studies,
       [starId]: { ...existing, status: "shelved" },
     };
-    await this.saveStudyState(state.token, { version: 3, studies });
+    await this.saveStudyState(state.token, { version: 4, studies });
+    await this.sendSky(conn, state.token, state.civId);
+  }
+
+  /**
+   * callStudy: the player decides they are done arguing and freezes the
+   * belief where it stands. Legal from open or shelved only — a study that
+   * has already closed cannot be closed a second time, whatever closed it.
+   *
+   * The frozen belief comes from the board this send would have shown, which
+   * is why this assembles the sky state rather than re-deriving anything: a
+   * call must name the reading the player was looking at when they made it,
+   * to the share. From here nothing reads it back. Light goes on arriving,
+   * the underlying board goes on moving, and none of that touches the call
+   * or is scored against it.
+   */
+  private async onCallStudy(conn: Connection, starId: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    const galaxy = this.requireGalaxy();
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    const visible = visibleSky(galaxy, state.civId, nowYear);
+    const source = visible.find((o) => o.starId === starId);
+    if (source === undefined) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
+      return;
+    }
+    const studyState = await this.loadStudyState(state.token, nowYear);
+    const existing = studyState.studies[starId];
+    if (existing === undefined || isClosed(existing.status)) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "study-unavailable",
+        message: "the study is not open",
+      });
+      return;
+    }
+
+    const assembled = await this.assembleSkyState(state.token, state.civId, nowYear);
+    const snapshot = assembled.studies.find((s) => s.starId === starId);
+    const lead = snapshot === undefined ? undefined : leadHypothesisOf(snapshot.hypotheses);
+    if (lead === undefined) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "study-unavailable",
+        message: "there is nothing on the board to call",
+      });
+      return;
+    }
+
+    // Re-read: `assembleSkyState` owns a write of its own (studyWrites), so
+    // the record loaded above may be stale by now. Same re-fetch-before-put
+    // discipline the mission and wake-queue writes use.
+    const current = await this.loadStudyState(state.token, nowYear);
+    const base = current.studies[starId] ?? existing;
+    if (isClosed(base.status)) {
+      // The assemble above closed it out from under us (a report landed, or
+      // the class changed in the same breath). Those exits are the sky's and
+      // they win; the player's call did not get there first.
+      this.sendMsg(conn, {
+        type: "error",
+        code: "study-unavailable",
+        message: "the study is not open",
+      });
+      return;
+    }
+    const studies: Record<string, StoredStudy> = {
+      ...current.studies,
+      [starId]: {
+        ...base,
+        status: "called",
+        called: {
+          hypothesisId: lead.id,
+          label: lead.label,
+          gloss: lead.gloss,
+          share: lead.share,
+          calledYear: nowYear,
+          asOfYear: nowYear - source.distanceLy,
+        },
+      },
+    };
+    await this.saveStudyState(state.token, { version: 4, studies });
+    await this.sendSky(conn, state.token, state.civId);
+  }
+
+  /**
+   * armTripwire: leave one standing condition on a study. Free — this is a
+   * decision, not work, so there is no cost and no clock. At most one per
+   * kind (re-arming replaces, which is also how a fired one is reset), and
+   * the server REFUSES to arm a condition that already holds: arming
+   * something that would fire on the same breath is not an order, it is a
+   * misunderstanding, and `tripwire-unavailable` says so.
+   */
+  private async onArmTripwire(conn: Connection, starId: string, kind: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    const tripwireKind = TRIPWIRE_KINDS.find((k) => k === kind);
+    if (tripwireKind === undefined) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "tripwire-unavailable",
+        message: "no such tripwire",
+      });
+      return;
+    }
+    const galaxy = this.requireGalaxy();
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    const visible = visibleSky(galaxy, state.civId, nowYear);
+    const source = visible.find((o) => o.starId === starId);
+    if (source === undefined) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
+      return;
+    }
+    const studyState = await this.loadStudyState(state.token, nowYear);
+    const existing = studyState.studies[starId];
+    if (existing === undefined || isClosed(existing.status)) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "study-unavailable",
+        message: "the study is not open",
+      });
+      return;
+    }
+
+    // The already-holds check reads the same board a sky send would, through
+    // the same predicate the firing check uses. Only `crosses` can be true at
+    // the moment of arming; the other two are armed-year-relative and so are
+    // false by construction here, which is the whole reason the state machine
+    // needs nothing but a fired year.
+    const assembled = await this.assembleSkyState(state.token, state.civId, nowYear);
+    const snapshot = assembled.studies.find((s) => s.starId === starId);
+    const holds =
+      snapshot !== undefined &&
+      tripwireHolds(tripwireKind, nowYear, {
+        openQuestions: snapshot.openQuestions,
+        hypotheses: snapshot.hypotheses,
+        signal: source.signal,
+        distanceLy: source.distanceLy,
+      });
+    if (holds) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "tripwire-unavailable",
+        message: "that has already happened",
+      });
+      return;
+    }
+
+    const current = await this.loadStudyState(state.token, nowYear);
+    const base = current.studies[starId] ?? existing;
+    if (isClosed(base.status)) {
+      // Closed by the assemble above; a closed study evaluates no tripwires,
+      // so arming one on it would be an order nothing will ever read.
+      this.sendMsg(conn, {
+        type: "error",
+        code: "study-unavailable",
+        message: "the study is not open",
+      });
+      return;
+    }
+    const tripwires: StoredTripwire[] = [
+      ...base.tripwires.filter((t) => t.kind !== tripwireKind),
+      { kind: tripwireKind, armedYear: nowYear, firedYear: null },
+    ];
+    const studies: Record<string, StoredStudy> = {
+      ...current.studies,
+      [starId]: { ...base, tripwires },
+    };
+    await this.saveStudyState(state.token, { version: 4, studies });
+    await this.sendSky(conn, state.token, state.civId);
+  }
+
+  /** disarmTripwire: take the order back. Idempotent — disarming a kind that
+   *  is not armed is a no-op write and a fresh sky, never an error. */
+  private async onDisarmTripwire(conn: Connection, starId: string, kind: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    const tripwireKind = TRIPWIRE_KINDS.find((k) => k === kind);
+    if (tripwireKind === undefined) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "tripwire-unavailable",
+        message: "no such tripwire",
+      });
+      return;
+    }
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    const studyState = await this.loadStudyState(state.token, nowYear);
+    const existing = studyState.studies[starId];
+    if (existing === undefined) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no study there" });
+      return;
+    }
+    const studies: Record<string, StoredStudy> = {
+      ...studyState.studies,
+      [starId]: {
+        ...existing,
+        tripwires: existing.tripwires.filter((t) => t.kind !== tripwireKind),
+      },
+    };
+    await this.saveStudyState(state.token, { version: 4, studies });
     await this.sendSky(conn, state.token, state.civId);
   }
 
@@ -732,10 +968,11 @@ export class Cohort extends Server<CohortEnv> {
    * visible source (so the class is known); it does NOT require an open
    * study — the spend is the statement of intent, so it opens the study
    * when none exists and reopens a shelved one (stamping `openedYear`
-   * exactly as onOpenStudy would). The one status a spend does not override
-   * is grounded: grounded is closed until the player deliberately reopens
-   * it, because reopening restamps `openedYear` and with it what the
-   * grounded exit measures against (observatory-design.md § The exits).
+   * exactly as onOpenStudy would). The statuses a spend does not override
+   * are the CLOSED ones: grounded, called, and overtaken all stay closed
+   * until the player deliberately reopens, because reopening restamps
+   * `openedYear` and `openedClass` and with them what those exits measure
+   * against (observatory-design.md § The exits).
    */
   private async onBuyQuestion(conn: Connection, starId: string, questionId: string): Promise<void> {
     const state = this.conns.get(conn.id);
@@ -753,11 +990,11 @@ export class Cohort extends Server<CohortEnv> {
     }
     const studyState = await this.loadStudyState(state.token, nowYear);
     const existing = studyState.studies[starId];
-    if (existing !== undefined && existing.status === "grounded") {
+    if (existing !== undefined && isClosed(existing.status)) {
       this.sendMsg(conn, {
         type: "error",
         code: "question-unavailable",
-        message: "the study is grounded",
+        message: "the study is closed",
       });
       return;
     }
@@ -797,13 +1034,23 @@ export class Cohort extends Server<CohortEnv> {
         existing !== undefined && existing.status === "open"
           ? { ...existing, bought: [...existing.bought, bought] }
           : {
+              ...existing,
               starId,
               status: "open",
               bought: [...(existing?.bought ?? []), bought],
               openedYear: nowYear,
+              // The open/reopen branch stamps `openedClass` for the same
+              // reason it stamps `openedYear`: the study is being opened
+              // NOW, against the class the source shows now. The two frozen
+              // exits are already null here (the refusal above rejects every
+              // closed status), and writing them null says so out loud.
+              openedClass: source.signal.classification,
+              called: null,
+              overtaken: null,
+              tripwires: existing?.tripwires ?? [],
             },
     };
-    await this.saveStudyState(state.token, { version: 3, studies });
+    await this.saveStudyState(state.token, { version: 4, studies });
 
     const updatedProjectState = commitCompute(projectState, cost, nowYear);
     await this.saveProjectState(state.token, updatedProjectState);
@@ -974,12 +1221,13 @@ export class Cohort extends Server<CohortEnv> {
    * just shipped and the tap bug meant no studies were ever opened in
    * production, so no migration shim is needed for THAT rename). A2.2 adds
    * a real v1→v2 migration (studies.ts's migrateStudyState, loadProjectState's
-   * exact idiom): every study gains an empty `bought[]`.
+   * exact idiom): every study gains an empty `bought[]`. A2.2b's v3 added
+   * `openedYear`; A2.3's v4 adds the exit fields.
    */
   private async loadStudyState(token: string, nowYear: number): Promise<StudyState> {
     const stored = await this.ctx.storage.get<StoredStudyState>(`studies:${token}`);
     if (stored === undefined) return newStudyState();
-    if (stored.version === 3) return stored;
+    if (stored.version === 4) return stored;
     const migrated = migrateStudyState(stored, nowYear);
     await this.ctx.storage.put(`studies:${token}`, migrated);
     return migrated;
@@ -1488,10 +1736,10 @@ export class Cohort extends Server<CohortEnv> {
   /**
    * The wire-snapshot assembly `sendSky` sends and AV2's `materializeReport`
    * derives from — split out so both can reach it without either depending
-   * on the other having already run this turn. Owns the one A2.2b side
-   * effect in this whole pipeline (`groundedWrites`: a study transitioning
-   * to `status: "grounded"` is a write, not a pure derivation — see the
-   * comment at that block).
+   * on the other having already run this turn. Owns the one side effect in
+   * this whole pipeline (`studyWrites`: a study CHANGING STATE while nobody
+   * asked it to is a write, not a pure derivation — see the comment at that
+   * block). One merged map, one save, however many studies moved.
    */
   private async assembleSkyState(
     token: string,
@@ -1547,7 +1795,18 @@ export class Cohort extends Server<CohortEnv> {
     // the place that built it from missions.ts. The transition is a write:
     // derived grounding would re-close the study the instant it was
     // reopened, since the report never goes away.
-    let groundedWrites: Record<string, StoredStudy> | null = null;
+    //
+    // A2.3 widens that one write into `studyWrites` — the same map, the same
+    // single save, now carrying three more kinds of state change that a sky
+    // send can discover: an overtaking, a tripwire firing, and the
+    // `openedClass` back-fill for studies migrated from before that field
+    // existed. Every one of them has the same shape of reason as grounding:
+    // it must be written, because re-deriving it later would either repeat
+    // it forever or lose it entirely.
+    let studyWrites: Record<string, StoredStudy> | null = null;
+    const noteWrite = (settled: StoredStudy): void => {
+      studyWrites = { ...(studyWrites ?? studyState.studies), [settled.starId]: settled };
+    };
     const studies: StudySnapshot[] = Object.values(studyState.studies)
       .map((stored) => {
         const source = sources.find((s) => s.starId === stored.starId);
@@ -1587,11 +1846,50 @@ export class Cohort extends Server<CohortEnv> {
         // Only an OPEN study grounds: a shelved vigil is passive, and an
         // already-grounded one keeps the grounding it has.
         const grounds = stored.status === "open" && grounding !== null;
-        const settled: StoredStudy = grounds ? { ...stored, status: "grounded" } : stored;
+
+        // A2.3, the overtaken exit: the source is no longer the kind of
+        // thing this study was opened on. GROUNDED WINS A TIE — a probe was
+        // physically there, and the sky merely changed its mind about what
+        // it is looking at, so a report landing in the same settle as a
+        // class change closes the study the stronger way.
+        //
+        // A null `openedClass` (a study migrated from before the field) can
+        // never overtake; it is back-filled to the current class just below,
+        // and starts measuring from there.
+        //
+        // The detection-floor drop is deliberately NOT a trigger. It is
+        // unreachable in v1 anyway (a dark civ's emission levels sit above
+        // DETECTION_FLOOR), and the existing behavior for a source that
+        // vanishes is to omit the study silently, which stays.
+        const overtakes =
+          !grounds &&
+          stored.status === "open" &&
+          stored.openedClass !== null &&
+          stored.openedClass !== source.signal.classification;
+
+        let settled: StoredStudy = stored;
+        let overtaking: OvertakingTrigger | null = null;
         if (grounds) {
-          groundedWrites = { ...(groundedWrites ?? studyState.studies), [stored.starId]: settled };
+          settled = { ...stored, status: "grounded" };
+        } else if (overtakes && stored.openedClass !== null) {
+          settled = { ...stored, status: "overtaken" };
+          overtaking = {
+            fromClass: stored.openedClass,
+            toClass: source.signal.classification,
+            atYear: nowYear,
+            asOfYear: nowYear - cone.distanceLy,
+          };
+        } else if (stored.openedClass === null && !isClosed(stored.status)) {
+          // The back-fill. Not a state change and not visible anywhere: it
+          // only gives a legacy study the baseline every new study is
+          // stamped with, so the NEXT class change is a real one. A CLOSED
+          // study is left byte-identical — it can never overtake, so it has
+          // nothing to measure, and "a closed study does not change" is
+          // worth more than a field it will never read.
+          settled = { ...stored, openedClass: source.signal.classification };
         }
-        return buildStudySnapshot(
+
+        const assembledStudy = buildStudySnapshot(
           galaxy,
           cone,
           source,
@@ -1600,13 +1898,27 @@ export class Cohort extends Server<CohortEnv> {
           projectState,
           missionMoves,
           settled.status === "grounded" ? grounding : null,
+          overtaking,
         );
+
+        // One write per study, merged from every transition this send found:
+        // the status flip, the frozen overtaking, and any tripwire that fired
+        // while the board was being assembled.
+        const fired = assembledStudy.tripwires !== settled.tripwires;
+        if (settled !== stored || overtaking !== null || fired) {
+          noteWrite({
+            ...settled,
+            tripwires: assembledStudy.tripwires,
+            overtaken: assembledStudy.overtaken ?? settled.overtaken,
+          });
+        }
+        return assembledStudy.snapshot;
       })
       .filter((s): s is StudySnapshot => s !== null)
       .sort((a, b) => a.starId.localeCompare(b.starId));
 
-    if (groundedWrites !== null) {
-      await this.saveStudyState(token, { version: 3, studies: groundedWrites });
+    if (studyWrites !== null) {
+      await this.saveStudyState(token, { version: 4, studies: studyWrites });
     }
 
     const missions: MissionSnapshot[] = missionState.missions

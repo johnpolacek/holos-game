@@ -54,10 +54,16 @@ import {
   recordQuestionAnswered,
   recordQuestionPlateaued,
   recordSkyArrival,
+  recordStudyCalled,
   recordStudyGrounded,
+  recordStudyOvertaken,
+  recordStudyRegressed,
+  recordTripwireTripped,
   render,
   reportHeader,
   reportRemark,
+  SIGNAL_CLASS_LABEL,
+  TRIPWIRE_PROSE_NAME,
   type RemarkFamily,
 } from "./voice";
 
@@ -74,7 +80,12 @@ export type ReportKind =
   | "probe-silent"
   | "sky-arrival"
   | "study-grounded"
-  | "project-landed";
+  | "project-landed"
+  // ── A2.3 ──
+  | "question-regressed"
+  | "study-called"
+  | "study-overtaken"
+  | "tripwire-tripped";
 
 export type ReportFamily = "settled" | "refused" | "sent" | "spoken" | "unspoken" | "record";
 
@@ -239,6 +250,26 @@ function questionEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
         out.push({
           id: `q/${study.starId}/${q.id}`,
           kind: "question-plateaued",
+          family: "refused",
+          stampYear,
+          stamp,
+          record: render(record),
+          pinned: pinnedTokens(record),
+          route: { kind: "study", starId: study.starId },
+        });
+        continue;
+      }
+
+      // A2.3: a regression is the instrument hitting a limit it did not have
+      // before, so it joins `refused` — the family whose remarks are about
+      // an instrument and its limit and never about which question asked.
+      // Same entry id as the other two shapes: a question materializes once,
+      // and which shape it materialized as is frozen with it.
+      if (q.finding.shape === "regress") {
+        const record = recordStudyRegressed(def.proseName, sourceName, source.distanceLy);
+        out.push({
+          id: `q/${study.starId}/${q.id}`,
+          kind: "question-regressed",
           family: "refused",
           stampYear,
           stamp,
@@ -432,6 +463,87 @@ function studyGroundedEntries(input: DeriveReportEntriesInput): StoredReportEntr
   return out;
 }
 
+/**
+ * A2.3's other three closings, all keyed off frozen wire fields rather than
+ * off the live board — `call`, `overtaking`, and a tripwire's `firedYear`
+ * are each stamped once by the server and never move again, so the entry
+ * they produce is stable the first time it materializes and forever after.
+ *
+ * FAMILIES. `study-called` is `settled`: the matter closed, which is exactly
+ * what that family's remarks are about. The other two are `record`, the mute
+ * family — no existing remark set can speak to a study that closed because
+ * the thing changed underneath it, or to a standing order coming due, and
+ * inventing a family for them is a bigger change than either earns. A mute
+ * entry gets its record sentence and nothing else, which is the ordinary
+ * case and reads as one.
+ */
+function studyExitEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
+  const { studies, sources, localNames, designations, ascensionYear, nowYear, sinceYear } = input;
+  const out: StoredReportEntry[] = [];
+  for (const study of studies) {
+    const source = sources.find((s) => s.starId === study.starId);
+    if (source === undefined) continue; // same accepted limit as questionEntries
+    const sourceName = nameFor(study.starId, localNames, designations);
+
+    if (study.call !== null && inWindow(study.call.calledYear, sinceYear, nowYear)) {
+      const record = recordStudyCalled(sourceName, study.call.label, source.distanceLy);
+      out.push({
+        id: `s/${study.starId}/called/${Math.round(study.call.calledYear)}`,
+        kind: "study-called",
+        family: "settled",
+        stampYear: study.call.calledYear,
+        stamp: render(epochStamp(study.call.calledYear, ascensionYear)),
+        record: render(record),
+        pinned: pinnedTokens(record),
+        route: { kind: "study", starId: study.starId },
+      });
+    }
+
+    if (study.overtaking !== null && inWindow(study.overtaking.atYear, sinceYear, nowYear)) {
+      const record = recordStudyOvertaken(
+        sourceName,
+        SIGNAL_CLASS_LABEL[study.overtaking.fromClass],
+        SIGNAL_CLASS_LABEL[study.overtaking.toClass],
+        source.distanceLy,
+      );
+      out.push({
+        id: `s/${study.starId}/overtaken/${Math.round(study.overtaking.atYear)}`,
+        kind: "study-overtaken",
+        family: "record",
+        stampYear: study.overtaking.atYear,
+        stamp: render(epochStamp(study.overtaking.atYear, ascensionYear)),
+        record: render(record),
+        pinned: pinnedTokens(record),
+        route: { kind: "study", starId: study.starId },
+      });
+    }
+
+    for (const t of study.tripwires) {
+      if (t.firedYear === null) continue;
+      if (!inWindow(t.firedYear, sinceYear, nowYear)) continue;
+      const record = recordTripwireTripped(
+        TRIPWIRE_PROSE_NAME[t.kind],
+        sourceName,
+        source.distanceLy,
+      );
+      out.push({
+        // The fired year is in the id: a tripwire re-armed after firing can
+        // catch the same condition a second time, and that is a second entry
+        // in the annal, not a re-render of the first.
+        id: `s/${study.starId}/tripwire/${t.kind}/${Math.round(t.firedYear)}`,
+        kind: "tripwire-tripped",
+        family: "record",
+        stampYear: t.firedYear,
+        stamp: render(epochStamp(t.firedYear, ascensionYear)),
+        record: render(record),
+        pinned: pinnedTokens(record),
+        route: { kind: "study", starId: study.starId },
+      });
+    }
+  }
+  return out;
+}
+
 function projectEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
   const { projects, ascensionYear, nowYear, sinceYear } = input;
   const out: StoredReportEntry[] = [];
@@ -468,6 +580,7 @@ export function deriveReportEntries(
     ...missionEntries(input),
     ...skyArrivalEntries(input),
     ...studyGroundedEntries(input),
+    ...studyExitEntries(input),
     ...projectEntries(input),
   ];
 }

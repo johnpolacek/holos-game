@@ -651,6 +651,10 @@ export function deriveStudyMoves(
     arrivedYear: c.arrivedYear,
     annotation: c.detail,
     shift: c.shift,
+    // A2.3: a probe report is never a regression. The contest is between a
+    // target's upkeep and an OBSERVER'S INSTRUMENTS at range; something that
+    // went and looked is not at range and cannot be outspent.
+    regress: false,
   }));
 }
 

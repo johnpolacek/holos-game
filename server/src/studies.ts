@@ -41,7 +41,7 @@ import type {
   QuestionFinding,
   StudyGrounding,
 } from "./protocol";
-import type { LightCone, ObservedSignal, SignalClass } from "./knowledge";
+import { LEAKAGE_FLOOR, type LightCone, type ObservedSignal, type SignalClass } from "./knowledge";
 import {
   answersYearFor,
   costProvenanceFor,
@@ -57,12 +57,80 @@ import {
   type RoleShift,
 } from "./questions";
 import type { ProjectState } from "./projects";
+// The one banked line this module reads. voice.ts is the bank for every
+// string the mind says in its own person; the observatory's own deadpan
+// annotations are authored here, and the contest tell is not one of them —
+// it is the mind naming a cause, which is voice's job and the style gate's
+// (scripts/audit-voice.mjs covers it as a bank).
+import { contestLine } from "./voice";
 
 // ---------------------------------------------------------------------------
 // Persistence — `studies:${token}`, v1 → v2 (moved in from cohort.ts to
 // match projects.ts's precedent: the module that derives from a stored
 // shape owns its migration).
 // ---------------------------------------------------------------------------
+
+/** A2.3: the three conditions a player can leave standing on a study. One
+ *  per kind per study; the client's chrome labels for them are the client's
+ *  business (chrome, not voice). */
+export type TripwireKind = "regress" | "leakage-stops" | "crosses";
+
+/** All three, in the order the client shows them. */
+export const TRIPWIRE_KINDS: readonly TripwireKind[] = ["regress", "leakage-stops", "crosses"];
+
+/** The lead share `crosses` waits for. Fixed, and deliberately not a number
+ *  on the wire: a share picker would turn a decision into a dial, and a free
+ *  number arriving from a client is a number the server has to police. */
+export const CROSS_SHARE = 0.7;
+
+/** One armed condition. `firedYear` non-null means it has already fired for
+ *  THIS arming, and it never fires twice without being armed again. */
+export interface StoredTripwire {
+  readonly kind: TripwireKind;
+  readonly armedYear: number;
+  readonly firedYear: number | null;
+}
+
+/**
+ * A2.3: the belief the player froze when they called the study, exactly as
+ * it stood at the call. INVARIANT (greppable): no code path reads
+ * `called.hypothesisId` and compares it against the live distribution. Light
+ * keeps arriving and the board underneath keeps moving; the call does not
+ * move with it, is never scored against it, is never warned about, and never
+ * reopens itself. Calling a study is a statement about what the player
+ * believes, and the game does not grade it.
+ */
+export interface StoredCall {
+  readonly hypothesisId: string;
+  readonly label: string;
+  readonly gloss: string;
+  readonly share: number;
+  /** The home year the call was made. */
+  readonly calledYear: number;
+  /** The target year the frozen belief speaks to (calledYear − distance). */
+  readonly asOfYear: number;
+}
+
+/**
+ * A2.3: the study closed itself because the source stopped being the thing
+ * the study was opened on. Frozen at the transition, including the lead,
+ * because the board is about to be about a different question and the closed
+ * card must go on saying what it said.
+ */
+export interface StoredOvertaking {
+  readonly fromClass: SignalClass;
+  readonly toClass: SignalClass;
+  /** The home year the change was seen. */
+  readonly atYear: number;
+  /** The target year the new light speaks to (atYear − distance). */
+  readonly asOfYear: number;
+  readonly lead: {
+    readonly id: string;
+    readonly label: string;
+    readonly gloss: string;
+    readonly share: number;
+  };
+}
 
 export interface StoredStudy {
   readonly starId: string;
@@ -82,10 +150,29 @@ export interface StoredStudy {
    * close a vigil the player only now decided to keep).
    */
   readonly openedYear: number;
+  /**
+   * A2.3: the source's signal class as it stood when the study was last
+   * opened, stamped on every open and reopen. The overtaken exit compares it
+   * against the class the light shows now, which is what makes "this is not
+   * the thing you were studying" a fact rather than a feeling.
+   *
+   * Null only on a study migrated from before this field existed. A null
+   * NEVER overtakes: cohort.ts back-fills it to the current class on the next
+   * sky-send, so a study that has been watched for weeks does not close
+   * itself on a class it was never opened against.
+   */
+  readonly openedClass: SignalClass | null;
+  /** A2.3: non-null iff `status === "called"`. */
+  readonly called: StoredCall | null;
+  /** A2.3: non-null iff `status === "overtaken"`. */
+  readonly overtaken: StoredOvertaking | null;
+  /** A2.3: at most one per kind. Survives shelving, closing, and reopening
+   *  — an order left standing is left standing. */
+  readonly tripwires: readonly StoredTripwire[];
 }
 
 export interface StudyState {
-  readonly version: 3;
+  readonly version: 4;
   readonly studies: Record<string, StoredStudy>; // keyed by starId
 }
 
@@ -108,18 +195,59 @@ interface StudyStateV2 {
   >;
 }
 
-export type StoredStudyState = StudyState | StudyStateV2 | StudyStateV1;
+/** The A2.2b shape, before the A2.3 exits. Retained solely for migration. */
+interface StudyStateV3 {
+  readonly version: 3;
+  readonly studies: Record<
+    string,
+    {
+      readonly starId: string;
+      readonly status: StudyStatus;
+      readonly bought: readonly BoughtQuestion[];
+      readonly openedYear: number;
+    }
+  >;
+}
 
-/** A fresh v3 state: no studies yet. */
+export type StoredStudyState = StudyState | StudyStateV3 | StudyStateV2 | StudyStateV1;
+
+/** A fresh v4 state: no studies yet. */
 export function newStudyState(): StudyState {
-  return { version: 3, studies: {} };
+  return { version: 4, studies: {} };
+}
+
+/**
+ * The four A2.3 fields a pre-v4 study did not have. `openedClass: null` is
+ * the load-bearing one: it is the "we do not know what this was opened
+ * against" value, and the overtaken exit refuses to fire on it, so no legacy
+ * study spuriously closes itself the moment the upgrade ships. cohort.ts
+ * back-fills it to the current class on the next sky-send.
+ */
+function withExits(
+  starId: string,
+  status: StudyStatus,
+  bought: readonly BoughtQuestion[],
+  openedYear: number,
+): StoredStudy {
+  return {
+    starId,
+    status,
+    bought,
+    openedYear,
+    openedClass: null,
+    called: null,
+    overtaken: null,
+    tripwires: [],
+  };
 }
 
 /**
  * Bring a persisted state up to the current shape: v1 studies gain an empty
- * purchase list, and every pre-v3 study gains `openedYear`. Callers persist
- * the result so the migration happens once (loadStudyState's exact idiom in
- * cohort.ts, matching loadProjectState).
+ * purchase list, pre-v3 studies gain `openedYear`, and every pre-v4 study
+ * gains the exit fields. Each older arm chains through the one above it —
+ * they differ only in which fields they can supply from storage. Callers
+ * persist the result so the migration happens once (loadStudyState's exact
+ * idiom in cohort.ts, matching loadProjectState).
  *
  * `nowYear` is what a migrated study's `openedYear` becomes — as if it were
  * opened at the moment of the migration. That is the conservative reading:
@@ -127,23 +255,32 @@ export function newStudyState(): StudyState {
  * study the player has been watching for weeks; only the next word does.
  */
 export function migrateStudyState(stored: StoredStudyState, nowYear: number): StudyState {
-  if (stored.version === 3) return stored;
+  if (stored.version === 4) return stored;
   const studies: Record<string, StoredStudy> = {};
-  if (stored.version === 2) {
+  if (stored.version === 3) {
     for (const [starId, s] of Object.entries(stored.studies)) {
-      studies[starId] = {
-        starId: s.starId,
-        status: s.status,
-        bought: s.bought,
-        openedYear: nowYear,
-      };
+      studies[starId] = withExits(s.starId, s.status, s.bought, s.openedYear);
+    }
+  } else if (stored.version === 2) {
+    for (const [starId, s] of Object.entries(stored.studies)) {
+      studies[starId] = withExits(s.starId, s.status, s.bought, nowYear);
     }
   } else {
     for (const [starId, s] of Object.entries(stored.studies)) {
-      studies[starId] = { starId: s.starId, status: s.status, bought: [], openedYear: nowYear };
+      studies[starId] = withExits(s.starId, s.status, [], nowYear);
     }
   }
-  return { version: 3, studies };
+  return { version: 4, studies };
+}
+
+/**
+ * The three statuses that end a vigil. `shelved` is not one of them: a
+ * shelved study is paused, and every verb that works on an open study works
+ * on it. A closed study takes no new purchases, evaluates no tripwires, and
+ * reopens only because the player says so (cohort.ts's openStudy).
+ */
+export function isClosed(status: StudyStatus): boolean {
+  return status === "grounded" || status === "called" || status === "overtaken";
 }
 
 /** Shares never fall below this — even the least-favored reading stays live. */
@@ -406,6 +543,10 @@ function weightForRole(role: HypothesisRole, reading: LightReading): number {
 /** Flattest and peakiest exponents applied to the evidence weights. */
 const SHARPNESS_FLAT = 0.6;
 const SHARPNESS_PEAKED = 2.4;
+/** The flattest a board can be pushed by regressions, ever. */
+export const SHARPNESS_MIN = 0.3;
+/** Each regression keeps this fraction of the gap to SHARPNESS_MIN. */
+export const REGRESS_KEEP = 0.55;
 /** confidenceFor's output range (knowledge.ts): 0.2 marginal, 0.95 clean. */
 const CONFIDENCE_MIN = 0.2;
 const CONFIDENCE_MAX = 0.95;
@@ -432,6 +573,13 @@ export interface StudyMove {
   readonly arrivedYear: number;
   readonly annotation: string;
   readonly shift: RoleShift;
+  /**
+   * A2.3: this move is a REGRESSION. It carries an empty shift and moves no
+   * share toward anything; what it does is take definition out of the whole
+   * board (`distributionFor`'s sharpness fold). Mission reports pass `false`
+   * — a probe on the ground is never outpaced by an upkeep budget.
+   */
+  readonly regress: boolean;
 }
 
 const ROLE_KEYS: readonly HypothesisRole[] = ["mundane", "built", "quiet", "open"];
@@ -512,6 +660,20 @@ function separatesFor(def: QuestionDef, signalClass: SignalClass): readonly Hypo
  * multiplicatively — order-independent, which matters because the move
  * list is rebuilt from scratch on every sky. Deterministic, no RNG, and
  * every share stays strictly inside (SHARE_FLOOR, SHARE_CEIL).
+ *
+ * REGRESSION IS TEMPERATURE, NEVER A REPAINT (A2.3). A regressing move
+ * carries no shift at all; it lowers the sharpness exponent and nothing
+ * else. Since `x ↦ x^s` is strictly monotone for every `s > 0`, dropping `s`
+ * PRESERVES THE ORDER of the shares and CONTRACTS every share strictly
+ * toward the even split: the leader strictly falls, anything below the
+ * even split strictly rises, and a strong runner-up above it falls too
+ * (toward the split, never past a rival). The board loses definition
+ * without changing its mind, which is what "the look got worse" honestly
+ * means. Each
+ * regression keeps REGRESS_KEEP of the remaining gap, so repeated
+ * regressions asymptote to SHARPNESS_MIN and never reach it — spending
+ * against the look never delivers total ignorance, the exact mirror of
+ * SHARE_CEIL's "watching never delivers certainty".
  */
 export function distributionFor(
   signal: ObservedSignal,
@@ -520,10 +682,13 @@ export function distributionFor(
   const menu = MENUS[signal.classification];
   const reading = readLight(signal);
 
-  const sharpness =
+  const raw =
     SHARPNESS_FLAT +
     (SHARPNESS_PEAKED - SHARPNESS_FLAT) *
       clamp01((signal.confidence - CONFIDENCE_MIN) / (CONFIDENCE_MAX - CONFIDENCE_MIN));
+  const regressions = moves.filter((m) => m.regress).length;
+  const sharpness =
+    SHARPNESS_MIN + (raw - SHARPNESS_MIN) * Math.pow(REGRESS_KEEP, regressions);
 
   const combinedShift: Partial<Record<HypothesisRole, number>> = {};
   for (const move of moves) {
@@ -616,6 +781,18 @@ function topTwo(
   return { lead, runnerUp };
 }
 
+/**
+ * The highest-share reading on a board, or undefined on an empty one.
+ * Exported for cohort.ts's call freeze: calling a study has to name exactly
+ * the reading the player was looking at when they called it, to the share,
+ * and that means asking this module rather than picking a maximum by hand.
+ */
+export function leadHypothesisOf(
+  hypotheses: readonly Hypothesis[],
+): Hypothesis | undefined {
+  return topTwo(hypotheses).lead;
+}
+
 /** How firmly the leader may be stated, given how much of the belief it holds. */
 function trustLine(share: number): string {
   if (share >= 0.7) {
@@ -660,6 +837,26 @@ export function groundedAnnotationFor(
   if (lead === undefined) return provenance;
   return `${grounding.missionName} closed this study: ${lead.label}, ${lead.gloss}. ${provenance}`;
 }
+
+/**
+ * The called board's headline (A2.3). Reads from the FROZEN call and never
+ * from the live board: the whole point of calling a study is that the answer
+ * stops moving, so a headline derived from the current shares would be
+ * quietly reopening the question the player just shut.
+ */
+export function calledAnnotationFor(call: StoredCall): string {
+  return `You called this study on ${call.label}: ${call.gloss}. Light goes on arriving, and the call stands as it was made.`;
+}
+
+/**
+ * The overtaken board's headline (A2.3). It names no reading, because the
+ * reading is beside the point: the study was opened on one kind of thing and
+ * the sky is now showing another, and the honest move is to say so and offer
+ * the reopen. The frozen lead rides on the wire beside this for the closed
+ * card to show what the study had believed up to here.
+ */
+export const OVERTAKEN_LINE =
+  "What this is has changed since you opened the study. The light reads differently now. Reopening starts the watch on what it is now.";
 
 type TransitionKind = "first" | "rose" | "fell" | "held";
 
@@ -837,6 +1034,7 @@ function assembleQuestion(
   bought: BoughtQuestion | undefined,
   nowYear: number,
   projectState: ProjectState,
+  purchases: readonly BoughtQuestion[],
 ): { readonly wire: OpenQuestion; readonly move: StudyMove | null } {
   const separates = separatesFor(def, signal.classification);
 
@@ -866,7 +1064,7 @@ function assembleQuestion(
   const integrationYears = effectiveIntegrationYearsFor(def, bought.boughtYear, projectState);
   const costProvenance = costProvenanceFor(def, bought.boughtYear, projectState);
   const hasteProvenance = hasteProvenanceFor(def, bought.boughtYear, projectState);
-  const finding = resolveQuestion(galaxy, cone, def, bought, signal, projectState);
+  const finding = resolveQuestion(galaxy, cone, def, bought, signal, projectState, purchases);
 
   if (finding === null) {
     return {
@@ -898,6 +1096,11 @@ function assembleQuestion(
     moved: movedFromShift(finding.shift, signal.classification),
     shape: finding.shape,
   };
+  // A plateau contributes nothing at all. A regression DOES contribute a
+  // move, and it has to: its shift is empty, so the only thing it can carry
+  // into the board is the flag distributionFor's sharpness fold reads. It is
+  // also an evidence entry with `moved: []`, which is the honest rendering
+  // of an answer that named no reading.
   const move: StudyMove | null =
     finding.shape === "plateau"
       ? null
@@ -908,6 +1111,7 @@ function assembleQuestion(
           arrivedYear: answersYear,
           annotation: finding.annotation,
           shift: finding.shift,
+          regress: finding.shape === "regress",
         };
 
   return {
@@ -930,12 +1134,154 @@ function assembleQuestion(
   };
 }
 
+// ---------------------------------------------------------------------------
+// Tripwires — a standing order, evaluated over the board that has just been
+// assembled rather than over any state of its own.
+// ---------------------------------------------------------------------------
+
+/**
+ * Everything the three conditions read, taken from the board this send has
+ * ALREADY computed. No condition re-derives anything: a tripwire can only
+ * fire on something the player could have read for themselves had they been
+ * looking, which is what makes it an order and not an oracle.
+ */
+export interface TripwireBoard {
+  readonly openQuestions: readonly OpenQuestion[];
+  readonly hypotheses: readonly Hypothesis[];
+  readonly signal: ObservedSignal;
+  readonly distanceLy: number;
+}
+
+/**
+ * Whether `kind`'s condition holds for an arming made in `armedYear`. ONE
+ * predicate, used for both halves of the contract: cohort.ts refuses to arm
+ * when it already holds at `nowYear`, and the sky-send fires when it holds
+ * for the arming on record. That is why fired-state plus this condition is
+ * the whole state machine — there is no third "was it true when you armed
+ * it" bit to keep.
+ *
+ * `regress` and `leakage-stops` are armed-year-relative and so can never
+ * already hold at the moment of arming (an answer that has landed answered
+ * at or before now; light that has arrived arrived at or before now). Only
+ * `crosses` reads a standing fact about the board, and it is the one the
+ * arming refusal actually bites on.
+ */
+export function tripwireHolds(
+  kind: TripwireKind,
+  armedYear: number,
+  board: TripwireBoard,
+): boolean {
+  switch (kind) {
+    case "regress":
+      return board.openQuestions.some(
+        (q) =>
+          q.finding !== null &&
+          q.finding.shape === "regress" &&
+          q.answersYear !== null &&
+          q.answersYear > armedYear,
+      );
+    case "leakage-stops": {
+      // The newest ARRIVED epoch sits below the leakage floor while an
+      // earlier one stood at or above it: somebody's machines stopped being
+      // audible. `lightHistory` is already clipped at the departure year
+      // (knowledge.ts's observeCiv), so "arrived" is the only kind of epoch
+      // in it, and the arrival year is the departure year plus the distance.
+      const sorted = sortedHistory(board.signal);
+      const newest = sorted[sorted.length - 1];
+      if (newest === undefined || newest.level >= LEAKAGE_FLOOR) return false;
+      const wasAudible = sorted
+        .slice(0, -1)
+        .some((epoch) => epoch.level >= LEAKAGE_FLOOR);
+      if (!wasAudible) return false;
+      return newest.fromYear + board.distanceLy > armedYear;
+    }
+    case "crosses": {
+      const { lead } = topTwo(board.hypotheses);
+      return lead !== undefined && lead.share >= CROSS_SHARE;
+    }
+  }
+}
+
+/**
+ * Folds this send's firings into the stored tripwire record. Returns the
+ * SAME array by identity when nothing changed, which is how cohort.ts knows
+ * whether it owes a write. Fires once per arming (`firedYear` is set and
+ * never cleared); a closed study is not evaluated at all, which is how
+ * "called stays called" survives a standing order left on it.
+ */
+function settleTripwires(
+  stored: StoredStudy,
+  board: TripwireBoard,
+  nowYear: number,
+): readonly StoredTripwire[] {
+  if (isClosed(stored.status)) return stored.tripwires;
+  let changed = false;
+  const next = stored.tripwires.map((t) => {
+    if (t.firedYear !== null) return t;
+    if (!tripwireHolds(t.kind, t.armedYear, board)) return t;
+    changed = true;
+    return { ...t, firedYear: nowYear };
+  });
+  return changed ? next : stored.tripwires;
+}
+
+/** All three kinds, always, with the state the server computed. A kind with
+ *  no stored arming is "available"; the client's labels are its own. */
+function toWireTripwires(
+  tripwires: readonly StoredTripwire[],
+): StudySnapshot["tripwires"] {
+  return TRIPWIRE_KINDS.map((kind) => {
+    const armed = tripwires.find((t) => t.kind === kind);
+    if (armed === undefined) return { kind, state: "available" as const, firedYear: null };
+    return {
+      kind,
+      state: armed.firedYear !== null ? ("tripped" as const) : ("armed" as const),
+      firedYear: armed.firedYear,
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Assembly
+// ---------------------------------------------------------------------------
+
+/**
+ * What cohort.ts hands in when it has decided that THIS send is the moment a
+ * study is overtaken: the class pair and the two years. The frozen lead is
+ * filled in here, from the board this call has just built, because the lead
+ * is the one part of an overtaking that only the assembly knows.
+ */
+export interface OvertakingTrigger {
+  readonly fromClass: SignalClass;
+  readonly toClass: SignalClass;
+  readonly atYear: number;
+  readonly asOfYear: number;
+}
+
+/**
+ * The snapshot, plus the two writes assembling it can produce. Both are
+ * cohort.ts's to persist (this module stores nothing): `tripwires` is
+ * identical by reference when nothing fired, and `overtaken` is non-null
+ * only on the single send that saw the class change.
+ */
+export interface AssembledStudy {
+  readonly snapshot: StudySnapshot;
+  readonly tripwires: readonly StoredTripwire[];
+  readonly overtaken: StoredOvertaking | null;
+}
+
 /**
  * Assembles the full study for a detected source: the board, the evidence
  * trail, the open-question menu, and the headline. `cone` gates every
  * question's truth read (questions.ts's resolveQuestion); `missionMoves`
  * are this star's mission-report StudyMoves, built by cohort.ts via
  * missions.ts and handed in — this module never imports missions.ts.
+ *
+ * `grounding` and `overtaking` are both decisions cohort.ts has already
+ * made (only it can see a probe report or compare against a stored
+ * `openedClass`); this function renders them and, for an overtaking, freezes
+ * the lead. Precedence between them is settled before the call, so nothing
+ * here has to break a tie.
  */
 export function buildStudySnapshot(
   galaxy: Galaxy,
@@ -946,7 +1292,8 @@ export function buildStudySnapshot(
   projectState: ProjectState,
   missionMoves: readonly StudyMove[],
   grounding: StudyGrounding | null,
-): StudySnapshot {
+  overtaking: OvertakingTrigger | null,
+): AssembledStudy {
   const signal = source.signal;
   const catalog = questionsFor(signal.classification);
 
@@ -963,6 +1310,7 @@ export function buildStudySnapshot(
       bought,
       nowYear,
       projectState,
+      stored.bought,
     );
     openQuestions.push(wire);
     if (move !== null) answerMoves.push(move);
@@ -971,17 +1319,83 @@ export function buildStudySnapshot(
   const moves = [...answerMoves, ...missionMoves];
   const hypotheses = distributionFor(signal, moves);
 
-  return {
-    starId: source.starId,
-    status: stored.status,
-    signalClass: signal.classification,
-    hypotheses,
-    evidence: mergeEvidence(signal, nowYear, source.starId, moves),
+  const board: TripwireBoard = {
     openQuestions,
-    annotationLine:
-      grounding !== null
-        ? groundedAnnotationFor(hypotheses, grounding)
-        : annotationFor(hypotheses),
-    grounding,
+    hypotheses,
+    signal,
+    distanceLy: cone.distanceLy,
+  };
+  const tripwires = settleTripwires(stored, board, nowYear);
+
+  // Freeze the lead the moment the class changes, or read the one that was
+  // frozen the last time it did. An overtaken card must go on saying what
+  // the study believed up to the change, and the live board is about to be
+  // about something else entirely.
+  const { lead } = topTwo(hypotheses);
+  const overtaken: StoredOvertaking | null =
+    overtaking === null
+      ? null
+      : {
+          fromClass: overtaking.fromClass,
+          toClass: overtaking.toClass,
+          atYear: overtaking.atYear,
+          asOfYear: overtaking.asOfYear,
+          lead:
+            lead === undefined
+              ? { id: "", label: "", gloss: "", share: 0 }
+              : { id: lead.id, label: lead.label, gloss: lead.gloss, share: lead.share },
+        };
+  const overtakenNow = overtaken ?? stored.overtaken;
+
+  const call = stored.called;
+  const annotationLine =
+    call !== null
+      ? calledAnnotationFor(call)
+      : overtakenNow !== null
+        ? OVERTAKEN_LINE
+        : grounding !== null
+          ? groundedAnnotationFor(hypotheses, grounding)
+          : annotationFor(hypotheses);
+
+  return {
+    snapshot: {
+      starId: source.starId,
+      status: stored.status,
+      signalClass: signal.classification,
+      hypotheses,
+      evidence: mergeEvidence(signal, nowYear, source.starId, moves),
+      openQuestions,
+      annotationLine,
+      grounding,
+      // The tell, and only after a regression has actually been earned: the
+      // annotation on the answer says the look got worse, and this says the
+      // one thing that cannot be read off the instrument. The two claims
+      // stay in their two places (the headline is untouched by either).
+      contestLine: answerMoves.some((m) => m.regress) ? contestLine() : null,
+      tripwires: toWireTripwires(tripwires),
+      call:
+        call === null
+          ? null
+          : {
+              hypothesisId: call.hypothesisId,
+              label: call.label,
+              gloss: call.gloss,
+              share: call.share,
+              calledYear: call.calledYear,
+              lightAgeYears: nowYear - call.asOfYear,
+            },
+      overtaking:
+        overtakenNow === null
+          ? null
+          : {
+              fromClass: overtakenNow.fromClass,
+              toClass: overtakenNow.toClass,
+              atYear: overtakenNow.atYear,
+              lightAgeYears: nowYear - overtakenNow.asOfYear,
+              lead: overtakenNow.lead,
+            },
+    },
+    tripwires,
+    overtaken,
   };
 }

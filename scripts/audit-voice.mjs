@@ -77,9 +77,14 @@ function check(label, strings, limits) {
 
 const arrivals = tagged(block("const ARRIVAL_LINES: ByArchetype<PinnedLine> = {"));
 const remarks = quoted(block("export const REPORT_REMARKS: ByArchetype<"));
+// A2.3's contest tell. It is fact-free by construction (nothing in it may be
+// particular to a source, or it would name which target is masking), so it is
+// checked against the remark bounds like the rest of the fact-free prose.
+const contest = tagged(block("const CONTEST_LINES: Readonly<Record<\"tell\", PinnedLine>> = {"));
 
 const arrivalCount = check("arrival line", arrivals, LIMITS.arrival);
 const remarkCount = check("report remark", remarks, LIMITS.remark);
+const contestCount = check("contest line", contest, LIMITS.remark);
 
 // The fact-carrying gate has ZERO call sites in AV4 (every generated surface
 // is fact-free by construction), so it is exercised here instead — masking a
@@ -101,6 +106,7 @@ if (invented.ok) fail("fact-carrying gate accepted an unpinned figure in the res
 
 console.log(`arrival lines   ${arrivalCount}`);
 console.log(`report remarks  ${remarkCount}`);
+console.log(`contest lines   ${contestCount}`);
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} failure(s):`);

@@ -80,6 +80,9 @@ import type {
   MissionKindDef,
 } from "./missions";
 import type { TendRow } from "./tend";
+// The tripwire vocabulary is studies.ts's (it owns the conditions and the
+// stored record); the wire borrows the id set, the TendRow precedent exactly.
+import type { TripwireKind } from "./studies";
 
 // Re-exports the client needs to render. Types are erased; DIAL_AXES is the
 // ONE runtime value the client genuinely needs (in-world dial pole labels),
@@ -110,6 +113,7 @@ export type {
 // The work-list row shape rides inside `sky`; the client renders it directly, so
 // it is named here rather than reached for through the message union.
 export type { TendRow } from "./tend";
+export type { TripwireKind } from "./studies";
 
 /** Clock anchor; the client computes nowYear locally (no time polling). */
 export interface ClockWire {
@@ -211,10 +215,16 @@ export interface EvidenceEntry {
   readonly kind: "arrival" | "answer" | "report";
 }
 
-/** "called" | "overtaken" join in A2.3. `grounded` is A2.2b's: a mission
- *  report that arrived after the study was last opened closed it, and the
- *  belief it settled came back from the ground rather than from the light. */
-export type StudyStatus = "open" | "shelved" | "grounded";
+/**
+ * The five states a vigil can be in. `grounded` is A2.2b's: a mission report
+ * that arrived after the study was last opened closed it, and the belief it
+ * settled came back from the ground rather than from the light. A2.3 adds
+ * the other two exits — `called`, the player deciding they are done arguing,
+ * and `overtaken`, the source ceasing to be the kind of thing the study was
+ * opened on. All three are CLOSED (studies.ts's `isClosed`); `shelved` is
+ * merely paused.
+ */
+export type StudyStatus = "open" | "shelved" | "grounded" | "called" | "overtaken";
 
 /**
  * What grounded a study, for the board to name. Ids and dates only — the
@@ -268,7 +278,10 @@ export interface QuestionFinding {
   readonly lightAgeYears: number; // nowYear − asOfYear
   readonly annotation: string;
   readonly moved: readonly HypothesisId[];
-  readonly shape: "sharpen" | "plateau";
+  /** A2.3 adds `regress`: the answer landed and moved no share toward
+   *  anything, but took definition out of the whole board. `moved` is empty
+   *  on a regress, exactly as it is on a plateau. */
+  readonly shape: "sharpen" | "plateau" | "regress";
 }
 
 /**
@@ -318,6 +331,50 @@ export interface StudySnapshot {
   readonly annotationLine: string;
   /** Non-null iff `status === "grounded"` (A2.2b). */
   readonly grounding: StudyGrounding | null;
+  /**
+   * A2.3: the mind's one sentence about a study that has regressed at least
+   * once, banked in voice.ts and gated by `npm run audit:voice`. Null until a
+   * regression has actually been earned. It states a CAUSE, which is why it
+   * lives here and not in the finding's own annotation: the answer says the
+   * look got worse, and this says the one thing an instrument cannot tell
+   * you. `annotationLine` is untouched by it; the two claims stay apart.
+   */
+  readonly contestLine: string | null;
+  /** A2.3: all three kinds, always, with the state the server computed. The
+   *  chrome labels are the client's; nothing here names a condition's
+   *  threshold, and there is no number on this row a client could send back. */
+  readonly tripwires: readonly {
+    readonly kind: TripwireKind;
+    readonly state: "available" | "armed" | "tripped";
+    readonly firedYear: number | null;
+  }[];
+  /**
+   * A2.3: the belief FROZEN when the player called the study, non-null iff
+   * `status === "called"`. It is a belief already on the wire plus two dates.
+   * It is never compared against the live board anywhere, on either side.
+   */
+  readonly call: {
+    readonly hypothesisId: string;
+    readonly label: string;
+    readonly gloss: string;
+    readonly share: number;
+    readonly calledYear: number;
+    readonly lightAgeYears: number;
+  } | null;
+  /** A2.3: what the source turned into and what the study had believed up to
+   *  then, frozen at the transition. Non-null iff `status === "overtaken"`. */
+  readonly overtaking: {
+    readonly fromClass: SignalClass;
+    readonly toClass: SignalClass;
+    readonly atYear: number;
+    readonly lightAgeYears: number;
+    readonly lead: {
+      readonly id: string;
+      readonly label: string;
+      readonly gloss: string;
+      readonly share: number;
+    };
+  } | null;
 }
 
 // ── A2.2: the compute economy ───────────────────────────────────────────
@@ -538,6 +595,13 @@ export type CohortClientMessage =
   // ── A2.2 ──
   | { type: "buyQuestion"; starId: string; questionId: string }
   | { type: "launchMission"; starId: string; kind: string; charter: readonly string[] }
+  // ── A2.3 ──
+  // `kind` is parsed as a bare string and validated in the handler, the
+  // `launchMission.kind` precedent: the parse layer checks types, the
+  // handler owns the vocabulary and the error code.
+  | { type: "callStudy"; starId: string }
+  | { type: "armTripwire"; starId: string; kind: string }
+  | { type: "disarmTripwire"; starId: string; kind: string }
   // ── AV1 ──
   | { type: "voiceSeen"; key: VoiceKey }
   // ── AV2 ──
@@ -584,7 +648,10 @@ export type CohortErrorCode =
   | "question-unavailable" // not offered on this class, or already bought
   | "unknown-mission-kind" // no such mission kind
   | "bad-charter" // wrong count, unknown clause, two from one group, wrong kind
-  | "mission-unavailable"; // a live mission of this kind already runs on this star
+  | "mission-unavailable" // a live mission of this kind already runs on this star
+  // ── A2.3 ──
+  | "study-unavailable" // not open or shelved: a closed study cannot be closed again
+  | "tripwire-unavailable"; // no such kind, or the condition already holds
 
 /** Parse-time bound on the untrusted `launchMission.charter` array (a parse
  *  concern); the 2–3 count rule and one-per-group rule are handler concerns
@@ -698,6 +765,26 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
         return { type: "launchMission", starId: msg["starId"], kind: msg["kind"], charter };
       }
     }
+  }
+
+  if (msg["type"] === "callStudy" && typeof msg["starId"] === "string") {
+    return { type: "callStudy", starId: msg["starId"] };
+  }
+
+  if (
+    msg["type"] === "armTripwire" &&
+    typeof msg["starId"] === "string" &&
+    typeof msg["kind"] === "string"
+  ) {
+    return { type: "armTripwire", starId: msg["starId"], kind: msg["kind"] };
+  }
+
+  if (
+    msg["type"] === "disarmTripwire" &&
+    typeof msg["starId"] === "string" &&
+    typeof msg["kind"] === "string"
+  ) {
+    return { type: "disarmTripwire", starId: msg["starId"], kind: msg["kind"] };
   }
 
   if (msg["type"] === "requestSky") {

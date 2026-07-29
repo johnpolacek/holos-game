@@ -17,7 +17,7 @@ import { createRng } from "./rng";
 // AV3: typed by protocol.ts's re-export, never by importing knowledge.ts
 // directly — the truth-side module stays off this file's import list, the
 // same discipline proposals.ts's Pin A enforces for itself.
-import type { SignalClass } from "./protocol";
+import type { SignalClass, TripwireKind } from "./protocol";
 import type { ProposalKind } from "./proposals";
 
 // ---------------------------------------------------------------------------
@@ -273,6 +273,31 @@ export function silenceLine(): string {
 }
 
 // ---------------------------------------------------------------------------
+// A2.3 — the contest tell.
+//
+// Not a frame line: it is not shown once and then retired, it rides on any
+// study that has regressed and disappears with the study. It is banked here
+// rather than authored in studies.ts for one reason — it is the only sentence
+// on the observatory that names a CAUSE. Every other annotation on that
+// surface says what an instrument did; this one says what somebody else is
+// doing, which is the mind speaking in its own person and therefore voice's
+// to hold and the style gate's to check.
+//
+// Register: the mind stating physics, wit 0. No fact in it, and there is
+// nothing in it to pin: it must read identically on every source, in every
+// year, for every archetype, because the moment it carried a particular it
+// would be telling the player which target is masking.
+// ---------------------------------------------------------------------------
+
+const CONTEST_LINES: Readonly<Record<"tell", PinnedLine>> = {
+  tell: line`Nature does not get better at hiding; something there is working against the look.`,
+};
+
+export function contestLine(): string {
+  return render(CONTEST_LINES.tell);
+}
+
+// ---------------------------------------------------------------------------
 // The voice cards — prose-style.md §4, columns "Voice signature", "What
 // its wit sounds like", and "DON'T", transcribed VERBATIM. The code table
 // is a projection of §4, never an edit of it (§7's sync-obligation row
@@ -418,6 +443,69 @@ export function recordStudyGrounded(
   distanceLy: number,
 ): PinnedLine {
   return line`${F.label(missionName)} reported from ${F.source(sourceName)} and closed the study: it named a reading, ${F.label(readingLabel)}, on light ${F.years(distanceLy)} old.`;
+}
+
+/**
+ * A2.3: an instrument came back with LESS separation than the same
+ * instrument had before. The second sentence is the one place in the annal
+ * that names a cause, and it says the same thing the study's own contest
+ * tell says, because the annal is read long after the study surface is
+ * closed and the record must stand on its own.
+ *
+ * `lightAgeYears` is the light's age at this entry's own stamp year, which
+ * is exactly the distance (R-33) — the same value every remote builder here
+ * prints, named for what it means rather than for where it came from.
+ */
+export function recordStudyRegressed(
+  questionProseName: string,
+  sourceName: string,
+  lightAgeYears: number,
+): PinnedLine {
+  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back worse than the look before it, on light ${F.years(lightAgeYears)} old. This does not happen naturally; something there is working against the look.`;
+}
+
+/**
+ * A2.3: the player called a study and stopped watching it argue. The second
+ * sentence states the contract and states it flatly: the call is not scored,
+ * not warned about, and not revisited. Nothing here hedges, because a hedge
+ * would be the record quietly grading a decision the game does not grade.
+ */
+export function recordStudyCalled(
+  sourceName: string,
+  readingLabel: string,
+  lightAgeYears: number,
+): PinnedLine {
+  return line`The study on ${F.source(sourceName)} was called: ${F.label(readingLabel)}, on light ${F.years(lightAgeYears)} old. Nothing that arrives after this is asked to change it.`;
+}
+
+/**
+ * A2.3: the source stopped being the kind of thing the study was opened on.
+ * Both class labels are §8 chrome quoted verbatim after the colon, the
+ * `recordProbeFirstWord` construction — chrome sits inside prose by being
+ * quoted, never by being restyled into it.
+ */
+export function recordStudyOvertaken(
+  sourceName: string,
+  fromClassLabel: string,
+  toClassLabel: string,
+  lightAgeYears: number,
+): PinnedLine {
+  return line`The light from ${F.source(sourceName)} changed what it reads as: ${F.label(fromClassLabel)} became ${F.label(toClassLabel)}, on light ${F.years(lightAgeYears)} old. The study closed; it had been opened on the other one.`;
+}
+
+/**
+ * A2.3: a standing order caught the thing it was left to catch. Names the
+ * condition in prose (never the client's chrome badge) and NOTHING about
+ * what the board now says — the tripwire is a summons, not a finding, and a
+ * record sentence that summarized the board here would be answering a
+ * question the player has not yet gone and looked at.
+ */
+export function recordTripwireTripped(
+  tripwireProseName: string,
+  sourceName: string,
+  lightAgeYears: number,
+): PinnedLine {
+  return line`The watch left standing on ${F.source(sourceName)} caught what it was set for: ${F.label(tripwireProseName)}, on light ${F.years(lightAgeYears)} old.`;
 }
 
 /**
@@ -850,6 +938,19 @@ export const SIGNAL_CLASS_LABEL: Readonly<Record<SignalClass, string>> = {
   "directed-beam": "DIRECTED BEAM",
   "broadcast-leakage": "BROADCAST LEAKAGE",
   biosignature: "LIVING WORLD",
+};
+
+/**
+ * A2.3: each tripwire condition as it reads INSIDE a sentence. The client's
+ * badge for the same condition is chrome and is the client's own; this is
+ * the prose form the annal needs, exactly as `QuestionDef.proseName` is the
+ * prose form beside a chrome `label`. Sentence case, no number: the
+ * threshold `crosses` waits on is a server constant and stays one.
+ */
+export const TRIPWIRE_PROSE_NAME: Readonly<Record<TripwireKind, string>> = {
+  regress: "a look coming back worse than the one before it",
+  "leakage-stops": "the noise of machines going quiet",
+  crosses: "one reading pulling clear of the rest",
 };
 
 /**
