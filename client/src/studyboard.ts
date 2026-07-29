@@ -56,6 +56,7 @@ import type {
   Star,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
+import { startOver } from "./startover";
 import { QUESTION_METHOD } from "./questionmethod";
 import { CLASS_LABEL } from "./sourcecard";
 import { formatClockPair, formatCountdown, nowYear } from "./clock";
@@ -189,6 +190,7 @@ export class StudyBoard {
     | "tend"
     | "mission"
     | "launch"
+    | "startover"
     | "report" = "list";
   private focusedStarId: string | null = null;
   private briefStarId: string | null = null;
@@ -205,6 +207,13 @@ export class StudyBoard {
   // player never visited.
   private briefReturn: "picker" | "hub" = "picker";
   private openStudyCount = 0;
+
+  // The reset's two transient bits. `pending` disables the verb for the one
+  // beat between the tap and the reload (a second tap would POST a token the
+  // first call is already erasing); `error` is set only when the server
+  // refused, in which case the run is untouched and the tap can come again.
+  private startOverPending = false;
+  private startOverError: string | null = null;
 
   // AV3: a one-shot pointer set by focusStudyQuestion (a proposal's
   // `question` route) — the next renderFocused() scrolls the matching row
@@ -502,6 +511,11 @@ export class StudyBoard {
       }
     } else if (this.view === "launch") {
       this.renderLaunch();
+    } else if (this.view === "startover") {
+      // Nothing on this page comes from a `sky`, but the branch must exist:
+      // the `else` below falls back to the study list, which would drop the
+      // player out of a confirmation they are mid-way through reading.
+      this.renderStartOver();
     } else if (this.view === "report") {
       // Defensive consistency only, the `tend`/`projects` precedent — a
       // `sky` carries none of the report's own data, so this just re-runs
@@ -594,6 +608,19 @@ export class StudyBoard {
     this.view = "report";
     this.focusedStarId = null;
     this.renderReport();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
+  /** The playtest reset's confirmation page. Always starts clean: a failure
+   *  message from a previous attempt never greets the next one. */
+  private openStartOver(): void {
+    this.view = "startover";
+    this.focusedStarId = null;
+    this.startOverPending = false;
+    this.startOverError = null;
+    this.renderStartOver();
     this.openFlag = true;
     this.root.classList.add("open");
     this.startTicking();
@@ -897,17 +924,38 @@ export class StudyBoard {
         () => this.openReport(),
       ),
     );
+
+    // The playtest reset. Below its own hairline and in faint ink rather
+    // than the rows' amber, because it is not one of the verbs the panel
+    // exists to offer: everything above is something the CIVILIZATION can
+    // begin, and this is something the PLAYER does to the run. It never
+    // fires from here — the tap opens the consequences first.
+    this.body.append(this.hairline());
+    this.body.append(
+      this.buildHubRow(
+        "Start over",
+        "Give up this civilization and inherit again.",
+        true,
+        () => this.openStartOver(),
+        "aside",
+      ),
+    );
   }
 
+  /** `tone` is the row's standing in the panel, not its state: "aside" is a
+   *  live, tappable row that is not one of the game's verbs (the reset).
+   *  Inertness stays where it was, on `active`. */
   private buildHubRow(
     label: string,
     sublabel: string,
     active: boolean,
     onClick: () => void,
+    tone: "verb" | "aside" = "verb",
   ): HTMLButtonElement {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = active ? "study-hub-row" : "study-hub-row study-hub-row--inert";
+    if (tone === "aside") btn.classList.add("study-hub-row--aside");
     if (active) {
       btn.addEventListener("click", onClick);
     } else {
@@ -1034,6 +1082,94 @@ export class StudyBoard {
     if (watching > 0) parts.push(`${watching} watching`);
     if (silent > 0) parts.push(`${silent} silent`);
     return parts.length === 0 ? "Nothing under way." : parts.join(" · ");
+  }
+
+  // ── Render: start-over view ──────────────────────────────────────────
+
+  /**
+   * What starting over actually costs, then the verb. The page exists
+   * because the hub row must not be a one-tap erase, and because the honest
+   * description of the reset is three sentences long: this is the one place
+   * in the UI that admits the game is being played on a test cohort.
+   *
+   * The prose does not soften it. A run's whole history goes, the star goes
+   * back into the pool, and — the part no game verb could ever do — the
+   * light this civilization already sent stops arriving for everyone else,
+   * because every view in the game is derived from the galaxy as it is now.
+   */
+  private renderStartOver(): void {
+    this.body.innerHTML = "";
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => this.openHub());
+    this.body.append(back);
+
+    const header = document.createElement("div");
+    header.className = "study-board-header holos-caps";
+    header.textContent = "START OVER";
+    this.body.append(header);
+
+    const subtitle = document.createElement("div");
+    subtitle.className = "study-picker-subtitle";
+    subtitle.textContent = "A playtester's tool, not a move in the game.";
+    this.body.append(subtitle);
+
+    this.body.append(this.hairline());
+
+    const note = document.createElement("div");
+    note.className = "study-startover-note";
+    note.textContent =
+      "This civilization is given up: its studies, its projects, its missions " +
+      "and everything it ever learned. Its star returns to the pool for whoever " +
+      "inherits next, and the light it has already sent stops arriving for the " +
+      "others — nothing in the game itself works this way. You then inherit " +
+      "again, from a fresh offer, at the cohort's current year.";
+    this.body.append(note);
+
+    if (this.startOverError !== null) {
+      const error = document.createElement("div");
+      error.className = "study-startover-note study-startover-note--error";
+      error.textContent = this.startOverError;
+      this.body.append(error);
+    }
+
+    const row = document.createElement("div");
+    row.className = "study-verb-row";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    // The pill, not the bare text verb: this is the one verb the page
+    // exists to offer, and the recent turn across the panel is that a verb
+    // you are meant to press looks pressable. The prose above carries the
+    // weight of what it does; the button only has to be legible.
+    btn.className = "study-verb-btn study-verb-btn--primary";
+    btn.textContent = this.startOverPending ? "GIVING UP…" : "GIVE UP THIS CIVILIZATION";
+    btn.disabled = this.startOverPending;
+    btn.addEventListener("click", () => {
+      void this.runStartOver();
+    });
+    row.append(btn);
+    this.body.append(row);
+  }
+
+  /** The tap. On success this never comes back — startOver() reloads the
+   *  page. On refusal the run is untouched (the token is cleared only after
+   *  the server confirms), so the only thing to do is say so and let the
+   *  player tap again. */
+  private async runStartOver(): Promise<void> {
+    if (this.startOverPending) return;
+    this.startOverPending = true;
+    this.startOverError = null;
+    this.renderStartOver();
+    try {
+      await startOver();
+    } catch {
+      this.startOverPending = false;
+      this.startOverError = "The cohort would not let go of this run. Nothing was given up — try again.";
+      this.renderStartOver();
+    }
   }
 
   // ── Render: explore view ─────────────────────────────────────────────

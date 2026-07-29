@@ -215,7 +215,9 @@ body {
 /* AV3: a proposal's reason and (AV4-only) the mind's stance — both
    sentences, never the caps chrome beside them. */
 .proposal-line,
-.proposal-stance {
+.proposal-stance,
+/* The playtest reset's page: what starting over costs, and the refusal. */
+.study-startover-note {
   text-wrap: pretty;
 }
 
@@ -993,6 +995,16 @@ body {
   color: rgba(240, 172, 102, 0.5);
 }
 
+/* An aside row — live and tappable, but not one of the verbs the panel
+   exists to offer (today: the playtest reset). This is the case the note
+   above rules out for inertness, and it wants exactly what that note
+   refuses: leaving the amber family IS the point, because this is a
+   different KIND of row rather than a quieter one. Ink, not opacity, so it
+   stays at the readable floor. */
+.study-hub-row--aside .study-hub-label {
+  color: var(--holos-ink-dim);
+}
+
 /* Hub view — AV3: the mind's proposals, above the standing rows and only
  * present when there is something to say. A proposal is a sentence from a
  * different speaker, not a place-over-sublabel browse row, so it is its own
@@ -1077,6 +1089,21 @@ body {
   letter-spacing: 0.04em;
   color: var(--holos-ink-faint);
   cursor: pointer;
+}
+
+/* Start-over view — what the reset costs, said plainly before the verb.
+ * Body ink rather than the panel's amber: this is the game telling the
+ * PLAYER about the run, not the mind speaking to the civilization. */
+.study-startover-note {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  padding: 0.2rem 0 0.6rem;
+}
+
+/* The refusal. Same prose, one ink tier up, because it is the only line on
+ * the page that is news. */
+.study-startover-note--error {
+  color: var(--holos-ink);
 }
 
 /* Explore view — an UNDER STUDY marker on a picker-style row for a source

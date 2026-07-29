@@ -248,12 +248,34 @@ interface ConnState {
   reportBaselineYear: number | null;
 }
 
-function json(data: unknown, status = 200): Response {
+function json(data: unknown, status = 200, extraHeaders: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(data, null, 2), {
     status,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...extraHeaders },
   });
 }
+
+/**
+ * CORS for /dev/forget, and only for it.
+ *
+ * In production the client is same-origin and none of this is consulted.
+ * In development it is load-bearing: `npm run dev:client` serves the client
+ * from :5173 while the Worker answers on :8787, and the documented phone
+ * setup moves both onto a LAN IP — so there is no origin allowlist that
+ * would hold, which is why this is `*`. It costs nothing: the token in the
+ * body is the credential, and a page that cannot read this browser's
+ * localStorage cannot produce one.
+ *
+ * The gated endpoints get none of this. They are reachable only from a
+ * local hostname or behind an operator's flag, and nothing in a browser
+ * needs to call them.
+ */
+const FORGET_CORS: Record<string, string> = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "POST, OPTIONS",
+  "access-control-allow-headers": "content-type",
+  "access-control-max-age": "86400",
+};
 
 /** The request arrived at a hostname only a local wrangler dev serves. */
 function isLocalDev(url: URL): boolean {
@@ -1840,7 +1862,13 @@ export class Cohort extends Server<CohortEnv> {
     // to it. The rest stay local-only: they either hand out truth the
     // knowledge layer exists to withhold (state/observe/sky) or move the
     // shared world for everyone (seed/skip/event).
-    if (request.method === "POST" && action === "forget") return this.devForget(request);
+    if (action === "forget") {
+      // The preflight the client's JSON POST triggers cross-origin in dev.
+      if (request.method === "OPTIONS") {
+        return new Response(null, { status: 204, headers: FORGET_CORS });
+      }
+      if (request.method === "POST") return this.devForget(request);
+    }
 
     if (!devEndpointsOpen(this.env, url)) return json({ error: "not found" }, 404);
 
@@ -2131,7 +2159,7 @@ export class Cohort extends Server<CohortEnv> {
   private async devForget(request: Request): Promise<Response> {
     const body = await parseBody(request);
     const token = stringField(body, "token");
-    if (token === undefined) return json({ error: "token (string) required" }, 400);
+    if (token === undefined) return json({ error: "token (string) required" }, 400, FORGET_CORS);
 
     // A forget can be the first thing a cold DO ever handles; seeding here
     // keeps the offer below (and requireGalaxy) on solid ground.
@@ -2187,13 +2215,17 @@ export class Cohort extends Server<CohortEnv> {
       }
     }
 
-    return json({
-      forgotten: token,
-      hadRun: run !== undefined,
-      civRemoved: removed ? civId : null,
-      starFreed: removed ? (run?.starId ?? null) : null,
-      connectionsReset,
-      note: "clear localStorage 'holos.token' too — a reused token re-derives the same civ id",
-    });
+    return json(
+      {
+        forgotten: token,
+        hadRun: run !== undefined,
+        civRemoved: removed ? civId : null,
+        starFreed: removed ? (run?.starId ?? null) : null,
+        connectionsReset,
+        note: "clear localStorage 'holos.token' too — a reused token re-derives the same civ id",
+      },
+      200,
+      FORGET_CORS,
+    );
   }
 }
