@@ -279,8 +279,8 @@ are the work this document exists to direct:
   mechanical — otherwise its optimal play collapses toward inaction,
   violating rule 5. *(Answered:
   [observatory-design.md](./observatory-design.md) — studies, buyable
-  questions, the regression tell, and dossiers as the intelligence
-  good; dossier trading matures with traffic.)*
+  questions, the regression tell, and findings as the intelligence
+  good; finding trading matures with traffic.)*
 - **Instrumental** is under-verbed until the conflict layer ships;
   interim verbs (extraction economics, hard bargaining in signal
   traffic, the Working mission family — missions-design.md) should land

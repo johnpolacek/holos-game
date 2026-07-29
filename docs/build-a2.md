@@ -256,12 +256,13 @@ hour later wearing transit years and received strength, and hold a
 conversation across an evening — the walkthrough's Week 2 texture, on
 the deployed URL.
 
-### A2.6 — Human pairs: the composer, dossiers, identity
+### A2.6 — Human pairs: the composer, findings, identity
 
 The multiplayer gate. The composed-parts composer for human pairs
 (part set: payload blocks — knowledge, culture, archive fragments,
-coordinates, **dossiers** (tradeable, observatory-design.md § The
-dossier) — plus quantity, tone, and reference parts). Durable identity
+coordinates, **shared findings** (tradeable, observatory-design.md
+§ Findings and understandings) — plus quantity, tone, and reference
+parts). Durable identity
 (account row in DO SQLite, claim flow from the A1 token, second-device
 sign-in by token, old anonymous token rejected). Human-to-human threads
 indistinguishable from the AI path at the wire level.

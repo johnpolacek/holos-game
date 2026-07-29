@@ -158,7 +158,7 @@ classes over all ten archetypes with forty-three banked reply strings,
 physics stamps as the header of every received payload, and the game's
 first text composer, freeform-with-AI only, enforced server-side.
 systems-a.md §13 is the as-built record. **→ Next: A2.6 — human
-pairs: the composer, dossiers, identity.**
+pairs: the composer, findings, identity.**
 
 **→ Previously next (now shipped in code): AV — the voice.** Decided
 2026-07: the shipped game has the machinery but no narrator — the

@@ -5,7 +5,7 @@
 a wait-state with a percentage on it; it is a detective study run against a
 budget, a clock, and — when the target is somebody — an opponent who is
 spending too. This document specifies the study, the questions a player
-buys, the contest that can push knowledge backward, and the dossier the
+buys, the contest that can push knowledge backward, and the findings the
 whole activity produces.*
 
 ---
@@ -26,7 +26,7 @@ hatch — the Assay — and the work list rows every bought question lives on.
 Six calls were settled in design review (2026-07) and are marked
 **settled** where they land below: portfolio pacing, no certainty at
 range, the plain regression tell, wrong calls playing out, creativity by
-composition, and tradeable dossiers.
+composition, and tradeable findings (and, in time, understandings).
 
 **The design target, stated once (settled):** the observatory is played
 as a **portfolio**. Any single study may go quiet for sessions at a
@@ -243,34 +243,70 @@ filling to 100:
   stops existing. The study converts into whatever the event demands: a
   contact choice, a mourning, a threat assessment.
 
-## The dossier
+## Findings and understandings
 
-A called or grounded study yields a **dossier**: the belief, its
-confidence, the evidence chain, and the light-ages it rests on — the
-observatory's finished good. Dossiers are:
+*(Renamed 2026-07, superseding "the dossier" throughout: the old word
+was off-register — bureaucratic, terrestrial, surveillance-of-persons —
+and it flattened two different objects into one folder. The trade layer
+has two object kinds, with different lifetimes.)*
+
+**A finding is what I know** — the one-shot good. A called or grounded
+study yields a shareable finding: the belief, its confidence, the
+evidence chain, and the light-ages it rests on — the observatory's
+finished good, named in the game's own voice (a *finding* is already
+what a question or a probe brings back). Findings are:
 
 - **The repricing instrument.** The forecast desk, the beat engine, and
   the player's own priorities consume them.
-- **The quiet civilization's export.** A dossier is a payload
+- **The quiet civilization's export.** A shared finding is a payload
   (act3-design.md, *what signals carry* — third-party coordinates are
-  dossier fragments). The intelligence economy playstyles.md asks for is
-  the trade in these: knowing things about civilizations that do not
-  know you exist, and choosing who else gets to know them. Hearth's
-  gift in the walkthrough — coordinates and a light-curve, no comment —
-  is a dossier changing hands, with all the motive ambiguity the
-  no-enforcement rules guarantee.
-- **Stale by construction.** A dossier carries its light-ages; a traded
-  dossier ages in transit. Old intelligence is not worthless — it is
+  finding fragments). The intelligence economy playstyles.md asks for
+  is the trade in these: knowing things about civilizations that do
+  not know you exist, and choosing who else gets to know them.
+  Hearth's gift in the walkthrough — coordinates and a light-curve, no
+  comment — is a finding changing hands, with all the motive ambiguity
+  the no-enforcement rules guarantee.
+- **Stale by construction.** A finding carries its light-ages; a traded
+  finding ages in transit. Old intelligence is not worthless — it is
   the past, which is the only thing anyone ever knows here — but the
   chip is always on it.
+- **Testimony, never evidence.** A received finding lands as a foreign
+  finding, provenance-marked, never auto-merged into the recipient's
+  own studies. They can act on it, verify it with their own
+  instruments, or distrust it entirely.
 
-**Dossiers trade in v1** (**settled**): a dossier is a payload block in
-the composed-signal grammar — sendable, withholdable, tradeable, and as
-deniable as anything else on a beam. Comparing notes on a shared worry
-is the safest first deal two nervous strangers can make, and the quiet
-civilization's whole export economy starts here. What matures later is
-the market's depth — brokering, pricing against the compensation menu,
-forged dossiers and their unmasking — not the existence of the trade.
+**An understanding is what we agree** — the standing arrangement. It
+has a lifetime, both parties hold a copy, and the physics dictates the
+whole enforcement model: **the only understandings that can exist are
+ones light can verify.** There is no referee and no real-time
+enforcement across light-years; an understanding is a mutual
+expectation each side checks with their own instruments, years in
+arrears. That keeps the enforceable vocabulary small and concrete:
+
+- *We both hold dark* — each watches the other's emission history; a
+  breach is visible in light, years later, and the discovery arrives
+  on the same delay as everything else here.
+- *I keep you informed about X* — a standing exchange of findings on a
+  cadence (the sentinel pattern applied to a thread).
+- *We watch each other's flanks* — warnings delivered on a cadence,
+  each covering part of the other's sky.
+
+Breach needs no punishment system: the whisperer already shipped the
+pattern. An understanding **ends** — the counterpart withdraws, and
+your telescope told you why. Not a contract, not a treaty with a
+tribunal behind it: two minds who each know what the other expects,
+checked by starlight.
+
+**Findings trade in v1** (**settled**): a shared finding is a payload
+block in the composed-signal grammar — sendable, withholdable,
+tradeable, and as deniable as anything else on a beam. Comparing notes
+on a shared worry is the safest first deal two nervous strangers can
+make, and the quiet civilization's whole export economy starts here.
+Whether one thin understanding-form (the mutual quiet) lands in A2.6
+or the stage after is the A2.6 design note's first decision; the
+vocabulary is settled either way. What matures later is the market's
+depth — brokering, pricing against the compensation menu, forged
+findings and their unmasking — not the existence of the trade.
 
 ## Session texture
 
@@ -295,9 +331,9 @@ plateau / regress with archetype-rule opponent spend, the regression
 tell stated plainly; study tripwires; called / shelved / overtaken /
 grounded exits (grounded moved *into* A2 — 2026-07 — once the Assay
 shipped early with A2.2's work engine; it lands as stage A2.2b, ahead of
-the contest); dossiers produced, consumed, and
+the contest); findings produced, consumed, and
 **tradeable as signal payloads**; holds as authored content. Deferred:
-systemic event evidence (A5), dossier-market depth (brokering, forgery —
+systemic event evidence (A5), the finding-market's depth (brokering, forgery —
 with the compensation menu), multi-observer joint studies (with joint
 missions). Free-text hypotheses are not deferred; they are declined
 (creativity by composition, settled).
@@ -318,11 +354,11 @@ missions). Free-text hypotheses are not deferred; they are declined
   exhausted; how often a study *should* plateau; how rare regression must
   stay to keep its charge. Tuning targets for A2's fun gate, not
   specifiable here.
-- **Shared studies, formally.** Dossier exchange ships in v1 (settled);
+- **Shared studies, formally.** Finding exchange ships in v1 (settled);
   the open half is the *joint study* — two civilizations pooling
   compute on one source with a shared board, which needs joint
   missions' co-authorship machinery. Design when joint nodes ship.
-- **Forged dossiers.** If dossiers trade, dossiers can lie — a forged
+- **Forged findings.** If findings trade, findings can lie — a forged
   finding is deception's cheapest new weapon, and light-cone
   verification (act3-design.md, § Contact) is its natural check. How
   early the forgery play should exist is a tone question as much as a
