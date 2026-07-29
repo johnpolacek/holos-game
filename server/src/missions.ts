@@ -108,9 +108,12 @@ export interface MissionKindDef {
  * Ambient pricing (economy-design.md: "Launch a probe/seedship = Ambient …
  * under the income line, no saving up, no ceremony"). Label/line take
  * content.md PART 3's briefing prose (synthesis.md §5: stronger where the
- * mechanic matches); costCompute is systems-a.md §3.2's canonical number,
- * justified against income (24 ≈ 3–4y, 40 ≈ 4–7y) — content.md's 20/32
- * flagged only the price point, not the mechanic, and is superseded here.
+ * mechanic matches). costCompute is the 2026-07 scarcity pass: systems-a
+ * §3.2's canonical 24/40 scaled with the question retune (×3, rounded) so
+ * the Assay stays cheaper than any question — its real price is the
+ * decades of flight — without undercutting the whole menu. Still ambient
+ * against the attention pool: 75 ≈ 12y of base income, about a tenth of a
+ * full pool.
  */
 export const MISSION_KINDS: readonly MissionKindDef[] = [
   {
@@ -118,7 +121,7 @@ export const MISSION_KINDS: readonly MissionKindDef[] = [
     label: "THE ASSAY",
     line: "A probe at a tenth of lightspeed, one pass through the system, and an answer that is not a belief. It leaves, and after that nothing about it is ours to decide.",
     costClass: "ambient",
-    costCompute: 24,
+    costCompute: 75,
     flightYearsPerLy: FLIGHT_YEARS_PER_LY,
     cadenceYears: null,
   },
@@ -127,7 +130,7 @@ export const MISSION_KINDS: readonly MissionKindDef[] = [
     label: "THE SENTINEL",
     line: "An instrument with patience: it spends its arrival slowing down, takes an orbit, and reports on a cadence long after everyone who authorized it has changed their mind.",
     costClass: "ambient",
-    costCompute: 40,
+    costCompute: 120,
     flightYearsPerLy: FLIGHT_YEARS_PER_LY,
     cadenceYears: SENTINEL_CADENCE_YEARS,
   },

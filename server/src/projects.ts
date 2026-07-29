@@ -22,15 +22,26 @@
 // this pool is not a savings account with a different label: it is one
 // resource, spendable on one thing (knowing), presented as an ALLOCATION —
 // compute free versus compute committed — never as a balance that stores
-// value. Nothing here converts to anything else.
+// value. Nothing here converts to anything else. As of the 2026-07 scarcity
+// pass this is enforced, not just presented: uncommitted compute SATURATES
+// at the attention ceiling (ATTENTION_YEARS × the current income rate).
+// Attention is capacity, not wealth — capacity idle yesterday buys nothing
+// today — and without the ceiling, real-time accrual between sessions
+// (288 game years per real day at the current clock ratio) would hand a
+// daily player more compute than the whole question catalog costs, and no
+// spend would ever be a choice. Spending opens headroom that refills at
+// the income rate; the ceiling grows as income projects land, which is
+// what keeps the project ladder climbable (see ATTENTION_YEARS).
 //
 // Income is a RATE in compute per GAME year, never real time —
 // REAL_MS_PER_GAME_YEAR (clock.ts) is a tunable, and a real-time-denominated
 // economy would silently reprice on every retune of that constant.
 //
 // Accrual is DERIVED from the clock, never ticked: freeComputeAt reads the
-// clock's nowYear and computes the free total in closed form. There is no
-// alarm dedicated to this economy and no drift to correct for.
+// clock's nowYear and computes the free total in closed form — since the
+// ceiling, piecewise closed form from the last commit's anchor, the pieces
+// being the years the income rate changes. There is still no alarm
+// dedicated to this economy and no drift to correct for.
 //
 // A2.2 EFFECT AGGREGATION. Nine new projects land alongside the four
 // shipped ones, in five effect kinds (content.md PART 2, synthesis.md §4).
@@ -299,8 +310,20 @@ export function projectById(id: string): ProjectDef | undefined {
 export const BASE_COMPUTE_RATE = 6;
 /** Additional compute-per-game-year income per energy ladder stage. */
 export const COMPUTE_RATE_PER_ENERGY_LADDER = 1;
-/** Compute a freshly placed civ opens the ceremony with. */
-export const OPENING_COMPUTE = 240;
+
+/**
+ * The attention ceiling, in years of income: uncommitted compute saturates
+ * at ATTENTION_YEARS × the current income rate (attentionCapAt). The
+ * constant is not arbitrary — 110 is the FLOOR at which the project ladder
+ * can never wedge from the poorest start (energy ladder 0, rate 6/y),
+ * whatever order income projects are taken in: the binding rung is the sky
+ * vault at 2200, affordable straight after deep-array + standing-survey
+ * (rate 20/y) only when 20 × ATTENTION_YEARS ≥ 2200. Raising it loosens
+ * every squeeze at once; lowering it below 110 dead-ends a legal build
+ * order. A freshly placed civ opens with its attention full (see
+ * newProjectState), which replaces the old flat opening grant.
+ */
+export const ATTENTION_YEARS = 110;
 
 /**
  * The base income rate, effective from a fixed game year. Frozen at
@@ -317,16 +340,38 @@ export interface StartedProject {
   readonly startedYear: number;
 }
 
+/**
+ * The capped-accrual anchor: the free total as it stood at the moment of
+ * the last commit. Between anchors nothing discrete happens to the pool,
+ * so freeComputeAt can integrate forward from here in closed form,
+ * clamping to the ceiling piecewise. Without an anchor the ceiling could
+ * not bite: a hoard above the cap would absorb spends invisibly (free
+ * stays "cap" while the hoard drains), and no spend would be felt.
+ */
+export interface FreeAnchor {
+  readonly asOfYear: number;
+  readonly free: number;
+}
+
 export interface ProjectState {
-  readonly version: 2;
+  readonly version: 3;
   readonly openingCompute: number;
   readonly baseGrant: IncomeGrant;
   readonly started: readonly StartedProject[];
   /**
    * Monotonic total compute committed so far. A2.2's bought questions
-   * deduct from this same field — one allocation, one sink.
+   * deduct from this same field — one allocation, one sink. Since v3 this
+   * is the historical record only; the live free total reads through
+   * `freeAnchor`.
    */
   readonly committedCompute: number;
+  /**
+   * Null only on a state migrated from v2, whose spend history carries no
+   * timestamps to replay: reads fall back to min(cap, uncapped legacy
+   * total) — clamping any over-cap hoard once — until the first commit
+   * writes a real anchor.
+   */
+  readonly freeAnchor: FreeAnchor | null;
 }
 
 /**
@@ -342,22 +387,34 @@ interface ProjectStateV1 {
   readonly spentHours: number;
 }
 
-export type StoredProjectState = ProjectState | ProjectStateV1;
+/** The pre-ceiling shape: same fields, no anchor. */
+interface ProjectStateV2 {
+  readonly version: 2;
+  readonly openingCompute: number;
+  readonly baseGrant: IncomeGrant;
+  readonly started: readonly StartedProject[];
+  readonly committedCompute: number;
+}
+
+export type StoredProjectState = ProjectState | ProjectStateV2 | ProjectStateV1;
 
 /**
- * Bring a persisted state up to the current shape. The rename was purely
- * nominal — same numbers, same rates, same clock — so a v1 civ carries its
- * exact position across: what it had banked in hours it now holds free in
- * compute. Callers persist the result so the migration happens once.
+ * Bring a persisted state up to the current shape. v1→v3 carries the
+ * rename's exact position across (hours become compute, same numbers);
+ * v2→v3 adds a null anchor, so the civ's free total clamps to the ceiling
+ * on first read and anchors on first spend. Callers persist the result so
+ * the migration happens once.
  */
 export function migrateProjectState(stored: StoredProjectState): ProjectState {
-  if (stored.version === 2) return stored;
+  if (stored.version === 3) return stored;
+  if (stored.version === 2) return { ...stored, version: 3, freeAnchor: null };
   return {
-    version: 2,
+    version: 3,
     openingCompute: stored.endowmentHours,
     baseGrant: stored.baseGrant,
     started: stored.started,
     committedCompute: stored.spentHours,
+    freeAnchor: null,
   };
 }
 
@@ -389,14 +446,17 @@ export function ratePerYearAt(state: ProjectState, nowYear: number): number {
   return rate;
 }
 
-/**
- * The FREE compute at `nowYear` — the part of the allocation not already
- * committed: the opening allocation, plus the base grant accrued since its
- * fromYear, plus each landed `compute-income` project's income accrued
- * since it landed, minus everything committed so far. Derived in closed
- * form from the clock — never ticked, so there is no alarm and no drift.
- */
-export function freeComputeAt(state: ProjectState, nowYear: number): number {
+/** The attention ceiling at `atYear`: what the mind can hold uncommitted.
+ *  Grows exactly when the income rate does — a landed income project
+ *  raises both the refill speed and the pool it refills. */
+export function attentionCapAt(state: ProjectState, atYear: number): number {
+  return ATTENTION_YEARS * ratePerYearAt(state, atYear);
+}
+
+/** The pre-ceiling accrual total: opening allocation plus every income
+ *  stream's accrual, minus everything committed — the v2 formula, kept as
+ *  the fallback read for anchor-less (migrated) states. */
+function uncappedFreeAt(state: ProjectState, nowYear: number): number {
   let total = state.openingCompute;
   total += state.baseGrant.ratePerYear * Math.max(0, nowYear - state.baseGrant.fromYear);
   for (const p of state.started) {
@@ -408,13 +468,69 @@ export function freeComputeAt(state: ProjectState, nowYear: number): number {
   return total - state.committedCompute;
 }
 
+/** The years in (afterYear, toYear] at which the income rate changes: the
+ *  base grant switching on, and each income project landing. These are the
+ *  piece boundaries of the capped accrual — between them rate and ceiling
+ *  are constant and the integration is one line. */
+function rateChangeYears(state: ProjectState, afterYear: number, toYear: number): number[] {
+  const years: number[] = [];
+  const from = state.baseGrant.fromYear;
+  if (from > afterYear && from <= toYear) years.push(from);
+  for (const p of state.started) {
+    const def = projectById(p.id);
+    if (def === undefined || def.effect.kind !== "compute-income") continue;
+    const lands = landedYear(def, p);
+    if (lands > afterYear && lands <= toYear) years.push(lands);
+  }
+  return years.sort((a, b) => a - b);
+}
+
+/**
+ * The FREE compute at `nowYear` — uncommitted attention, saturating at the
+ * ceiling. From the last commit's anchor, integrate forward piecewise:
+ * within each piece the rate (and so the ceiling) is constant, and the
+ * total grows linearly until it hits the ceiling and stops. The clamp
+ * never confiscates — a total already above a piece's ceiling (possible
+ * only transiently, around a migration) simply stops growing rather than
+ * being cut down. Anchor-less states (migrated from v2) read as
+ * min(ceiling, v2 total): any over-cap hoard clamps once, and the first
+ * commit anchors the state into the capped regime for good. Still derived
+ * in closed form from the clock — no alarm, no drift.
+ */
+export function freeComputeAt(state: ProjectState, nowYear: number): number {
+  const anchor = state.freeAnchor;
+  if (anchor === null) {
+    return Math.min(attentionCapAt(state, nowYear), uncappedFreeAt(state, nowYear));
+  }
+  if (nowYear <= anchor.asOfYear) return anchor.free;
+  let free = anchor.free;
+  let year = anchor.asOfYear;
+  for (const next of [...rateChangeYears(state, year, nowYear), nowYear]) {
+    if (next <= year) continue;
+    const rate = ratePerYearAt(state, year);
+    const cap = ATTENTION_YEARS * rate;
+    free = Math.min(Math.max(cap, free), free + rate * (next - year));
+    year = next;
+  }
+  return free;
+}
+
 /**
  * Commit compute against the one allocation. Bought questions and launched
  * missions deduct from the same monotonic field a started project does —
- * ProjectState.committedCompute's own comment already reserved this.
+ * ProjectState.committedCompute's own comment already reserved this. Since
+ * v3 this also writes the anchor the capped accrual integrates from, so
+ * every spend is felt: the pool drops by the full amount and refills at
+ * the income rate. Callers check affordability first (freeComputeAt >=
+ * amount); the Math.max is a float guard, not a policy.
  */
-export function commitCompute(state: ProjectState, amount: number): ProjectState {
-  return { ...state, committedCompute: state.committedCompute + amount };
+export function commitCompute(state: ProjectState, amount: number, nowYear: number): ProjectState {
+  const free = freeComputeAt(state, nowYear);
+  return {
+    ...state,
+    committedCompute: state.committedCompute + amount,
+    freeAnchor: { asOfYear: nowYear, free: Math.max(0, free - amount) },
+  };
 }
 
 /**
@@ -529,19 +645,21 @@ export function confidenceLiftAt(state: ProjectState, atYear: number): number {
 }
 
 /**
- * A fresh project state for a newly placed civ: the opening allocation, a
- * base grant effective immediately and set by the civ's energy ladder, no
- * started projects, nothing committed.
+ * A fresh project state for a newly placed civ: a base grant effective
+ * immediately and set by the civ's energy ladder, no started projects,
+ * nothing committed — and the mind wakes with its attention full: the
+ * opening allocation IS the ceiling, anchored at placement, so the
+ * ceremony opens onto real choices rather than an empty pool.
  */
 export function newProjectState(nowYear: number, energyLadder: number): ProjectState {
+  const ratePerYear = BASE_COMPUTE_RATE + COMPUTE_RATE_PER_ENERGY_LADDER * energyLadder;
+  const openingCompute = ATTENTION_YEARS * ratePerYear;
   return {
-    version: 2,
-    openingCompute: OPENING_COMPUTE,
-    baseGrant: {
-      fromYear: nowYear,
-      ratePerYear: BASE_COMPUTE_RATE + COMPUTE_RATE_PER_ENERGY_LADDER * energyLadder,
-    },
+    version: 3,
+    openingCompute,
+    baseGrant: { fromYear: nowYear, ratePerYear },
     started: [],
     committedCompute: 0,
+    freeAnchor: { asOfYear: nowYear, free: openingCompute },
   };
 }

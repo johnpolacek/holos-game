@@ -164,7 +164,7 @@ export class StudyBoard {
   private sourcesByStarId = new Map<string, DetectedSource>();
   private localNames: ReadonlyMap<string, string> = new Map();
   private projects: readonly ProjectSnapshot[] = [];
-  private budget: ComputeBudget = { free: 0, ratePerYear: 0, asOfYear: 0 };
+  private budget: ComputeBudget = { free: 0, ratePerYear: 0, cap: 0, asOfYear: 0 };
   private missions: readonly MissionSnapshot[] = [];
   private missionsById = new Map<string, MissionSnapshot>();
   private tend: readonly TendRow[] = [];
@@ -694,17 +694,24 @@ export class StudyBoard {
    * panel read live without waiting on a new `sky`. */
   private currentFreeCompute(): number {
     const elapsedYears = Math.max(0, nowYear() - this.budget.asOfYear);
-    return this.budget.free + this.budget.ratePerYear * elapsedYears;
+    // Local accrual clamps at the attention ceiling, mirroring the
+    // server's freeComputeAt: attention saturates, it does not bank.
+    return Math.min(
+      this.budget.cap,
+      this.budget.free + this.budget.ratePerYear * elapsedYears,
+    );
   }
 
   /**
    * The allocation line. "UNCOMMITTED", not "banked" — this is compute not
    * yet spent on thinking, not savings (projects.ts § NOT A BANK), and the
    * word has to carry that on its own because it is the only place the
-   * player meets the currency.
+   * player meets the currency. "OF" names the attention ceiling: the pool
+   * fills to it and stops, so a full pool reads as full, not as a balance
+   * still growing.
    */
   private budgetLineText(): string {
-    return `${Math.floor(this.currentFreeCompute())} COMPUTE UNCOMMITTED · +${this.budget.ratePerYear}/Y`;
+    return `${Math.floor(this.currentFreeCompute())} OF ${Math.floor(this.budget.cap)} COMPUTE UNCOMMITTED · +${this.budget.ratePerYear}/Y`;
   }
 
   private buildBudgetLine(): HTMLDivElement {

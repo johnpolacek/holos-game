@@ -214,9 +214,10 @@ export function ageChipLine(): string {
 }
 
 /** Observatory deadpan, wit 0. Shown once, first hub open. Deliberately
- *  numeral-free — the rate is printed on the budget chip an inch above it. */
+ *  numeral-free — the rate and the ceiling are printed on the budget chip
+ *  an inch above it. */
 const COMPUTE_LINE: PinnedLine =
-  line`Compute is this civilization's attention: instrument time, and the thinking done with it. It buys questions and pays for projects, and it accrues on its own, spent or not.`;
+  line`Compute is this civilization's attention: instrument time, and the thinking done with it. It buys questions and pays for projects, and it accrues on its own up to what the mind can hold unspent. Attention is not savings; past the ceiling, waiting buys nothing.`;
 
 export function computeLine(): string {
   return render(COMPUTE_LINE);

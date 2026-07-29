@@ -91,10 +91,15 @@ export interface QuestionDef {
 export const QUESTION_COST_CLASS = "investment" as const;
 
 /**
- * The full v1 question catalog. Costs, integration years, and the
- * applies-to matrix are systems-a.md §2.2's numbers (canonical per
- * synthesis.md §3 — content.md's 40–160 / 15–60y figures are superseded);
- * `label` uses content.md's chrome forms and `line` its glosses.
+ * The full v1 question catalog. Integration years and the applies-to
+ * matrix are systems-a.md §2.2's numbers (canonical per synthesis.md §3 —
+ * content.md's 40–160 / 15–60y figures are superseded); `label` uses
+ * content.md's chrome forms and `line` its glosses. Costs are the 2026-07
+ * scarcity pass: systems-a's originals (60/45/75/40/90/55) tripled, so a
+ * full attention pool (ATTENTION_YEARS × income, projects.ts) covers a few
+ * questions rather than the whole menu — the cost/clock inverse (patience
+ * cheap, haste dear) is preserved exactly. systems-a.md §2.2 records the
+ * retune.
  */
 export const QUESTIONS: readonly QuestionDef[] = [
   {
@@ -102,7 +107,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
     label: "WEIGH IT",
     proseName: "weighing",
     line: "how heavy it is, and whether the warmth matches the weight",
-    costCompute: 60,
+    costCompute: 180,
     integrationYears: 12,
     appliesTo: ["infrared-excess", "transit-shadows"],
   },
@@ -111,7 +116,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
     label: "TAKE ITS TEMPERATURE",
     proseName: "temperature watch",
     line: "whether it is cooling the way nature cools, or being held",
-    costCompute: 45,
+    costCompute: 135,
     integrationYears: 24,
     appliesTo: ["infrared-excess", "transit-shadows", "broadcast-leakage", "directed-beam"],
   },
@@ -120,7 +125,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
     label: "READ ITS LINES",
     proseName: "line reading",
     line: "what it is made of, and what has been done to its air",
-    costCompute: 75,
+    costCompute: 225,
     integrationYears: 8,
     appliesTo: ["infrared-excess", "transit-shadows", "broadcast-leakage", "biosignature"],
   },
@@ -129,7 +134,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
     label: "TIME ITS SHADOWS",
     proseName: "shadow timing",
     line: "whether the crossings keep a clock, and what kind",
-    costCompute: 40,
+    costCompute: 120,
     integrationYears: 18,
     appliesTo: ["transit-shadows", "biosignature"],
   },
@@ -138,7 +143,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
     label: "CATCH ITS EDGES",
     proseName: "edge look",
     line: "how the light comes off it, since air answers differently than surface",
-    costCompute: 90,
+    costCompute: 270,
     integrationYears: 6,
     appliesTo: ["infrared-excess", "transit-shadows", "biosignature", "directed-beam"],
   },
@@ -147,7 +152,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
     label: "LISTEN OFF-AXIS",
     proseName: "off-axis listening",
     line: "what spills around the edge of the signal, and who the middle is for",
-    costCompute: 55,
+    costCompute: 165,
     integrationYears: 10,
     appliesTo: ["broadcast-leakage", "directed-beam"],
   },

@@ -346,11 +346,15 @@ export interface ProjectSnapshot {
 
 /**
  * The civ's compute allocation — an allocation, not a balance: `free` is
- * what is not already committed, never a store of value.
+ * what is not already committed, never a store of value. Since the 2026-07
+ * scarcity pass that is enforced by the attention ceiling: `free`
+ * saturates at `cap`, which grows only when income projects land.
  */
 export interface ComputeBudget {
   readonly free: number; // uncommitted as of asOfYear
   readonly ratePerYear: number; // compute per GAME year
+  /** The attention ceiling: the client clamps its local accrual here. */
+  readonly cap: number;
   readonly asOfYear: number; // so the client accrues locally
 }
 

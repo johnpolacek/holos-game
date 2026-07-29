@@ -71,7 +71,7 @@ export class App {
   private studies: readonly StudySnapshot[] = [];
   private sources: readonly DetectedSource[] = [];
   private projects: readonly ProjectSnapshot[] = [];
-  private budget: ComputeBudget = { free: 0, ratePerYear: 0, asOfYear: 0 };
+  private budget: ComputeBudget = { free: 0, ratePerYear: 0, cap: 0, asOfYear: 0 };
   private missions: readonly MissionSnapshot[] = [];
   private tend: readonly TendRow[] = [];
   private probeFlightYearsPerLy = 10;

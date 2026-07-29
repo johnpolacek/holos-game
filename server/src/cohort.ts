@@ -57,6 +57,7 @@ import {
   type StoredStudyState,
 } from "./studies";
 import {
+  attentionCapAt,
   confidenceLiftAt,
   freeComputeAt,
   hasLanded,
@@ -631,6 +632,7 @@ export class Cohort extends Server<CohortEnv> {
     const budget: ComputeBudget = {
       free: freeComputeAt(assembled.projectState, nowYear),
       ratePerYear: ratePerYearAt(assembled.projectState, nowYear),
+      cap: attentionCapAt(assembled.projectState, nowYear),
       asOfYear: nowYear,
     };
     const probeFlightYearsPerLy = effectiveFlightYearsPerLy(assembled.projectState, nowYear);
@@ -803,7 +805,7 @@ export class Cohort extends Server<CohortEnv> {
     };
     await this.saveStudyState(state.token, { version: 3, studies });
 
-    const updatedProjectState = commitCompute(projectState, cost);
+    const updatedProjectState = commitCompute(projectState, cost, nowYear);
     await this.saveProjectState(state.token, updatedProjectState);
 
     const answersYear = answersYearFor(def, bought, projectState);
@@ -905,7 +907,7 @@ export class Cohort extends Server<CohortEnv> {
     };
     await this.saveMissionState(state.token, updatedMissionState);
 
-    const updatedProjectState = commitCompute(projectState, kindDef.costCompute);
+    const updatedProjectState = commitCompute(projectState, kindDef.costCompute, nowYear);
     await this.saveProjectState(state.token, updatedProjectState);
 
     await this.pushWakeEvent({
@@ -957,10 +959,11 @@ export class Cohort extends Server<CohortEnv> {
       ...projectState.started,
       { id: def.id, startedYear: nowYear },
     ];
+    // Through commitCompute so the spend writes the capped-accrual anchor
+    // (projects.ts v3) — the started list rides along on the same state.
     const updated: ProjectState = {
-      ...projectState,
+      ...commitCompute(projectState, def.costCompute, nowYear),
       started,
-      committedCompute: projectState.committedCompute + def.costCompute,
     };
     await this.saveProjectState(state.token, updated);
     await this.sendSky(conn, state.token, state.civId);
@@ -1304,7 +1307,7 @@ export class Cohort extends Server<CohortEnv> {
   ): Promise<ProjectState> {
     const stored = await this.ctx.storage.get<StoredProjectState>(`projects:${token}`);
     if (stored !== undefined) {
-      if (stored.version === 2) return stored;
+      if (stored.version === 3) return stored;
       const migrated = migrateProjectState(stored);
       await this.ctx.storage.put(`projects:${token}`, migrated);
       return migrated;
@@ -1381,6 +1384,7 @@ export class Cohort extends Server<CohortEnv> {
     const budget: ComputeBudget = {
       free: freeComputeAt(projectState, nowYear),
       ratePerYear: ratePerYearAt(projectState, nowYear),
+      cap: attentionCapAt(projectState, nowYear),
       asOfYear: nowYear,
     };
     const tend = buildTendList({

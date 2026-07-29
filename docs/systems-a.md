@@ -107,21 +107,59 @@ instrument asked.
 ### §2.2 The catalog
 
 All six are **Investment** class (`QUESTION_COST_CLASS`). Costs are in
-compute; integration is in game years. Per the code's own provenance
-note, these are systems-a's numbers, canonical over content.md's 40–160 /
-15–60y figures.
+compute; integration is in game years. Integration years are systems-a's
+original numbers, canonical over content.md's 15–60y figures. Costs were
+**retuned 2026-07 (the scarcity pass)**: the originals (60/45/75/40/90/55)
+tripled, so a full attention pool covers a few questions rather than every
+menu at once — see §2.2b. The cost/clock inverse the originals encoded
+(patience cheap, haste dear: a long-baseline question waits and thinks
+little; a fast question brute-forces light in hand) is preserved exactly.
 
 | id | label | cost | integration | applies to |
 | --- | --- | ---: | ---: | --- |
-| `weigh-it` | WEIGH IT | 60 | 12 | infrared-excess, transit-shadows |
-| `temperature-over-time` | TAKE ITS TEMPERATURE | 45 | 24 | infrared-excess, transit-shadows, broadcast-leakage, directed-beam |
-| `read-its-lines` | READ ITS LINES | 75 | 8 | infrared-excess, transit-shadows, broadcast-leakage, biosignature |
-| `time-its-shadows` | TIME ITS SHADOWS | 40 | 18 | transit-shadows, biosignature |
-| `catch-its-edges` | CATCH ITS EDGES | 90 | 6 | infrared-excess, transit-shadows, biosignature, directed-beam |
-| `listen-off-axis` | LISTEN OFF-AXIS | 55 | 10 | broadcast-leakage, directed-beam |
+| `weigh-it` | WEIGH IT | 180 | 12 | infrared-excess, transit-shadows |
+| `temperature-over-time` | TAKE ITS TEMPERATURE | 135 | 24 | infrared-excess, transit-shadows, broadcast-leakage, directed-beam |
+| `read-its-lines` | READ ITS LINES | 225 | 8 | infrared-excess, transit-shadows, broadcast-leakage, biosignature |
+| `time-its-shadows` | TIME ITS SHADOWS | 120 | 18 | transit-shadows, biosignature |
+| `catch-its-edges` | CATCH ITS EDGES | 270 | 6 | infrared-excess, transit-shadows, biosignature, directed-beam |
+| `listen-off-axis` | LISTEN OFF-AXIS | 165 | 10 | broadcast-leakage, directed-beam |
 
 `appliesTo` is physics, not balance: you cannot time shadows that are not
 there.
+
+### §2.2b The attention ceiling (added 2026-07, the scarcity pass)
+
+Not part of the original A2.2 build — added one slice later, when play
+showed the economy's one leak: income is a rate per **game** year, the
+clock runs 288 game years per real day, and an unbounded pool therefore
+handed any returning player more compute than the whole question catalog
+costs. No spend was a choice. The fix enforces what projects.ts's header
+had claimed all along ("not a bank"):
+
+- **Uncommitted compute saturates at `ATTENTION_YEARS × ratePerYearAt` —
+  the attention ceiling** (`attentionCapAt`, projects.ts). Attention is
+  capacity, not wealth; capacity idle yesterday buys nothing today.
+  Spending opens headroom that refills at the income rate.
+- **`ATTENTION_YEARS = 110` is the floor that keeps the project ladder
+  playable**: the binding rung is the sky vault (2200) straight after the
+  first two income projects (rate 20/y) — every catalog entry stays
+  reachable from the poorest start, in any legal order, and lowering the
+  constant below 110 dead-ends one.
+- **A fresh civ wakes with its attention full** (`newProjectState`): the
+  opening allocation is the ceiling itself, replacing the old flat 240.
+- **Accrual is still closed-form, never ticked.** `ProjectState` v3 adds
+  `freeAnchor` (the free total at the last commit); `freeComputeAt`
+  integrates forward from it piecewise, the pieces being the years the
+  income rate changes. v2 states migrate with a null anchor and read as
+  `min(cap, v2 total)` until their first spend anchors them.
+- **The wire carries the ceiling** (`ComputeBudget.cap`) and the budget
+  line reads `N OF M COMPUTE UNCOMMITTED · +R/Y`, so a full pool reads as
+  full rather than as a balance still growing.
+
+Question costs (×3, §2.2) and mission costs (§3.2) were retuned in the
+same pass, sized against the ceiling: a full base pool (660 at rate 6/y)
+covers two or three questions or most of one starter project, and refills
+one cheap question in roughly 100 real minutes.
 
 **The resulting menus** — the curated per-class offer order, deliberately
 *not* catalog order, so each class reads as a real sequence:
@@ -350,14 +388,17 @@ is already showing.
 ### §3.2 The two kinds
 
 Both are **Ambient** class — under the income line, no saving up, no
-ceremony. `costCompute` is systems-a's number, justified against income
-(24 ≈ 3–4 years of it, 40 ≈ 4–7); content.md's 20/32 flagged the price
-point only and is superseded.
+ceremony. `costCompute` was retuned 2026-07 with the scarcity pass
+(§2.2b): systems-a's canonical 24/40 scaled with the question retune
+(×3, rounded) so the Assay stays cheaper than any question — its real
+price is the decades of flight — without undercutting the whole menu;
+content.md's 20/32 flagged the price point only and is superseded twice
+over.
 
 | kind | label | cost | cadence |
 | --- | --- | ---: | --- |
-| `assay` | THE ASSAY | 24 | none — one word |
-| `sentinel` | THE SENTINEL | 40 | `SENTINEL_CADENCE_YEARS = 25` |
+| `assay` | THE ASSAY | 75 | none — one word |
+| `sentinel` | THE SENTINEL | 120 | `SENTINEL_CADENCE_YEARS = 25` |
 
 ### §3.3 Charters
 

@@ -127,7 +127,10 @@ Compute and why the surface never denominates it in telescope hours: it is
 an allocation of thinking, not a rationing of sight. (Earlier drafts of
 this document called it "instrument time"; same mechanic, wrong noun.)
 
-**Compute is an allocation, not a slot — and not a bank.** The observatory
+**Compute is an allocation, not a slot — and not a bank.** (Enforced
+2026-07 as the attention ceiling: uncommitted compute saturates at about a
+century of income, so away-time cannot stockpile past what the mind can
+hold — systems-a.md §2.2b.) The observatory
 has an income (raised by instrument-family projects, which buy the
 inference capacity to make use of themselves; the gravitational-lens
 observatory is the deep end), and the player allocates it across studies.
