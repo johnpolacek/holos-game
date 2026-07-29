@@ -50,7 +50,7 @@
 import { Application, Assets, Container, Graphics, Sprite, Texture } from "pixi.js";
 import type { ContactWire, DetectedSource, OutboundAct, SelfView, Star, Vec3Ly } from "@holos/protocol";
 import { worldArt } from "./art";
-import { nowYear } from "./clock";
+import { formatCountdown, nowYear } from "./clock";
 import {
   AU_LY,
   buildHomeSystem,
@@ -704,6 +704,12 @@ export class Model {
   private readonly homeLabel: HTMLDivElement;
   private readonly scaleLabel: HTMLDivElement;
   private readonly landmarks: LandmarkLabel[] = [];
+  /** A2.5: ONE tracking label, on the newest outbound act still crossing.
+   *  One and only one: a label per act would turn the volume into a list,
+   *  and the sky is not a list. It is the landmark machinery exactly (a
+   *  positioned overlay div moved by transform each frame), pointed at a
+   *  thing that moves instead of at a thing that does not. */
+  private readonly outboundLabel: HTMLDivElement;
 
   private readonly app: Application;
   private ready = false;
@@ -892,7 +898,14 @@ export class Model {
     this.scaleLabel.className = "model-scale holos-caps";
     this.scaleLabel.textContent = formatDistance(this.dist);
 
-    this.overlay.append(this.homeLabel, this.scaleLabel);
+    // Cyan, like the mote it follows: what you sent is yours and is
+    // happening now. It carries the clock pair, so the sky says the same
+    // thing about a beam in flight that the thread does.
+    this.outboundLabel = document.createElement("div");
+    this.outboundLabel.className = "model-outbound-label holos-caps";
+    this.outboundLabel.style.opacity = "0";
+
+    this.overlay.append(this.homeLabel, this.scaleLabel, this.outboundLabel);
     this.root.append(this.overlay);
     this.container.append(this.root);
 
@@ -1689,6 +1702,13 @@ export class Model {
    * left. Both move at the game clock's rate, which is to say they look
    * motionless for a whole session. That stillness is the point: a thing you
    * sent is out of your hands, and the sky says so by not hurrying.
+   *
+   * A2.5 adds NO branch. A signal is a mote and a path exactly as a hail is,
+   * so the split below is already the right one: broadcast, or anything with
+   * a starId and an arrivesYear. The only addition is the tracking label on
+   * the newest act still crossing. Nothing INBOUND is drawn here and there is
+   * no field on the wire that would let it be: you cannot see a beam before
+   * it lands.
    */
   private drawOutbound(nearVisible: boolean, nearAlpha: number): void {
     const layer = this.contactLayer;
@@ -1698,13 +1718,25 @@ export class Model {
     layer.visible = nearVisible && this.outbound.length > 0;
     for (const mote of this.contactMotes) mote.visible = false;
     gfx.clear();
-    if (!layer.visible) return;
+    if (!layer.visible) {
+      this.outboundLabel.style.opacity = "0";
+      return;
+    }
     layer.alpha = nearAlpha;
 
     const home = this.homeScreen;
     const year = nowYear();
     const focal = this.camFrame.focal;
     let moteIndex = 0;
+
+    // The newest thing still crossing, and only that one, wears the label.
+    let tracked: OutboundAct | null = null;
+    for (const act of this.outbound) {
+      if (act.kind === "broadcast" || act.starId === null) continue;
+      if (act.arrivesYear === null || act.arrivesYear <= year) continue;
+      if (tracked === null || act.sentYear > tracked.sentYear) tracked = act;
+    }
+    let labelPlaced = false;
 
     for (const act of this.outbound) {
       if (act.kind === "broadcast") {
@@ -1740,6 +1772,16 @@ export class Model {
           .lineTo(hx, hy)
           .stroke({ width: 1, color: COLOR_HOME, alpha: OUTBOUND_PATH_ALPHA });
       }
+      if (act === tracked) {
+        const countdown = formatCountdown(act.arrivesYear);
+        if (countdown !== null) {
+          this.outboundLabel.textContent = `ARRIVES IN ${countdown}`;
+          this.outboundLabel.style.opacity = String(0.8 * nearAlpha);
+          this.outboundLabel.style.transform = `translate(${hx + 10}px, ${hy - 8}px)`;
+          labelPlaced = true;
+        }
+      }
+
       const mote = this.outboundMote(moteIndex);
       moteIndex++;
       if (mote === null) continue;
@@ -1748,6 +1790,11 @@ export class Model {
       mote.scale.set(OUTBOUND_MOTE_PX / 16);
       mote.alpha = p >= 1 ? OUTBOUND_ARRIVED_ALPHA : OUTBOUND_MOTE_ALPHA;
     }
+
+    // Nothing crossing, or the one thing crossing is off screen: the label
+    // is gone rather than parked. A name floating over nothing is worse than
+    // no name (updateLandmarks' rule, one more time).
+    if (!labelPlaced) this.outboundLabel.style.opacity = "0";
   }
 
   /** The nth in-flight mote, grown on demand. At most MAX_ACTS_PER_CIV of

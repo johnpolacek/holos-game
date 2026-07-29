@@ -55,13 +55,29 @@ import type {
   Proposal,
   ProposalRoute,
   ContactWire,
+  ThreadSummary,
+  ThreadDetail,
+  ThreadSignal,
+  ThreadState,
   SelfView,
   Star,
 } from "@holos/protocol";
+// A2.5: the two runtime pieces of the signal contract. `sanitizeSignalText`
+// is PURE and is the server's own door, imported rather than re-implemented
+// so a retune there retunes the composer with it. The client pre-check is
+// never authoritative: the server runs the same function again and owns the
+// refusal (`signal-rejected`).
+import { MAX_SIGNAL_LEN, sanitizeSignalText } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { QUESTION_METHOD } from "./questionmethod";
 import { CLASS_LABEL } from "./sourcecard";
-import { formatAbsoluteYear, formatClockPair, formatCountdown, nowYear } from "./clock";
+import {
+  formatAbsoluteYear,
+  formatClockPair,
+  formatCountdown,
+  formatGameYears,
+  nowYear,
+} from "./clock";
 // Inlined at build time rather than fetched: one more request for a 400-byte
 // mark is a request the sky does not need, and the markup carries
 // fill="currentColor", so the icon takes the chip's ink — including the
@@ -103,6 +119,37 @@ const TRIPWIRE_STATE_LABEL: Record<"available" | "armed" | "tripped", string> = 
   armed: "ARMED",
   tripped: "TRIPPED",
 };
+
+/**
+ * A2.5: how a thread's state reads, on the hub row and again in the thread's
+ * own header. The chrome is the client's (the TRIPWIRE_LABEL precedent) —
+ * the wire carries the state id and no wording.
+ *
+ * `unopened` cannot be reached from buildThreads (a pair with nothing either
+ * way is not built at all) and is carried only to keep the map total against
+ * ThreadState.
+ */
+const THREAD_STATE_LABEL: Record<ThreadState, string> = {
+  unopened: "UNOPENED",
+  "in-flight": "IN FLIGHT",
+  awaiting: "AWAITING",
+  answered: "ANSWERED",
+  silent: "SILENT",
+  withdrawn: "WITHDRAWN",
+};
+
+/**
+ * The silence, authored and pinned here rather than sent. It is a statement
+ * about YOUR OWN arithmetic — the round trip plus a bound on deliberation
+ * that is the same for every counterpart — and never about them, which is
+ * exactly why it can be a client string at all.
+ */
+const THREAD_SILENT_LINE =
+  "The window in which an answer could have arrived has passed. Nothing came.";
+
+/** The composer's remaining-count appears only once the room left is worth
+ *  watching. Above this it is a number nobody asked for. */
+const SIGNAL_REMAINING_VISIBLE = 40;
 
 /** A2.3: the three exits `isClosed` covers server-side (studies.ts). Kept as
  *  its own client-side check rather than importing the server helper — the
@@ -222,7 +269,11 @@ export class StudyBoard {
     | "tend"
     | "mission"
     | "launch"
-    | "report" = "list";
+    | "report"
+    // A2.5: one thread, in full. Its own view rather than a fold inside the
+    // hub — a conversation is read top to bottom, and the composer needs the
+    // whole column.
+    | "thread" = "list";
   private focusedStarId: string | null = null;
   private briefStarId: string | null = null;
   private focusedMissionId: string | null = null;
@@ -328,9 +379,49 @@ export class StudyBoard {
   // verb or a status. Null until the first sky.
   private contact: ContactWire | null = null;
   private onVoiceActionCb: (() => void) | null = null;
+  private onHailActionCb: ((starId: string) => void) | null = null;
   // A one-shot: openHub("voice") scrolls the section into view on the render
   // that follows, and clears itself. The HOME mote's tap is the only caller.
   private hubScrollToVoice = false;
+
+  // ── A2.5: the thread view ────────────────────────────────────────────
+  // Which thread is on screen. Also the client half of a PER-CONNECTION
+  // server state with no DO key behind it: a reconnect comes back with
+  // nothing open, so update() says which one it is again (see the resend
+  // there). Null whenever the view is not "thread".
+  private threadStarId: string | null = null;
+
+  // The composer's in-progress text, kept on the panel rather than in the
+  // DOM because renderThread() rebuilds the whole body on every `sky` (the
+  // expandedQuestion precedent) and a half-written signal must survive that.
+  // `composerCaret` and the focus flag ride along so the keyboard does not
+  // drop when a wake lands mid-sentence.
+  private composerDraft = "";
+  private composerCaret: number | null = null;
+  private composerFocused = false;
+  // The live composer's three elements, so the remaining-count and the SEND
+  // pill can be refreshed on every keystroke without re-rendering the thread
+  // under the player's thumb (refreshHubBudget's precedent).
+  private composerEls: {
+    readonly input: HTMLTextAreaElement;
+    readonly remaining: HTMLDivElement;
+    readonly send: HTMLButtonElement;
+  } | null = null;
+  // A sendSignal in flight, holding the RAW text so a refusal can put the
+  // words back in the box. Released by any sky at all (onSendSignal answers
+  // with a fresh one) and by handleServerError on a rejection.
+  private pendingSignalText: string | null = null;
+
+  // A one-shot, the hubScrollToVoice mold: a thread opened fresh lands on
+  // its newest signal and the composer, not on a hail sent an age ago. Every
+  // later render leaves the scroll exactly where the reader put it.
+  private threadScrollToEnd = false;
+
+  // Elements whose text is a locally-derived clock: the thread rows' state
+  // chips and the sent rail's countdown. The 1s ticker refreshes exactly
+  // these rather than re-rendering, so a tick can never land between
+  // finger-down and finger-up (or inside a keystroke).
+  private liveClocks: { readonly el: HTMLElement; readonly text: () => string }[] = [];
 
   // AV1: the one-time hub explainer (compute, then later the clock note).
   // renderHub() re-runs on every openHub() and on every sky (the 1s ticker
@@ -479,6 +570,42 @@ export class StudyBoard {
     this.contact = contact;
     this.updateChip();
 
+    // A2.5: a signal in flight is released by any sky at all — onSendSignal
+    // appends and answers with a fresh sky, and a refusal comes back as an
+    // `error`, which handleServerError has already caught by now (the
+    // pendingTripwireKeys precedent, one slice on).
+    this.pendingSignalText = null;
+
+    // A2.5: the panel left the thread view without saying so (the sheet was
+    // closed on it, or a route took it elsewhere). Tell the server the
+    // thread is shut so it stops assembling a detail nobody reads.
+    if (this.view !== "thread" && this.threadStarId !== null) this.leaveThread();
+
+    // A2.5: which thread is open is PER-CONNECTION state with no DO key
+    // behind it, so a reconnect comes back with nothing open. If this sky
+    // carries no detail for the thread on screen, say which one it is again.
+    // Idempotent, and it is also what heals a dropped `openThread`. Guarded
+    // on the thread still being in `threads`, so it can never ping-pong
+    // against a star the server would answer with null forever.
+    if (this.view === "thread" && this.threadStarId !== null) {
+      const starId = this.threadStarId;
+      const known = (contact?.threads ?? []).some((t) => t.starId === starId);
+      if (!known) {
+        // The thread vanished from this payload — fall back to the hub the
+        // way a vanished study falls back to the list, by swapping the view
+        // and NOT by opening the panel: this can land while a ceremony has
+        // the sky, and a sheet that opened itself then would be a disaster.
+        this.leaveThread();
+        this.view = "hub";
+        this.renderHub();
+        return;
+      }
+      const detail = contact?.openThread ?? null;
+      if (detail === null || detail.starId !== starId) {
+        this.socket.send({ type: "openThread", starId });
+      }
+    }
+
     // A begin sent from the briefing: this sky either carries the new study
     // — hand straight to it, which is the monitor page — or it does not, in
     // which case the request went nowhere and the verb is released.
@@ -578,6 +705,8 @@ export class StudyBoard {
       }
     } else if (this.view === "launch") {
       this.renderLaunch();
+    } else if (this.view === "thread") {
+      this.renderThread();
     } else if (this.view === "report") {
       // Defensive consistency only, the `tend`/`projects` precedent — a
       // `sky` carries none of the report's own data, so this just re-runs
@@ -678,6 +807,39 @@ export class StudyBoard {
     this.startTicking();
   }
 
+  /**
+   * A2.5: opens one thread. `openThread` goes out FIRST so the detail is
+   * already being assembled while this render puts the header up (openReport's
+   * requestReport precedent); the confirming sky fills the column in.
+   * Always opens clean — a half-written signal never survives a close/reopen,
+   * the openLaunch/openBrief rule.
+   */
+  openThread(starId: string): void {
+    this.threadStarId = starId;
+    this.composerDraft = "";
+    this.composerCaret = null;
+    this.composerFocused = false;
+    this.pendingSignalText = null;
+    this.threadScrollToEnd = true;
+    this.socket.send({ type: "openThread", starId });
+    this.view = "thread";
+    this.focusedStarId = null;
+    this.renderThread();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
+  /** Shuts the open thread server-side. Pure bookkeeping (the declineProposal
+   *  precedent): there is no error code for it and nothing waits on it. */
+  private leaveThread(): void {
+    if (this.threadStarId === null) return;
+    this.threadStarId = null;
+    this.composerEls = null;
+    this.trackKeyboard(false);
+    this.socket.send({ type: "openThread", starId: null });
+  }
+
   focusMission(missionId: string): void {
     this.view = "mission";
     this.focusedMissionId = missionId;
@@ -729,6 +891,10 @@ export class StudyBoard {
     this.openFlag = false;
     this.root.classList.remove("open");
     this.stopTicking();
+    // A2.5: the keyboard inset belongs to a composer that is no longer on
+    // screen. The thread itself stays open server-side until the next sky
+    // notices the view moved on (update()).
+    this.trackKeyboard(false);
   }
 
   isOpen(): boolean {
@@ -737,6 +903,7 @@ export class StudyBoard {
 
   destroy(): void {
     this.stopTicking();
+    this.trackKeyboard(false);
     window.removeEventListener("keydown", this.onKeyDown);
     this.root.remove();
   }
@@ -758,6 +925,10 @@ export class StudyBoard {
         this.renderFocused(this.focusedStarId);
       } else if (this.view === "tend") this.renderTend();
       else if (this.view === "mission") this.renderMissionDetail();
+      // A2.5: the thread view is NEVER re-rendered by the tick. It holds a
+      // live text input, and rebuilding the body under a thumb mid-sentence
+      // is the one thing this panel must not do. Only the clocks move.
+      else if (this.view === "thread") this.refreshLiveClocks();
     }, 1000);
   }
 
@@ -810,9 +981,26 @@ export class StudyBoard {
   private refreshHubBudget(): void {
     if (this.hubBudgetEl !== null && this.hubBudgetEl.isConnected) {
       this.hubBudgetEl.textContent = this.budgetLineText();
+      // A2.5: THE VOICE's thread rows carry countdowns of their own, and
+      // they are refreshed the same way and for the same reason.
+      this.refreshLiveClocks();
     } else {
       this.renderHub();
     }
+  }
+
+  /** A2.5: every element whose text is locally-derived clock arithmetic —
+   *  a thread row's state chip, a sent signal's rail. Elements that have
+   *  fallen out of the document are dropped rather than re-rendered: the
+   *  render that removed them registered whatever replaced them. */
+  private refreshLiveClocks(): void {
+    let alive = false;
+    for (const c of this.liveClocks) {
+      if (!c.el.isConnected) continue;
+      c.el.textContent = c.text();
+      alive = true;
+    }
+    if (!alive && this.liveClocks.length > 0) this.liveClocks = [];
   }
 
   /** Escape closes the panel on a keyboard — the desktop equivalent of the
@@ -832,6 +1020,14 @@ export class StudyBoard {
    *  the sky, which is the App's business. */
   onVoiceAction(cb: () => void): void {
     this.onVoiceActionCb = cb;
+  }
+
+  /** A2.5: fired when a thread the player has never spoken into offers its
+   *  one route out — answering an unprompted hail costs the hail ceremony,
+   *  and the ceremony happens out on the sky (onVoiceAction's contract, with
+   *  a star attached). */
+  onHailAction(cb: (starId: string) => void): void {
+    this.onHailActionCb = cb;
   }
 
   /** A2.4: hide the two standing chips while a ceremony is armed. They opt
@@ -907,6 +1103,7 @@ export class StudyBoard {
 
   private renderHub(): void {
     this.body.innerHTML = "";
+    this.liveClocks = [];
 
     const header = document.createElement("div");
     header.className = "study-board-header holos-caps";
@@ -985,6 +1182,12 @@ export class StudyBoard {
     voiceHeader.textContent = "THE VOICE";
     this.body.append(voiceHeader);
     this.body.append(this.buildVoiceRow());
+    // A2.5: one row per thread, under the verb that started them. A thread
+    // is not something you START — it already exists — so it sits below
+    // SPEAK TO EVERYONE rather than beside it, in the server's own order.
+    for (const t of this.contact?.threads ?? []) {
+      this.body.append(this.buildThreadRow(t));
+    }
     this.body.append(this.hairline());
 
     if (this.studiesByStarId.size > 0) {
@@ -1043,6 +1246,56 @@ export class StudyBoard {
       // One frame later: the body is still being assembled right now.
       requestAnimationFrame(() => btn.scrollIntoView({ block: "center" }));
     }
+    return btn;
+  }
+
+  /** What this counterpart is called here: the player's own label if they
+   *  gave one, else the designation their instruments assigned. A thread can
+   *  outlive its source's visibility, so the starId is the last resort. */
+  private threadName(starId: string): string {
+    const local = this.localNames.get(starId);
+    if (local !== undefined && local.length > 0) return local;
+    return this.sourcesByStarId.get(starId)?.designation ?? starId;
+  }
+
+  /**
+   * The state chip, on the row and again in the thread's header.
+   *
+   * NOTHING HERE CLAIMS WHAT THE WIRE DID NOT SEND. `nextEventYear` is only
+   * ever the player's OWN next arrival (protocol.ts's no-leak audit), so the
+   * countdown beside IN FLIGHT is their own beam and never a reply. AWAITING
+   * says AWAITING and nothing else: there is no branch below that could
+   * reach for an answer that has not landed.
+   */
+  private threadStateText(t: ThreadSummary): string {
+    const base = THREAD_STATE_LABEL[t.state];
+    if (t.state === "in-flight" && t.nextEventYear !== null) {
+      const countdown = formatCountdown(t.nextEventYear);
+      if (countdown !== null) return `${base} · ARRIVES IN ${countdown}`;
+    }
+    if (t.state === "answered") return `${base} ${formatAbsoluteYear(t.lastEventYear)}`;
+    return base;
+  }
+
+  /** One thread on the hub: what you call them, and where the thread stands.
+   *  The tap says which thread is open and switches the view; the detail
+   *  arrives on the sky that answers (openThread). */
+  private buildThreadRow(t: ThreadSummary): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "study-thread-row";
+
+    const name = document.createElement("div");
+    name.className = "study-thread-name holos-serif";
+    name.textContent = this.threadName(t.starId);
+
+    const state = document.createElement("div");
+    state.className = "study-thread-state holos-caps study-tabular";
+    state.textContent = this.threadStateText(t);
+    this.liveClocks.push({ el: state, text: () => this.threadStateText(t) });
+
+    btn.append(name, state);
+    btn.addEventListener("click", () => this.openThread(t.starId));
     return btn;
   }
 
@@ -1910,6 +2163,17 @@ export class StudyBoard {
       this.pendingTripwireKeys.clear();
       releasedTripwire = true;
     }
+    // A2.5: "signal-rejected", "thread-unavailable" and "freeform-forbidden"
+    // all release exactly like every code above always has — no toast, no
+    // special-cased text. The one addition is that the words go back in the
+    // box: losing what the player wrote would be the second insult.
+    let releasedSignal = false;
+    if (this.pendingSignalText !== null) {
+      this.composerDraft = this.pendingSignalText;
+      this.composerCaret = null;
+      this.pendingSignalText = null;
+      releasedSignal = true;
+    }
 
     if (releasedBegin && this.view === "brief") this.renderBrief();
     if (
@@ -1921,6 +2185,7 @@ export class StudyBoard {
     }
     if (releasedProject && this.view === "project") this.renderProjectDetail();
     if (releasedLaunch && this.view === "launch") this.renderLaunch();
+    if (releasedSignal && this.view === "thread") this.renderThread();
   }
 
   // ── Render: projects view ────────────────────────────────────────────
@@ -2702,6 +2967,385 @@ export class StudyBoard {
         break;
       case "none":
         break;
+    }
+  }
+
+  // ── Render: the thread (A2.5) ────────────────────────────────────────
+  // The sky answers, and the texture is ASTRONOMY, never mail. What arrives
+  // is a measured beam: the instrument readout is the header of the message
+  // and the prose is what was left of it after the crossing. What leaves is
+  // a mote on a rail with your own arithmetic under it — there is no
+  // instrument at the far end of a beam you aimed, so there is no receipt,
+  // no delivery mark, and nothing that says they are reading.
+  //
+  // Amber throughout, like the rest of this sheet: everything they sent is
+  // old light. The ONE cyan is the sent-signal rail, which is yours and is
+  // happening now — the source card's contact row, one surface over.
+
+  private renderThread(): void {
+    // Captured BEFORE the body is emptied: removing the textarea drops the
+    // focus, and the flag would read false by the time the composer is
+    // rebuilt. A wake landing mid-sentence must not close the keyboard.
+    const restore = this.composerFocused ? { caret: this.composerCaret } : null;
+    this.body.innerHTML = "";
+    this.liveClocks = [];
+    this.composerEls = null;
+
+    const starId = this.threadStarId;
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => {
+      this.leaveThread();
+      this.openHub("voice");
+    });
+    this.body.append(back);
+
+    if (starId === null) {
+      // Defensive only: the view cannot be entered without a star.
+      this.view = "hub";
+      this.renderHub();
+      return;
+    }
+
+    const source = this.sourcesByStarId.get(starId);
+    const localName = this.localNames.get(starId);
+    const hasLocalName = localName !== undefined && localName.length > 0;
+
+    const header = document.createElement("div");
+    header.className = "study-focus-header";
+    if (hasLocalName && source !== undefined) {
+      const desig = document.createElement("div");
+      desig.className = "study-focus-designation holos-caps";
+      desig.textContent = source.designation;
+      header.append(desig);
+    }
+    const nameEl = document.createElement("div");
+    nameEl.className = "study-focus-name holos-serif";
+    nameEl.textContent = this.threadName(starId);
+    header.append(nameEl);
+    this.body.append(header);
+
+    const detail = this.contact?.openThread ?? null;
+    const open = detail !== null && detail.starId === starId ? detail : null;
+
+    // The header's chips. The class chip is THE SOURCE'S OWN classification
+    // — what this civilization's instruments make of that light — and never
+    // anything about how the counterpart handles being spoken to, which is
+    // not on the wire and could not be.
+    const chips = document.createElement("div");
+    chips.className = "thread-chips";
+    if (source !== undefined) {
+      chips.append(this.buildThreadChip(`AS OF ${formatArchiveAge(source.lightAgeYears)} Y AGO`));
+      chips.append(this.buildThreadChip(CLASS_LABEL[source.signal.classification]));
+    }
+    if (open !== null) {
+      const stateChip = this.buildThreadChip(this.threadStateText(open));
+      this.liveClocks.push({ el: stateChip, text: () => this.threadStateText(open) });
+      chips.append(stateChip);
+    }
+    if (chips.childElementCount > 0) this.body.append(chips);
+
+    this.body.append(this.hairline());
+
+    if (open === null) {
+      // The detail rides the sky that answers `openThread`; until it lands
+      // there is nothing honest to draw.
+      const waiting = document.createElement("div");
+      waiting.className = "study-board-empty";
+      waiting.textContent = "Reading the thread.";
+      this.body.append(waiting);
+      return;
+    }
+
+    if (open.truncated) {
+      const cut = document.createElement("div");
+      cut.className = "thread-truncated holos-caps";
+      cut.textContent = "EARLIER SIGNALS NO LONGER HELD";
+      this.body.append(cut);
+    }
+
+    // Oldest to newest, in the server's own order (by the year YOU learned
+    // of each). The client never sorts.
+    for (const s of open.signals) this.body.append(this.buildThreadSignal(s));
+
+    if (open.state === "silent") {
+      const line = document.createElement("div");
+      line.className = "thread-state-line";
+      line.textContent = THREAD_SILENT_LINE;
+      this.body.append(line);
+    }
+
+    this.body.append(this.buildComposer(open, restore));
+
+    if (this.threadScrollToEnd) {
+      this.threadScrollToEnd = false;
+      // One frame later: the body is still being assembled right now.
+      requestAnimationFrame(() => {
+        this.body.scrollTop = this.body.scrollHeight;
+      });
+    }
+  }
+
+  /** A header chip: short, repeated, enclosed — the .tend-badge contract
+   *  exactly, which is what earns it --holos-text-xxs. */
+  private buildThreadChip(text: string): HTMLDivElement {
+    const chip = document.createElement("div");
+    chip.className = "tend-badge thread-chip";
+    chip.textContent = text;
+    return chip;
+  }
+
+  /**
+   * One signal.
+   *
+   * RECEIVED: the stamp FIRST, two caps rows of instrument readout, then the
+   * payload. Every number the thread shows lives on that stamp and none of
+   * it lives in the prose — which is the whole reason the prose can be
+   * fact-free and needs no pinned-fact machinery.
+   *
+   * SENT: a cyan rail with your own arithmetic on it. In flight while the
+   * year has not come; LANDED once it has. Never a receipt.
+   */
+  private buildThreadSignal(s: ThreadSignal): HTMLDivElement {
+    const el = document.createElement("div");
+    el.className =
+      s.from === "you"
+        ? "thread-signal thread-signal--sent"
+        : "thread-signal thread-signal--received";
+
+    if (s.from === "them") {
+      const stamp = s.stamp;
+      if (stamp !== null) {
+        el.append(
+          this.buildStampRow(
+            `TRANSIT ${formatGameYears(stamp.transitYears)} · DISTANCE ${stamp.distanceLy.toFixed(1)} ly`,
+          ),
+          this.buildStampRow(
+            `RECEIVED ${stamp.receivedFraction.toFixed(2)} · LOSS ${Math.round(stamp.degradation * 100)}% · ARRIVED ${formatAbsoluteYear(stamp.arrivedYear)}`,
+          ),
+        );
+      }
+    } else {
+      const rail = document.createElement("div");
+      rail.className = "thread-rail holos-caps study-tabular";
+      rail.textContent = this.sentRailText(s);
+      this.liveClocks.push({ el: rail, text: () => this.sentRailText(s) });
+      el.append(rail);
+    }
+
+    if (s.body !== null) {
+      const payload = document.createElement("div");
+      payload.className = "thread-payload";
+      // UNTRUSTED PROSE — a player wrote it, or a template composed it.
+      // textContent and nothing else, ever: this string never becomes markup
+      // (and, server-side, never becomes a generation input either).
+      payload.textContent = s.body;
+      el.append(payload);
+    }
+
+    return el;
+  }
+
+  private buildStampRow(text: string): HTMLDivElement {
+    const row = document.createElement("div");
+    // holos-caps sets --holos-text-xs, the .report-stamp reading: a
+    // measurement is a reading, not a one-word classifier, so it stays at
+    // the floor for things a player reads rather than below it.
+    row.className = "thread-stamp holos-caps study-tabular";
+    row.textContent = text;
+    return row;
+  }
+
+  /** Your own beam, timed by your own clock against a year the server
+   *  already sent. There is no state here that came back from them. */
+  private sentRailText(s: ThreadSignal): string {
+    const kicker = s.kind === "hail" ? "HAIL · " : "";
+    const countdown = formatCountdown(s.arrivesYear);
+    return countdown === null
+      ? `${kicker}LANDED ${formatAbsoluteYear(s.arrivesYear)}`
+      : `${kicker}IN FLIGHT · ARRIVES IN ${countdown}`;
+  }
+
+  /**
+   * The composer, or the reason there is not one.
+   *
+   * `canSpeak` is false for two different reasons and they read differently.
+   * If nothing of yours is in the thread at all, they spoke first: the way
+   * to answer is to aim a beam, which is the choice ceremony at its usual
+   * price, and that beat is the best one in the stage. If your own signals
+   * ARE in the thread, it is simply full, and there is nowhere to route to.
+   */
+  private buildComposer(
+    detail: ThreadDetail,
+    restore: { readonly caret: number | null } | null,
+  ): HTMLElement {
+    if (!detail.canSpeak) return this.buildClosedComposer(detail);
+
+    const wrap = document.createElement("div");
+    wrap.className = "thread-composer";
+
+    const input = document.createElement("textarea");
+    input.className = "thread-composer-input";
+    input.rows = 2;
+    input.maxLength = MAX_SIGNAL_LEN;
+    // A signal is one paragraph, so the phone's return key sends it.
+    input.setAttribute("enterkeyhint", "send");
+    input.placeholder = "What you want them to hear.";
+    input.value = this.composerDraft;
+
+    const foot = document.createElement("div");
+    foot.className = "thread-composer-foot";
+
+    const remaining = document.createElement("div");
+    remaining.className = "thread-composer-remaining holos-caps study-tabular";
+
+    const send = document.createElement("button");
+    send.type = "button";
+    send.className = "thread-send holos-caps";
+    send.textContent = "SEND";
+    send.addEventListener("click", () => this.sendSignal());
+
+    foot.append(remaining, send);
+    wrap.append(input, foot);
+
+    this.composerEls = { input, remaining, send };
+
+    input.addEventListener("input", () => {
+      this.composerDraft = input.value;
+      this.composerCaret = input.selectionStart;
+      this.refreshComposer();
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      // An IME is mid-word: Enter is committing a candidate, not sending.
+      if (e.isComposing) return;
+      // NEWLINE SUPPRESSION. Non-authoritative by design —
+      // sanitizeSignalText collapses every whitespace run on the server, so
+      // a paste with newlines in it still arrives as one paragraph.
+      e.preventDefault();
+      this.sendSignal();
+    });
+    input.addEventListener("focus", () => {
+      this.composerFocused = true;
+      this.trackKeyboard(true);
+    });
+    input.addEventListener("blur", () => {
+      this.composerFocused = false;
+      this.trackKeyboard(false);
+    });
+
+    this.refreshComposer();
+
+    if (restore !== null) {
+      // One frame later: the body is still being assembled right now (the
+      // hubScrollToVoice precedent).
+      requestAnimationFrame(() => {
+        if (!input.isConnected) return;
+        input.focus({ preventScroll: true });
+        const caret = restore.caret ?? input.value.length;
+        input.setSelectionRange(caret, caret);
+      });
+    }
+
+    return wrap;
+  }
+
+  private buildClosedComposer(detail: ThreadDetail): HTMLElement {
+    const wrap = document.createElement("div");
+    wrap.className = "thread-closed";
+
+    const line = document.createElement("div");
+    line.className = "thread-closed-line";
+
+    if (detail.signals.some((s) => s.from === "you")) {
+      line.textContent = "This thread holds all it can. Nothing further leaves from here.";
+      wrap.append(line);
+      return wrap;
+    }
+
+    line.textContent = "They spoke first. Answering means aiming a beam of your own.";
+    const verbRow = document.createElement("div");
+    verbRow.className = "study-verb-row";
+    const verbBtn = document.createElement("button");
+    verbBtn.type = "button";
+    verbBtn.className = "study-verb-btn study-verb-btn--primary";
+    // The beam's own name, as the source card says it one surface over.
+    verbBtn.textContent = "AIM A BEAM";
+    verbBtn.addEventListener("click", () => {
+      const starId = this.threadStarId;
+      if (starId === null) return;
+      this.leaveThread();
+      this.onHailActionCb?.(starId);
+    });
+    verbRow.append(verbBtn);
+    wrap.append(line, verbRow);
+    return wrap;
+  }
+
+  /** The composer's two live readings, updated per keystroke rather than by
+   *  a re-render (refreshHubBudget's reason, with a keyboard up). */
+  private refreshComposer(): void {
+    const els = this.composerEls;
+    if (els === null) return;
+    // Code points, not UTF-16 units — MAX_SIGNAL_LEN is counted the same way
+    // by the function that will actually judge this text.
+    const left = MAX_SIGNAL_LEN - [...els.input.value].length;
+    els.remaining.textContent = `${left} LEFT`;
+    els.remaining.hidden = left >= SIGNAL_REMAINING_VISIBLE;
+    els.send.disabled =
+      this.pendingSignalText !== null || sanitizeSignalText(els.input.value) === null;
+  }
+
+  private sendSignal(): void {
+    const els = this.composerEls;
+    const starId = this.threadStarId;
+    if (els === null || starId === null || this.pendingSignalText !== null) return;
+    // The pre-check is NEVER authoritative: the server runs the same pure
+    // function again and answers a refusal with `signal-rejected`. This only
+    // keeps a send that could not land from leaving at all.
+    const text = sanitizeSignalText(els.input.value);
+    if (text === null) return;
+    this.pendingSignalText = els.input.value;
+    this.composerDraft = "";
+    this.composerCaret = null;
+    this.socket.send({ type: "sendSignal", starId, text });
+    // The confirming sky carries the act; until it does the box is empty and
+    // the pill is inert. No optimistic signal is ever drawn: the thread shows
+    // what the server recorded and nothing else.
+    els.input.value = "";
+    this.refreshComposer();
+  }
+
+  /**
+   * KEYBOARD OCCLUSION. The sheet is pinned to the bottom of the LAYOUT
+   * viewport, which an on-screen keyboard does not shrink; visualViewport is
+   * the one that does. While the composer holds focus the sheet's bottom is
+   * lifted by however much of it the keyboard is covering, and the moment
+   * focus leaves, the inset goes back to nothing and the listeners come off.
+   */
+  private readonly onViewportChange = (): void => {
+    const vv = window.visualViewport;
+    if (vv === null) return;
+    const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    this.sheet.style.setProperty("--holos-keyboard-inset", `${Math.round(inset)}px`);
+  };
+
+  private trackKeyboard(on: boolean): void {
+    const vv = window.visualViewport;
+    if (vv === null) return;
+    if (on) {
+      // addEventListener with the same bound function is idempotent, so a
+      // second focus costs nothing.
+      vv.addEventListener("resize", this.onViewportChange);
+      vv.addEventListener("scroll", this.onViewportChange);
+      this.onViewportChange();
+    } else {
+      vv.removeEventListener("resize", this.onViewportChange);
+      vv.removeEventListener("scroll", this.onViewportChange);
+      this.sheet.style.removeProperty("--holos-keyboard-inset");
     }
   }
 

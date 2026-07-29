@@ -86,6 +86,9 @@ export class App {
   // never preflighted, so the ceremony can render the mind's objection with
   // no round trip) and the player's own committed acts. Null until the first
   // sky, which is the only state in which no ceremony can be armed.
+  // A2.5 widens the same block with `threads` and `openThread`, so the
+  // thread list and the one open detail reach the board through the field
+  // that was already being handed over — no new plumbing, no second store.
   private contact: ContactWire | null = null;
   private contactCeremony: ContactCeremony | null = null;
 
@@ -428,6 +431,15 @@ export class App {
         const contact = this.contact;
         if (contact === null) return;
         stage(() => contactCeremony.armBroadcast(contact.broadcast, this.sources));
+      });
+      // A2.5: a thread the player has never spoken into — they hailed first
+      // and nothing of ours has ever been aimed at them. Answering is the
+      // hail ceremony at its usual price, staged through the same funnel as
+      // every other way in, so the sky is handed over exactly once.
+      studyBoard.onHailAction((starId) => {
+        const contact = this.contact;
+        if (contact === null) return;
+        stage(() => contactCeremony.armHail(starId, contact.hail, this.sources));
       });
       // A2.4: the HOME mote is the one present-tense object on the sky, so
       // tapping it goes to where the player's own voice lives.

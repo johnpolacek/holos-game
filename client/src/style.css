@@ -189,6 +189,11 @@ body {
 .contact-staydark,
 .contact-cost-chip,
 .contact-stamp,
+/* A2.5: a thread row's name and state chip, and the composer's SEND pill.
+   Short label lines and an enclosed verb; none of them is prose. */
+.study-thread-name,
+.study-thread-state,
+.thread-send,
 /* The source card's header. */
 .source-card-name,
 .source-card-belief,
@@ -236,7 +241,12 @@ body {
 /* A2.4: the mind's objection to an act, and a server refusal stated back —
    both sentences, spoken over the sky. */
 .contact-objection,
-.contact-reason {
+.contact-reason,
+/* A2.5: a signal's payload (player prose, or a counterpart's), the pinned
+   silence line, and the line that stands in for a composer. Sentences. */
+.thread-payload,
+.thread-state-line,
+.thread-closed-line {
   text-wrap: pretty;
 }
 
@@ -296,6 +306,23 @@ body {
   white-space: nowrap;
   will-change: transform, opacity;
   transition: opacity 400ms ease;
+}
+
+/* A2.5: the one tracking label on an outbound act still crossing. Cyan and
+   nowrap, on the HOME label's anatomy — what you sent is yours and is
+   happening now, so it takes the same light the mote does. Size and
+   letterspacing come from .holos-caps; only the color and the shadow are
+   this rule's business. */
+.model-outbound-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--holos-cyan);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  will-change: transform, opacity;
+  transition: opacity 320ms ease;
 }
 
 /* The scale readout — how far out the camera is, as an honest distance. The
@@ -816,7 +843,11 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  /* A2.5: the sheet is pinned to the bottom of the LAYOUT viewport, which an
+     on-screen keyboard does not shrink. While the thread composer holds
+     focus the board sets this variable to however much of the sheet the
+     keyboard is covering; it is 0px every other moment of the game. */
+  bottom: var(--holos-keyboard-inset, 0px);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -2166,6 +2197,201 @@ body {
   border-radius: 999px;
   padding: 0.15rem 0.5rem;
   margin-bottom: 0.35rem;
+}
+
+/* ── Threads (A2.5) ──────────────────────────────────────────────────────
+ * The sky answers, and the texture is ASTRONOMY, never mail. There are no
+ * bubbles here, no avatars and no left/right conversation gutter: a received
+ * signal is an instrument readout with prose under it, and a sent one is a
+ * beam on a rail. Amber and ink throughout, like the rest of this sheet —
+ * everything they sent is old light. The ONE cyan is the sent rail, on the
+ * source card's contact-row precedent: a beam you aimed is yours and is
+ * happening now. Nothing else in this block may follow it. */
+
+/* A thread on the hub, under SPEAK TO EVERYONE. The .study-hub-row chassis
+   with the name and the state on one line — a thread is a place you return
+   to, so it reads as a destination rather than as a verb. */
+.study-thread-row {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
+  width: 100%;
+  min-height: 52px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.5rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.study-thread-name {
+  font-size: var(--holos-text-lg);
+  color: var(--holos-amber);
+  min-width: 0;
+}
+
+.study-thread-state {
+  flex-shrink: 0;
+  color: var(--holos-ink-faint);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* The thread header's chips: the light-age, the source's own classification,
+   and where the thread stands. Enclosed classifiers on the .tend-badge
+   contract, which is what earns them --holos-text-xxs. */
+.thread-chips {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.1rem 0 0.5rem;
+}
+
+.thread-chip {
+  color: var(--holos-ink-dim);
+}
+
+/* The wire holds the newest signals only, and says so once. */
+.thread-truncated {
+  color: var(--holos-ink-faint);
+  padding: 0.3rem 0 0.5rem;
+}
+
+.thread-signal {
+  padding: 0.55rem 0 0.7rem;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.2);
+}
+
+/* What arrived. The measurement is the header of the message, so the block
+   is indented off a gold rule the way an archive entry is. */
+.thread-signal--received {
+  border-left: 1px solid var(--holos-gold-dim);
+  padding-left: 0.7rem;
+}
+
+/* What left. The one cyan rail in the panel. */
+.thread-signal--sent {
+  border-left: 1px solid var(--holos-cyan-dim);
+  padding-left: 0.7rem;
+}
+
+/* One row of instrument readout. Caps/tabular chrome at --holos-text-xs (via
+   .holos-caps), never xxs: a measurement is a reading, not a one-word
+   classifier — the .report-stamp ruling, applied to the thing it was written
+   about. Two of these stack above every received payload. */
+.thread-stamp {
+  color: var(--holos-ink-faint);
+  line-height: 1.5;
+}
+
+/* Your own arithmetic on your own beam: in flight, then landed. Cyan,
+   because it is the rail's own line and not a reading of anything remote. */
+.thread-rail {
+  color: var(--holos-cyan);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The payload. UNTRUSTED PROSE, set through textContent only — so it is
+   sized and broken like prose and given a hard wrap, because 280 characters
+   with no space in them must not push the sheet sideways. */
+.thread-payload {
+  margin-top: 0.35rem;
+  font-size: var(--holos-text-sm);
+  line-height: 1.45;
+  color: var(--holos-amber);
+  overflow-wrap: anywhere;
+}
+
+/* The silence. Quiet ink, a little air, no rule under it: there is nothing
+   after this. */
+.thread-state-line {
+  padding: 0.8rem 0 0.4rem;
+  font-size: var(--holos-text-sm);
+  line-height: 1.45;
+  color: var(--holos-ink-faint);
+}
+
+/* The composer. Sits at the foot of the column, in the cyan the sent rail
+   takes — it is the next thing of yours to leave. */
+.thread-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.8rem 0 0.3rem;
+}
+
+.thread-composer-input {
+  width: 100%;
+  resize: none;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--holos-gold-dim);
+  color: var(--holos-ink);
+  font-family: var(--holos-font-body);
+  /* --holos-text-md deliberately, not one of the smaller steps: below 16px
+     a phone zooms the whole page on focus, and the sheet never comes back
+     square. */
+  font-size: var(--holos-text-md);
+  line-height: 1.4;
+  padding: 0.4rem 0.1rem;
+}
+
+.thread-composer-input:focus {
+  outline: none;
+  border-bottom-color: var(--holos-cyan);
+}
+
+.thread-composer-input::placeholder {
+  color: var(--holos-ink-faint);
+}
+
+.thread-composer-foot {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.7rem;
+}
+
+/* Only present in the last stretch, where the room left is worth watching. */
+.thread-composer-remaining {
+  color: var(--holos-ink-faint);
+}
+
+.thread-composer-remaining[hidden] {
+  display: none;
+}
+
+.thread-send {
+  background: none;
+  border: 1px solid var(--holos-cyan-dim);
+  border-radius: 999px;
+  padding: 0.45rem 1.1rem;
+  color: var(--holos-cyan);
+  font-family: var(--holos-font-body);
+  cursor: pointer;
+}
+
+.thread-send:disabled {
+  border-color: rgba(211, 185, 130, 0.25);
+  color: var(--holos-ink-faint);
+  cursor: default;
+}
+
+/* No composer: they spoke first and answering costs the ceremony, or the
+   thread is simply full. One line, and at most one way onward. */
+.thread-closed {
+  padding: 0.8rem 0 0.3rem;
+}
+
+.thread-closed-line {
+  font-size: var(--holos-text-sm);
+  line-height: 1.45;
+  color: var(--holos-ink-dim);
 }
 
 /* ── Source card — the mission (dispatch) affordance row ─────────────── */
