@@ -148,7 +148,17 @@ ceremony stages on the Model: hold-compressed flight previews with
 running arrival years, a commit that collapses into the clock's real
 crawl, and persistent in-flight renders derived from the player's own
 outbound acts. Stay dark writes nothing. systems-a.md §12 is the
-as-built record. **→ Next: A2.5 — traffic, against the AI.**
+as-built record.
+
+**A2.5 shipped (2026-07): traffic, against the AI.** Derived-truth
+counterparts (no AI ever writes: replies are pure functions of the act
+log, evaluated at read time, byte-stable forever), threads and signals
+on real light clocks through the existing wake queue, four counterpart
+classes over all ten archetypes with forty-three banked reply strings,
+physics stamps as the header of every received payload, and the game's
+first text composer, freeform-with-AI only, enforced server-side.
+systems-a.md §13 is the as-built record. **→ Next: A2.6 — human
+pairs: the composer, dossiers, identity.**
 
 **→ Previously next (now shipped in code): AV — the voice.** Decided
 2026-07: the shipped game has the machinery but no narrator — the

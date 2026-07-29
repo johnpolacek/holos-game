@@ -971,3 +971,82 @@ willingness. The persistent renders derive from `outbound` only: the
 in-flight mote (covered-path hairline behind, nothing ahead) and the
 echo ring growing a light-year a year, forever. They look motionless
 in a session; that stillness is the point.
+
+---
+
+## §13 Traffic against the AI (A2.5, as built)
+
+The sky answers for the first time. Threads, signals on real light
+clocks, and rule-based counterparts, on one load-bearing decision:
+
+**Derived truth, not written truth.** No AI civilization ever writes
+anything. Every AI act, reply and the lantern's unprompted hail alike,
+is a pure function of (the stored act log, the seeds, the distances),
+evaluated at read time in `traffic.ts` and stored nowhere. The
+presence rule survives restated: every `appendAct` call site is a
+handler whose first statement reads a live connection's state (two
+after A2.5: `onCommitContact`, `onSendSignal`), and alarms stay
+wake-ups; wipe the queue and every reply still lands one sky-request
+later. The identity that makes it cheap: an AI at distance d receiving
+your act sent at year S sees your light clipped at exactly S, so every
+trigger evaluates at the inbound act's own `sentYear`. Already-derived
+replies are byte-stable forever because every later truth write is
+dated at or after its own now. Verified mechanically.
+
+**Signals as acts.** `ContactAct` gains optional `inReplyTo` and
+`text` (append-only log: no migration; `inReplyTo` is declared but
+unpopulated in A2.5, since the only thing a player's signal could
+answer is derived material whose ids name nothing in the log). A
+thread is the civ pair's stored acts plus the pair's derived signals.
+You hail once (`hasHailed`); every later utterance is a signal,
+uncontested: the mind objected at the door and does not relitigate
+the conversation. `beamCrossing` accepts signals, so a live thread
+keeps the counterpart lit as DIRECTED BEAM on both skies (a real cost
+of traffic: their light curve stops teaching your study while you
+talk).
+
+**The counterparts** (class per archetype, all ten mapped): lanterns
+(beacon, tide, herald) answer everything and hail a bright past
+unprompted, exactly once per pair; whisperers (monument, cloister,
+sowing, shepherd) answer only a held dark turn (below 0.08 for 600
+years and more, by their own light-view) and withdraw permanently if
+you brighten after the thread opens; congress and engine always
+answer, deferring the first reply when the vote is close
+(|voice-silence| < 0.20); the phoenix is silent, forever: the self
+you hailed is gone. Deliberation 2.5 / 0.4 / 1.6 game years with
+seeded jitter, deterministic on every derivation.
+
+**Reply text** composes two fact-free clauses, the rule's own
+observation then the archetype's voice, gated at construction
+(`LIMITS.signal`), falling back to the observation clause alone on
+rejection. Every number lives on the physics stamp above the payload
+and none in the prose, so no fact can originate in a template.
+Forty-three banked strings, `audit:voice`-gated.
+
+**Physics stamps**: transit years, distance, received fraction
+(REF squared over REF squared plus d squared, REF 5 ly, floored at
+0.02), degradation — a measurement of the arriving beam, deliberately
+distinct from `BEAM_RECEIVED_LEVEL`, the classification floor that
+keeps a dark civ visible to its addressee.
+
+**The wire**: threads ride the sky's contact block as a list/detail
+split; the open thread is per-connection state, no DO key.
+`nextEventYear` never carries a pending reply (knowing an answer is
+coming would be knowing their present); derived inbound signals are
+filtered at arrival; no inbound arc ever renders on the Model.
+
+**Freeform** is player prose: one paragraph, sanitized
+(`sanitizeSignalText`: NFC, whitespace collapse, control and bidi
+rejection, combining-mark cap, 280 code points), never style-gated,
+never handed to generation, and refused to human-held targets with
+one throw site (`freeform-forbidden`): the human-pair composer is
+A2.6.
+
+**The client**: threads live in THE VOICE; each received signal wears
+its stamp as an instrument readout above the payload (the texture is
+astronomy, never mail); sent signals ride a cyan rail whose LANDED
+line is the player's own arithmetic, never a receipt. Answering a
+counterpart that hailed you first routes through the hail ceremony,
+because answering reveals you. The silent state's one line: "The
+window in which an answer could have arrived has passed. Nothing
+came."
