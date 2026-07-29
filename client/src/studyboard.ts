@@ -237,8 +237,8 @@ export class StudyBoard {
   private pendingQuestion: { readonly starId: string; readonly questionId: string } | null = null;
 
   // The one offered question whose drill-in is open, if any. Tapping an
-  // offered row expands it — the spend is the BUY button inside, never the
-  // row — and a second tap folds it back. Lives on the panel, not in the
+  // offered row expands it — the spend is the button inside the fold, never
+  // the row — and a second tap folds it back. Lives on the panel, not in the
   // DOM, because renderFocused() rebuilds the whole body every second
   // (startTicking) and an expansion has to survive that. Star-scoped like
   // pendingQuestion so a stale id can never open a row on a different study.
@@ -638,7 +638,7 @@ export class StudyBoard {
     this.highlightQuestionId = questionId;
     // The route means "look at this question", so it lands on the drill-in
     // rather than on a folded row the player would have to tap again. The
-    // spend still waits behind the BUY button inside it.
+    // spend still waits behind the spend button inside it.
     this.expandedQuestion = { starId, questionId };
     this.renderFocused(starId);
     this.openFlag = true;
@@ -1939,8 +1939,8 @@ export class StudyBoard {
   ): HTMLElement {
     if (q.state === "offered") {
       // An offered question is a drill-in, not a buy button. The head folds
-      // and unfolds; the spend is the BUY inside the fold, so no tap on the
-      // menu can cost compute by itself.
+      // and unfolds; the spend is the button inside the fold, so no tap on
+      // the menu can cost compute by itself.
       const wrap = document.createElement("div");
       wrap.className = "study-question";
       // AV3: tagged so a proposal's `question` route (focusStudyQuestion)
@@ -1987,7 +1987,7 @@ export class StudyBoard {
       const affordable = free >= q.costCompute;
       const base = `${q.costCompute} COMPUTE · ANSWERS IN ${formatClockPair(q.integrationYears)}`;
       // The cost/clock line reads the same as it always did, shortfall and
-      // all — the only change is that the states below now dress the BUY
+      // all — the only change is that the states below now dress the spend
       // button rather than the row, which stays tappable so a question can
       // be read when it cannot be bought.
       const shortfall = Math.ceil(q.costCompute - free);
@@ -2034,13 +2034,23 @@ export class StudyBoard {
           detail.append(sepHeader, tags);
         }
 
-        // 3. The spend, and only here.
+        // 3. The terms, stated where the decision is made — the project
+        //    sheet's anatomy (cost row, clock row, allocation line), so
+        //    the fold says what is spent, when the answer lands, and what
+        //    the allocation can bear, before the verb is offered.
+        detail.append(this.buildClockRow("COST", `${q.costCompute} COMPUTE`));
+        detail.append(this.buildClockRow("ANSWERS IN", formatClockPair(q.integrationYears)));
+        detail.append(this.buildBudgetLine());
+
+        // 4. The spend, and only here. The button names the spend itself:
+        //    "buy the question" said what the system calls the act, not
+        //    what leaves the allocation when you tap it.
         const verbRow = document.createElement("div");
         verbRow.className = "study-verb-row";
         const buyBtn = document.createElement("button");
         buyBtn.type = "button";
         buyBtn.className = "study-verb-btn study-verb-btn--primary";
-        buyBtn.textContent = "buy the question";
+        buyBtn.textContent = `spend ${q.costCompute} compute`;
         let hint = "";
         if (!buyable) {
           // A grounded study buys nothing (the server refuses it too): the
@@ -2048,10 +2058,10 @@ export class StudyBoard {
           // offer. A shelved study IS buyable — the spend reopens it
           // server-side.
           buyBtn.disabled = true;
-          hint = "REOPEN THE STUDY TO BUY";
+          hint = "REOPEN THE STUDY FIRST";
         } else if (isPending) {
           buyBtn.disabled = true;
-          buyBtn.textContent = "buying the question…";
+          buyBtn.textContent = "committing the compute…";
         } else if (affordable) {
           buyBtn.addEventListener("click", () => {
             this.pendingQuestion = { starId, questionId: q.id };
@@ -2059,8 +2069,9 @@ export class StudyBoard {
             this.renderFocused(starId);
           });
         } else {
-          // Unaffordable. No hint: the head's meta line already carries the
-          // shortfall, and saying it twice in one fold is noise.
+          // Unaffordable. No hint: the head's meta line carries the
+          // shortfall and the allocation line above sits right against the
+          // cost row, so saying it a third time in one fold is noise.
           buyBtn.disabled = true;
         }
         verbRow.append(buyBtn);
