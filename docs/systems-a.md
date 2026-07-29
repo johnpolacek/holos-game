@@ -888,3 +888,86 @@ tree:
     handler computes a belief, a date, or a finding (§5.4).
 11. **Alarms carry no state.** Losing the queue costs a push, never a
     fact (§7).
+
+---
+
+## §12 The choice ceremony (A2.4, as built)
+
+The first irreversible act: hail, broadcast, or stay dark. Server truth
+in `contact.ts`; the ceremony staged on the Model
+(`contactceremony.ts`).
+
+**The act log lives on the Galaxy** (`galaxy.acts`, DO key
+`galaxy:acts`, absent-key default as the entire migration). A hail is
+one appended `ContactAct` and no emission write: a beam is aimed, not
+broadcast, and putting it in the broadband history would leak it to
+every observer. A broadcast writes two epochs onto the sender's OWN
+emission history: the shout (`max(BROADCAST_LEVEL, current)` from the
+commit year) and the fall-back (the level the civ would have had when
+the shout ends, read off the original history before interior epochs
+are dropped). Every year `applyBroadcast` touches is at or after the
+commit's now, and every observer's `asOfYear` is at or before now, so
+no light already served to anyone can change. Verified mechanically.
+
+**Observation** (`observeCiv`'s beam branch): directedness is the
+`toCivId` filter; the cone is the same `asOfYear` every other channel
+reads. The target sees `directed-beam` at `BEAM_RECEIVED_LEVEL` from
+`sentYear` through `sentYear + BEAM_DWELL_YEARS`, `lightHistory`
+staying unfaked broadband. A dark sender surfaces to the target alone,
+at arrival: the detection floor is short-circuited only for the
+addressee, which is the entire point of a directed beam. The
+`directed-beam` study menu is reachable at last, and a study open on
+that star comes back overtaken by A2.3's machinery with no new code.
+
+**The wire**: `commitContact { choice, starId, acknowledged }` in;
+`ContactWire` rides `sky`: two `ContactStance`s (contested, the
+archetype objection line, the coherence cost — pushed, not
+preflighted, because they are pure functions of the civ's own dials)
+and `outbound`, the player's own acts (`sentYear` / `arrivesYear` /
+`shellRadiusLy`). Nothing in it is about anyone else. Validation
+answers "unknown star", "no civ there" and "light not yet arrived"
+with one code, so the error channel is not an oracle.
+
+**Resistance**: the `voice-silence` dial against the act's demand
+(hail contests above +0.35, broadcast above +0.10), damped by the
+integration ladder; deterministic, byte-identical at preview and
+charge. The wound debits the existing `stocks.coherence`, floored at
+zero; the act records the amount actually charged. `acknowledged` is
+consent, never price: the server recomputes the cost regardless.
+Twenty banked objection lines (10 archetypes x hail/broadcast),
+`LIMITS.remark`-gated, first person plural, no numerals.
+
+**Stay dark writes nothing.** Physics has no record of a non-event;
+the handler validates and returns. (The walkthrough's "unsent reply,
+kept" is A2.5's draft object.)
+
+**The presence rule** (act3-design's absence charter): `appendAct`
+and `applyBroadcast` have exactly one call site each, inside
+`onCommitContact`, which begins from a live connection's state.
+Alarms resend skies; proposals have no contact arm; tripwires fire
+beliefs. Client-side the same rule holds: `commitContact` has one
+send site, reachable only from a completed live hold (or the
+stay-dark word, which commits nothing). Greppable, and grepped.
+
+**One-shot semantics**: a second hail to the same target refuses
+until answered (A2.5 relaxes the predicate's body, not its callers);
+a second broadcast waits out `BROADCAST_SHOUT_YEARS`, so repeated
+broadcasts layer real shells with gaps. `MAX_ACTS_PER_CIV` bounds the
+log.
+
+**The ceremony**: camera frozen while armed; both holds
+`HOLD_MS = 2800` wall-clock. The hold compresses the whole flight;
+the commit collapses the preview inward into the BECOME bloom and
+hands the act to the real clock. The hail thread is 3D-lerped then
+projected each frame (foreshortening is honest) with a running year
+at its head; the broadcast ring crosses the snapshotted neighborhood
+linearly in radius, stamping each source's true arrival year in 3D
+distance order, never screen order. Nothing at a target reacts to an
+arriving preview: nothing there knows. Early release fades in place,
+silently; the inward motion belongs to commit alone. A contested hold
+renders dimmer with a brightness-only tremor while the arrival dates
+stay full strength: the dates are not in dispute, only the
+willingness. The persistent renders derive from `outbound` only: the
+in-flight mote (covered-path hairline behind, nothing ahead) and the
+echo ring growing a light-year a year, forever. They look motionless
+in a session; that stillness is the point.

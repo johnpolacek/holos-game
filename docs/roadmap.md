@@ -137,7 +137,18 @@ and reopen rules. The stage's double-Opus confidence-model call was
 run and synthesized; systems-a.md §2.7 and §2.8 are the as-built
 record, and observatory-design's confidence-math open question is
 settled. The same session shipped the scarcity pass (the attention
-ceiling, systems-a.md §2.2b). **→ Next: A2.4 — the choice ceremony.**
+ceiling, systems-a.md §2.2b).
+
+**A2.4 shipped (2026-07): the choice ceremony.** Hail and broadcast
+write emission truth through the light cone (`contact.ts`; the act
+log on the Galaxy, a beam served only to its addressee and only at
+arrival), the resistance beat charges Coherence through the
+voice-silence dial with twenty banked archetype objections, and the
+ceremony stages on the Model: hold-compressed flight previews with
+running arrival years, a commit that collapses into the clock's real
+crawl, and persistent in-flight renders derived from the player's own
+outbound acts. Stay dark writes nothing. systems-a.md §12 is the
+as-built record. **→ Next: A2.5 — traffic, against the AI.**
 
 **→ Previously next (now shipped in code): AV — the voice.** Decided
 2026-07: the shipped game has the machinery but no narrator — the
