@@ -276,7 +276,7 @@ function chronicleFor(
 ): string[] {
   const row = speciesMindFor(lineage.id);
   const lines = [
-    `Home was ${cradle.name} — ${cradle.fingerprint}`,
+    `Home was ${cradle.name}: ${cradle.fingerprint}`,
     `Its shape was ${lineage.name}: ${lineage.fingerprint}`,
   ];
   if (params.ageBand === "young") {
@@ -294,7 +294,7 @@ function chronicleFor(
       : `When the choice came, it chose the dark; the light of its bright years had not yet arrived.`,
   );
   if (params.ageBand === "elder") {
-    lines.push(`It had grown ancient — a past no younger mind would ever catch up to.`);
+    lines.push(`It had grown ancient, a past no younger mind would ever catch up to.`);
   }
   return lines;
 }

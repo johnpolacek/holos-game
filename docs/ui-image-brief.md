@@ -413,7 +413,7 @@ above.*
 > dominating. Near the center-bottom, one minuscule pale-cyan mote with
 > a hairline ring marks "HOME". A subtle depth-of-field softens the
 > nearest and farthest stars. One small slate label floats low: "THE
-> MODEL — WHAT WE BELIEVE". The overwhelming feeling: the sky just
+> MODEL · WHAT WE BELIEVE". The overwhelming feeling: the sky just
 > became a place. Vast, precise, vertiginous, silent.
 
 #### 14 — the Model: your own light, seen from outside

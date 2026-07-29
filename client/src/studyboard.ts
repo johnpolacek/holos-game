@@ -1445,7 +1445,7 @@ export class StudyBoard {
     this.body.append(
       this.buildBriefSection(
         "WHAT IT COSTS",
-        "Nothing to open, nothing to hold, and no limit on how many stand at once. The light arrives whether or not you attend to it, so watching spends only patience. Compute buys questions — the inference that separates one reading from another — and no question has been put to this source.",
+        "Nothing to open, nothing to hold, and no limit on how many stand at once. The light arrives whether or not you attend to it, so watching spends only patience. Compute buys questions, the inference that separates one reading from another, and no question has been put to this source.",
       ),
     );
 

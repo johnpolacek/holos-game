@@ -57,11 +57,12 @@ export function formatGameYears(years: number): string {
 }
 
 /** THE CLOCK PAIR — game time first, then real: "20 y · ≈1 h 40 m". Falls
- *  back to an em dash for the real-time half when there is no anchor yet
- *  (the game-time half is always computable). */
+ *  back to an en dash for the real-time half when there is no anchor yet
+ *  (the game-time half is always computable). An EN dash, not an em: no U+2014
+ *  reaches a player surface, glyph or prose (prose-style.md R-8). */
 export function formatClockPair(years: number): string {
   const gamePart = formatGameYears(years);
-  if (anchor === null) return `${gamePart} · —`;
+  if (anchor === null) return `${gamePart} · –`;
   return `${gamePart} · ≈${formatRealDuration(realMsForYears(years))}`;
 }
 

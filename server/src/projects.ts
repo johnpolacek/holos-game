@@ -162,7 +162,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "long-baseline-optical",
     label: "Open the long baseline",
-    line: "Two collectors an astronomical unit apart, holding phase to a fraction of a wavelength — resolution was never about the mirror, only about how far apart you are willing to stand.",
+    line: "Two collectors an astronomical unit apart, holding phase to a fraction of a wavelength. Resolution was never about the mirror, only about how far apart you are willing to stand.",
     effectLine: "WEIGH IT and CATCH ITS EDGES answer 30% sooner, on every study.",
     costClass: "investment",
     costCompute: 380,
@@ -260,7 +260,7 @@ export const PROJECTS: readonly ProjectDef[] = [
   {
     id: "focal-line-constellation",
     label: "Ring the focal line",
-    line: "One instrument on the focal line for every bearing worth watching, out beyond five hundred and fifty astronomical units, with the star itself for a lens — after this, nothing in this sky is a smudge to anyone here again.",
+    line: "One instrument on the focal line for every bearing worth watching, out beyond five hundred and fifty astronomical units, with the star itself for a lens. After this, nothing in this sky is a smudge to anyone here again.",
     effectLine: "Holds the floor under every signal's confidence ten points higher.",
     costClass: "epochal",
     costCompute: 9000,

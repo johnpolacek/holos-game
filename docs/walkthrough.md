@@ -139,7 +139,7 @@ substrate mind**: *a landscape that thinks slowly and everywhere: its
 memory is structural, which is to say it does not forget.* The wake line
 is the quietest thing he has ever read in a game:
 
-> *The least discontinuous pivot there is — already planet-scale, already
+> *The least discontinuous pivot there is: already planet-scale, already
 > storing everything, it does not so much wake as notice.*
 
 The dial sheet reads like a portrait of that sentence: the notch deep
@@ -176,7 +176,7 @@ shrinks to a cyan mote, the star field opens, and the view slides
 *off-axis*: the flat sky acquires depth, near stars parting from far ones,
 until he is floating in a three-dimensional chart of everything Longlight
 believes about its neighborhood. A caption sits in the corner, small and
-unapologetic: `THE MODEL — WHAT WE BELIEVE`.
+unapologetic: `THE MODEL · WHAT WE BELIEVE`.
 
 And the mind speaks its first line — the interface has a narrator now, and
 it is not a tutorial voice; it is the civilization:

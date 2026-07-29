@@ -136,7 +136,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
     id: "catch-its-edges",
     label: "CATCH ITS EDGES",
     proseName: "edge look",
-    line: "how the light comes off it — air answers differently than surface",
+    line: "how the light comes off it, since air answers differently than surface",
     costCompute: 90,
     integrationYears: 6,
     appliesTo: ["infrared-excess", "transit-shadows", "biosignature", "directed-beam"],
@@ -380,7 +380,7 @@ function readItsLinesFinding(occupancy: Occupancy, signal: ObservedSignal): Find
       return sharpen(
         "read-its-lines",
         "lines-of-worked-material",
-        "The lines are of worked material — refined, uniform, and nothing like a rock's. There is no atmosphere here to speak of. There are surfaces.",
+        "The lines are of worked material: refined, uniform, and nothing like a rock's. There is no atmosphere here to speak of. There are surfaces.",
         { built: 3.0, mundane: 0.3, quiet: 0.55 },
       );
     case "banked":
@@ -413,7 +413,7 @@ function timeItsShadowsFinding(occupancy: Occupancy, signal: ObservedSignal): Fi
       return sharpen(
         "time-its-shadows",
         "clockwork-and-a-wide-belt",
-        "The crossings keep perfect time, and they are broad and soft — a lot of small things on the same path.",
+        "The crossings keep perfect time, and they are broad and soft: a lot of small things on the same path.",
         { quiet: 1.8, mundane: 1.3, built: 0.55 },
       );
     case "living-quiet":
@@ -452,7 +452,7 @@ function catchItsEdgesFinding(
         return sharpen(
           "catch-its-edges",
           "flatter-than-rubble",
-          "Mostly rock and dust — but flatter, in places, than rubble has any reason to be.",
+          "Mostly rock and dust, but flatter, in places, than rubble has any reason to be.",
           { built: 1.3, quiet: 0.8 },
         );
       }
@@ -467,7 +467,7 @@ function catchItsEdgesFinding(
       return sharpen(
         "catch-its-edges",
         "an-atmosphere-and-a-sea",
-        "A glint that moves with the phase — deep water under air. It is a world, and it is wet.",
+        "A glint that moves with the phase: deep water under air. It is a world, and it is wet.",
         { mundane: 1.8, open: 1.8, built: 0.55 },
       );
   }

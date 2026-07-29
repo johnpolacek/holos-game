@@ -27,7 +27,7 @@ export const QUESTION_METHOD: Readonly<Record<QuestionId, string>> = {
   "read-its-lines":
     "The light is already in hand; splitting it into lines is not. The spend takes the accumulated spectra apart and matches each line against what rock, air, life, and industry are known to leave.",
   "time-its-shadows":
-    "Every dimming this source has shown is already logged. The spend fits them all to one schedule — depth, spacing, drift — and asks whether an orbit can account for the timing.",
+    "Every dimming this source has shown is already logged. The spend fits them all to one schedule of depth, spacing and drift, and asks whether an orbit can account for the timing.",
   "catch-its-edges":
     "Polarization is recorded along with everything else and almost never read. The spend reads it: how the light is angled, and where it glints, which separates a surface from an atmosphere from a sea.",
   "listen-off-axis":

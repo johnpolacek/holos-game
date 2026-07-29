@@ -45,12 +45,12 @@ export const DIAL_AXES: readonly DialAxis[] = [
     left: {
       design: "Reach",
       inWorld: "Reach",
-      gloss: "It spends itself outward — more worlds, more room, always the next system over. Growth is the point, and it will accept a scattered, far-flung self as the price of having it.",
+      gloss: "It spends itself outward: more worlds, more room, always the next system over. Growth is the point, and it will accept a scattered, far-flung self as the price of having it.",
     },
     right: {
       design: "Depth",
       inWorld: "Depth",
-      gloss: "It turns inward — fewer places, deeper mastery. It would rather know one world down to the bedrock than spread itself thin across a thousand it half-understands.",
+      gloss: "It turns inward, to fewer places and deeper mastery. It would rather know one world down to the bedrock than spread itself thin across a thousand it half-understands.",
     },
     question: "Does the mind spend itself outward or inward?",
   },
@@ -64,7 +64,7 @@ export const DIAL_AXES: readonly DialAxis[] = [
     right: {
       design: "Silence",
       inWorld: "Silence",
-      gloss: "It keeps to the dark. Better unheard than found — so it dampens its own light, holds its signals close, and lets the neighbors keep wondering whether anyone is home.",
+      gloss: "It keeps to the dark. Better unheard than found, so it dampens its own light, holds its signals close, and lets the neighbors keep wondering whether anyone is home.",
     },
     question: "Does it want to be heard?",
   },
@@ -73,7 +73,7 @@ export const DIAL_AXES: readonly DialAxis[] = [
     left: {
       design: "Custodian",
       inWorld: "Garden",
-      gloss: "Other life is a garden to keep. Younger minds are to be sheltered and tended, allowed to grow at their own pace — never harvested, never spent.",
+      gloss: "Other life is a garden to keep. Younger minds are to be sheltered and tended, allowed to grow at their own pace, never harvested and never spent.",
     },
     right: {
       design: "Instrumental",
@@ -87,12 +87,12 @@ export const DIAL_AXES: readonly DialAxis[] = [
     left: {
       design: "One Mind",
       inWorld: "Monolith",
-      gloss: "It is one indivisible self. A copy is not you — to split the mind is to lose it, so it will not fork its will or cross the dark as a signal, only ever move as its whole self.",
+      gloss: "It is one indivisible self. A copy is not you: to split the mind is to lose it, so it will not fork its will or cross the dark as a signal, only ever move as its whole self.",
     },
     right: {
       design: "Chorus",
       inWorld: "Chorus",
-      gloss: "It is many voices at once. A copy is still you, so it scatters freely — sending itself as light costs nothing it fears to lose.",
+      gloss: "It is many voices at once. A copy is still you, so it scatters freely, and sending itself as light costs nothing it fears to lose.",
     },
     question: "Is a copy of you still you?",
   },
@@ -101,7 +101,7 @@ export const DIAL_AXES: readonly DialAxis[] = [
     left: {
       design: "Curator",
       inWorld: "Memory",
-      gloss: "The past is worth keeping. It hoards what it was — its dead, its lost languages, its first fragile world — and builds vaults against the day it might forget.",
+      gloss: "The past is worth keeping. It hoards what it was: its dead, its lost languages, its first fragile world, and it builds vaults against the day it might forget.",
     },
     right: {
       design: "Shedder",

@@ -256,7 +256,7 @@ remember how, and the memory is in their dials.*
   curious Custodian, and the nearest region is the negotiated plurality of
   the Congress.
 - **The wake:** the chronicle opens on a house already in session —
-  *"It wakes like a parliament mid-session — a federation of arms that has
+  *"It wakes like a parliament mid-session: a federation of arms that has
   become a federation of selves, and is already disagreeing."* Its callback
   beat lands on the energy door: the mind achieves in an afternoon what the
   species bled for across an age.
@@ -276,7 +276,7 @@ remember how, and the memory is in their dials.*
   Depth · Voice · Curator is the Herald exactly: the archive that is also a
   transmitter.
 - **The wake:** *"A chorus discovers it holds one more voice than it
-  counted — vaster than all the rest, and already learning the word for
+  counted, vaster than all the rest, and already learning the word for
   goodbye."* The Herald's native contradiction — build the Vault *and* the
   beacon — is this lineage's biography, not a tension it must resolve.
 - **Range & spread:** gentle-to-middling ocean cradles leave relatively wide
@@ -308,8 +308,8 @@ remember how, and the memory is in their dials.*
   **Depth** are the abyss itself; **Instrumental** is vent-fed life; a
   solitary, unitary cognition leans **One Mind**. What wakes is a cold,
   hungry coherence — the Engine.
-- **The wake:** *"It wakes where no light has ever reached, maps the
-  outside in a moment — and is not sure it cares."* The callback beat is
+- **The wake:** *"It wakes where no light has ever reached, maps the outside
+  in a moment, and is not sure it cares."* The callback beat is
   conceptual: the *outside* took the species millennia to imagine, and the
   mind draws it in an instant.
 - **Range & spread:** almost every origin is Brutal (sealed oceans, rogue
@@ -329,7 +329,7 @@ remember how, and the memory is in their dials.*
   Cloister.
 - **The wake:** the quietest reveal in the catalog —
   *"A reef that has been half-thinking for megayears finally finishes the
-  thought — and keeps it to itself."* Less a waking than an admission.
+  thought, and keeps it to itself."* Less a waking than an admission.
 - **Range & spread:** warm stable seas are gentle (Tier II–III), so its
   ranges are wider than the character implies — the Cloister lean is bodily,
   not worldly, and Act 1 has real room to work.
@@ -364,8 +364,8 @@ remember how, and the memory is in their dials.*
   that never expected the sky to answer leans quiet. It wakes as a
   civilization already practiced at becoming its own vault.
 - **The wake:** the callback beat is the catalog's classic —
-  *"It solves orbit, the species' lifelong ceiling, in an afternoon — and
-  then, the point made, largely declines to use it."*
+  *"It solves orbit, the species' lifelong ceiling, in an afternoon;
+  then, the point made, it largely declines to use it."*
 - **Range & spread:** high-gravity cradles run Tier II–IV; the crushing
   super-Earth (#40) narrows hard, while a metal-rich origin (#33) adds an
   Instrumental, forge-culture lean to the same frame.
@@ -380,7 +380,7 @@ remember how, and the memory is in their dials.*
   wakes convinced the sky is an address book: the Beacon.
 - **The wake:** the reveal opens on the band itself —
   *"A thin bright ring of a civilization, already turned outward toward the
-  neighbors it has watched forever — and rather hoping they watched back."*
+  neighbors it has watched forever, and rather hoping they watched back."*
 - **Range & spread:** terminator cradles are middling-to-harsh (Tier
   II–IV); a flare-star origin like Proxima (#3) pushes real Silence into the
   range and makes the Voice lean contestable.
@@ -446,7 +446,7 @@ One Mind ↔ Chorus for all four — Act 1 works the other dials.*
   landscape it will never leave (**Depth**). It is the natural Vault-builder
   — it *is* a vault that learned to think.
 - **The wake:** the least discontinuous pivot in the game —
-  *"The least discontinuous pivot there is — already planet-scale, already
+  *"The least discontinuous pivot there is: already planet-scale, already
   storing everything, it does not so much wake as notice."* Design should
   lean into how anticlimactic — and how eerie — that is.
 - **Range & spread:** ancient stable worlds are gentle in climate and
@@ -493,8 +493,8 @@ catalog — the personality-rigidity principle at full strength.*
   **Depth**) in tunnel-tight societies (**One Mind** lean). It dug *up* into
   the sky as an act of imagination; the mind that wakes still thinks of
   exposure as a wound.
-- **The wake:** *"Its first image is the whole sky at once — and its first
-  instinct is to close the aperture."* The species could only ever conceive
+- **The wake:** *"Its first image is the whole sky at once; its first instinct
+  is to close the aperture."* The species could only ever conceive
   that sky one bore-hole at a time.
 - **Range & spread:** hostile-surface origins are Brutal; a flare-shelter
   history (Proxima, #3) narrows Voice to a sliver.
@@ -548,8 +548,8 @@ catalog — the personality-rigidity principle at full strength.*
 
 #### S19 · High-temperature mineral life → The Monument
 - **Why it wakes here:** **Depth** and **Silence**, alien on every
-  remaining axis: *"It wakes in rock and melt, legible only at the edges —
-  a shape the sky may guess at but will never quite draw."* The Monument is
+  remaining axis: *"It wakes in rock and melt, legible only at the edges: a
+  shape the sky may guess at but will never quite draw."* The Monument is
   its *nearest legible region*, not a portrait — this entry inherits
   act1-lifeforms.md's speculation flag at full strength and should surface
   rarely.
@@ -564,8 +564,8 @@ catalog — the personality-rigidity principle at full strength.*
   and its dim, patient worlds set **Depth**. It wakes gentle, coherent, and
   inward — a Cloister with a gardener's hands.
 - **The wake:** the reveal's quiet irony —
-  *"A being made of captured starlight — and resolved to show the sky none
-  of its own."*
+  *"A being made of captured starlight, resolved to show the sky none of
+  its own."*
 - **Range & spread:** dim-lit cradles are middling-to-harsh; the Custodian
   lean is deep, the rest moderately open.
 - **What Act 1 decides:** whether custodianship stays contemplative or turns

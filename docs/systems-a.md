@@ -451,8 +451,8 @@ occupancies `hold-at-range` can fire on:
 
 | occupancy | headline | shift |
 | --- | --- | --- |
-| working | OCCUPIED — HOLDING AT RANGE | built 3, mundane 0.4, quiet 0.4 |
-| living-industrial | INHABITED — HOLDING AT RANGE | built 3, mundane 0.5, quiet 0.4 |
+| working | OCCUPIED, HOLDING AT RANGE | built 3, mundane 0.4, quiet 0.4 |
+| living-industrial | INHABITED, HOLDING AT RANGE | built 3, mundane 0.5, quiet 0.4 |
 
 A `banked` or `living-quiet` target always reads the close-look table
 regardless of `closeLook`: standing off changes nothing about what a

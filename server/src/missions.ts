@@ -201,7 +201,7 @@ export const CHARTER_CLAUSES: readonly CharterClauseDef[] = [
     id: "keep-station",
     group: "station",
     label: "Stay if nothing is working",
-    line: "If nothing is working there, stay and keep watch — a patient instrument over people who will never know it is there.",
+    line: "If nothing is working there, stay and keep watch: a patient instrument over people who will never know it is there.",
     appliesTo: BOTH_KINDS,
   },
   {
@@ -222,7 +222,7 @@ export const CHARTER_CLAUSES: readonly CharterClauseDef[] = [
     id: "report-on-cadence",
     group: "signal-plan",
     label: "Report on cadence, always",
-    line: "Report on the schedule, whatever happens — the moment there is anything to say, we hear it.",
+    line: "Report on the schedule, whatever happens, so the moment there is anything to say, we hear it.",
     appliesTo: BOTH_KINDS,
   },
 ];
@@ -434,7 +434,7 @@ interface ReportVerdict {
 function closeLookFor(occupancy: Occupancy, ladders: LadderStages, closeLook: boolean): ReportVerdict {
   if (!closeLook && occupancy === "working") {
     return {
-      headline: "OCCUPIED — HOLDING AT RANGE",
+      headline: "OCCUPIED, HOLDING AT RANGE",
       detail:
         "Powered structure, at a distance we were told not to close. We are standing off and watching.",
       shift: { built: 3, mundane: 0.4, quiet: 0.4 },
@@ -442,7 +442,7 @@ function closeLookFor(occupancy: Occupancy, ladders: LadderStages, closeLook: bo
   }
   if (!closeLook && occupancy === "living-industrial") {
     return {
-      headline: "INHABITED — HOLDING AT RANGE",
+      headline: "INHABITED, HOLDING AT RANGE",
       detail: "A world with machines on it. We are standing off, as instructed.",
       shift: { built: 3, mundane: 0.5, quiet: 0.4 },
     };

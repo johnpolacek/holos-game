@@ -1209,9 +1209,9 @@ export class Cohort extends Server<CohortEnv> {
     const dialLines = DIAL_AXES.map((axis) => {
       const setting = seed.dials[axis.id];
       const pair = `${axis.left.inWorld} · ${axis.right.inWorld}`;
-      if (setting.position === 0) return `${pair} — balanced`;
+      if (setting.position === 0) return `${pair}, balanced`;
       const pole = setting.position < 0 ? axis.left.inWorld : axis.right.inWorld;
-      return `${pair} — leans ${pole}`;
+      return `${pair}, leans ${pole}`;
     });
     return {
       archetype: seed.archetype,
@@ -1831,7 +1831,7 @@ export class Cohort extends Server<CohortEnv> {
     for (const event of due) {
       log.push({ ...event, firedAtYear: nowYear });
       console.log(
-        `[cohort ${this.name}] event fired at year ${nowYear.toFixed(3)}: ${event.kind} — ${event.note}`,
+        `[cohort ${this.name}] event fired at year ${nowYear.toFixed(3)}: ${event.kind}: ${event.note}`,
       );
 
       if (event.kind !== "wake" || event.token === undefined) continue;
@@ -1941,7 +1941,7 @@ export class Cohort extends Server<CohortEnv> {
   private devState(): Response {
     const nowYear = this.nowYear();
     if (this.galaxy === null || nowYear === null) {
-      return json({ error: "not seeded — POST /dev/seed first" }, 404);
+      return json({ error: "not seeded: POST /dev/seed first" }, 404);
     }
     return json({
       nowYear,
@@ -1956,7 +1956,7 @@ export class Cohort extends Server<CohortEnv> {
   private devObserve(url: URL): Response {
     const nowYear = this.nowYear();
     if (this.galaxy === null || nowYear === null) {
-      return json({ error: "not seeded — POST /dev/seed first" }, 404);
+      return json({ error: "not seeded: POST /dev/seed first" }, 404);
     }
     const observer = url.searchParams.get("observer");
     const target = url.searchParams.get("target");
@@ -1973,7 +1973,7 @@ export class Cohort extends Server<CohortEnv> {
   private devSky(url: URL): Response {
     const nowYear = this.nowYear();
     if (this.galaxy === null || nowYear === null) {
-      return json({ error: "not seeded — POST /dev/seed first" }, 404);
+      return json({ error: "not seeded: POST /dev/seed first" }, 404);
     }
     const observer = url.searchParams.get("observer");
     if (observer === null) return json({ error: "observer query param required" }, 400);
@@ -1986,7 +1986,7 @@ export class Cohort extends Server<CohortEnv> {
 
   private async devScheduleEvent(request: Request): Promise<Response> {
     const nowYear = this.nowYear();
-    if (nowYear === null) return json({ error: "not seeded — POST /dev/seed first" }, 404);
+    if (nowYear === null) return json({ error: "not seeded: POST /dev/seed first" }, 404);
     const body = await parseBody(request);
     const inYears = numberField(body, "inYears");
     if (inYears === undefined || inYears <= 0) {
@@ -2025,11 +2025,11 @@ export class Cohort extends Server<CohortEnv> {
    */
   private async devSkip(request: Request): Promise<Response> {
     const clock = this.clock;
-    if (clock === null) return json({ error: "not seeded — POST /dev/seed first" }, 404);
+    if (clock === null) return json({ error: "not seeded: POST /dev/seed first" }, 404);
     const body = await parseBody(request);
     const years = numberField(body, "years");
     if (years === undefined || !Number.isFinite(years) || years <= 0) {
-      return json({ error: "years (positive number) required — the clock only skips forward" }, 400);
+      return json({ error: "years (positive number) required: the clock only skips forward" }, 400);
     }
 
     const nowMs = Date.now();

@@ -79,7 +79,7 @@ async function text(str, { width, height, color, spacing = 0 }) {
 
 const wordmark = await text("HOLOS", { width: 560, height: 96, color: TITLE, spacing: 14000 });
 const tagline = await text(
-  "Raise a world to superintelligence — then reach across a galaxy built from real physics",
+  "Raise a world to superintelligence, then reach across a galaxy built from real physics",
   { width: 940, height: 60, color: MUTED, spacing: 1000 },
 );
 

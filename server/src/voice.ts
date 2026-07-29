@@ -290,7 +290,7 @@ export const VOICE_CARDS: ByArchetype<VoiceCard> = {
   beacon: {
     signature: "Warm, generous, unembarrassed",
     witSource: "Self-aware about its own brightness; jokes at its vanity, never at others",
-    dont: "Surprise — it's us again, being magnificent.",
+    dont: "Surprise, it's us again, being magnificent.",
   },
   tide: {
     signature: "Hungry, cheerful, unsentimental",
@@ -305,7 +305,7 @@ export const VOICE_CARDS: ByArchetype<VoiceCard> = {
   cloister: {
     signature: "Cold, precise, sealed",
     witSource: "Deadpan refusal; menace kept impeccably polite",
-    dont: "Do not disturb — genius at work.",
+    dont: "Do not disturb, genius at work.",
   },
   shepherd: {
     signature: "Protective, patient, understated",
@@ -314,7 +314,7 @@ export const VOICE_CARDS: ByArchetype<VoiceCard> = {
   },
   sowing: {
     signature: "Quiet, dispersed, wry",
-    witSource: "Comedy of absence — everywhere, announcing nothing",
+    witSource: "Comedy of absence: everywhere, announcing nothing",
     dont: "Ghosting the galaxy, one system at a time.",
   },
   herald: {
@@ -597,7 +597,7 @@ export const REPORT_REMARKS: ByArchetype<
       "Nothing came back worth having. We will buy a bigger look and try to take the answer by weight.",
     ],
     sent: [
-      "It has gone out. We send these the way we do everything — early, often, and hungry for what comes after.",
+      "It has gone out. We send these the way we do everything: early, often, and hungry for what comes after.",
       "Away, and already counted as spent. We do not sit with a thing after we have let go of it.",
     ],
     spoken: [
@@ -702,14 +702,14 @@ export const REPORT_REMARKS: ByArchetype<
       "Something far out has reported in. It is strange to hear from a part of ourselves; usually we simply assume.",
     ],
     unspoken: [
-      "It has gone quiet. So have we, in most places, most of the time — but we did not choose this one.",
+      "It has gone quiet. So have we, in most places, most of the time, but we did not choose this one.",
       "Nothing more from it. We are used to hearing nothing; we are less used to minding.",
     ],
   },
   herald: {
     settled: [
       "We know it, and so, in time, will everyone within range of us. Knowing alone has never been enough for us.",
-      "Settled — and already going out, aimed at ears that will not exist for a long while yet.",
+      "Settled, and already going out, aimed at ears that will not exist for a long while yet.",
       "The answer is ours for exactly as long as it takes us to transmit it, which is not very long.",
     ],
     refused: [
@@ -894,8 +894,9 @@ export function reasonWiden(sourceName: string, classLabel: string, distanceLy: 
 /**
  * A study with nothing under way while the allocation would cover it.
  * `questionLine` is questions.ts's own already-authored plain-words gloss,
- * passed through verbatim (the `recordSkyArrival` precedent) and set as an
- * aside because it is lowercase and unterminated in its own catalog entry.
+ * passed through verbatim (the `recordSkyArrival` precedent). It is lowercase
+ * and unterminated in its own catalog entry, so it is hung off `asks` rather
+ * than set as an aside: the aside would want dashes, and R-8 has none to give.
  */
 export function reasonQuestion(
   sourceName: string,
@@ -904,7 +905,7 @@ export function reasonQuestion(
   costCompute: number,
   integrationYears: number,
 ): PinnedLine {
-  return line`Nothing is under way on the ${F.source(sourceName)} study. The ${F.label(questionProseName)} — ${F.label(questionLine)} — costs ${F.compute(costCompute)} and answers in ${F.years(integrationYears)}.`;
+  return line`Nothing is under way on the ${F.source(sourceName)} study. The ${F.label(questionProseName)} asks ${F.label(questionLine)}; it costs ${F.compute(costCompute)} and answers in ${F.years(integrationYears)}.`;
 }
 
 /**

@@ -249,7 +249,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["tide"],
     ladder: "mixed",
     posture: "either",
-    wake: "It wakes like a parliament mid-session — a federation of arms that has become a federation of selves, and is already disagreeing.",
+    wake: "It wakes like a parliament mid-session: a federation of arms that has become a federation of selves, and is already disagreeing.",
   },
   {
     lineageId: "S2",
@@ -257,7 +257,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["beacon"],
     ladder: "mixed",
     posture: "bright",
-    wake: "A chorus discovers it holds one more voice than it counted — vaster than all the rest, and already learning the word for goodbye.",
+    wake: "A chorus discovers it holds one more voice than it counted, vaster than all the rest, and already learning the word for goodbye.",
   },
   {
     lineageId: "S3",
@@ -273,7 +273,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["cloister"],
     ladder: "integration",
     posture: "dark",
-    wake: "It wakes where no light has ever reached, maps the outside in a moment — and is not sure it cares.",
+    wake: "It wakes where no light has ever reached, maps the outside in a moment, and is not sure it cares.",
   },
   {
     lineageId: "S5",
@@ -281,7 +281,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["shepherd"],
     ladder: "integration",
     posture: "dark",
-    wake: "A reef that has been half-thinking for megayears finally finishes the thought — and keeps it to itself.",
+    wake: "A reef that has been half-thinking for megayears finally finishes the thought, and keeps it to itself.",
   },
   {
     lineageId: "S6",
@@ -297,7 +297,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["cloister"],
     ladder: "integration",
     posture: "dark",
-    wake: "It solves orbit, the species' lifelong ceiling, in an afternoon — and then, the point made, largely declines to use it.",
+    wake: "It solves orbit, the species' lifelong ceiling, in an afternoon; then, the point made, it largely declines to use it.",
   },
   {
     lineageId: "S8",
@@ -305,7 +305,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["herald"],
     ladder: "mixed",
     posture: "bright",
-    wake: "A thin bright ring of a civilization, already turned outward toward the neighbors it has watched forever — and rather hoping they watched back.",
+    wake: "A thin bright ring of a civilization, already turned outward toward the neighbors it has watched forever, and rather hoping they watched back.",
   },
   {
     lineageId: "S9",
@@ -337,7 +337,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["cloister"],
     ladder: "integration",
     posture: "dark",
-    wake: "The least discontinuous pivot there is — already planet-scale, already storing everything, it does not so much wake as notice.",
+    wake: "The least discontinuous pivot there is: already planet-scale, already storing everything, it does not so much wake as notice.",
   },
   {
     lineageId: "S13",
@@ -361,7 +361,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["monument"],
     ladder: "integration",
     posture: "dark",
-    wake: "Its first image is the whole sky at once — and its first instinct is to close the aperture.",
+    wake: "Its first image is the whole sky at once; its first instinct is to close the aperture.",
   },
   {
     lineageId: "S16",
@@ -393,7 +393,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["engine"],
     ladder: "integration",
     posture: "dark",
-    wake: "It wakes in rock and melt, legible only at the edges — a shape the sky may guess at but will never quite draw.",
+    wake: "It wakes in rock and melt, legible only at the edges: a shape the sky may guess at but will never quite draw.",
   },
   {
     lineageId: "S20",
@@ -401,7 +401,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["shepherd"],
     ladder: "integration",
     posture: "dark",
-    wake: "A being made of captured starlight — and resolved to show the sky none of its own.",
+    wake: "A being made of captured starlight, resolved to show the sky none of its own.",
   },
 ];
 
