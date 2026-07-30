@@ -188,13 +188,20 @@ unticked bullet in A3 and A4 was checked against the tree:
   with A2.3, and A2.5's counterparts answer but do not yet *act* on
   their own; what A5 still owes is AI civilizations changing posture and
   building over time, cohort seeding and the frontier, and push
-  notifications.
+  notifications. *(Update 2026-07: the behavior bullet shipped — see
+  below; what remains is cohort seeding + frontier and web push.)*
 
 **A4's travel half shipped (2026-07)** — seedships, relativistic
 ships, the forecast, full charters, derived landfall, the Ledger with
 drift and the conversation brake, and standing orders; systems-a.md
 §15 is the as-built record. **A5 is now the sole unbuilt Phase A
 stage**, and the fun gate remains A2's open exit condition.
+
+**A5's grown-behavior bullet shipped (2026-07)** — every AI
+civilization's light now moves on its archetype's own cadence and
+reacts to what its cone shows it, derived at read time and stored
+nowhere; systems-a.md §16 is the as-built record. A5 still owes
+cohort seeding + frontier and web push.
 
 **→ Previously next (now shipped in code): AV — the voice.** Decided
 2026-07: the shipped game has the machinery but no narrator — the
@@ -503,9 +510,12 @@ A3's was all of it.)
       fiction and AI content, working decision 2026-07 — a player taking
       no actions is already the quiet state); in-app first, web push
       after.
-- [ ] **AI civ behavior (grown)**: the archetype spectrum acting over time
-      — postures shifting, construction shadows, occasional directed
-      beams — rule-based, hidden by light-lag.
+- [x] **AI civ behavior (grown)** *(shipped 2026-07)*: the archetype
+      spectrum acting over time — cadence shapes per archetype, reactive
+      kindles/flinches/skips/hastens, the young-civ waking, and the
+      congress's unprompted opener — derived at read time as a pure
+      function of the seeds, the act log and the voyage record, stored
+      nowhere, hidden by light-lag. As-built record: systems-a.md §16.
 - [ ] **Cohort seeding + frontier (thin)**: new players seed outward;
       regions reserved for future Phase B incubators (protected
       incubation, act3-design.md § Topology).

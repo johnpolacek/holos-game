@@ -1217,3 +1217,94 @@ saveMissionState has exactly three call sites, grepped.
 `abandoned` (a landfall Assay), handoff of an independent child to a
 joining player (Phase B: a token bound to civ-v-*), dilation as a
 quantity, the sail's battery stopping.
+
+## §16 Grown behavior (A5, as built)
+
+The archetype spectrum acting over time. An AI civilization's emission
+history is no longer the curve its seed was generated with: it is a
+pure function of (its seed, the cohort seed key, the stored act log,
+the stored voyage record, and every other civilization's derivable
+light), evaluated at read time inside the cohort's derivedFold and
+stored nowhere. The third application of the derivation discipline
+(AI speech in §13, children in §15, now light itself), and the
+cheapest: EmissionEpoch[] was already a future-inclusive authored
+curve, and A5 generalizes A4's foundingEmissionHistory move from
+colonies to everyone.
+
+**Behavior writes light, never character.** emissionHistory is the
+only field the fold rewrites, plus the derived-only behaviorGrown
+flag (saveGalaxyCivs throws on it, the CHILD_ID_PREFIX assertion's
+sibling). Dials, archetype, posture, charter, chronicle, ladders and
+stocks are untouched, so maskTierAt, charterPosture, drift and the
+contest read the same facts as before. The authored curve is layered
+on additively, never edited; nothing is dated before
+max(0, ascensionYear), the authored dark turn, or the end of the
+waking, so the deep past is byte-identical by construction.
+
+**The rule table** (behavior.ts BEHAVIOR_RULES, one row per
+archetype, each with a `why` column): five cadence shapes: climb
+(tide, beacon), pulse (engine, congress, herald), fade (monument,
+cloister, shepherd), train (sowing), shed (phoenix), periods 900 to
+3600 years. At five real minutes per game year a source produces one
+visible transition every 2.5 to 8 real days, so something in an
+8-to-16-civ sky moves every day or two. The engine's ceiling (0.115)
+sits under MADE_HEAT_FLOOR and the cloister's floor (0.012) under
+DETECTION_FLOOR: the one civilization that can vanish outright. A
+young civilization gets the sixth shape: the waking, a flare at its
+ascensionYear (3 to 35 real hours after cohort creation), after
+which its archetype's cadence begins.
+
+**Reactions**: four triggers, each an arrival through the reactor's
+own cone (new-source, warm, quiet, beam); four responses: kindle
+(beacon, tide, herald), flinch (monument, cloister, shepherd,
+sowing), skip (engine, congress: the missed beat, delivered by
+deleting a scheduled epoch), hasten (phoenix pulls its dark phase
+forward). A player's own broadcast is the warm trigger for free, so
+their loud act makes a nearby quiet source visibly dim about two
+real days later: the one loop nothing else in the game closes. The
+shepherd reacts only inside its 12 ly ward radius.
+
+**The fold** (galaxyWithBehavior, exactly one call site, in
+derivedFold after the landfall fold, so a drifted colony grows into
+the behavior of the character it became): cadence laid down in
+closed form (cost per event, never per year), then a global event
+queue drained in (arrivalYear, reactorId, triggerKey) order with
+seeded lag in [24, 180] years. Well-founded because every causal
+step advances time by at least 24 years; terminated by
+REACTION_CAP 8 with MIN_REACTION_SPACING 600 y; capped at
+CADENCE_CAP 48, which is the arc, not a loop: five real months to a
+year and a half of sky, then a settled posture, answered by A5's
+cohort-seeding bullet. Memoized behind one new memo term,
+era = floor(nowYear / 240 y), horizon two eras out, so a sky send
+costs what it cost before.
+
+**BEHAVIOR CAUSALITY** (the applyBroadcast safety property, one
+noun over): every behavior epoch is dated at or after its newest
+input, every new input is dated now, so no derivation ever inserts,
+moves or removes an epoch at or before nowYear, and already-served
+light is byte-identical forever. Two structural guards sit above
+the table because tuning cannot supply them: the invisibility guard
+(a source under DETECTION_FLOOR is exactly what its seed says, so a
+found-dark colony stays hidden) and the churn guard (no behavior
+epoch may cross MADE_HEAT_FLOOR within 2400 years of the last
+crossing, so the overtaken exit fires at most about once a real
+week per source). Players are immune by reference: a player
+civilization is returned as the identical object.
+
+**Unprompted openers** became an archetype-keyed table in
+traffic.ts: beacon, tide and herald keep firstBrightYear unchanged;
+the congress newly opens on firstWarmYear, the player's first
+upward MADE_HEAT_FLOOR crossing at or after cohort year 0; the
+other six never open. At most one candidate per pair, as before.
+
+**Zero new wire fields, zero new persistence keys, zero banked
+lines.** Every payoff lands on a shipped surface: the source card
+and echo shell, the evidence trail, the annal, belief shifts and
+the crosses tripwire, the overtaken exit, the warm-movement
+standing order, the leakage-stops tripwire, the Ledger's drift
+band, and a thread that opens itself.
+
+**Deferred, seams named**: a lightHistory wire cap (needs
+EvidenceEntry.id off the array index first), a line of chrome for
+the vanished cloister's closed study, retunes as diffs to
+BEHAVIOR_RULES only, and the successor problem (cohort seeding).
