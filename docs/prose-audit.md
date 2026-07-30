@@ -453,9 +453,27 @@ scrapes sources rather than importing them for the same reason `audit:voice`
 does: `cohort.ts` is the only module that may pull the catalog chain into a
 process.
 
-**They are clean today: 413 strings, 78 rules, zero hits.** That is the only
-honest time to add an audit, and it is also the point. Verified against a
-planted coinage (`GSV` into a dial gloss) to confirm it fails, then restored.
+**They are clean: 658 strings across 31 modules, 78 rules, zero hits.** That is
+the only honest time to add an audit, and it is also the point. Verified twice
+against planted coinages to confirm it fails, then restored.
+
+**It fails closed**, and it had to. The first version was an allowlist of ten
+catalog files, and it was wrong within one merge: A4 and A5 landed `voyages.ts`
+and `orders.ts` while this audit was being written, both carrying real
+player-facing prose (charter clauses, landfall headlines, the warm movement
+order), and neither was on the list. A hand-maintained file list is the same
+drift this audit exists to catch, one level up.
+
+So it now scans every module in `server/src` except an explicit four-name
+`NOT_A_SURFACE` set: `bannedterms.ts` (it *is* the ban list, the
+`audit-dashes` precedent), `voice.ts` (`audit:voice` runs the whole gate over
+it, which is strictly more), and `contest.ts` plus `behavior.ts`, whose `why`
+fields are documented in their own modules as design notes that never reach a
+surface. R-37's CI grep makes the same choice for the same stated reason: it
+"fails CLOSED when a new module is added".
+
+The second control confirmed the fix rather than the original: a coinage
+planted in `voyages.ts` — the module the allowlist had missed — is caught.
 
 **Rule:** §6. Wired into `package.json` and CI after `build`.
 
@@ -569,3 +587,34 @@ them is visible one line at a time, which is why the mechanical audits could not
 see any of them and why the gate is the wrong instrument for most. The prompt
 and the audit script are the two places this kind of finding can actually be
 made to stick.
+
+---
+
+## Not audited: A4 and A5
+
+The A4 travel half and the A5 slices (grown behavior, web push, seeding) landed
+on `main` while this audit was being written. Their prose has **not** been read
+against prose-style.md. `audit:catalog` covers them for §6 from this commit
+forward, and `audit:dashes` always did, but neither is a judgement pass.
+
+The new surfaces, for whoever runs `/prose-audit` next:
+
+- `voyages.ts` — ship-class descriptions, charter clause labels and bodies,
+  the landfall headlines (`ARRIVED, THE WORLD WAS TAKEN`,
+  `ROOTED ON A LIVING WORLD`, and their siblings).
+- `orders.ts` — standing-order labels and bodies.
+- `lineage.ts` — one string.
+- The additions to `voice.ts` (about 155 lines), `civseed.ts`, `dials.ts`,
+  `studies.ts`, `tend.ts` and `report.ts`.
+- Client: the `studyboard.ts` additions (about 2,300 lines) and `push.ts`.
+
+`behavior.ts` needs no pass: its strings are `why` design notes, and it is in
+`audit:catalog`'s `NOT_A_SURFACE` set for that reason.
+
+**One thing seen in passing and not chased.** `orders.ts`'s warm movement order
+reads "If anything inside **twenty light-years** starts running hot…". A
+spelled-out numeral in prose satisfies R-29's digit check while doing the thing
+R-29 exists to prevent: it is a fact that can drift from the constant it
+describes, and nothing would catch it if the radius were ever retuned. Worth a
+look when that slice gets its pass; it may well be pinned correctly somewhere I
+did not read.

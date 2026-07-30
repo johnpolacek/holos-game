@@ -18,11 +18,11 @@
 //                 the whole chain in behind them.
 //   audit:names   runs a hand-maintained SUBSET of §6 over the name pools.
 //
-// So the ~380 player-facing strings in cradles.ts, lineages.ts, dials.ts,
-// studies.ts, missions.ts, projects.ts, questions.ts, civseed.ts and minds.ts
-// met §6 nowhere in CI. They are clean today (this audit was written against a
-// green run, which is the only honest time to add one); nothing would have
-// said so on the day they stopped being.
+// So every player-facing string outside voice.ts — the cradles, the lineages,
+// the dials, the studies, the missions, the projects, the questions, the
+// charters a colony carries — met §6 nowhere in CI. They are clean today (this
+// audit was written against a green run, which is the only honest time to add
+// one); nothing would have said so on the day they stopped being.
 //
 // The rule table is IMPORTED from the compiled output, exactly as audit:voice
 // imports the gate, so this cannot drift from the §6 that ships. Scraping the
@@ -30,7 +30,7 @@
 // for the same reason: cohort.ts is the only module that may pull the catalog
 // chain into a process.
 
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -46,29 +46,33 @@ try {
 }
 
 /**
- * The catalogs that carry player-facing prose. voice.ts is absent because
- * audit:voice already runs the whole gate over it, which is strictly more than
- * this check does.
+ * FAILS CLOSED. Every module in server/src is scanned except the four named
+ * below, so a module added next slice is covered by default rather than by
+ * somebody remembering to list it.
+ *
+ * This started as an allowlist of ten catalogs and was wrong within one merge:
+ * the A4/A5 slices landed voyages.ts and orders.ts, both carrying real
+ * player-facing prose (charter clauses, landfall headlines), and neither was on
+ * the list. A hand-maintained file list is the same drift this audit exists to
+ * catch, one level up. R-37's CI grep makes the same choice for the same
+ * reason, and its comment says so: it "fails CLOSED when a new module is added".
+ *
+ * Over-inclusion is cheap here. A module with no prose contributes no strings,
+ * and §6 bans the CONCEPT, so a coinage sitting in an internal failure reason
+ * is still worth being told about.
  */
-const CATALOGS = [
-  "cradles",
-  "lineages",
-  "dials",
-  "civseed",
-  "minds",
-  "studies",
-  "missions",
-  "projects",
-  "questions",
-  "signalparts",
-];
-
-// contest.ts is absent from that list on purpose: its `why` fields are
-// documented in the module as design notes that never reach a surface and
-// never cross the wire, which is the audit-dashes NOT_A_SURFACE precedent.
-// Nothing WITHIN a listed module is excluded. Over-inclusion is safe for a ban
-// check and mildly useful: §6 bans the CONCEPT, so a coinage sitting in an
-// internal failure reason is still worth being told about.
+const NOT_A_SURFACE = new Set([
+  // The ban list itself. Every rule in it would match itself.
+  // (audit-dashes.mjs excludes it for exactly this reason.)
+  "bannedterms.ts",
+  // audit:voice runs the WHOLE GATE over this file, which is strictly more
+  // than the §6 subset this audit applies.
+  "voice.ts",
+  // `why` fields: both modules document them as design notes kept beside the
+  // numbers they explain, never a surface and never across the wire.
+  "contest.ts",
+  "behavior.ts",
+]);
 
 const compiled = rules.map((r) => ({ ...r, re: new RegExp(r.source, r.flags) }));
 
@@ -77,11 +81,15 @@ function stripComments(src) {
   return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 }
 
+const modules = readdirSync(join(root, "server/src"))
+  .filter((f) => f.endsWith(".ts") && !NOT_A_SURFACE.has(f))
+  .sort();
+
 const failures = [];
 let scanned = 0;
 
-for (const name of CATALOGS) {
-  const file = `server/src/${name}.ts`;
+for (const name of modules) {
+  const file = `server/src/${name}`;
   const src = stripComments(readFileSync(join(root, file), "utf8"));
   const re = /"((?:[^"\\]|\\.)*)"/g;
   let m;
@@ -107,6 +115,7 @@ if (scanned === 0) {
 }
 
 console.log(`catalog strings scanned  ${scanned}`);
+console.log(`modules scanned          ${modules.length}`);
 console.log(`§6 rules applied         ${compiled.length}`);
 
 if (failures.length > 0) {

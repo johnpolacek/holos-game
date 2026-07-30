@@ -73,11 +73,13 @@ so they run after `build`.
 
 The two §6 audits divide the banks between them and the split is worth
 knowing: `audit:voice` runs the *whole gate* over `voice.ts` and nothing else
-(its header says why), while `audit:catalog` runs the *§6 rule table* over the
-catalogs it cannot reach — `cradles`, `lineages`, `dials`, `civseed`, `minds`,
-`studies`, `missions`, `projects`, `questions`, `signalparts`. `audit:banned`
-is neither: it checks §6 and `bannedterms.ts` are in sync, and never reads a
-bank at all.
+(its header says why), while `audit:catalog` runs the *§6 rule table* over
+everything else in `server/src`. It **fails closed** — every module is scanned
+except an explicit four-name `NOT_A_SURFACE` set, so a module added next slice
+is covered without anyone remembering to list it. Adding a module that carries
+`why`-style design notes rather than prose means adding it to that set, with
+the reason. `audit:banned` is neither of these: it checks §6 and
+`bannedterms.ts` are in sync, and never reads a bank at all.
 
 Those audits are mechanical: they catch a dash, a coinage, a numeral in a
 remark. They cannot catch prose that is merely *flat* — the rule-of-three
