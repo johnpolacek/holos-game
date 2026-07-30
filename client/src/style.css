@@ -193,7 +193,9 @@ body {
    Short label lines and an enclosed verb; none of them is prose. */
 .study-thread-name,
 .study-thread-state,
-.thread-send,
+/* A2.6: a part block's one reading line, said in the catalog's own words. A
+   label, not a sentence — the gloss under it is the sentence. */
+.part-title,
 /* The source card's header. */
 .source-card-name,
 .source-card-belief,
@@ -246,7 +248,14 @@ body {
    silence line, and the line that stands in for a composer. Sentences. */
 .thread-payload,
 .thread-state-line,
-.thread-closed-line {
+.thread-closed-line,
+/* A2.6: a part block's gloss and its catalog prose, and the composer's two
+   running lines — the carrier note and a picker row's title, which is often a
+   whole charter sentence. Sentences, every one. */
+.part-gloss,
+.part-prose,
+.composer-empty,
+.composer-row-title {
   text-wrap: pretty;
 }
 
@@ -843,11 +852,11 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  /* A2.5: the sheet is pinned to the bottom of the LAYOUT viewport, which an
-     on-screen keyboard does not shrink. While the thread composer holds
-     focus the board sets this variable to however much of the sheet the
-     keyboard is covering; it is 0px every other moment of the game. */
-  bottom: var(--holos-keyboard-inset, 0px);
+  /* A2.6: plain bottom again. A2.5 lifted the sheet by however much of it an
+     on-screen keyboard was covering, because the thread composer was a text
+     field; the composed-signal composer is selectors only and THE KEYBOARD
+     NEVER OPENS on this surface, so there is nothing left to dodge. */
+  bottom: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -2233,6 +2242,13 @@ body {
   min-width: 0;
 }
 
+/* A2.6: a thread gone dark. It carries no state and no count — the wire sends
+   a star id and nothing else — so the row reads a tier down from a live one
+   and offers only the undo. */
+.study-thread-row--muted .study-thread-name {
+  color: var(--holos-ink-faint);
+}
+
 .study-thread-state {
   flex-shrink: 0;
   color: var(--holos-ink-faint);
@@ -2297,13 +2313,25 @@ body {
 
 /* The payload. UNTRUSTED PROSE, set through textContent only — so it is
    sized and broken like prose and given a hard wrap, because 280 characters
-   with no space in them must not push the sheet sideways. */
+   with no space in them must not push the sheet sideways.
+   A2.6: quoted, in CSS rather than in the string, because the string is not
+   ours to punctuate. What arrives is what was said, and the marks around it
+   are the page saying so. */
 .thread-payload {
   margin-top: 0.35rem;
   font-size: var(--holos-text-sm);
   line-height: 1.45;
   color: var(--holos-amber);
   overflow-wrap: anywhere;
+  quotes: "\201C" "\201D";
+}
+
+.thread-payload::before {
+  content: open-quote;
+}
+
+.thread-payload::after {
+  content: close-quote;
 }
 
 /* The silence. Quiet ink, a little air, no rule under it: there is nothing
@@ -2315,8 +2343,168 @@ body {
   color: var(--holos-ink-faint);
 }
 
-/* The composer. Sits at the foot of the column, in the cyan the sent rail
-   takes — it is the next thing of yours to leave. */
+/* A2.6: the tone, as one more row of instrument readout. It sits between the
+   stamp and what was said because that is what it is — a property of the
+   beam, not a feeling about it. `plain` renders no row at all, which is why
+   there is no "plain" variant here to write. */
+.thread-tone {
+  color: var(--holos-amber);
+  line-height: 1.5;
+}
+
+/* Going dark to one thread. Deliberately the quietest affordance on the
+   screen: it notifies nobody, it changes nothing on the other side, and it
+   is undone from the hub with one tap. */
+.thread-mute-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 0 0.3rem;
+}
+
+.thread-mute {
+  background: none;
+  border: none;
+  padding: 0.4rem 0.2rem;
+  min-height: 2.2rem;
+  color: var(--holos-ink-faint);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* THE COMPLIANCE RAIL. A state of the thread rather than something said in
+   it, so it stands above the conversation inside a hairline box, in gold —
+   the panel's own structural ink, not the amber of somebody's light. */
+.thread-accord {
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 2px;
+  padding: 0.5rem 0.65rem;
+  margin: 0.2rem 0 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.thread-accord-head {
+  color: var(--holos-ink);
+}
+
+.thread-accord-line {
+  color: var(--holos-ink-faint);
+}
+
+/* ── The part blocks (A2.6) ──────────────────────────────────────────────
+ * An instrument block, never a message bubble: a pinned label, the subject as
+ * this reader's own instruments name it, and the readings under it. Amber and
+ * gold like the rest of the sheet — a part is a record of light, including
+ * one of your own that has not left yet. */
+.part-block {
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 2px;
+  padding: 0.5rem 0.65rem;
+  margin-top: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.part-head {
+  color: var(--holos-gold);
+}
+
+/* Subject on the left, the one reading that belongs beside it on the right.
+   Wraps rather than truncating: a designation plus a player's own name for a
+   source is longer than a phone, and neither half may be cut. */
+.part-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.part-desig {
+  color: var(--holos-ink);
+  min-width: 0;
+}
+
+.part-share {
+  color: var(--holos-amber);
+  flex-shrink: 0;
+}
+
+/* What the reading SAYS, in the catalog's own words — the one line on a block
+   set as reading type rather than as chrome. */
+.part-title {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-amber);
+  overflow-wrap: anywhere;
+}
+
+.part-gloss {
+  font-size: var(--holos-text-xs);
+  line-height: 1.35;
+  color: var(--holos-ink-faint);
+}
+
+/* Catalog prose that travelled whole: a charter, a chronicle line, a dial's
+   reading. Set like the observatory's own annotation, one tier quieter. */
+.part-prose {
+  font-size: var(--holos-text-sm);
+  line-height: 1.45;
+  color: var(--holos-ink-dim);
+  overflow-wrap: anywhere;
+}
+
+.part-line {
+  color: var(--holos-ink-faint);
+  line-height: 1.5;
+}
+
+/* Provenance and the notes that qualify a reading rather than being one. */
+.part-line--faint {
+  color: var(--holos-gold-dim);
+}
+
+.part-track {
+  margin: 0.15rem 0 0.1rem;
+}
+
+/* THE LIGHT RECORD. An inline SVG stretched to the block's width, so it
+   redraws at any size with no resize pass; the strokes opt out of that
+   stretch so a hairline stays a hairline however wide the phone is. */
+.part-spark {
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin: 0.2rem 0 0.1rem;
+  overflow: visible;
+}
+
+.part-spark-area {
+  fill: rgba(240, 172, 102, 0.16);
+}
+
+.part-spark-line {
+  fill: none;
+  stroke: var(--holos-amber);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The newest sample's edge — the source card's NOW hairline, at block scale.
+   Nothing is ever drawn to its right, because there is nothing there. */
+.part-spark-edge {
+  stroke: rgba(239, 233, 219, 0.55);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ── The composer (A2.6) ─────────────────────────────────────────────────
+ * The foot of the thread is one pill; everything else is an overlay on the
+ * sheet. Cyan throughout, the sent rail's exception: what is being assembled
+ * here is yours and is the next thing to leave. */
 .thread-composer {
   display: flex;
   flex-direction: column;
@@ -2324,66 +2512,21 @@ body {
   padding: 0.8rem 0 0.3rem;
 }
 
-.thread-composer-input {
-  width: 100%;
-  resize: none;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--holos-gold-dim);
-  color: var(--holos-ink);
-  font-family: var(--holos-font-body);
-  /* --holos-text-md deliberately, not one of the smaller steps: below 16px
-     a phone zooms the whole page on focus, and the sheet never comes back
-     square. */
-  font-size: var(--holos-text-md);
-  line-height: 1.4;
-  padding: 0.4rem 0.1rem;
-}
-
-.thread-composer-input:focus {
-  outline: none;
-  border-bottom-color: var(--holos-cyan);
-}
-
-.thread-composer-input::placeholder {
-  color: var(--holos-ink-faint);
-}
-
-.thread-composer-foot {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.7rem;
-}
-
-/* Only present in the last stretch, where the room left is worth watching. */
-.thread-composer-remaining {
-  color: var(--holos-ink-faint);
-}
-
-.thread-composer-remaining[hidden] {
-  display: none;
-}
-
-.thread-send {
+.thread-compose-pill {
+  align-self: flex-end;
   background: none;
   border: 1px solid var(--holos-cyan-dim);
   border-radius: 999px;
-  padding: 0.45rem 1.1rem;
+  padding: 0.55rem 1.3rem;
+  min-height: 2.75rem;
   color: var(--holos-cyan);
   font-family: var(--holos-font-body);
   cursor: pointer;
 }
 
-.thread-send:disabled {
-  border-color: rgba(211, 185, 130, 0.25);
-  color: var(--holos-ink-faint);
-  cursor: default;
-}
-
-/* No composer: they spoke first and answering costs the ceremony, or the
-   thread is simply full. One line, and at most one way onward. */
+/* No composer: they spoke first and answering costs the ceremony, the thread
+   is simply full, or the last beam is still being read. One line, and at most
+   one way onward. */
 .thread-closed {
   padding: 0.8rem 0 0.3rem;
 }
@@ -2392,6 +2535,241 @@ body {
   font-size: var(--holos-text-sm);
   line-height: 1.45;
   color: var(--holos-ink-dim);
+}
+
+/* The composer sheet: a child of the board's own sheet, covering most of it.
+   Two thirds preview, one third controls — the preview IS the composer, and
+   it gets the room to prove it. */
+.composer-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 12%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(7, 6, 10, 0.94);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid var(--holos-cyan-dim);
+  padding: 0 1.1rem max(1rem, env(safe-area-inset-bottom));
+}
+
+.composer-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  min-height: 2.75rem;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--holos-gold-dim);
+}
+
+.composer-bar-title {
+  color: var(--holos-ink-faint);
+  min-width: 0;
+}
+
+.composer-bar-btn {
+  background: none;
+  border: none;
+  padding: 0.5rem 0.2rem;
+  min-height: 2.75rem;
+  color: var(--holos-cyan);
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--holos-text-xs);
+  cursor: pointer;
+}
+
+/* The signal so far, in receive rendering. Scrolls on its own so the controls
+   below it never leave the thumb's reach. */
+.composer-preview {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.5rem 0 0.7rem;
+}
+
+.composer-empty {
+  font-size: var(--holos-text-sm);
+  line-height: 1.45;
+  color: var(--holos-ink-faint);
+  padding: 0.6rem 0;
+}
+
+/* One filled slot. `pan-y` keeps the column scrolling under a vertical thumb,
+   so only a sideways drag reaches the swipe-to-remove handler. */
+.composer-slot {
+  position: relative;
+  touch-action: pan-y;
+}
+
+.composer-slot-remove {
+  display: block;
+  margin: 0.25rem 0 0 auto;
+  background: none;
+  border: none;
+  padding: 0.4rem 0.2rem;
+  min-height: 2.2rem;
+  color: var(--holos-ink-faint);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.composer-controls {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.5rem 0 0;
+  border-top: 1px solid var(--holos-gold-dim);
+}
+
+/* The four slots, filling left to right. Not a control and not a label — a
+   count at a glance, drawn as the beam it stands for: gold hairlines that
+   take the cyan as they fill. */
+.composer-slots {
+  display: flex;
+  flex-direction: row;
+  gap: 0.35rem;
+  padding: 0.1rem 0 0.15rem;
+}
+
+.composer-slot-mark {
+  flex: 1 1 0;
+  height: 2px;
+  background: var(--holos-gold-dim);
+}
+
+.composer-slot-mark--on {
+  background: var(--holos-cyan);
+}
+
+/* The chip rows scroll sideways rather than wrapping to three lines: seven
+   sources and five tones have to stay one thumb-sweep apart. */
+.composer-chips {
+  display: flex;
+  flex-direction: row;
+  gap: 0.35rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 0.1rem;
+}
+
+.composer-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.composer-chips--inline {
+  padding: 0.35rem 0 0.5rem;
+}
+
+/* A chip is a control, so it stays at the reading floor (--holos-text-xs, via
+   .holos-caps) and never at xxs: xxs is for enclosed classifiers a thumb
+   recognises, and these are things a thumb presses. */
+.composer-chip {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.5rem 0.8rem;
+  min-height: 2.4rem;
+  color: var(--holos-ink-dim);
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.composer-chip--on {
+  border-color: var(--holos-cyan-dim);
+  color: var(--holos-cyan);
+}
+
+.composer-chip:disabled {
+  border-color: rgba(211, 185, 130, 0.2);
+  color: var(--holos-ink-faint);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.composer-send-row {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.1rem;
+}
+
+/* SEND STATES THE PHYSICS: the verb, and under it the only thing about this
+   beam anybody will ever be able to check. */
+.composer-send {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  background: none;
+  border: 1px solid var(--holos-cyan-dim);
+  border-radius: 999px;
+  padding: 0.5rem 1.3rem;
+  min-height: 2.75rem;
+  font-family: var(--holos-font-body);
+  cursor: pointer;
+}
+
+.composer-send:disabled {
+  border-color: rgba(211, 185, 130, 0.25);
+  cursor: default;
+}
+
+.composer-send-verb {
+  color: var(--holos-cyan);
+}
+
+.composer-send-physics {
+  color: var(--holos-ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.composer-send:disabled .composer-send-verb {
+  color: var(--holos-ink-faint);
+}
+
+/* A picker: the player's own eligible items, full width, one tap each. */
+.composer-picker {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.3rem 0 0.8rem;
+}
+
+.composer-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  width: 100%;
+  min-height: 3rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.55rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.composer-row-title {
+  font-size: var(--holos-text-sm);
+  line-height: 1.35;
+  color: var(--holos-ink);
+  overflow-wrap: anywhere;
+}
+
+.composer-row-sub {
+  color: var(--holos-ink-faint);
 }
 
 /* ── Source card — the mission (dispatch) affordance row ─────────────── */
@@ -2443,6 +2821,31 @@ body {
   color: var(--holos-cyan-dim);
   cursor: default;
   font-variant-numeric: tabular-nums;
+}
+
+/* A2.6: the mutual quiet's rail. Above the three verbs, because it is a state
+   of the relationship rather than something to do about it — and gold rather
+   than cyan, because the second line is a reading of THEIR light. Hidden
+   entirely when no understanding stands, which is the common case. */
+.source-card-accord {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.45rem 0 0.15rem;
+  border-top: 1px solid var(--holos-gold-dim);
+}
+
+.source-card-accord[hidden] {
+  display: none;
+}
+
+.source-card-accord-line {
+  color: var(--holos-ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.source-card-accord-line--quiet {
+  color: var(--holos-ink-faint);
 }
 
 /* ── Ceremony carousel ───────────────────────────────────────────────── */

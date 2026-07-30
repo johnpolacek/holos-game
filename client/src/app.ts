@@ -26,6 +26,7 @@ import type {
   ReportPayload,
   Proposal,
   ContactWire,
+  AccordRail,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { StudyBoard } from "./studyboard";
@@ -187,7 +188,11 @@ export class App {
         // safe even outside the sky screen. The observatory needs it to
         // release a begin that will never be confirmed by a `sky`.
         this.sourceCard?.handleServerMessage(message);
-        this.studyBoard?.handleServerError();
+        // A2.6: the board takes the CODE now, for one branch only — a
+        // `contact-unavailable` on a send is the turnaround floor, and the
+        // composer has a line to say about it. Every other code still
+        // releases the same silent way it always has.
+        this.studyBoard?.handleServerError(message.code);
         // A2.4: only reacts while a commit of its own is in flight, and then
         // it reverses the optimistic bloom and states the reason.
         this.contactCeremony?.handleServerError(message.message);
@@ -235,6 +240,16 @@ export class App {
     );
     if (act === undefined || act.arrivesYear === null) return null;
     return { arrivesYear: act.arrivesYear };
+  }
+
+  /** A2.6: the mutual quiet standing with this source, for the card's rail.
+   *  Straight off the thread summary the sky already carries — the card
+   *  renders it and derives nothing (findContactState's contract). Null when
+   *  there is no thread there, or no understanding in it. */
+  private findAccord(starId: string): AccordRail | null {
+    const thread = this.contact?.threads.find((t) => t.starId === starId);
+    if (thread === undefined || thread.accord.state === "none") return null;
+    return thread.accord;
   }
 
   /** The one live mission on `starId`, if any — for the source card's
@@ -331,6 +346,7 @@ export class App {
           this.sourceCard?.setStudyStatus(this.findStudy(openId)?.status ?? null);
           this.sourceCard?.setMissionState(this.findMissionState(openId));
           this.sourceCard?.setContactState(this.findContactState(openId));
+          this.sourceCard?.setAccord(this.findAccord(openId));
         }
         // else: the Model's setSky above already fired onSelectSource(null)
         // for a selection that no longer corresponds to a live source.
@@ -394,6 +410,7 @@ export class App {
           sourceCard.setStudyStatus(this.findStudy(source.starId)?.status ?? null);
           sourceCard.setMissionState(this.findMissionState(source.starId));
           sourceCard.setContactState(this.findContactState(source.starId));
+          sourceCard.setAccord(this.findAccord(source.starId));
           sourceCard.setExplainer(this.takeSourceCardVoice());
         }
       });
@@ -406,6 +423,7 @@ export class App {
         sourceCard.setStudyStatus(this.findStudy(starId)?.status ?? null);
         sourceCard.setMissionState(this.findMissionState(starId));
         sourceCard.setContactState(this.findContactState(starId));
+        sourceCard.setAccord(this.findAccord(starId));
         sourceCard.setExplainer(this.takeSourceCardVoice());
       });
       sourceCard.onStudyAction((starId) => {

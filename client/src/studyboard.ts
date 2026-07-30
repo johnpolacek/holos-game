@@ -61,22 +61,46 @@ import type {
   ThreadState,
   SelfView,
   Star,
+  CohortErrorCode,
+  EmissionEpoch,
+  // ── A2.6: the composed-signal grammar ──
+  // Every one of these is a TYPE. `TONE_STAMP` is deliberately not among the
+  // protocol module's re-exports: the stamp strings are chrome, and chrome is
+  // the client's (the TRIPWIRE_LABEL precedent), so they are authored below.
+  AccordMove,
+  ArchivePart,
+  ArchiveSample,
+  ArchiveWindow,
+  CulturePart,
+  FindingDepth,
+  FindingPart,
+  PartKind,
+  PartRef,
+  RequestPart,
+  RequestWant,
+  SightingPart,
+  SignalPart,
+  SignalTone,
+  VerdictPart,
+  VerdictStance,
 } from "@holos/protocol";
-// A2.5: the two runtime pieces of the signal contract. `sanitizeSignalText`
-// is PURE and is the server's own door, imported rather than re-implemented
-// so a retune there retunes the composer with it. The client pre-check is
-// never authoritative: the server runs the same function again and owns the
-// refusal (`signal-rejected`).
-import { MAX_SIGNAL_LEN, sanitizeSignalText } from "@holos/protocol";
+// The dial vocabulary: the ONE runtime value the protocol module exports for
+// rendering (protocol.ts's own comment says so). The composer needs it to
+// name which dial a `culture{dial}` selector points at, and dials.ts imports
+// nothing and carries no truth.
+import { DIAL_AXES } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { QUESTION_METHOD } from "./questionmethod";
 import { CLASS_LABEL } from "./sourcecard";
+import { accordFlightLine, accordHeadline, accordLightLine } from "./accord";
 import {
   formatAbsoluteYear,
   formatClockPair,
   formatCountdown,
   formatGameYears,
+  formatRealDuration,
   nowYear,
+  realMsForYears,
 } from "./clock";
 // Inlined at build time rather than fetched: one more request for a 400-byte
 // mark is a request the sky does not need, and the markup carries
@@ -147,9 +171,222 @@ const THREAD_STATE_LABEL: Record<ThreadState, string> = {
 const THREAD_SILENT_LINE =
   "The window in which an answer could have arrived has passed. Nothing came.";
 
-/** The composer's remaining-count appears only once the room left is worth
- *  watching. Above this it is a number nobody asked for. */
-const SIGNAL_REMAINING_VISIBLE = 40;
+// ── A2.6: the composed signal, as chrome ─────────────────────────────────
+//
+// FREEFORM IS RETIRED. Nothing below is a text field, and the phone keyboard
+// never opens on this surface: a signal is assembled from SELECTORS, the
+// server materializes every part from the sender's own state, and the client
+// only ever points. Every string in this block is the client's own chrome, in
+// the ALL CAPS stamp register, on the terms protocol.ts states where it
+// declines to export `TONE_STAMP`.
+
+/**
+ * How a tone reads on the stamp: a PROPERTY OF THE BEAM, never a feeling.
+ * `plain` renders NOTHING AT ALL, and the absence is the content — the gift
+ * that arrives without comment is told so by the missing row.
+ */
+const TONE_STAMP: Readonly<Record<SignalTone, string | null>> = {
+  plain: null,
+  open: "REPEATED IN THE CLEAR",
+  guarded: "NARROW, FOR ONE RECEIVER",
+  urgent: "MARKED FOR IMMEDIATE READING",
+  reluctant: "ONE PASS, AT LOW POWER",
+};
+
+/** The composer's five tone chips, in the order they are offered. */
+const TONE_ORDER: readonly SignalTone[] = ["plain", "open", "guarded", "urgent", "reluctant"];
+
+const TONE_CHIP: Readonly<Record<SignalTone, string>> = {
+  plain: "PLAIN",
+  open: "OPEN",
+  guarded: "GUARDED",
+  urgent: "URGENT",
+  reluctant: "RELUCTANT",
+};
+
+/** The source chips, row one of the composer. In-world names for what a part
+ *  IS, never the wire's kind ids: a player picks COORDINATES, not "sighting". */
+const SOURCE_CHIP: Readonly<Record<PartKind, string>> = {
+  finding: "FINDING",
+  sighting: "COORDINATES",
+  archive: "LIGHT RECORD",
+  culture: "WHO WE ARE",
+  request: "ASK",
+  verdict: "ANSWER",
+  accord: "THE QUIET",
+};
+
+const SOURCE_CHIP_ORDER: readonly PartKind[] = [
+  "finding",
+  "sighting",
+  "archive",
+  "culture",
+  "request",
+  "verdict",
+  "accord",
+];
+
+/**
+ * CANONICAL PART ORDER and the per-kind caps, both spelled here as chrome:
+ * the server imposes the order at materialization and enforces the caps with
+ * `bad-signal`, and the wire carries neither number (there are no free
+ * numbers on it). A retune there retunes these; being wrong costs one refused
+ * tap, or a preview whose blocks stand in a different order than the ones
+ * that land, and nothing else. The BROADCAST_WINDOW_YEARS precedent.
+ */
+const PART_ORDER: readonly PartKind[] = [
+  "sighting",
+  "finding",
+  "archive",
+  "culture",
+  "request",
+  "verdict",
+  "accord",
+];
+
+const PER_KIND_CAP: Readonly<Record<PartKind, number>> = {
+  finding: 1,
+  sighting: 1,
+  archive: 2,
+  culture: 1,
+  request: 1,
+  verdict: 2,
+  accord: 1,
+};
+
+/** Parts per signal. ZERO IS LEGAL: a carrier is a beam with nothing on it,
+ *  arriving dated, and it is the "still here" primitive. */
+const MAX_PARTS_PER_SIGNAL = 4;
+
+/** The archive window spans and the downsample width, same terms as the caps
+ *  above — signalparts.ts owns them, and this is the preview's copy so the
+ *  sparkline a player composes against is the one that will land. */
+const ARCHIVE_WINDOW_YEARS: Readonly<Record<ArchiveWindow, number>> = {
+  recent: 500,
+  long: 8000,
+};
+const ARCHIVE_SAMPLES = 12;
+
+/** The two archive windows, named for what they are FOR rather than by their
+ *  spans: the span is on the block once it renders. */
+const ARCHIVE_WINDOW_CHIP: Readonly<Record<ArchiveWindow, string>> = {
+  recent: "RECENT",
+  long: "THE LONG RECORD",
+};
+
+/** The omission lever, said out loud: a headline finding is a claim with its
+ *  working left out, and the reader can see that it was left out. */
+const FINDING_DEPTH_CHIP: Readonly<Record<FindingDepth, string>> = {
+  full: "WITH THE WORKING",
+  headline: "THE HEADLINE ONLY",
+};
+
+const WANT_CHIP: Readonly<Record<RequestWant, string>> = {
+  finding: "A FINDING",
+  sighting: "COORDINATES",
+  archive: "A LIGHT RECORD",
+  culture: "WHO THEY ARE",
+};
+
+const WANT_ORDER: readonly RequestWant[] = ["finding", "sighting", "archive", "culture"];
+
+/** What a verdict says, on the block. A verdict is a reading of one's own
+ *  record against somebody else's claim, so it speaks about the record. */
+const STANCE_LINE: Readonly<Record<VerdictStance, string>> = {
+  confirm: "OUR RECORD AGREES",
+  contradict: "OUR RECORD DISAGREES",
+  nothing: "OUR RECORD SAYS NOTHING",
+};
+
+const STANCE_CHIP: Readonly<Record<VerdictStance, string>> = {
+  confirm: "CONFIRM",
+  contradict: "CONTRADICT",
+  nothing: "NOTHING TO SAY",
+};
+
+const STANCE_ORDER: readonly VerdictStance[] = ["confirm", "contradict", "nothing"];
+
+const ACCORD_MOVE_CHIP: Readonly<Record<AccordMove, string>> = {
+  offer: "OFFER THE QUIET",
+  accept: "ACCEPT IT",
+  decline: "DECLINE IT",
+  withdraw: "WITHDRAW FROM IT",
+};
+
+const ACCORD_MOVE_LINE: Readonly<Record<AccordMove, string>> = {
+  offer: "THE QUIET, OFFERED",
+  accept: "THE QUIET, ACCEPTED",
+  decline: "THE QUIET, DECLINED",
+  withdraw: "THE QUIET, WITHDRAWN",
+};
+
+/** The turnaround floor, stated flat. NO COUNTDOWN, deliberately: a countdown
+ *  would be a number about how long ago their beam landed, and the floor is
+ *  the same on every thread precisely so that it says nothing about who is at
+ *  the other end. */
+const TURNAROUND_FLOOR_LINE = "The beam is still being read.";
+
+/** How long that line stands before the composer comes back. Real seconds,
+ *  not game years: it is a note about the last tap, not about the sky. */
+const TURNAROUND_NOTICE_MS = 9000;
+
+/** Evidence ids a full finding travels with, signalparts.ts's cap. Only the
+ *  COUNT is ever rendered, so being one out costs a preview reading "6" where
+ *  the block will read "6" anyway; it is pinned for the same reason the
+ *  windows above are. */
+const MAX_EVIDENCE_PER_FINDING = 6;
+
+/**
+ * The accord part's own shape. protocol.ts re-exports the other six part
+ * types by name and not this one, so it is narrowed out of the union rather
+ * than reached for across the boundary — the union IS the contract, and
+ * `Extract` cannot drift from it.
+ */
+type AccordPart = Extract<SignalPart, { kind: "accord" }>;
+
+/**
+ * What a part block needs to know about the beam carrying it: whose it is,
+ * how far it crossed, when it lands, and whether it has. The ages on a block
+ * are read against different presents depending on that last flag — see
+ * `partAgeText`.
+ */
+interface PartContext {
+  readonly mine: boolean;
+  readonly transitYears: number;
+  readonly arrivesYear: number;
+  readonly landed: boolean;
+}
+
+/** Emission at a year, as a step function over an epoch list — the knowledge
+ *  layer's own `emissionAt`, re-read here over histories that are ALREADY on
+ *  this client's wire (the player's own seed, or a source's observed history
+ *  clipped at its light-departure year). It reaches nothing it was not given. */
+function emissionAtYear(history: readonly EmissionEpoch[], year: number): number {
+  let level = 0;
+  for (const epoch of history) {
+    if (epoch.fromYear <= year) level = epoch.level;
+    else break;
+  }
+  return level;
+}
+
+/** ARCHIVE_SAMPLES evenly spaced reads, oldest first, levels frozen at two
+ *  decimals: the composer's preview of the downsample the server will freeze
+ *  into the part. Deterministic, so the same window taken twice is the same
+ *  curve. */
+function sampleWindow(
+  history: readonly EmissionEpoch[],
+  fromYear: number,
+  toYear: number,
+): readonly ArchiveSample[] {
+  const step = (toYear - fromYear) / (ARCHIVE_SAMPLES - 1);
+  const out: ArchiveSample[] = [];
+  for (let i = 0; i < ARCHIVE_SAMPLES; i++) {
+    const year = fromYear + step * i;
+    out.push({ year, level: Math.round(emissionAtYear(history, year) * 100) / 100 });
+  }
+  return out;
+}
 
 /** A2.3: the three exits `isClosed` covers server-side (studies.ts). Kept as
  *  its own client-side check rather than importing the server helper — the
@@ -391,26 +628,34 @@ export class StudyBoard {
   // there). Null whenever the view is not "thread".
   private threadStarId: string | null = null;
 
-  // The composer's in-progress text, kept on the panel rather than in the
-  // DOM because renderThread() rebuilds the whole body on every `sky` (the
-  // expandedQuestion precedent) and a half-written signal must survive that.
-  // `composerCaret` and the focus flag ride along so the keyboard does not
-  // drop when a wake lands mid-sentence.
-  private composerDraft = "";
-  private composerCaret: number | null = null;
-  private composerFocused = false;
-  // The live composer's three elements, so the remaining-count and the SEND
-  // pill can be refreshed on every keystroke without re-rendering the thread
-  // under the player's thumb (refreshHubBudget's precedent).
-  private composerEls: {
-    readonly input: HTMLTextAreaElement;
-    readonly remaining: HTMLDivElement;
-    readonly send: HTMLButtonElement;
-  } | null = null;
-  // A sendSignal in flight, holding the RAW text so a refusal can put the
-  // words back in the box. Released by any sky at all (onSendSignal answers
-  // with a fresh one) and by handleServerError on a rejection.
-  private pendingSignalText: string | null = null;
+  // ── A2.6: the composer ───────────────────────────────────────────────
+  // The composition in progress: SELECTORS ONLY, exactly what goes on the
+  // wire. It lives on the panel rather than in the DOM because the sheet
+  // rebuilds itself on every `sky` (the expandedQuestion precedent), and a
+  // half-assembled signal must survive that.
+  private composerOpen = false;
+  private composerParts: PartRef[] = [];
+  private composerTone: SignalTone = "plain";
+  // Which source chip's picker is showing, and the one row inside it that is
+  // expanded (a finding's depth, an archive's window, a verdict's stance).
+  // Null/null is the composer's own face: the preview and the two chip rows.
+  private composerPicker: PartKind | null = null;
+  private composerExpanded: string | null = null;
+  // The ASK picker's first step, held between renders: a request names a kind
+  // and then a subject, and the kind survives while the subject is chosen.
+  private composerWant: RequestWant = "finding";
+  // The overlay itself. It is a child of the SHEET, not of the body, so a
+  // thread re-render underneath never disturbs it.
+  private composerSheet: HTMLDivElement | null = null;
+  // A sendSignal in flight. The parts stay put until a sky confirms, so a
+  // refusal costs nothing but the tap (handleServerError releases this and
+  // the composition is still there to send again).
+  private pendingSignal = false;
+  // The turnaround floor: the server answered `contact-unavailable` on a
+  // send, so the composer stands down behind one flat line for a moment. A
+  // real-time handle, cleared on any render that replaces it.
+  private floorNotice = false;
+  private floorNoticeHandle: number | null = null;
 
   // A one-shot, the hubScrollToVoice mold: a thread opened fresh lands on
   // its newest signal and the composer, not on a hail sent an age ago. Every
@@ -574,7 +819,16 @@ export class StudyBoard {
     // appends and answers with a fresh sky, and a refusal comes back as an
     // `error`, which handleServerError has already caught by now (the
     // pendingTripwireKeys precedent, one slice on).
-    this.pendingSignalText = null;
+    // A2.6: what it releases is a COMPOSITION. The sky that confirms carries
+    // the act, so the assembled parts have done their work and the composer
+    // shuts on them: the thread below is the confirmation, and no optimistic
+    // signal is ever drawn.
+    if (this.pendingSignal) {
+      this.pendingSignal = false;
+      this.composerParts = [];
+      this.composerTone = "plain";
+      this.closeComposer();
+    }
 
     // A2.5: the panel left the thread view without saying so (the sheet was
     // closed on it, or a route took it elsewhere). Tell the server the
@@ -816,10 +1070,7 @@ export class StudyBoard {
    */
   openThread(starId: string): void {
     this.threadStarId = starId;
-    this.composerDraft = "";
-    this.composerCaret = null;
-    this.composerFocused = false;
-    this.pendingSignalText = null;
+    this.resetComposer();
     this.threadScrollToEnd = true;
     this.socket.send({ type: "openThread", starId });
     this.view = "thread";
@@ -835,9 +1086,22 @@ export class StudyBoard {
   private leaveThread(): void {
     if (this.threadStarId === null) return;
     this.threadStarId = null;
-    this.composerEls = null;
-    this.trackKeyboard(false);
+    this.resetComposer();
     this.socket.send({ type: "openThread", starId: null });
+  }
+
+  /** A composer opened fresh is empty and plain-spoken. Called on every way
+   *  in and every way out — a half-assembled signal never survives a
+   *  close/reopen, the openLaunch/openBrief rule. */
+  private resetComposer(): void {
+    this.composerParts = [];
+    this.composerTone = "plain";
+    this.composerPicker = null;
+    this.composerExpanded = null;
+    this.composerWant = "finding";
+    this.pendingSignal = false;
+    this.clearFloorNotice();
+    this.closeComposer();
   }
 
   focusMission(missionId: string): void {
@@ -891,10 +1155,10 @@ export class StudyBoard {
     this.openFlag = false;
     this.root.classList.remove("open");
     this.stopTicking();
-    // A2.5: the keyboard inset belongs to a composer that is no longer on
-    // screen. The thread itself stays open server-side until the next sky
-    // notices the view moved on (update()).
-    this.trackKeyboard(false);
+    // A2.6: the composer is an overlay on the SHEET, so it has to be taken
+    // down with the sheet. The thread itself stays open server-side until the
+    // next sky notices the view moved on (update()).
+    this.closeComposer();
   }
 
   isOpen(): boolean {
@@ -903,7 +1167,8 @@ export class StudyBoard {
 
   destroy(): void {
     this.stopTicking();
-    this.trackKeyboard(false);
+    this.clearFloorNotice();
+    this.closeComposer();
     window.removeEventListener("keydown", this.onKeyDown);
     this.root.remove();
   }
@@ -1188,6 +1453,14 @@ export class StudyBoard {
     for (const t of this.contact?.threads ?? []) {
       this.body.append(this.buildThreadRow(t));
     }
+    // A2.6: the threads this player has gone dark to. They are ABSENT from
+    // the list above (the wire omits them), and this row exists only so the
+    // mute can be found and undone. It carries a star id and nothing else —
+    // no count, no state, no last event: a mute is not a record of a
+    // conversation, it is the absence of one.
+    for (const starId of this.contact?.mutedStarIds ?? []) {
+      this.body.append(this.buildMutedRow(starId));
+    }
     this.body.append(this.hairline());
 
     if (this.studiesByStarId.size > 0) {
@@ -1296,6 +1569,28 @@ export class StudyBoard {
 
     btn.append(name, state);
     btn.addEventListener("click", () => this.openThread(t.starId));
+    return btn;
+  }
+
+  /** A2.6: one muted thread. The row is the undo and nothing else — there is
+   *  nothing to open, because the wire carries nothing about it. */
+  private buildMutedRow(starId: string): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "study-thread-row study-thread-row--muted";
+
+    const name = document.createElement("div");
+    name.className = "study-thread-name holos-serif";
+    name.textContent = this.threadName(starId);
+
+    const state = document.createElement("div");
+    state.className = "study-thread-state holos-caps";
+    state.textContent = "MUTED · UNMUTE";
+
+    btn.append(name, state);
+    btn.addEventListener("click", () => {
+      this.socket.send({ type: "muteThread", starId, muted: false });
+    });
     return btn;
   }
 
@@ -2126,9 +2421,15 @@ export class StudyBoard {
     distLabel.style.top = `${yLine - 26}px`;
   }
 
-  /** Releases any verb that no `sky` will ever confirm (the server answered
-   *  with an error instead), so a pending trio never sits disabled forever. */
-  handleServerError(): void {
+  /**
+   * Releases any verb that no `sky` will ever confirm (the server answered
+   * with an error instead), so a pending trio never sits disabled forever.
+   *
+   * A2.6 takes the CODE, for exactly one branch: `contact-unavailable` on a
+   * send is the turnaround floor, and the floor is the one refusal with
+   * something to say. Every other code still releases the same silent way.
+   */
+  handleServerError(code?: CohortErrorCode): void {
     let releasedBegin = false;
     if (this.pendingBeginStarId !== null) {
       this.pendingBeginStarId = null;
@@ -2163,16 +2464,20 @@ export class StudyBoard {
       this.pendingTripwireKeys.clear();
       releasedTripwire = true;
     }
-    // A2.5: "signal-rejected", "thread-unavailable" and "freeform-forbidden"
-    // all release exactly like every code above always has — no toast, no
-    // special-cased text. The one addition is that the words go back in the
-    // box: losing what the player wrote would be the second insult.
+    // A2.6: a refused signal releases like every code above — no toast, no
+    // special-cased text — and THE COMPOSITION STAYS ASSEMBLED, so a refusal
+    // costs the tap and nothing else. `bad-signal` and `part-unavailable`
+    // mean a selector went stale between the render and the send (a study
+    // called twice, an accord move already answered), and the next render of
+    // the picker will simply not offer it again.
     let releasedSignal = false;
-    if (this.pendingSignalText !== null) {
-      this.composerDraft = this.pendingSignalText;
-      this.composerCaret = null;
-      this.pendingSignalText = null;
+    if (this.pendingSignal) {
+      this.pendingSignal = false;
       releasedSignal = true;
+      // THE TURNAROUND FLOOR. Their beam is younger than the floor, which is
+      // the same on every thread and says nothing about who sent it. The
+      // composer stands down behind one flat line, with no countdown.
+      if (code === "contact-unavailable") this.raiseFloorNotice();
     }
 
     if (releasedBegin && this.view === "brief") this.renderBrief();
@@ -2970,7 +3275,7 @@ export class StudyBoard {
     }
   }
 
-  // ── Render: the thread (A2.5) ────────────────────────────────────────
+  // ── Render: the thread (A2.5, composed in A2.6) ──────────────────────
   // The sky answers, and the texture is ASTRONOMY, never mail. What arrives
   // is a measured beam: the instrument readout is the header of the message
   // and the prose is what was left of it after the crossing. What leaves is
@@ -2983,13 +3288,8 @@ export class StudyBoard {
   // happening now — the source card's contact row, one surface over.
 
   private renderThread(): void {
-    // Captured BEFORE the body is emptied: removing the textarea drops the
-    // focus, and the flag would read false by the time the composer is
-    // rebuilt. A wake landing mid-sentence must not close the keyboard.
-    const restore = this.composerFocused ? { caret: this.composerCaret } : null;
     this.body.innerHTML = "";
     this.liveClocks = [];
-    this.composerEls = null;
 
     const starId = this.threadStarId;
 
@@ -3006,6 +3306,7 @@ export class StudyBoard {
     if (starId === null) {
       // Defensive only: the view cannot be entered without a star.
       this.view = "hub";
+      this.closeComposer();
       this.renderHub();
       return;
     }
@@ -3048,6 +3349,12 @@ export class StudyBoard {
     }
     if (chips.childElementCount > 0) this.body.append(chips);
 
+    // A2.6: going dark to one thread. Quiet, unadorned, and no confirm step —
+    // it is reversible from the hub, it notifies nobody, and it changes
+    // nothing on the sender's side (their beam still lands; they simply have
+    // no way to learn that it landed in a room with the lights off).
+    this.body.append(this.buildMuteRow(starId));
+
     this.body.append(this.hairline());
 
     if (open === null) {
@@ -3057,8 +3364,14 @@ export class StudyBoard {
       waiting.className = "study-board-empty";
       waiting.textContent = "Reading the thread.";
       this.body.append(waiting);
+      this.closeComposer();
       return;
     }
+
+    // A2.6: the compliance rail, above the conversation rather than in it —
+    // an understanding is the state of the thread, not one more thing said.
+    const rail = this.buildAccordRail(open);
+    if (rail !== null) this.body.append(rail);
 
     if (open.truncated) {
       const cut = document.createElement("div");
@@ -3078,7 +3391,11 @@ export class StudyBoard {
       this.body.append(line);
     }
 
-    this.body.append(this.buildComposer(open, restore));
+    this.body.append(this.buildComposerFoot(open));
+
+    // The composer is an overlay on the SHEET, so it survives this rebuild —
+    // but what it is composing INTO has just changed, so it re-renders here.
+    if (this.composerOpen) this.renderComposerSheet(open);
 
     if (this.threadScrollToEnd) {
       this.threadScrollToEnd = false;
@@ -3099,24 +3416,107 @@ export class StudyBoard {
   }
 
   /**
+   * A2.6: MUTE. Driven by `mutedStarIds` and nothing else — a muted thread is
+   * absent from `threads` entirely, so an open one is normally unmuted and
+   * this is normally the verb. The unmute case is reachable here only for the
+   * instant between the tap and the confirming sky; the standing way back is
+   * the hub's own row (see renderHub).
+   */
+  private buildMuteRow(starId: string): HTMLDivElement {
+    const row = document.createElement("div");
+    row.className = "thread-mute-row";
+    const muted = (this.contact?.mutedStarIds ?? []).includes(starId);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "thread-mute holos-caps";
+    btn.textContent = muted ? "UNMUTE THIS THREAD" : "MUTE THIS THREAD";
+    btn.addEventListener("click", () => {
+      this.socket.send({ type: "muteThread", starId, muted: !muted });
+    });
+    row.append(btn);
+    return row;
+  }
+
+  /**
+   * A2.6: the mutual quiet, from this side of the light.
+   *
+   * Every line is arithmetic on wire fields: the state and the held-since
+   * year are the server's, the compliance read carries its own age, and the
+   * offering side's waiting line is computed from ITS OWN beam's sent and
+   * arrival years. Nothing here is a claim about their present.
+   */
+  private buildAccordRail(detail: ThreadDetail): HTMLElement | null {
+    const rail = detail.accord;
+    const head = accordHeadline(rail);
+    if (head === null) return null;
+
+    const box = document.createElement("div");
+    box.className = "thread-accord";
+
+    const headEl = document.createElement("div");
+    headEl.className = "thread-accord-head holos-caps study-tabular";
+    headEl.textContent = head;
+    box.append(headEl);
+
+    if (rail.state === "you-offered") {
+      // The offer is one of our own signals, so its two years are ours to
+      // read: in flight until it lands, and then one more transit before an
+      // answer could possibly come back.
+      const offer = [...detail.signals]
+        .reverse()
+        .find(
+          (s) =>
+            s.from === "you" &&
+            s.parts.some((p) => p.kind === "accord" && p.move === "offer"),
+        );
+      if (offer !== undefined) {
+        const line = document.createElement("div");
+        line.className = "thread-accord-line holos-caps study-tabular";
+        const text = (): string => accordFlightLine(offer.sentYear, offer.arrivesYear);
+        line.textContent = text();
+        this.liveClocks.push({ el: line, text });
+        box.append(line);
+      }
+    }
+
+    if (rail.state === "they-offered") {
+      const line = document.createElement("div");
+      line.className = "thread-accord-line holos-caps";
+      line.textContent = "IT HOLDS UNTIL WE ANSWER";
+      box.append(line);
+    }
+
+    const light = accordLightLine(rail);
+    if (light !== null) {
+      const line = document.createElement("div");
+      line.className = "thread-accord-line holos-caps study-tabular";
+      line.textContent = light;
+      box.append(line);
+    }
+
+    return box;
+  }
+
+  /**
    * One signal.
    *
    * RECEIVED: the stamp FIRST, two caps rows of instrument readout, then the
-   * payload. Every number the thread shows lives on that stamp and none of
-   * it lives in the prose — which is the whole reason the prose can be
-   * fact-free and needs no pinned-fact machinery.
+   * tone as one more property of the beam, then what was said, then the
+   * payload as instrument blocks. Every number the thread shows lives on a
+   * stamp or inside a block, and none of it lives in the prose — which is the
+   * whole reason the prose can be fact-free.
    *
    * SENT: a cyan rail with your own arithmetic on it. In flight while the
    * year has not come; LANDED once it has. Never a receipt.
    */
   private buildThreadSignal(s: ThreadSignal): HTMLDivElement {
     const el = document.createElement("div");
-    el.className =
-      s.from === "you"
-        ? "thread-signal thread-signal--sent"
-        : "thread-signal thread-signal--received";
+    const mine = s.from === "you";
+    el.className = mine
+      ? "thread-signal thread-signal--sent"
+      : "thread-signal thread-signal--received";
 
-    if (s.from === "them") {
+    if (!mine) {
       const stamp = s.stamp;
       if (stamp !== null) {
         el.append(
@@ -3136,14 +3536,39 @@ export class StudyBoard {
       el.append(rail);
     }
 
+    // A2.6: the tone, as a PROPERTY OF THE BEAM. `plain` renders nothing at
+    // all and the absence is the content: a gift arriving without comment is
+    // told so by the row that is not there.
+    const toneLine = s.tone === null ? null : TONE_STAMP[s.tone];
+    if (toneLine !== null) {
+      const row = document.createElement("div");
+      row.className = "thread-tone holos-caps";
+      row.textContent = toneLine;
+      el.append(row);
+    }
+
     if (s.body !== null) {
       const payload = document.createElement("div");
       payload.className = "thread-payload";
-      // UNTRUSTED PROSE — a player wrote it, or a template composed it.
-      // textContent and nothing else, ever: this string never becomes markup
-      // (and, server-side, never becomes a generation input either).
+      // UNTRUSTED PROSE — a legacy act's player text, or a server-composed
+      // line. textContent and nothing else, ever: this string never becomes
+      // markup (and, server-side, never becomes a generation input either).
       payload.textContent = s.body;
       el.append(payload);
+    }
+
+    // A2.6: the payload proper. The blocks are the client's own rendering of
+    // typed parts the server materialized and froze — no string below is
+    // anything but a catalog literal, a server number, or this file's chrome.
+    if (s.parts.length > 0) {
+      const ctx: PartContext = {
+        mine,
+        transitYears:
+          s.stamp !== null ? s.stamp.transitYears : Math.max(0, s.arrivesYear - s.sentYear),
+        arrivesYear: s.arrivesYear,
+        landed: s.arrivesYear <= nowYear(),
+      };
+      for (const part of s.parts) el.append(this.buildPartBlock(part, ctx));
     }
 
     return el;
@@ -3169,87 +3594,419 @@ export class StudyBoard {
       : `${kicker}IN FLIGHT · ARRIVES IN ${countdown}`;
   }
 
+  // ── Render: the part blocks (A2.6) ───────────────────────────────────
+  //
+  // An instrument block, not a message bubble. Each one is a pinned label,
+  // the subject as this reader's own instruments name it, and the readings —
+  // which is exactly the anatomy the observatory already uses for a
+  // hypothesis row and an archive entry, borrowed here rather than invented.
+  //
+  // THE RECIPIENT'S OWN LOCAL NAME may sit beside a designation: it is their
+  // knowledge and it did not travel. Nothing else on a block is anything but
+  // a catalog literal or a server-computed number.
+
+  /** What this reader calls the subject of a part: the catalog designation
+   *  always, plus their OWN label for it if they gave one. */
+  private partSubject(starId: string): string {
+    const designation =
+      this.sourcesByStarId.get(starId)?.designation ??
+      this.starsById.get(starId)?.designation ??
+      starId;
+    const local = this.localNames.get(starId);
+    if (local !== undefined && local.length > 0) return `${designation} · ${local}`;
+    return designation;
+  }
+
+  /** The block's pinned label, which is also where the provenance lives:
+   *  every part says whose instruments it came off, in one word. */
+  private partHeadText(part: SignalPart, mine: boolean): string {
+    const side = mine ? "OURS" : "THEIRS";
+    switch (part.kind) {
+      case "finding":
+        return `A FINDING · ${side}`;
+      case "sighting":
+        return `COORDINATES · ${side}`;
+      case "archive":
+        return part.ofSelf
+          ? mine
+            ? "OUR OWN LIGHT"
+            : "THEIR OWN LIGHT"
+          : `A LIGHT RECORD · ${side}`;
+      case "culture":
+        return mine ? "WHO WE ARE" : "WHO THEY ARE";
+      case "request":
+        return mine ? "WE ASK" : "THEY ASK";
+      case "verdict":
+        return mine ? "OUR ANSWER" : "THEIR ANSWER";
+      case "accord":
+        return "THE QUIET";
+    }
+  }
+
+  private buildPartBlock(part: SignalPart, ctx: PartContext): HTMLDivElement {
+    const block = document.createElement("div");
+    block.className = "part-block";
+
+    const head = document.createElement("div");
+    head.className = "part-head holos-caps";
+    head.textContent = this.partHeadText(part, ctx.mine);
+    block.append(head);
+
+    switch (part.kind) {
+      case "finding":
+        this.fillFindingBlock(block, part, ctx);
+        break;
+      case "sighting":
+        this.fillSightingBlock(block, part, ctx);
+        break;
+      case "archive":
+        this.fillArchiveBlock(block, part, ctx);
+        break;
+      case "culture":
+        this.fillCultureBlock(block, part, ctx);
+        break;
+      case "request":
+        this.fillRequestBlock(block, part, ctx);
+        break;
+      case "verdict":
+        this.fillVerdictBlock(block, part, ctx);
+        break;
+      case "accord":
+        this.fillAccordBlock(block, part);
+        break;
+    }
+
+    return block;
+  }
+
+  private partLine(text: string, tabular = false): HTMLDivElement {
+    const line = document.createElement("div");
+    line.className = tabular ? "part-line holos-caps study-tabular" : "part-line holos-caps";
+    line.textContent = text;
+    return line;
+  }
+
   /**
-   * The composer, or the reason there is not one.
+   * DOUBLE AGEING, the finding block's whole reason for existing in this
+   * shape. `arrivedYear − asOfYear` is (sender to subject) + (call to send) +
+   * (sender to reader), and all three legs are on the block, so a reader can
+   * check the arithmetic against the sender's known catalog position. Honesty
+   * checked by geometry rather than by moderation.
+   */
+  private fillFindingBlock(
+    block: HTMLDivElement,
+    part: FindingPart,
+    ctx: PartContext,
+  ): void {
+    const row = document.createElement("div");
+    row.className = "part-row";
+    const desig = document.createElement("span");
+    desig.className = "part-desig holos-caps";
+    desig.textContent = this.partSubject(part.subjectStarId);
+    const share = document.createElement("span");
+    share.className = "part-share holos-caps study-tabular";
+    share.textContent = `${Math.round(part.share * 100)}%`;
+    row.append(desig, share);
+    block.append(row);
+
+    const title = document.createElement("div");
+    title.className = "part-title";
+    title.textContent = part.label;
+    block.append(title);
+
+    const gloss = document.createElement("div");
+    gloss.className = "part-gloss";
+    gloss.textContent = part.gloss;
+    block.append(gloss);
+
+    const track = document.createElement("div");
+    track.className = "study-hyp-track part-track";
+    const fill = document.createElement("div");
+    fill.className = "study-hyp-fill study-hyp-fill--leading";
+    fill.style.width = `${clamp01(part.share) * 100}%`;
+    track.append(fill);
+    block.append(track);
+
+    // THE OMISSION LEVER, said out loud. An empty evidence list is a claim
+    // that travelled without its working, and the reader is told that it did.
+    const n = part.evidence.length;
+    const basis = part.basis === "called" ? "CALLED" : "GROUNDED";
+    block.append(
+      this.partLine(
+        n === 0
+          ? `${basis} · THE WORKING WAS NOT SENT`
+          : `${basis} · ${n} ${n === 1 ? "QUESTION" : "QUESTIONS"} BEHIND IT`,
+      ),
+    );
+
+    const atCall = Math.max(0, part.calledYear - part.asOfYear);
+    block.append(
+      this.partLine(
+        `THEIR LIGHT ${formatArchiveAge(atCall)} Y OLD AT THE CALL · TRANSIT ${formatArchiveAge(ctx.transitYears)} y`,
+        true,
+      ),
+    );
+    block.append(this.partLine(this.partAgeText(part.asOfYear, ctx), true));
+
+    // Provenance, and the whole of it: A2.6 ships no way to FILE a foreign
+    // finding, because no wire message exists to land one in the observatory.
+    // The block says where the reading came from and stops there rather than
+    // offering a verb the server could not honour.
+    const prov = this.partLine(ctx.mine ? "FROM OUR INSTRUMENTS" : "FROM THEIR INSTRUMENTS");
+    prov.classList.add("part-line--faint");
+    block.append(prov);
+  }
+
+  private fillSightingBlock(
+    block: HTMLDivElement,
+    part: SightingPart,
+    ctx: PartContext,
+  ): void {
+    const row = document.createElement("div");
+    row.className = "part-row";
+    const desig = document.createElement("span");
+    desig.className = "part-desig holos-caps";
+    desig.textContent = this.partSubject(part.subjectStarId);
+    const cls = document.createElement("span");
+    cls.className = "part-share holos-caps";
+    cls.textContent = CLASS_LABEL[part.signalClass];
+    row.append(desig, cls);
+    block.append(row);
+    block.append(this.partLine(this.partAgeText(part.asOfYear, ctx), true));
+  }
+
+  private fillArchiveBlock(
+    block: HTMLDivElement,
+    part: ArchivePart,
+    ctx: PartContext,
+  ): void {
+    const row = document.createElement("div");
+    row.className = "part-row";
+    const desig = document.createElement("span");
+    desig.className = "part-desig holos-caps";
+    desig.textContent = this.partSubject(part.subjectStarId);
+    const span = document.createElement("span");
+    span.className = "part-share holos-caps study-tabular";
+    span.textContent = `${formatAbsoluteYear(part.fromYear)} TO ${formatAbsoluteYear(part.toYear)}`;
+    row.append(desig, span);
+    block.append(row);
+
+    block.append(this.buildSparkline(part.samples));
+
+    const levels = part.samples.map((s) => s.level);
+    const peak = levels.length === 0 ? 0 : Math.max(...levels);
+    const last = part.samples[part.samples.length - 1];
+    block.append(
+      this.partLine(
+        `PEAK ${peak.toFixed(2)} · AT THE EDGE ${(last?.level ?? 0).toFixed(2)}`,
+        true,
+      ),
+    );
+    block.append(this.partLine(this.partAgeText(part.toYear, ctx), true));
+  }
+
+  private fillCultureBlock(
+    block: HTMLDivElement,
+    part: CulturePart,
+    ctx: PartContext,
+  ): void {
+    const whose = ctx.mine ? "OUR" : "THEIR";
+    let label: string;
+    let question: string | null = null;
+    if (part.source === "charter") {
+      label = `${whose} CHARTER`;
+    } else if (part.source === "chronicle") {
+      label = `FROM ${whose} CHRONICLE`;
+    } else {
+      label = part.pole === null ? `${whose} DIAL` : `${whose} DIAL · ${part.pole}`;
+      // The question the dial answers, from the one runtime value the wire
+      // exports for rendering. Catalog prose either way, never a number.
+      question = DIAL_AXES.find((a) => a.id === part.axis)?.question ?? null;
+    }
+    block.append(this.partLine(label));
+    if (question !== null) {
+      const q = document.createElement("div");
+      q.className = "part-gloss";
+      q.textContent = question;
+      block.append(q);
+    }
+    const prose = document.createElement("div");
+    prose.className = "part-prose";
+    prose.textContent = part.text;
+    block.append(prose);
+  }
+
+  private fillRequestBlock(
+    block: HTMLDivElement,
+    part: RequestPart,
+    ctx: PartContext,
+  ): void {
+    const title = document.createElement("div");
+    title.className = "part-title";
+    title.textContent = WANT_CHIP[part.want];
+    block.append(title);
+    if (part.subjectStarId !== null) {
+      block.append(this.partLine(`ABOUT ${this.partSubject(part.subjectStarId)}`));
+    } else {
+      block.append(this.partLine("ABOUT NOBODY IN PARTICULAR"));
+    }
+    // A request obliges nobody, and the block says so rather than reading as
+    // a demand with a reply slot under it.
+    const note = this.partLine(ctx.mine ? "WE MAY BE ANSWERED, OR NOT" : "ANSWER IT, OR DO NOT");
+    note.classList.add("part-line--faint");
+    block.append(note);
+  }
+
+  private fillVerdictBlock(
+    block: HTMLDivElement,
+    part: VerdictPart,
+    ctx: PartContext,
+  ): void {
+    // An empty reference is the honest render of a row this reader cannot
+    // see: it was truncated off the wire, or it has not landed here. The
+    // server blanks the id rather than leaking one, and so does this.
+    block.append(
+      this.partLine(
+        part.signalId === ""
+          ? "ON A SIGNAL NO LONGER HELD"
+          : `ON ${part.signalId.toUpperCase()} · PART ${part.partIndex + 1}`,
+      ),
+    );
+    const title = document.createElement("div");
+    title.className = "part-title";
+    title.textContent = `${ctx.mine ? "OUR" : "THEIR"} ${STANCE_LINE[part.stance]}`;
+    block.append(title);
+  }
+
+  private fillAccordBlock(block: HTMLDivElement, part: AccordPart): void {
+    const title = document.createElement("div");
+    title.className = "part-title";
+    title.textContent = ACCORD_MOVE_LINE[part.move];
+    block.append(title);
+  }
+
+  /**
+   * How stale a reading is, and against WHICH now. A part that has landed is
+   * aged against this reader's own present; one still crossing is aged
+   * against the year it will land in, and says so — the composer's preview
+   * runs through this same branch, which is how a player sees exactly how old
+   * their gift will be by the time it is read.
+   */
+  private partAgeText(asOfYear: number, ctx: PartContext): string {
+    if (ctx.landed) return `AS OF ${formatArchiveAge(Math.max(0, nowYear() - asOfYear))} Y AGO`;
+    return `AS OF ${formatArchiveAge(Math.max(0, ctx.arrivesYear - asOfYear))} Y AGO ON ARRIVAL`;
+  }
+
+  /**
+   * THE LIGHT RECORD. An inline SVG rather than a canvas: the block is inside
+   * a scrolling column that re-renders on every sky, and a vector redraws
+   * itself at any width for free where a canvas would need a resize observer
+   * and a device-pixel-ratio pass (the source card's chart pays that price
+   * because it is the one chart on a fixed sheet).
+   *
+   * Drawn in the panel's own gold, on the source card's anatomy: a soft area
+   * under a step-free curve, and a hairline at the right edge marking the
+   * newest sample. Levels are the server's, quantized at the source; the
+   * curve is normalized against its own peak, so the shape is the reading and
+   * the two numbers under it carry the scale.
+   */
+  private buildSparkline(samples: readonly ArchiveSample[]): SVGSVGElement {
+    const NS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("class", "part-spark");
+    svg.setAttribute("viewBox", "0 0 100 34");
+    // The box is stretched to the column's width; strokes opt out of the
+    // stretch (vector-effect, in the stylesheet) so a hairline stays hair.
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("aria-hidden", "true");
+
+    const n = samples.length;
+    if (n === 0) return svg;
+    const peak = Math.max(0.02, ...samples.map((s) => s.level));
+    const px = (i: number): number => (n === 1 ? 0 : (i / (n - 1)) * 100);
+    const py = (level: number): number => 30 - clamp01(level / peak) * 26;
+    const points = samples.map((s, i) => `${px(i).toFixed(2)},${py(s.level).toFixed(2)}`);
+
+    const area = document.createElementNS(NS, "polygon");
+    area.setAttribute("class", "part-spark-area");
+    area.setAttribute("points", `0,30 ${points.join(" ")} 100,30`);
+    svg.append(area);
+
+    const line = document.createElementNS(NS, "polyline");
+    line.setAttribute("class", "part-spark-line");
+    line.setAttribute("points", points.join(" "));
+    svg.append(line);
+
+    // The newest edge, the source card's own NOW hairline: nothing is ever
+    // drawn to the right of it, because there is nothing there.
+    const edge = document.createElementNS(NS, "line");
+    edge.setAttribute("class", "part-spark-edge");
+    edge.setAttribute("x1", "100");
+    edge.setAttribute("x2", "100");
+    edge.setAttribute("y1", "3");
+    edge.setAttribute("y2", "31");
+    svg.append(edge);
+
+    return svg;
+  }
+
+  // ── The composer (A2.6) ──────────────────────────────────────────────
+  //
+  // THE COMPOSER IS A PREVIEW. You never fill a field; you watch the
+  // transmission assemble in the form the other side will read it, and the
+  // controls are underneath it. There is no text input anywhere on this
+  // surface and the phone keyboard never opens: the client sends SELECTORS,
+  // and every string that will reach the counterpart is written by the
+  // server out of the sender's own state.
+  //
+  // The preview's blocks come off the SAME renderers a received signal uses
+  // (buildPartBlock, above), fed by a client-side reading of the player's own
+  // studies, sky and seed — all of which are already on this client's wire.
+
+  /** The thread this composer is composing into, or null. */
+  private currentThreadDetail(): ThreadDetail | null {
+    const starId = this.threadStarId;
+    const detail = this.contact?.openThread ?? null;
+    if (starId === null || detail === null || detail.starId !== starId) return null;
+    return detail;
+  }
+
+  /**
+   * The foot of the thread: the one pill that opens the composer, or the
+   * reason there is not one.
    *
    * `canSpeak` is false for two different reasons and they read differently.
-   * If nothing of yours is in the thread at all, they spoke first: the way
-   * to answer is to aim a beam, which is the choice ceremony at its usual
-   * price, and that beat is the best one in the stage. If your own signals
-   * ARE in the thread, it is simply full, and there is nowhere to route to.
+   * If nothing of yours is in the thread at all, they spoke first: the way to
+   * answer is to aim a beam, which is the choice ceremony at its usual price.
+   * If your own signals ARE in the thread, it is simply full.
    */
-  private buildComposer(
-    detail: ThreadDetail,
-    restore: { readonly caret: number | null } | null,
-  ): HTMLElement {
+  private buildComposerFoot(detail: ThreadDetail): HTMLElement {
+    if (this.floorNotice) {
+      // THE TURNAROUND FLOOR. One flat line and no countdown: the floor is
+      // identical on every thread, and a number here would be a reading of
+      // how recently their beam landed.
+      const wrap = document.createElement("div");
+      wrap.className = "thread-closed";
+      const line = document.createElement("div");
+      line.className = "thread-closed-line";
+      line.textContent = TURNAROUND_FLOOR_LINE;
+      wrap.append(line);
+      return wrap;
+    }
+
     if (!detail.canSpeak) return this.buildClosedComposer(detail);
 
     const wrap = document.createElement("div");
     wrap.className = "thread-composer";
-
-    const input = document.createElement("textarea");
-    input.className = "thread-composer-input";
-    input.rows = 2;
-    input.maxLength = MAX_SIGNAL_LEN;
-    // A signal is one paragraph, so the phone's return key sends it.
-    input.setAttribute("enterkeyhint", "send");
-    input.placeholder = "What you want them to hear.";
-    input.value = this.composerDraft;
-
-    const foot = document.createElement("div");
-    foot.className = "thread-composer-foot";
-
-    const remaining = document.createElement("div");
-    remaining.className = "thread-composer-remaining holos-caps study-tabular";
-
-    const send = document.createElement("button");
-    send.type = "button";
-    send.className = "thread-send holos-caps";
-    send.textContent = "SEND";
-    send.addEventListener("click", () => this.sendSignal());
-
-    foot.append(remaining, send);
-    wrap.append(input, foot);
-
-    this.composerEls = { input, remaining, send };
-
-    input.addEventListener("input", () => {
-      this.composerDraft = input.value;
-      this.composerCaret = input.selectionStart;
-      this.refreshComposer();
-    });
-    input.addEventListener("keydown", (e) => {
-      if (e.key !== "Enter") return;
-      // An IME is mid-word: Enter is committing a candidate, not sending.
-      if (e.isComposing) return;
-      // NEWLINE SUPPRESSION. Non-authoritative by design —
-      // sanitizeSignalText collapses every whitespace run on the server, so
-      // a paste with newlines in it still arrives as one paragraph.
-      e.preventDefault();
-      this.sendSignal();
-    });
-    input.addEventListener("focus", () => {
-      this.composerFocused = true;
-      this.trackKeyboard(true);
-    });
-    input.addEventListener("blur", () => {
-      this.composerFocused = false;
-      this.trackKeyboard(false);
-    });
-
-    this.refreshComposer();
-
-    if (restore !== null) {
-      // One frame later: the body is still being assembled right now (the
-      // hubScrollToVoice precedent).
-      requestAnimationFrame(() => {
-        if (!input.isConnected) return;
-        input.focus({ preventScroll: true });
-        const caret = restore.caret ?? input.value.length;
-        input.setSelectionRange(caret, caret);
-      });
-    }
-
+    const pill = document.createElement("button");
+    pill.type = "button";
+    pill.className = "thread-compose-pill holos-caps";
+    pill.textContent =
+      this.composerParts.length === 0
+        ? "COMPOSE"
+        : `COMPOSE · ${this.composerParts.length} OF ${MAX_PARTS_PER_SIGNAL}`;
+    pill.addEventListener("click", () => this.openComposer());
+    wrap.append(pill);
     return wrap;
   }
 
@@ -3285,74 +4042,808 @@ export class StudyBoard {
     return wrap;
   }
 
-  /** The composer's two live readings, updated per keystroke rather than by
-   *  a re-render (refreshHubBudget's reason, with a keyboard up). */
-  private refreshComposer(): void {
-    const els = this.composerEls;
-    if (els === null) return;
-    // Code points, not UTF-16 units — MAX_SIGNAL_LEN is counted the same way
-    // by the function that will actually judge this text.
-    const left = MAX_SIGNAL_LEN - [...els.input.value].length;
-    els.remaining.textContent = `${left} LEFT`;
-    els.remaining.hidden = left >= SIGNAL_REMAINING_VISIBLE;
-    els.send.disabled =
-      this.pendingSignalText !== null || sanitizeSignalText(els.input.value) === null;
+  private openComposer(): void {
+    if (this.composerSheet !== null) return;
+    const el = document.createElement("div");
+    el.className = "composer-sheet";
+    // A child of the SHEET, not of the body: the thread underneath rebuilds
+    // itself on every sky, and the composer must not be torn down by that.
+    this.sheet.append(el);
+    this.composerSheet = el;
+    this.composerOpen = true;
+    this.composerPicker = null;
+    this.composerExpanded = null;
+    const detail = this.currentThreadDetail();
+    if (detail !== null) this.renderComposerSheet(detail);
   }
 
-  private sendSignal(): void {
-    const els = this.composerEls;
-    const starId = this.threadStarId;
-    if (els === null || starId === null || this.pendingSignalText !== null) return;
-    // The pre-check is NEVER authoritative: the server runs the same pure
-    // function again and answers a refusal with `signal-rejected`. This only
-    // keeps a send that could not land from leaving at all.
-    const text = sanitizeSignalText(els.input.value);
-    if (text === null) return;
-    this.pendingSignalText = els.input.value;
-    this.composerDraft = "";
-    this.composerCaret = null;
-    // A2.6 RETIRED FREEFORM. The wire now carries a tone and a list of
-    // SELECTORS, and the server materializes every part from the sender's own
-    // state; there is no `text` field and no way to add one. This call site is
-    // the server slice's minimum keep-it-compiling seam and sends a CARRIER (a
-    // beam with nothing on it, which is a legal and ordinary signal). The
-    // A2.6 composer — source chips, tone chips, the receive-rendering preview
-    // — lands with the client slice and replaces this whole panel.
-    this.socket.send({ type: "sendSignal", starId, tone: "plain", parts: [] });
-    // The confirming sky carries the act; until it does the box is empty and
-    // the pill is inert. No optimistic signal is ever drawn: the thread shows
-    // what the server recorded and nothing else.
-    els.input.value = "";
+  private closeComposer(): void {
+    this.composerSheet?.remove();
+    this.composerSheet = null;
+    this.composerOpen = false;
+    this.composerPicker = null;
+    this.composerExpanded = null;
+  }
+
+  /** Re-renders the thread (for the foot's count) and, with it, the composer
+   *  overlay. One entry point, so no caller has to know which of the two a
+   *  given tap changed. */
+  private refreshComposer(): void {
+    if (this.view === "thread") this.renderThread();
+  }
+
+  private renderComposerSheet(detail: ThreadDetail): void {
+    const el = this.composerSheet;
+    if (el === null) return;
+    el.innerHTML = "";
+
+    const bar = document.createElement("div");
+    bar.className = "composer-bar";
+
+    const picker = this.composerPicker;
+    const title = document.createElement("div");
+    title.className = "composer-bar-title holos-caps";
+
+    if (picker === null) {
+      title.textContent = "AS THEY WILL READ IT";
+      const close = document.createElement("button");
+      close.type = "button";
+      close.className = "composer-bar-btn holos-caps";
+      close.setAttribute("aria-label", "Close the composer");
+      close.textContent = "✕";
+      close.addEventListener("click", () => this.refreshComposerAfter(() => this.closeComposer()));
+      bar.append(title, close);
+      el.append(bar);
+      el.append(this.buildComposerPreview());
+      el.append(this.buildComposerControls(detail));
+      return;
+    }
+
+    title.textContent = SOURCE_CHIP[picker];
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "composer-bar-btn holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => {
+      this.composerPicker = null;
+      this.composerExpanded = null;
+      this.renderComposerSheet(detail);
+    });
+    bar.append(back, title);
+    el.append(bar);
+    el.append(this.buildPicker(picker, detail));
+  }
+
+  /** Runs a mutation that may take the sheet down, then refreshes whatever
+   *  is left standing. */
+  private refreshComposerAfter(mutate: () => void): void {
+    mutate();
     this.refreshComposer();
   }
 
   /**
-   * KEYBOARD OCCLUSION. The sheet is pinned to the bottom of the LAYOUT
-   * viewport, which an on-screen keyboard does not shrink; visualViewport is
-   * the one that does. While the composer holds focus the sheet's bottom is
-   * lifted by however much of it the keyboard is covering, and the moment
-   * focus leaves, the inset goes back to nothing and the listeners come off.
+   * The top two thirds: the signal so far, in RECEIVE RENDERING. Same tone
+   * row, same instrument blocks, same ages. A tap or a swipe on a block takes
+   * it back off the beam.
    */
-  private readonly onViewportChange = (): void => {
-    const vv = window.visualViewport;
-    if (vv === null) return;
-    const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-    this.sheet.style.setProperty("--holos-keyboard-inset", `${Math.round(inset)}px`);
-  };
+  private buildComposerPreview(): HTMLDivElement {
+    const wrap = document.createElement("div");
+    wrap.className = "composer-preview";
 
-  private trackKeyboard(on: boolean): void {
-    const vv = window.visualViewport;
-    if (vv === null) return;
-    if (on) {
-      // addEventListener with the same bound function is idempotent, so a
-      // second focus costs nothing.
-      vv.addEventListener("resize", this.onViewportChange);
-      vv.addEventListener("scroll", this.onViewportChange);
-      this.onViewportChange();
-    } else {
-      vv.removeEventListener("resize", this.onViewportChange);
-      vv.removeEventListener("scroll", this.onViewportChange);
-      this.sheet.style.removeProperty("--holos-keyboard-inset");
+    const toneLine = TONE_STAMP[this.composerTone];
+    if (toneLine !== null) {
+      const row = document.createElement("div");
+      row.className = "thread-tone holos-caps";
+      row.textContent = toneLine;
+      wrap.append(row);
+    }
+
+    const parts = this.previewParts();
+    if (parts.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "composer-empty";
+      // A carrier is a real utterance, so the empty state names it rather
+      // than scolding: a beam with nothing on it still arrives, dated.
+      empty.textContent =
+        "Nothing on the beam yet. Sent as it stands, it is a carrier: a beam with nothing on it, arriving dated.";
+      wrap.append(empty);
+      return wrap;
+    }
+
+    const starId = this.threadStarId;
+    const distance =
+      starId === null ? null : (this.sourcesByStarId.get(starId)?.distanceLy ?? null);
+    const ctx: PartContext = {
+      mine: true,
+      transitYears: distance ?? 0,
+      arrivesYear: nowYear() + (distance ?? 0),
+      // Never landed: this is a preview of a reading somebody else will take,
+      // so every age on it is stated as it will stand ON ARRIVAL.
+      landed: false,
+    };
+
+    for (const entry of parts) {
+      const slot = document.createElement("div");
+      slot.className = "composer-slot";
+      slot.append(this.buildPartBlock(entry.part, ctx));
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "composer-slot-remove holos-caps";
+      remove.textContent = "TAKE IT OFF";
+      remove.addEventListener("click", () => this.removePart(entry.index));
+      slot.append(remove);
+
+      this.attachSwipeRemove(slot, () => this.removePart(entry.index));
+      wrap.append(slot);
+    }
+
+    return wrap;
+  }
+
+  /** Swipe a slot aside to take it off the beam — the sheet's own dismissal
+   *  gesture, sideways. `pan-y` in the stylesheet keeps the column scrolling
+   *  under a vertical thumb, so only a sideways drag ever reaches this. */
+  private attachSwipeRemove(el: HTMLElement, onRemove: () => void): void {
+    let startX: number | null = null;
+    let dx = 0;
+    el.addEventListener("pointerdown", (e) => {
+      if (!e.isPrimary) return;
+      startX = e.clientX;
+      dx = 0;
+    });
+    el.addEventListener("pointermove", (e) => {
+      if (startX === null) return;
+      dx = e.clientX - startX;
+      el.style.transform = `translateX(${dx}px)`;
+      el.style.opacity = `${Math.max(0.25, 1 - Math.abs(dx) / 220)}`;
+    });
+    const end = (): void => {
+      if (startX === null) return;
+      const travelled = dx;
+      startX = null;
+      dx = 0;
+      el.style.transform = "";
+      el.style.opacity = "";
+      if (Math.abs(travelled) > SWIPE_CLOSE_PX) onRemove();
+    };
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+  }
+
+  /** The bottom third: the source chips, the five tones, and the send. */
+  private buildComposerControls(detail: ThreadDetail): HTMLDivElement {
+    const wrap = document.createElement("div");
+    wrap.className = "composer-controls";
+
+    // The four slots, filling left to right. The blocks above are the real
+    // reading; this is the count at a glance, so a thumb knows how much beam
+    // is left without counting instrument blocks.
+    const slots = document.createElement("div");
+    slots.className = "composer-slots";
+    for (let i = 0; i < MAX_PARTS_PER_SIGNAL; i++) {
+      const cell = document.createElement("div");
+      cell.className =
+        i < this.composerParts.length ? "composer-slot-mark composer-slot-mark--on" : "composer-slot-mark";
+      slots.append(cell);
+    }
+    wrap.append(slots);
+
+    const sources = document.createElement("div");
+    sources.className = "composer-chips";
+    for (const kind of SOURCE_CHIP_ORDER) {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "composer-chip holos-caps";
+      chip.textContent = SOURCE_CHIP[kind];
+      if (this.chipAvailable(kind, detail)) {
+        chip.addEventListener("click", () => {
+          this.composerPicker = kind;
+          this.composerExpanded = null;
+          this.renderComposerSheet(detail);
+        });
+      } else {
+        chip.disabled = true;
+      }
+      sources.append(chip);
+    }
+    wrap.append(sources);
+
+    const tones = document.createElement("div");
+    tones.className = "composer-chips composer-chips--tone";
+    for (const tone of TONE_ORDER) {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className =
+        tone === this.composerTone
+          ? "composer-chip composer-chip--on holos-caps"
+          : "composer-chip holos-caps";
+      chip.textContent = TONE_CHIP[tone];
+      chip.addEventListener("click", () => {
+        this.composerTone = tone;
+        this.renderComposerSheet(detail);
+      });
+      tones.append(chip);
+    }
+    wrap.append(tones);
+
+    wrap.append(this.buildSendRow());
+    return wrap;
+  }
+
+  /**
+   * SEND STATES THE PHYSICS. Not "sent" and not a delivery promise: the year
+   * it lands and how long that is in real time, which is the only thing about
+   * this beam anybody will ever be able to check.
+   */
+  private buildSendRow(): HTMLDivElement {
+    const row = document.createElement("div");
+    row.className = "composer-send-row";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "composer-send";
+    btn.disabled = this.pendingSignal;
+
+    const verb = document.createElement("span");
+    verb.className = "composer-send-verb holos-caps";
+    verb.textContent = this.composerParts.length === 0 ? "SEND A CARRIER" : "SEND";
+    btn.append(verb);
+
+    const starId = this.threadStarId;
+    const distance =
+      starId === null ? null : (this.sourcesByStarId.get(starId)?.distanceLy ?? null);
+    if (distance !== null) {
+      const physics = document.createElement("span");
+      physics.className = "composer-send-physics holos-caps study-tabular";
+      const text = (): string =>
+        `ARRIVES IN ${formatRealDuration(realMsForYears(distance))} · ${distance.toFixed(1)} y`;
+      physics.textContent = text();
+      this.liveClocks.push({ el: physics, text });
+      btn.append(physics);
+    }
+
+    btn.addEventListener("click", () => this.sendComposed());
+    row.append(btn);
+    return row;
+  }
+
+  private sendComposed(): void {
+    const starId = this.threadStarId;
+    if (starId === null || this.pendingSignal) return;
+    this.pendingSignal = true;
+    // SELECTORS, NEVER CONTENT. There is no `text` field on this message and
+    // no way to add one: the server materializes every part from the sender's
+    // own state, so nothing a player authored crosses to another player.
+    this.socket.send({
+      type: "sendSignal",
+      starId,
+      tone: this.composerTone,
+      parts: this.composerParts,
+    });
+    // The confirming sky carries the act and closes the composer on it (see
+    // update()). No optimistic signal is ever drawn: the thread shows what
+    // the server recorded and nothing else.
+    this.refreshComposer();
+  }
+
+  // ── The composer's pickers ───────────────────────────────────────────
+  //
+  // Each one lists the player's OWN eligible items, and eligibility here is
+  // the client's reading of the same state the server will materialize
+  // against. It is a PRE-CHECK and never authoritative: a selector that has
+  // gone stale between the render and the tap comes back `part-unavailable`
+  // and costs the tap.
+
+  private addPart(ref: PartRef): void {
+    if (this.composerParts.length >= MAX_PARTS_PER_SIGNAL) return;
+    const used = this.composerParts.filter((p) => p.kind === ref.kind).length;
+    if (used >= PER_KIND_CAP[ref.kind]) return;
+    this.composerParts = [...this.composerParts, ref];
+    this.composerPicker = null;
+    this.composerExpanded = null;
+    this.refreshComposer();
+  }
+
+  private removePart(index: number): void {
+    this.composerParts = this.composerParts.filter((_, i) => i !== index);
+    this.refreshComposer();
+  }
+
+  /** Whether a source chip has anywhere to go: room on the beam, room under
+   *  the per-kind cap, and at least one eligible item behind it. */
+  private chipAvailable(kind: PartKind, detail: ThreadDetail): boolean {
+    if (this.composerParts.length >= MAX_PARTS_PER_SIGNAL) return false;
+    const used = this.composerParts.filter((p) => p.kind === kind).length;
+    if (used >= PER_KIND_CAP[kind]) return false;
+    switch (kind) {
+      case "finding":
+        return this.calledStudies().length > 0;
+      case "sighting":
+        return this.sourcesByStarId.size > 0;
+      case "archive":
+        return this.archiveSubjects().length > 0;
+      case "culture":
+        return this.self !== null;
+      case "request":
+        return true;
+      case "verdict":
+        return this.verdictTargets(detail).length > 0;
+      case "accord": {
+        const a = detail.accord;
+        return a.canOffer || a.canAccept || a.canDecline || a.canWithdraw;
+      }
+    }
+  }
+
+  /** Studies that froze a belief when the player called them. A grounded
+   *  study settled from the ground and froze nothing, so it has no finding to
+   *  send — signalparts.ts's own rule, read from this side. */
+  private calledStudies(): readonly StudySnapshot[] {
+    const out: StudySnapshot[] = [];
+    for (const s of this.studiesByStarId.values()) {
+      if (s.status === "called" && s.call !== null) out.push(s);
+    }
+    return out;
+  }
+
+  /** Whose light record can be sent: the player's own home always (the
+   *  self-disclosure handshake), plus any source they hold a study on. */
+  private archiveSubjects(): readonly { readonly starId: string; readonly ofSelf: boolean }[] {
+    const out: { readonly starId: string; readonly ofSelf: boolean }[] = [];
+    const self = this.self;
+    if (self !== null) out.push({ starId: self.starId, ofSelf: true });
+    for (const s of this.studiesByStarId.values()) {
+      if (this.sourcesByStarId.has(s.starId)) out.push({ starId: s.starId, ofSelf: false });
+    }
+    return out;
+  }
+
+  /** Parts of THEIR delivered signals a verdict could answer. Only theirs: a
+   *  verdict on your own part says nothing, and the thread is the only place
+   *  a reference resolves at all. */
+  private verdictTargets(
+    detail: ThreadDetail,
+  ): readonly { readonly signalId: string; readonly partIndex: number; readonly part: SignalPart }[] {
+    const out: { readonly signalId: string; readonly partIndex: number; readonly part: SignalPart }[] =
+      [];
+    for (const s of detail.signals) {
+      if (s.from !== "them") continue;
+      for (const [partIndex, part] of s.parts.entries()) {
+        out.push({ signalId: s.id, partIndex, part });
+      }
+    }
+    return out;
+  }
+
+  private buildPicker(kind: PartKind, detail: ThreadDetail): HTMLDivElement {
+    const list = document.createElement("div");
+    list.className = "composer-picker";
+    switch (kind) {
+      case "finding":
+        this.fillFindingPicker(list, detail);
+        break;
+      case "sighting":
+        this.fillSightingPicker(list);
+        break;
+      case "archive":
+        this.fillArchivePicker(list, detail);
+        break;
+      case "culture":
+        this.fillCulturePicker(list);
+        break;
+      case "request":
+        this.fillRequestPicker(list, detail);
+        break;
+      case "verdict":
+        this.fillVerdictPicker(list, detail);
+        break;
+      case "accord":
+        this.fillAccordPicker(list, detail);
+        break;
+    }
+    return list;
+  }
+
+  /** One row in a composer picker: a title, a quiet second line, and a tap. */
+  private buildComposerRow(title: string, sub: string, onTap: () => void): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "composer-row";
+    const t = document.createElement("div");
+    t.className = "composer-row-title";
+    t.textContent = title;
+    const s = document.createElement("div");
+    s.className = "composer-row-sub holos-caps";
+    s.textContent = sub;
+    btn.append(t, s);
+    btn.addEventListener("click", onTap);
+    return btn;
+  }
+
+  /** A row that opens into a chip strip rather than adding straight away —
+   *  the two-step selections (a finding's depth, an archive's window, a
+   *  verdict's stance), where the second tap is the choice that matters. */
+  private appendExpander(
+    list: HTMLDivElement,
+    key: string,
+    title: string,
+    sub: string,
+    detail: ThreadDetail,
+    chips: readonly { readonly label: string; readonly onTap: () => void }[],
+  ): void {
+    list.append(
+      this.buildComposerRow(title, sub, () => {
+        this.composerExpanded = this.composerExpanded === key ? null : key;
+        this.renderComposerSheet(detail);
+      }),
+    );
+    if (this.composerExpanded !== key) return;
+    const strip = document.createElement("div");
+    strip.className = "composer-chips composer-chips--inline";
+    for (const chip of chips) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "composer-chip holos-caps";
+      btn.textContent = chip.label;
+      btn.addEventListener("click", chip.onTap);
+      strip.append(btn);
+    }
+    list.append(strip);
+  }
+
+  private fillFindingPicker(list: HTMLDivElement, detail: ThreadDetail): void {
+    for (const study of this.calledStudies()) {
+      const call = study.call;
+      if (call === null) continue;
+      this.appendExpander(
+        list,
+        `finding:${study.starId}`,
+        call.label,
+        `${this.partSubject(study.starId)} · ${Math.round(call.share * 100)}% · CALLED ${formatAbsoluteYear(call.calledYear)}`,
+        detail,
+        [
+          {
+            label: FINDING_DEPTH_CHIP.full,
+            onTap: () => this.addPart({ kind: "finding", starId: study.starId, depth: "full" }),
+          },
+          {
+            label: FINDING_DEPTH_CHIP.headline,
+            onTap: () =>
+              this.addPart({ kind: "finding", starId: study.starId, depth: "headline" }),
+          },
+        ],
+      );
+    }
+  }
+
+  private fillSightingPicker(list: HTMLDivElement): void {
+    // THE ONE RESTRAINT ON COORDINATES: only a star in the player's OWN
+    // visible sky can be named, which is exactly what `sources` is. A
+    // civilization nobody can see is unleakable.
+    for (const source of this.sourcesByStarId.values()) {
+      list.append(
+        this.buildComposerRow(
+          this.partSubject(source.starId),
+          `${CLASS_LABEL[source.signal.classification]} · AS OF ${formatArchiveAge(source.lightAgeYears)} Y AGO`,
+          () => this.addPart({ kind: "sighting", starId: source.starId }),
+        ),
+      );
+    }
+  }
+
+  private fillArchivePicker(list: HTMLDivElement, detail: ThreadDetail): void {
+    for (const subject of this.archiveSubjects()) {
+      const windows: readonly ArchiveWindow[] = ["recent", "long"];
+      this.appendExpander(
+        list,
+        `archive:${subject.starId}`,
+        subject.ofSelf ? "Our own light" : this.partSubject(subject.starId),
+        subject.ofSelf ? "THE RECORD OF OUR OWN EMISSION" : "THE RECORD AS WE HOLD IT",
+        detail,
+        windows.map((window) => ({
+          label: ARCHIVE_WINDOW_CHIP[window],
+          onTap: () => this.addPart({ kind: "archive", starId: subject.starId, window }),
+        })),
+      );
+    }
+  }
+
+  private fillCulturePicker(list: HTMLDivElement): void {
+    const self = this.self;
+    if (self === null) return;
+    list.append(
+      this.buildComposerRow(self.seed.charter, "OUR CHARTER", () =>
+        this.addPart({ kind: "culture", source: "charter", index: 0 }),
+      ),
+    );
+    for (const [index, line] of self.seed.chronicle.entries()) {
+      list.append(
+        this.buildComposerRow(line, "FROM OUR CHRONICLE", () =>
+          this.addPart({ kind: "culture", source: "chronicle", index }),
+        ),
+      );
+    }
+    for (const [index, axis] of DIAL_AXES.entries()) {
+      const setting = self.seed.dials[axis.id];
+      const leaning = setting.position < 0 ? axis.left : axis.right;
+      list.append(
+        this.buildComposerRow(leaning.gloss, `OUR DIAL · ${leaning.inWorld}`, () =>
+          this.addPart({ kind: "culture", source: "dial", index }),
+        ),
+      );
+    }
+  }
+
+  /** Two steps in one panel: WHAT is wanted, then WHO it is about. A request
+   *  about nobody in particular is legal and is the common case. */
+  private fillRequestPicker(list: HTMLDivElement, detail: ThreadDetail): void {
+    const wants = document.createElement("div");
+    wants.className = "composer-chips composer-chips--inline";
+    for (const want of WANT_ORDER) {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className =
+        want === this.composerWant
+          ? "composer-chip composer-chip--on holos-caps"
+          : "composer-chip holos-caps";
+      chip.textContent = WANT_CHIP[want];
+      chip.addEventListener("click", () => {
+        this.composerWant = want;
+        this.renderComposerSheet(detail);
+      });
+      wants.append(chip);
+    }
+    list.append(wants);
+
+    list.append(
+      this.buildComposerRow("Anybody at all", "ABOUT NOBODY IN PARTICULAR", () =>
+        this.addPart({ kind: "request", want: this.composerWant, starId: null }),
+      ),
+    );
+    for (const source of this.sourcesByStarId.values()) {
+      list.append(
+        this.buildComposerRow(
+          this.partSubject(source.starId),
+          CLASS_LABEL[source.signal.classification],
+          () =>
+            this.addPart({
+              kind: "request",
+              want: this.composerWant,
+              starId: source.starId,
+            }),
+        ),
+      );
+    }
+  }
+
+  private fillVerdictPicker(list: HTMLDivElement, detail: ThreadDetail): void {
+    for (const target of this.verdictTargets(detail)) {
+      const key = `verdict:${target.signalId}:${target.partIndex}`;
+      this.appendExpander(
+        list,
+        key,
+        this.partHeadText(target.part, false),
+        `${target.signalId.toUpperCase()} · PART ${target.partIndex + 1}`,
+        detail,
+        STANCE_ORDER.map((stance) => ({
+          label: STANCE_CHIP[stance],
+          onTap: () =>
+            this.addPart({
+              kind: "verdict",
+              signalId: target.signalId,
+              partIndex: target.partIndex,
+              stance,
+            }),
+        })),
+      );
+    }
+  }
+
+  /**
+   * The mutual quiet's moves, and only the ones this side may actually make:
+   * the rail's four flags come off the same predicate the materializer
+   * refuses on, so a chip shown here is a chip the server will accept.
+   */
+  private fillAccordPicker(list: HTMLDivElement, detail: ThreadDetail): void {
+    const rail = detail.accord;
+    const moves: readonly { readonly move: AccordMove; readonly open: boolean; readonly sub: string }[] =
+      [
+        {
+          move: "offer",
+          open: rail.canOffer,
+          sub: "NEITHER OF US SHINES AT THE OTHER. ONE OFFER, EVER",
+        },
+        { move: "accept", open: rail.canAccept, sub: "THEY WILL NOT KNOW UNTIL IT REACHES THEM" },
+        { move: "decline", open: rail.canDecline, sub: "THE OFFER CLOSES" },
+        { move: "withdraw", open: rail.canWithdraw, sub: "THE HONEST EXIT, WHILE THERE IS BUDGET FOR ONE" },
+      ];
+    for (const entry of moves) {
+      if (!entry.open) continue;
+      list.append(
+        this.buildComposerRow(ACCORD_MOVE_CHIP[entry.move], entry.sub, () =>
+          // `ref` is null on every move: accept and decline answer the one
+          // offer that landed, and the server derives which that is. Naming
+          // it from here would only be a way to name it wrong.
+          this.addPart({ kind: "accord", move: entry.move, ref: null }),
+        ),
+      );
+    }
+  }
+
+  // ── The preview's materializer ───────────────────────────────────────
+  //
+  // The server materializes every part that actually travels; this is the
+  // client's reading of the SAME state, so the preview is the thing that will
+  // land rather than a mock-up of it. Every field below comes off this
+  // client's own wire — its studies, its sky, its own seed — and there is no
+  // arm here that could invent one, because there is nothing to invent it
+  // from. If a selector has gone stale the preview simply drops it, and the
+  // server answers the send the same way.
+
+  private previewParts(): readonly { readonly part: SignalPart; readonly index: number }[] {
+    const out: { readonly part: SignalPart; readonly index: number }[] = [];
+    for (const [index, ref] of this.composerParts.entries()) {
+      const part = this.previewPart(ref);
+      if (part !== null) out.push({ part, index });
+    }
+    // Canonical order, imposed server-side at materialization — the preview
+    // stands them in the same order so the composition a player reads is the
+    // one the counterpart will.
+    return out
+      .slice()
+      .sort((a, b) => PART_ORDER.indexOf(a.part.kind) - PART_ORDER.indexOf(b.part.kind));
+  }
+
+  /**
+   * The target year a frozen call speaks to. The server keeps it on the
+   * stored call (`calledYear − distance`) but the WIRE carries the call's
+   * CURRENT age instead, so the preview reconstructs it: from the distance
+   * when the source is still visible, which is the server's own definition
+   * and exact; otherwise from the age, which drifts by however long ago that
+   * snapshot was taken and is a year or two at worst.
+   */
+  private callAsOfYear(starId: string, calledYear: number, lightAgeYears: number): number {
+    const distance = this.sourcesByStarId.get(starId)?.distanceLy;
+    if (distance !== undefined) return calledYear - distance;
+    return nowYear() - lightAgeYears;
+  }
+
+  private previewPart(ref: PartRef): SignalPart | null {
+    switch (ref.kind) {
+      case "finding": {
+        const study = this.studiesByStarId.get(ref.starId);
+        const call = study?.call ?? null;
+        if (study === undefined || call === null) return null;
+        const evidence =
+          ref.depth === "headline"
+            ? []
+            : study.openQuestions
+                .filter((q) => q.boughtYear !== null && q.boughtYear <= call.calledYear)
+                .slice(0, MAX_EVIDENCE_PER_FINDING)
+                .map((q) => q.id);
+        return {
+          kind: "finding",
+          subjectStarId: study.starId,
+          hypothesisId: call.hypothesisId as HypothesisId,
+          label: call.label,
+          gloss: call.gloss,
+          share: call.share,
+          basis: "called",
+          asOfYear: this.callAsOfYear(study.starId, call.calledYear, call.lightAgeYears),
+          calledYear: call.calledYear,
+          evidence,
+        };
+      }
+      case "sighting": {
+        const source = this.sourcesByStarId.get(ref.starId);
+        if (source === undefined) return null;
+        return {
+          kind: "sighting",
+          subjectStarId: source.starId,
+          signalClass: source.signal.classification,
+          asOfYear: source.asOfYear,
+        };
+      }
+      case "archive": {
+        const span = ARCHIVE_WINDOW_YEARS[ref.window];
+        const self = this.self;
+        if (self !== null && self.starId === ref.starId) {
+          // Our own history, sampled at years at or before now: a dark turn
+          // that has not happened yet cannot be sampled and cannot leak.
+          const toYear = nowYear();
+          return {
+            kind: "archive",
+            subjectStarId: ref.starId,
+            ofSelf: true,
+            fromYear: toYear - span,
+            toYear,
+            samples: sampleWindow(self.seed.emissionHistory, toYear - span, toYear),
+          };
+        }
+        const source = this.sourcesByStarId.get(ref.starId);
+        if (source === undefined) return null;
+        // A third party's OBSERVED history, already clipped at the light
+        // departure year by the knowledge layer before it reached this client.
+        const toYear = source.asOfYear;
+        return {
+          kind: "archive",
+          subjectStarId: ref.starId,
+          ofSelf: false,
+          fromYear: toYear - span,
+          toYear,
+          samples: sampleWindow(source.signal.lightHistory, toYear - span, toYear),
+        };
+      }
+      case "culture": {
+        const self = this.self;
+        if (self === null) return null;
+        if (ref.source === "charter") {
+          return {
+            kind: "culture",
+            source: "charter",
+            index: 0,
+            axis: null,
+            pole: null,
+            text: self.seed.charter,
+          };
+        }
+        if (ref.source === "chronicle") {
+          const line = self.seed.chronicle[ref.index];
+          if (line === undefined) return null;
+          return {
+            kind: "culture",
+            source: "chronicle",
+            index: ref.index,
+            axis: null,
+            pole: null,
+            text: line,
+          };
+        }
+        const axis = DIAL_AXES[ref.index];
+        if (axis === undefined) return null;
+        const leaning = self.seed.dials[axis.id].position < 0 ? axis.left : axis.right;
+        return {
+          kind: "culture",
+          source: "dial",
+          index: ref.index,
+          axis: axis.id,
+          pole: leaning.inWorld,
+          text: leaning.gloss,
+        };
+      }
+      case "request":
+        return { kind: "request", want: ref.want, subjectStarId: ref.starId };
+      case "verdict":
+        return {
+          kind: "verdict",
+          signalId: ref.signalId,
+          partIndex: ref.partIndex,
+          stance: ref.stance,
+        };
+      case "accord":
+        return { kind: "accord", form: "mutual-quiet", move: ref.move, ref: ref.ref };
+    }
+  }
+
+  // ── The turnaround floor ─────────────────────────────────────────────
+
+  private raiseFloorNotice(): void {
+    this.floorNotice = true;
+    this.closeComposer();
+    if (this.floorNoticeHandle !== null) window.clearTimeout(this.floorNoticeHandle);
+    this.floorNoticeHandle = window.setTimeout(() => {
+      this.floorNoticeHandle = null;
+      this.floorNotice = false;
+      if (this.view === "thread") this.renderThread();
+    }, TURNAROUND_NOTICE_MS);
+  }
+
+  private clearFloorNotice(): void {
+    this.floorNotice = false;
+    if (this.floorNoticeHandle !== null) {
+      window.clearTimeout(this.floorNoticeHandle);
+      this.floorNoticeHandle = null;
     }
   }
 

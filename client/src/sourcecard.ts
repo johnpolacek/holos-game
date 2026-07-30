@@ -25,12 +25,14 @@
 import {
   MAX_NAME_LEN,
   validateName,
+  type AccordRail,
   type StudyStatus,
   type CohortServerMessage,
   type DetectedSource,
   type EmissionEpoch,
   type SignalClass,
 } from "@holos/protocol";
+import { accordHeadline, accordLightLine } from "./accord";
 import { formatAbsoluteYear } from "./clock";
 import type { CohortSocket } from "./net";
 
@@ -114,6 +116,10 @@ export class SourceCard {
   private readonly studyBtn: HTMLButtonElement;
   private readonly missionBtn: HTMLButtonElement;
   private readonly contactBtn: HTMLButtonElement;
+  /** A2.6: the mutual quiet's rail, above the three affordance rows. Empty
+   *  and hidden whenever no understanding stands with this source, which is
+   *  the common case. */
+  private readonly accordEl: HTMLDivElement;
 
   private onCloseCb: (() => void) | null = null;
   private onStudyActionCb: ((starId: string) => void) | null = null;
@@ -128,6 +134,7 @@ export class SourceCard {
   private studyStatus: StudyStatus | null = null;
   private missionState: MissionCardState | null = null;
   private contactState: ContactCardState = null;
+  private accord: AccordRail | null = null;
   private explainerEl: HTMLDivElement | null = null;
 
   private dragStartY: number | null = null;
@@ -261,12 +268,21 @@ export class SourceCard {
     });
     contactRow.append(this.contactBtn);
 
+    // A2.6: the compliance rail. It sits ABOVE the three verbs because it is
+    // a state of the relationship rather than something to do about it, and
+    // it is the same two lines the thread renders one surface over (accord.ts
+    // owns the chrome, so the two cannot drift).
+    this.accordEl = document.createElement("div");
+    this.accordEl.className = "source-card-accord";
+    this.accordEl.hidden = true;
+
     this.sheet.append(
       this.grabzone,
       header,
       hr,
       beliefRow,
       chartWrap,
+      this.accordEl,
       studyRow,
       missionRow,
       contactRow,
@@ -327,11 +343,13 @@ export class SourceCard {
     this.studyStatus = null;
     this.missionState = null;
     this.contactState = null;
+    this.accord = null;
     this.setExplainer(null); // a second source never inherits the first's note
     this.renderAll();
     this.renderStudyRow();
     this.renderMissionRow();
     this.renderContactRow();
+    this.renderAccord();
     this.root.classList.add("open");
   }
 
@@ -375,6 +393,14 @@ export class SourceCard {
     this.renderContactRow();
   }
 
+  /** A2.6: the mutual quiet standing with this source, or null for none. The
+   *  App reads it off the thread summary the sky already carries; this card
+   *  derives nothing and only renders (setContactState's contract). */
+  setAccord(rail: AccordRail | null): void {
+    this.accord = rail;
+    this.renderAccord();
+  }
+
   /** A later `sky` for the currently open source: refresh belief/age/chart.
    * Leaves an in-progress name edit untouched. */
   setSource(source: DetectedSource): void {
@@ -403,6 +429,7 @@ export class SourceCard {
     this.studyStatus = null;
     this.missionState = null;
     this.contactState = null;
+    this.accord = null;
   }
 
   /** Route sourceNamed/error while this card is open. `error` lacks a
@@ -519,6 +546,31 @@ export class SourceCard {
     this.contactBtn.textContent = "AIM A BEAM";
     this.contactBtn.className = "source-card-contact-affordance";
     this.contactBtn.disabled = false;
+  }
+
+  /** The rail: the headline, then what their light has done since, which is
+   *  a BELIEF ABOUT THE PAST and says its own age. Nothing here is a verb —
+   *  the moves are the thread's, because a move is a signal. */
+  private renderAccord(): void {
+    this.accordEl.innerHTML = "";
+    const rail = this.accord;
+    const head = rail === null ? null : accordHeadline(rail);
+    if (rail === null || head === null) {
+      this.accordEl.hidden = true;
+      return;
+    }
+    this.accordEl.hidden = false;
+    const headEl = document.createElement("div");
+    headEl.className = "source-card-accord-line holos-caps";
+    headEl.textContent = head;
+    this.accordEl.append(headEl);
+    const light = accordLightLine(rail);
+    if (light !== null) {
+      const lightEl = document.createElement("div");
+      lightEl.className = "source-card-accord-line source-card-accord-line--quiet holos-caps";
+      lightEl.textContent = light;
+      this.accordEl.append(lightEl);
+    }
   }
 
   private renderName(): void {
