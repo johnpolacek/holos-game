@@ -398,9 +398,15 @@ export function epochStamp(stampYear: number, ascensionYear: number): PinnedLine
 // --- Record sentences, one builder per report kind -------------------------
 //
 // House rules for every string in this block (R-32): observatory deadpan,
-// wit 0, PAST tense, 1–2 sentences, ≤ 34 words, colon for a reveal, spaced
-// em-dash for an aside, no exclamation mark, no §6 term, and none of the
-// epistolary vocabulary §8's comms register rules out.
+// wit 0, PAST tense, 1–2 sentences, ≤ 34 words, colon for a reveal, comma
+// for an aside, no exclamation mark, no §6 term, and none of the epistolary
+// vocabulary §8's comms register rules out.
+//
+// That aside rule used to read "spaced em-dash", and R-8 withdrew it. The
+// line is corrected here rather than left as history because it is an
+// INSTRUCTION: every record builder written after it is written against it,
+// and `npm run audit:dashes` reads string literals, not comments, so nothing
+// mechanical would ever have caught the drift.
 //
 // The light-age rule (R-33): a remote entry's light age AT ITS OWN STAMP
 // YEAR is exactly the distance, so these print `F.years(distanceLy)` and
@@ -1105,7 +1111,7 @@ export const RESISTANCE_LINES: ByArchetype<Readonly<Record<CeremonyKind, string>
     broadcast: "This will be kept forever, by us and by everyone it reaches. We have never made a record we could not close.",
   },
   cloister: {
-    hail: "A door for one visitor is still a door. We did not seal this system in order to put one back in.",
+    hail: "A door for one visitor is still a door. We did not seal this system to put one back in.",
     broadcast: "We have spent an age being difficult to find. You are asking us to undo that in an afternoon.",
   },
   shepherd: {
