@@ -55,12 +55,13 @@ export function readStoredToken(): string | null {
 /** The account key this device holds, if it has been claimed or signed into. */
 export function readStoredAccount(): string | null {
   return localStorage.getItem(ACCOUNT_KEY);
+}
 
 /** Forget who this browser is. The next `hello` mints a fresh identity, so
  *  the caller had better mean it — see startover.ts, the only caller. */
 export function clearStoredToken(): void {
   localStorage.removeItem(TOKEN_KEY);
-
+  localStorage.removeItem(ACCOUNT_KEY);
 }
 
 function storeToken(token: string): void {
