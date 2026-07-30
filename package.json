@@ -20,6 +20,7 @@
     "audit:voice": "node scripts/audit-voice.mjs",
     "audit:dashes": "node scripts/audit-dashes.mjs",
     "audit:parity": "node scripts/audit-parity.mjs",
+    "playtest:bots": "node scripts/playtest-bot.mjs",
     "eval:counsel": "node scripts/eval-counsel.mjs"
   },
   "devDependencies": {

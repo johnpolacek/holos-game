@@ -47,6 +47,13 @@ The dev client connects to `localhost:8787`; set `VITE_PARTYKIT_HOST` in
 `client/.env.local` (e.g. `<lan-ip>:8787`, with
 `wrangler dev --ip 0.0.0.0`) to test from phones on the same LAN.
 
+To playtest the multiplayer game **solo**, put headless players in the
+cohort beside you: `npm run playtest:bots -- --bots 2`. They speak the
+real player wire (`scripts/playtest-bot.mjs` — a dev tool, zero
+dependencies, never imported by shipped code), so they exercise what a
+second person would. The runbook, the dev time-skip and a
+thirty-minute session script are in `docs/playtest.md`.
+
 ## Tests / checks
 
 There is no test suite yet. The checks that must pass are:
