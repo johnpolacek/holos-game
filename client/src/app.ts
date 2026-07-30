@@ -30,7 +30,13 @@ import type {
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { StudyBoard } from "./studyboard";
-import { clearPendingBecome, hasPendingBecome, renderCeremony } from "./ceremony";
+import {
+  clearPendingBecome,
+  hasPendingBecome,
+  mountSignIn,
+  renderCeremony,
+  type SignInMount,
+} from "./ceremony";
 import { Model } from "./model";
 import { SourceCard, type ContactCardState, type MissionCardState } from "./sourcecard";
 import { setClockAnchor } from "./clock";
@@ -121,6 +127,19 @@ export class App {
   // whichever SourceCard is currently mounted.
   private readonly localNames = new Map<string, string>();
 
+  // ── A2.6: durable identity ────────────────────────────────────────────
+  // Whether THIS SEAT has an account, from the latest `welcome.account` —
+  // forwarded to the study board (its hub row's either/or) on every welcome
+  // and again the moment the board mounts, so its very first render already
+  // knows.
+  private hasAccount = false;
+  // The re-onboard sheet: a sibling overlay appended directly to `this.root`
+  // (the voicebeat.ts mold), NOT torn down by `mount()` — `token-claimed`
+  // can arrive before any screen has mounted at all (the very first hello
+  // on a dead token), so this cannot depend on a screen existing to sit on.
+  private reclaimRoot: HTMLDivElement | null = null;
+  private reclaimSignIn: SignInMount | null = null;
+
   constructor(root: HTMLElement, socket: CohortSocket) {
     this.root = root;
     this.socket = socket;
@@ -144,6 +163,12 @@ export class App {
         this.menus = message.menus;
         this.missionCatalog = message.missionCatalog;
         setClockAnchor(message.clock);
+        // A2.6: any welcome at all means the hello it answered was accepted
+        // — a fresh anonymous seat, a resumed one, or a successful sign-in —
+        // so whatever reclaim sheet was up has done its job.
+        this.hideReclaim();
+        this.hasAccount = message.account;
+        this.studyBoard?.setHasAccount(this.hasAccount);
         break;
       case "offer":
         this.showCeremony(message.candidates);
@@ -181,6 +206,12 @@ export class App {
         this.reportPayload = message.report;
         this.studyBoard?.setReport(message.report);
         break;
+      case "accountKey":
+        // A2.6: the ONLY message that carries a key. It only ever answers
+        // `claimAccount`/`showAccountKey`, both sent from the hub row, so the
+        // board is always mounted by the time this arrives.
+        this.studyBoard?.showAccountKey(message.key, message.fresh);
+        break;
       case "error":
         // The ceremony subscribes to the socket directly for become-
         // rejection errors; the source card only reacts while it has a
@@ -196,6 +227,11 @@ export class App {
         // A2.4: only reacts while a commit of its own is in flight, and then
         // it reverses the optimistic bloom and states the reason.
         this.contactCeremony?.handleServerError(message.message);
+        // A2.6: the seat this connection's stored token names now belongs to
+        // an account. net.ts has already dropped the dead token by the time
+        // this runs (its own absorbCredentials); this is the UI half — the
+        // re-onboard sheet, over whatever else is on screen.
+        if (message.code === "token-claimed") this.showReclaim();
         break;
     }
   }
@@ -205,6 +241,77 @@ export class App {
     this.root.innerHTML = "";
     const cleanup = render();
     this.currentCleanup = cleanup ?? null;
+  }
+
+  /**
+   * A2.6: the re-onboard sheet. A sibling overlay on `this.root`, appended
+   * rather than mounted, so it survives whatever `mount()` last put up (or
+   * the fact that nothing has mounted yet) — this can fire before the very
+   * first `welcome`. No ambient dismiss: [Sign in] and [Begin again] are the
+   * only two ways out, and `hideReclaim()` (called unconditionally on the
+   * next `welcome`) takes it down the moment either one succeeds.
+   */
+  private showReclaim(): void {
+    if (this.reclaimRoot !== null) return;
+
+    const root = document.createElement("div");
+    root.className = "reclaim-root";
+    root.setAttribute("role", "dialog");
+    root.setAttribute("aria-label", "This run now belongs to an account");
+
+    const scrim = document.createElement("div");
+    scrim.className = "reclaim-scrim";
+
+    const panel = document.createElement("div");
+    panel.className = "reclaim-panel";
+
+    const line = document.createElement("p");
+    line.className = "reclaim-line";
+    line.textContent =
+      "This run now belongs to an account. Sign in with your key, or begin again.";
+    panel.append(line);
+
+    const actions = document.createElement("div");
+    actions.className = "reclaim-actions";
+
+    const signInToggle = document.createElement("button");
+    signInToggle.type = "button";
+    signInToggle.className = "reclaim-signin-toggle holos-caps";
+    signInToggle.textContent = "Sign in";
+    signInToggle.addEventListener("click", () => {
+      if (this.reclaimSignIn !== null) return;
+      signInToggle.hidden = true;
+      const field = mountSignIn(this.socket);
+      this.reclaimSignIn = field;
+      panel.append(field.el);
+    });
+
+    const beginBtn = document.createElement("button");
+    beginBtn.type = "button";
+    beginBtn.className = "reclaim-begin-btn holos-caps";
+    beginBtn.textContent = "Begin again";
+    beginBtn.addEventListener("click", () => {
+      // A fresh anonymous hello, on the live socket — the exact shape a
+      // brand-new tab sends (net.ts's sendHello with nothing stored yet).
+      this.socket.send({ type: "hello", token: null, account: null });
+      this.hideReclaim();
+    });
+
+    actions.append(signInToggle, beginBtn);
+    panel.append(actions);
+
+    root.append(scrim, panel);
+    this.root.append(root);
+    this.reclaimRoot = root;
+    requestAnimationFrame(() => root.classList.add("open"));
+  }
+
+  private hideReclaim(): void {
+    if (this.reclaimRoot === null) return;
+    this.reclaimSignIn?.destroy();
+    this.reclaimSignIn = null;
+    this.reclaimRoot.remove();
+    this.reclaimRoot = null;
   }
 
   private showCeremony(candidates: readonly CivCard[]): void {
@@ -386,6 +493,9 @@ export class App {
       this.sourceCard = sourceCard;
       this.studyBoard = studyBoard;
       this.contactCeremony = contactCeremony;
+      // A2.6: this board's very first render already knows — no waiting on
+      // a welcome that, on a resume, already came and went.
+      studyBoard.setHasAccount(this.hasAccount);
 
       // While a ceremony is armed the sky belongs to it: the two standing
       // chips stand down, so the only things a thumb can reach are the

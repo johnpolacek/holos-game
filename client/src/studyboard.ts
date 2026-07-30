@@ -453,6 +453,55 @@ function hypothesisPercentages(
   return result;
 }
 
+// ── A2.6: durable identity, as chrome ────────────────────────────────────
+// The hub row and the key sheet. Everything a claim/reveal needs beyond the
+// wire's `key`/`fresh` pair is authored here — the client never imports
+// server/src/accounts.ts (CLAUDE.md's protocol-only boundary), so the display
+// grouping is a deliberate, small duplication rather than a shared import.
+
+/** Mirrors server/src/accounts.ts's `formatAccountKey` exactly: four
+ *  hyphen-separated groups of five. The wire always carries the bare 20
+ *  symbols; this is the one place the client puts the breaks back in. */
+function formatAccountKeyDisplay(key: string): string {
+  const groups: string[] = [];
+  for (let i = 0; i < key.length; i += 5) groups.push(key.slice(i, i + 5));
+  return groups.join("-");
+}
+
+/** The hidden-textarea `execCommand` fallback, for a browser (or an insecure
+ *  context) with no `navigator.clipboard`. Never reads the result back and
+ *  never logs the text — a failed copy has nothing safe to say beyond
+ *  leaving the key on screen for the player to select by hand. */
+function copyAccountKeyFallback(text: string): void {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.append(ta);
+  ta.select();
+  try {
+    document.execCommand("copy");
+  } catch {
+    /* Nothing safe to say; the key is still on screen to select by hand. */
+  }
+  ta.remove();
+}
+
+/** `navigator.clipboard` first, the fallback above second. The key is never
+ *  logged on either path (accounts.ts's own rule, restated client-side). */
+function copyAccountKey(text: string): void {
+  try {
+    if (navigator.clipboard !== undefined && typeof navigator.clipboard.writeText === "function") {
+      navigator.clipboard.writeText(text).catch(() => copyAccountKeyFallback(text));
+      return;
+    }
+  } catch {
+    /* fall through to the fallback below */
+  }
+  copyAccountKeyFallback(text);
+}
+
 export class StudyBoard {
   private readonly socket: CohortSocket;
   /** Opening menu labels per signal class, from `welcome` — the briefing's
@@ -692,6 +741,25 @@ export class StudyBoard {
   // (or in response to) onReportOpen firing, and renderReport only reads
   // it back.
   private reportExplainerText: string | null = null;
+
+  // ── A2.6: durable identity ────────────────────────────────────────────
+  // Whether THIS SEAT has an account, from `welcome.account` (App forwards
+  // it via setHasAccount) — decides which of the two hub rows renders. A
+  // successful claim also flips this locally the moment the key comes back
+  // (showAccountKey below), so the row updates without waiting on a fresh
+  // welcome that will never arrive on this same connection.
+  private hasAccount = false;
+  // A claimAccount/showAccountKey in flight — guards a double tap and is
+  // released by the confirming `accountKey` or by handleServerError.
+  private pendingAccountAction: "claim" | "reveal" | null = null;
+  // The key sheet: a child of the SHEET, not of the body (the composer's own
+  // precedent) — renderHub() rebuilds the body on every sky and must not
+  // tear this down while it is up. Null whenever no key is on screen.
+  private accountSheetEl: HTMLDivElement | null = null;
+  private accountKeyValue: string | null = null;
+  // fresh:true is the claim ceremony (mandatory write-it-down, no
+  // tap-outside dismiss); false is a quiet re-read (showAccountKey).
+  private accountKeyFresh = false;
 
   private dragStartY: number | null = null;
   private dragDy = 0;
@@ -1159,6 +1227,11 @@ export class StudyBoard {
     // down with the sheet. The thread itself stays open server-side until the
     // next sky notices the view moved on (update()).
     this.closeComposer();
+    // The key sheet is the same kind of overlay and stands down with it. A
+    // dismissed claim ceremony is not a lost key: showAccountKey re-reads it
+    // any time (accounts.ts's plaintext-storage reasoning), so this is not a
+    // second, secret way past the mandatory tap — merely closing the panel.
+    this.closeAccountSheet();
   }
 
   isOpen(): boolean {
@@ -1169,6 +1242,7 @@ export class StudyBoard {
     this.stopTicking();
     this.clearFloorNotice();
     this.closeComposer();
+    this.closeAccountSheet();
     window.removeEventListener("keydown", this.onKeyDown);
     this.root.remove();
   }
@@ -1485,6 +1559,147 @@ export class StudyBoard {
         () => this.openReport(),
       ),
     );
+
+    // A2.6: durable identity. Unclaimed offers the verb; claimed offers the
+    // re-read — never both, the same either/or the hub's other rows never
+    // need because nothing else here has two faces.
+    this.body.append(
+      this.hasAccount
+        ? this.buildHubRow(
+            "Your account",
+            "Show the key that carries this run.",
+            true,
+            () => this.requestAccountKey(),
+          )
+        : this.buildHubRow(
+            "Keep this run",
+            "Save it to an account so you can come back on another device.",
+            true,
+            () => this.claimAccount(),
+          ),
+    );
+  }
+
+  /** From App, on every `welcome` — the one fact this panel needs about
+   *  durable identity that it cannot derive from its own traffic. */
+  setHasAccount(has: boolean): void {
+    this.hasAccount = has;
+  }
+
+  private claimAccount(): void {
+    if (this.pendingAccountAction !== null) return;
+    this.pendingAccountAction = "claim";
+    this.socket.send({ type: "claimAccount" });
+  }
+
+  private requestAccountKey(): void {
+    if (this.pendingAccountAction !== null) return;
+    this.pendingAccountAction = "reveal";
+    this.socket.send({ type: "showAccountKey" });
+  }
+
+  /**
+   * From App, on the one message that ever carries a key. `fresh` is the
+   * claim ceremony: mandatory write-it-down, no tap-outside dismiss (there
+   * is no backdrop on this overlay to tap in the first place). A claim also
+   * means this seat now HAS an account, so the hub row behind the sheet
+   * flips the moment it next renders.
+   */
+  showAccountKey(key: string, fresh: boolean): void {
+    this.pendingAccountAction = null;
+    if (fresh) this.hasAccount = true;
+    this.accountKeyValue = key;
+    this.accountKeyFresh = fresh;
+    this.renderAccountSheet();
+  }
+
+  /** A child of the SHEET (the composer's own mold): survives renderHub()
+   *  rebuilding the body underneath it, on every sky and every tick. */
+  private renderAccountSheet(): void {
+    if (this.accountKeyValue === null) return;
+    let el = this.accountSheetEl;
+    if (el === null) {
+      el = document.createElement("div");
+      el.className = "study-account-sheet";
+      this.sheet.append(el);
+      this.accountSheetEl = el;
+    }
+    el.innerHTML = "";
+
+    const fresh = this.accountKeyFresh;
+    const key = this.accountKeyValue;
+
+    const bar = document.createElement("div");
+    bar.className = "study-account-bar";
+    const title = document.createElement("div");
+    title.className = "study-account-title holos-caps";
+    title.textContent = "YOUR KEY";
+    bar.append(title);
+    // The claim ceremony has no dismiss but the mandatory tap below — a
+    // close button here would be a second, unwritten-down way out.
+    if (!fresh) {
+      const close = document.createElement("button");
+      close.type = "button";
+      close.className = "study-account-close";
+      close.setAttribute("aria-label", "Close");
+      close.textContent = "✕";
+      close.addEventListener("click", () => this.closeAccountSheet());
+      bar.append(close);
+    }
+    el.append(bar);
+
+    const body = document.createElement("div");
+    body.className = "study-account-body";
+
+    const keyLine = document.createElement("div");
+    keyLine.className = "study-account-key study-tabular";
+    // textContent only: this is the one place a bearer secret ever reaches
+    // the DOM, and it never passes through innerHTML or a template string
+    // that could be mistaken for markup.
+    keyLine.textContent = formatAccountKeyDisplay(key);
+    body.append(keyLine);
+
+    const copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.className = "study-account-copy holos-caps";
+    copyBtn.textContent = "COPY";
+    copyBtn.addEventListener("click", () => {
+      copyAccountKey(keyLine.textContent ?? "");
+      copyBtn.textContent = "COPIED";
+      window.setTimeout(() => {
+        copyBtn.textContent = "COPY";
+      }, 1600);
+    });
+    body.append(copyBtn);
+
+    if (fresh) {
+      const line = document.createElement("p");
+      line.className = "study-account-ceremony-line";
+      line.textContent =
+        "This is your key. Write it down. There is no other way back to this run.";
+      body.append(line);
+
+      const ack = document.createElement("button");
+      ack.type = "button";
+      ack.className = "study-account-ack holos-caps";
+      ack.textContent = "I HAVE WRITTEN IT DOWN";
+      ack.addEventListener("click", () => this.closeAccountSheet());
+      body.append(ack);
+    }
+
+    el.append(body);
+  }
+
+  private closeAccountSheet(): void {
+    const wasShowing = this.accountSheetEl !== null;
+    this.accountSheetEl?.remove();
+    this.accountSheetEl = null;
+    this.accountKeyValue = null;
+    // A claim flips `hasAccount` the moment the key comes back (showAccountKey
+    // above), but the hub body underneath this overlay was rendered before
+    // that — refresh it now so "Keep this run" does not linger under the row
+    // that just replaced it.
+    if (wasShowing && this.view === "hub") this.renderHub();
   }
 
   /**
@@ -2478,6 +2693,18 @@ export class StudyBoard {
       // the same on every thread and says nothing about who sent it. The
       // composer stands down behind one flat line, with no countdown.
       if (code === "contact-unavailable") this.raiseFloorNotice();
+    }
+
+    // A2.6: a claim/reveal in flight is released the same silent way as
+    // everything above. `already-claimed` is the one live race worth naming
+    // (two devices tapping "Keep this run" on the same seat) and it answers
+    // exactly like the rest — no toast, the hub row simply stays as it was
+    // and the next open reads it fresh.
+    if (
+      this.pendingAccountAction !== null &&
+      (code === "already-claimed" || code === "not-signed-in" || code === "too-many-attempts")
+    ) {
+      this.pendingAccountAction = null;
     }
 
     if (releasedBegin && this.view === "brief") this.renderBrief();

@@ -56,6 +56,98 @@ export function clearPendingBecome(): void {
   clearPending();
 }
 
+/** A2.6: what mountSignIn hands back — the element to place, and a cleanup
+ *  that drops its socket subscription (the caller owns removing the
+ *  element itself, the composer-sheet precedent). */
+export interface SignInMount {
+  readonly el: HTMLElement;
+  readonly destroy: () => void;
+}
+
+/**
+ * A2.6: the single-line key entry + SIGN IN, shared by the ceremony's quiet
+ * "I already have an account" line and app.ts's re-onboard sheet (the design
+ * note's "same key input flow" for both). Owns nothing about WHERE it is
+ * shown, only the submit/error contract: `bad-account` reddens the field,
+ * `too-many-attempts` disables it behind a flat line. Both reactions are
+ * gated on `pending` so a stray error from some OTHER cause (a corrupt
+ * stored account key retried automatically at connect, say) never paints a
+ * field the player never touched.
+ *
+ * The raw typing is sent as-is: folding and validating a key is
+ * normalizeAccountKey's job, on the server, where the answer is
+ * authoritative (net.ts's signIn comment, restated here for the caller).
+ */
+export function mountSignIn(socket: CohortSocket): SignInMount {
+  const wrap = document.createElement("div");
+  wrap.className = "signin-field";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.inputMode = "text";
+  input.autocapitalize = "characters";
+  input.autocomplete = "off";
+  input.spellcheck = false;
+  input.placeholder = "Your key";
+  input.className = "signin-input";
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "signin-button holos-caps";
+  button.textContent = "Sign in";
+
+  const hint = document.createElement("div");
+  hint.className = "signin-hint";
+
+  wrap.append(input, button, hint);
+
+  let pending = false;
+  let locked = false;
+
+  const submit = (): void => {
+    if (locked || pending) return;
+    const raw = input.value.trim();
+    if (raw.length === 0) return;
+    pending = true;
+    hint.textContent = "";
+    input.classList.remove("signin-input--error");
+    socket.signIn(raw);
+  };
+
+  button.addEventListener("click", submit);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") submit();
+  });
+  input.addEventListener("input", () => {
+    // Typing again after a rejection clears the redden — the field is live
+    // again, not stuck showing an old verdict.
+    if (input.classList.contains("signin-input--error")) {
+      input.classList.remove("signin-input--error");
+      hint.textContent = "";
+    }
+  });
+
+  const unsubscribe = socket.onMessage((message) => {
+    if (message.type !== "error" || !pending) return;
+    if (message.code === "bad-account") {
+      pending = false;
+      input.classList.add("signin-input--error");
+      hint.textContent = "No account with that key.";
+    } else if (message.code === "too-many-attempts") {
+      pending = false;
+      locked = true;
+      input.disabled = true;
+      button.disabled = true;
+      hint.textContent = "Too many attempts. Wait and try again.";
+    }
+  });
+
+  return {
+    el: wrap,
+    destroy: () => unsubscribe(),
+  };
+}
+
 /** True when a `become` was committed this session but not yet consumed by
  * the sky — the router reads this to choose the pull-back vs. resume beat. */
 export function hasPendingBecome(): boolean {
@@ -384,6 +476,27 @@ export function renderCeremony(
 
   carousel.append(topSpacer, ...slots, bottomSpacer);
   ceremony.append(carousel);
+
+  // A2.6: the quiet way in for a returning player — not a candidate, so it
+  // sits below the carousel rather than competing with any card for the
+  // thumb. Collapsed to one tappable line until touched.
+  const signinWrap = document.createElement("div");
+  signinWrap.className = "ceremony-signin";
+  const signinToggle = document.createElement("button");
+  signinToggle.type = "button";
+  signinToggle.className = "ceremony-signin-toggle";
+  signinToggle.textContent = "I already have an account";
+  signinWrap.append(signinToggle);
+  ceremony.append(signinWrap);
+
+  let signinMount: SignInMount | null = null;
+  signinToggle.addEventListener("click", () => {
+    if (signinMount !== null) return;
+    signinToggle.hidden = true;
+    signinMount = mountSignIn(socket);
+    signinWrap.append(signinMount.el);
+  });
+
   root.append(ceremony);
 
   let focusedIndex = 0;
@@ -519,6 +632,7 @@ export function renderCeremony(
 
   return () => {
     unsubscribe();
+    signinMount?.destroy();
     carousel.removeEventListener("scroll", onScroll);
     if (scrollRaf !== null) cancelAnimationFrame(scrollRaf);
     for (const cleanup of buttonCleanups) cleanup();

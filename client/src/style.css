@@ -203,7 +203,11 @@ body {
 .civ-name,
 .dial-question,
 .dial-hint,
-.dial-pole {
+.dial-pole,
+/* A2.6: the key sheet's title and the ceremony's quiet sign-in line — both
+   short label-voice lines, never prose. */
+.study-account-title,
+.ceremony-signin-toggle {
   text-wrap: balance;
 }
 
@@ -255,7 +259,11 @@ body {
 .part-gloss,
 .part-prose,
 .composer-empty,
-.composer-row-title {
+.composer-row-title,
+/* A2.6: the claim ceremony's write-it-down sentence, and the re-onboard
+   sheet's line — both running prose, sentences like the rest of this list. */
+.study-account-ceremony-line,
+.reclaim-line {
   text-wrap: pretty;
 }
 
@@ -1071,6 +1079,101 @@ body {
   /* Dim within the amber family — a switch to faint ink would read as a
      different kind of row, not a quieter one. */
   color: rgba(240, 172, 102, 0.5);
+}
+
+/* ── A2.6: durable identity — the key sheet ───────────────────────────────
+ * A child of the board's own sheet, the composer-sheet mold, but full-height
+ * rather than two-thirds: there is no preview/controls split, just a key,
+ * a copy, and (fresh) one mandatory tap. No separate scrim — the sheet
+ * already covers the backdrop entirely on a phone (this file's own header
+ * comment) — so "no tap-outside dismiss" for the claim ceremony is simply
+ * the absence of a close button, not a second dismiss layer to suppress. */
+.study-account-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(7, 6, 10, 0.94);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid var(--holos-cyan-dim);
+  padding: 0 1.1rem max(1rem, env(safe-area-inset-bottom));
+}
+
+.study-account-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  min-height: 2.75rem;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--holos-gold-dim);
+}
+
+.study-account-close {
+  background: none;
+  border: none;
+  padding: 0.5rem 0.2rem;
+  min-height: 2.75rem;
+  color: var(--holos-cyan);
+  font-family: inherit;
+  font-size: var(--holos-text-lg);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.study-account-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem 0 1.5rem;
+  text-align: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* The key itself: display face, the largest reading size on the ladder,
+   generously spaced so twenty symbols read as four held groups rather than
+   a cramped string. Cyan, not amber — this is the one credential a player
+   can carry off this sheet, closer kin to the ceremony's "become cyan" beat
+   than to the panel's own amber chrome. */
+.study-account-key {
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-3xl);
+  letter-spacing: 0.12em;
+  color: var(--holos-cyan);
+  text-shadow: 0 0 18px var(--holos-cyan-dim);
+  word-break: keep-all;
+  max-width: 100%;
+}
+
+.study-account-copy,
+.study-account-ack {
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.55rem 1.4rem;
+  color: var(--holos-amber);
+  cursor: pointer;
+}
+
+/* The one mandatory exit from the claim ceremony — warmer than a plain
+   COPY, closer to the panel's own primary-verb chrome, so it reads as the
+   button that actually leaves rather than a third option beside it. */
+.study-account-ack {
+  color: var(--holos-ink);
+  border-color: var(--holos-gold);
+}
+
+.study-account-ceremony-line {
+  max-width: 24em;
+  color: var(--holos-ink-dim);
 }
 
 /* A2.4: THE VOICE's one row. On the hub-row chassis but in the verb voice
@@ -3185,6 +3288,155 @@ body {
   display: flex;
   justify-content: center;
   padding: 0.3rem 0 0.5rem;
+}
+
+/* ── A2.6: durable identity — the ceremony's sign-in line ─────────────────
+ * Sits below the carousel, never competing with a candidate card: a quiet
+ * one-line affordance for a RETURNING player, not one more thing to choose. */
+.ceremony-signin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 1.2rem max(1rem, env(safe-area-inset-bottom));
+  flex-shrink: 0;
+}
+
+.ceremony-signin-toggle {
+  background: none;
+  border: none;
+  padding: 0.4rem 0.2rem;
+  color: var(--holos-ink-faint);
+  font-family: var(--holos-font-body);
+  font-size: var(--holos-text-sm);
+  cursor: pointer;
+}
+
+.ceremony-signin-toggle:hover {
+  color: var(--holos-ink-dim);
+}
+
+/* A2.6: the key-entry field itself, shared by the ceremony's sign-in line
+ * and app.ts's re-onboard sheet (mountSignIn's one construction, two
+ * mounting points). A single row on a wide screen, stacked on a phone. */
+.signin-field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 22rem;
+}
+
+.signin-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--holos-gold-dim);
+  color: var(--holos-ink);
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-md);
+  text-align: center;
+  letter-spacing: 0.08em;
+  padding: 0.4rem 0.2rem;
+}
+
+.signin-input:focus {
+  outline: none;
+  border-bottom-color: var(--holos-cyan);
+}
+
+/* A rejected key reddens toward the same error token the name field uses —
+ * the border, not a fill, so the key already typed stays legible. */
+.signin-input--error {
+  border-bottom-color: var(--holos-error);
+}
+
+.signin-button {
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.5rem 1.2rem;
+  color: var(--holos-amber);
+  cursor: pointer;
+}
+
+.signin-button:disabled {
+  color: var(--holos-ink-faint);
+  border-color: rgba(211, 185, 130, 0.25);
+  cursor: default;
+}
+
+.signin-hint {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-error);
+  min-height: 1em;
+}
+
+/* ── A2.6: durable identity — the re-onboard sheet ─────────────────────────
+ * A sibling overlay on the App's own root, the voicebeat.ts mold: z-index 6
+ * puts it over everything else this file stacks (the contact ceremony's 5
+ * is the highest below it). No ambient dismiss — [Sign in] or [Begin again]
+ * is the only way down, so there is no scrim click handler here at all. */
+.reclaim-root {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(1.5rem, env(safe-area-inset-top))
+    max(1.5rem, env(safe-area-inset-right))
+    max(1.5rem, env(safe-area-inset-bottom))
+    max(1.5rem, env(safe-area-inset-left));
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.reclaim-root.open {
+  opacity: 1;
+}
+
+.reclaim-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 6, 10, 0.75);
+}
+
+.reclaim-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  max-width: 24em;
+  padding: 2rem 1.6rem;
+  background: var(--holos-bg-raised);
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 0.9rem;
+  text-align: center;
+}
+
+.reclaim-line {
+  color: var(--holos-ink);
+}
+
+.reclaim-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+}
+
+.reclaim-signin-toggle,
+.reclaim-begin-btn {
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.55rem 1.2rem;
+  color: var(--holos-amber);
+  cursor: pointer;
 }
 
 /* ── The ember stone ──────────────────────────────────────────────────
