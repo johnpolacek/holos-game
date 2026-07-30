@@ -157,8 +157,18 @@ on real light clocks through the existing wake queue, four counterpart
 classes over all ten archetypes with forty-three banked reply strings,
 physics stamps as the header of every received payload, and the game's
 first text composer, freeform-with-AI only, enforced server-side.
-systems-a.md §13 is the as-built record. **→ Next: A2.6 — human
-pairs: the composer, findings, identity.**
+systems-a.md §13 is the as-built record.
+
+**A2.6 shipped (2026-07): human pairs.** The composed-signal grammar
+(the stage's double-Opus call: both framings converged on selectors-
+never-content and one composer everywhere; freeform retired game-wide
+as a path oracle), findings as tradeable payloads wearing three ages,
+the thin mutual quiet derived from the act log with breach-by-light,
+the full indistinguishability closure set with audit:parity in CI,
+the mute, and durable identity as SQLite accounts over the seat-id
+indirection. systems-a.md §14 is the as-built record. **A2 is
+feature-complete: the fun gate (two phones, one evening) is the
+remaining exit condition — a play test, not a build item.**
 
 **→ Previously next (now shipped in code): AV — the voice.** Decided
 2026-07: the shipped game has the machinery but no narrator — the

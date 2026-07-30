@@ -302,9 +302,9 @@ block in the composed-signal grammar — sendable, withholdable,
 tradeable, and as deniable as anything else on a beam. Comparing notes
 on a shared worry is the safest first deal two nervous strangers can
 make, and the quiet civilization's whole export economy starts here.
-Whether one thin understanding-form (the mutual quiet) lands in A2.6
-or the stage after is the A2.6 design note's first decision; the
-vocabulary is settled either way. What matures later is the market's
+The A2.6 design note's first decision came back: **the thin mutual
+quiet shipped in A2.6** (offer/accept/decline/withdraw on the act log,
+breach by light, no cadence forms). What matures later is the market's
 depth — brokering, pricing against the compensation menu, forged
 findings and their unmasking — not the existence of the trade.
 

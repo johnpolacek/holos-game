@@ -7,9 +7,11 @@ propose, and build — without this file open beside it. The prompts point
 at specs rather than duplicating them; [build-a2.md](./build-a2.md) and
 the docs each prompt names stay the source of truth.*
 
-**Status (2026-07):** A2.1 through A2.5 are shipped — their blocks
+**Status (2026-07):** A2.1 through A2.6 are shipped — their blocks
 stay below as record (systems-a.md §2.7/§2.8 are A2.3's as-built
-record; §12 is A2.4's; §13 is A2.5's). **A2.6 is the open stage.** A2.2b also shipped the
+record; §12 is A2.4's; §13 is A2.5's; §14 is A2.6's). **A2's fun gate
+(two phones, one evening — the A2.6 block's checklist) is the arc's
+open exit condition: a play test, not a build item.** A2.2b also shipped the
 work list's progress tracks alongside the grounded exit, and fixed an A2.2
 silence bug that only showed up on screen (systems-a.md §3.4). Every block
 from A2.3 on describes a tree that now also contains missions, the
