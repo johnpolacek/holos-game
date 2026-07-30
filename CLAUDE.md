@@ -70,6 +70,16 @@ CI (`.github/workflows/ci.yml`) runs all of them on every PR and they must
 pass before merge. `audit:voice` imports the compiled gate, so it runs after
 `build`.
 
+Those audits are mechanical: they catch a dash, a coinage, a numeral in a
+remark. They cannot catch prose that is merely *flat* — the rule-of-three
+list, the hedge, the symmetrical clause pair, the sentence that describes a
+feeling instead of stating a fact. The `/prose-audit` slash command
+(`.claude/commands/prose-audit.md`) is the judgement pass for that: it sweeps
+every player-facing string against prose-style.md, and requires each finding
+to be pushed upstream into `stylegate.ts`, `bannedterms.ts` or the
+`voicegen.ts` prompts so it holds for generated lines too. Run it after a
+slice adds a bank, not on a schedule.
+
 ## Deployment
 
 `main` auto-deploys through a single pipeline: a Cloudflare **Workers
