@@ -170,6 +170,29 @@ indirection. systems-a.md §14 is the as-built record. **A2 is
 feature-complete: the fun gate (two phones, one evening) is the
 remaining exit condition — a play test, not a build item.**
 
+**Stage audit (2026-07), and what it changes about the plan.** A2's
+slices pulled work forward so often that the stage list below had gone
+stale in a way that mattered for deciding what to build next, so every
+unticked bullet in A3 and A4 was checked against the tree:
+
+- **A3 — the light echo is DONE**, all three bullets, none of it built
+  as A3: emission history seeded in A0 and appended by A2.4's
+  broadcasts, per-observer light-departure views in A0's `knowledge.ts`,
+  and the echo shell rendering in A2.4's Model. The poster feature has
+  been on screen since the choice ceremony shipped.
+- **A4 is NOT done** — only its probe half is (the work list, probe-class
+  missions, the mission clock, all with A2.2). Standing orders,
+  seedships, relativistic ships, full charters and the Ledger are open,
+  which makes A4 the largest unbuilt block in Phase A.
+- **A5's first bullet is partly done**: study tripwires shipped in-app
+  with A2.3, and A2.5's counterparts answer but do not yet *act* on
+  their own; what A5 still owes is AI civilizations changing posture and
+  building over time, cohort seeding and the frontier, and push
+  notifications.
+
+So the genuinely-next *build* is A5 or A4's travel half, not A3 — but
+neither starts until the fun gate is run.
+
 **→ Previously next (now shipped in code): AV — the voice.** Decided
 2026-07: the shipped game has the machinery but no narrator — the
 pull-back is wordless, nothing states the frame, and the mind never
@@ -385,28 +408,45 @@ slice closes that gap. Full brief: [build-voice.md](./build-voice.md).
       arrival line stays authored (its one serve is sub-second after
       `become`). The seam A2.5's LLM-run counterpart civ later builds on.
 
-### A3 — The light echo
+### A3 — The light echo ✅ *shipped, inside other slices*
 
 The signature system: your past, propagating. (The Chronicle — the readable
 record of that past — rides this same light echo and knowledge layer; thin.)
 
-- [ ] Emission history per civilization (seeded by the `CivSeed`'s
-      bright-years debt; appended by everything bright you do).
-- [ ] Per-observer views read emissions as-of light departure — going dark
-      propagates outward; others court the civilization you used to be.
-- [ ] The Model's **echo shell** rendering (the poster feature,
-      act3-map.md § moment 2).
+**This stage was never built as a stage.** All three items landed inside
+A0, A2.4 and A2.6 as those slices needed them, and it stayed unticked here
+until an audit (2026-07) checked each bullet against the tree. Recorded as
+shipped so the plan stops listing built work as future work.
 
-### A4 — Missions & expansion
+- [x] Emission history per civilization (seeded by the `CivSeed`'s
+      bright-years debt; appended by everything bright you do)
+      *(A0 seeds it — `civseed.ts`'s `drawEmissionHistory`; A2.4 appends
+      to it — `contact.ts`'s `applyBroadcast`, whose two epochs are the
+      shout and the fall back to what the civ would have been)*.
+- [x] Per-observer views read emissions as-of light departure — going dark
+      propagates outward; others court the civilization you used to be
+      *(A0's `knowledge.ts`: `observeCiv` clips `lightHistory` at
+      `asOfYear`, and it has been the spine of every later slice — the
+      contest, the beam branch, the AI counterparts' light-view)*.
+- [x] The Model's **echo shell** rendering (the poster feature,
+      act3-map.md § moment 2) *(A2.4 — `model.ts`'s `drawOutbound`: one
+      hairline ring whose radius is the years since the broadcast, drawn
+      forever, growing a light-year a year)*.
+
+### A4 — Missions & expansion ◐ *the probe half shipped; the travel half open*
 
 Every launch is a mission from here on: a work-list node with a charter, a
 clock, and an outcome ([missions-design.md](./missions-design.md) —
 working decision 2026-07, missions into v1 thin).
 
 **Three of this slice's items shipped early**, with A2.2's work engine
-(see *Where the build is today*) — the probe half of A4 is done, and what
-remains here is the *travel* half: seedships, relativistic ships,
-charters as a written value function, and the Ledger.
+(see *Where the build is today*) — the probe half of A4 is done. **A4 is
+NOT a shipped stage**: what remains is the *travel* half — standing
+orders, seedships, relativistic ships, charters as a written value
+function, and the Ledger — and it is the largest unbuilt block in
+Phase A. (Audited 2026-07 alongside A3, which *was* fully shipped; the
+two are easy to conflate because both had work pulled forward, and only
+A3's was all of it.)
 
 - [x] **The work list (list form)** *(shipped with A2.2)*: one surface for
       every undertaking — projects and missions as one derived work
