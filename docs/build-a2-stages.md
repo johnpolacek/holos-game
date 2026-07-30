@@ -7,8 +7,11 @@ propose, and build — without this file open beside it. The prompts point
 at specs rather than duplicating them; [build-a2.md](./build-a2.md) and
 the docs each prompt names stay the source of truth.*
 
-**Status (2026-07):** A2.1, A2.2 and A2.2b are shipped — their blocks
-stay below as record. **A2.3 is the open stage.** A2.2b also shipped the
+**Status (2026-07):** A2.1 through A2.6 are shipped — their blocks
+stay below as record (systems-a.md §2.7/§2.8 are A2.3's as-built
+record; §12 is A2.4's; §13 is A2.5's; §14 is A2.6's). **A2's fun gate
+(two phones, one evening — the A2.6 block's checklist) is the arc's
+open exit condition: a play test, not a build item.** A2.2b also shipped the
 work list's progress tracks alongside the grounded exit, and fixed an A2.2
 silence bug that only showed up on screen (systems-a.md §3.4). Every block
 from A2.3 on describes a tree that now also contains missions, the
@@ -456,7 +459,7 @@ Build:
    37 min · 7.3 y); sent signals join the thread immediately, marked in
    flight until arrival.
 
-Do not build: the composed-parts composer, dossier payloads, or
+Do not build: the composed-parts composer, finding payloads, or
 human-to-human threads (all A2.6); no push notifications; no read
 receipts or presence of any kind — delivery is physics, nothing more.
 
@@ -483,11 +486,11 @@ Week 2 texture on a real phone.
 
 ---
 
-## A2.6 — Human pairs: the composer, dossiers, identity
+## A2.6 — Human pairs: the composer, findings, identity
 
 ```
 Build stage A2.6 of Holos: human pairs — the composed-signal composer,
-tradeable dossiers, and durable identity. This stage ends at A2's fun
+tradeable findings, and durable identity. This stage ends at A2's fun
 gate.
 
 Orient. Read, in order: CLAUDE.md at the repo root (§ Build
@@ -496,31 +499,37 @@ composed-signal part grammar; run it twice with different framings —
 e.g. "expressiveness first" vs "deception and moderation first" — and
 synthesize). Then docs/build-a2.md (§ A2.6 and § Done when — the fun
 gate is this stage's exit), docs/act3-design.md (§ Contact — what
-signals carry), docs/observatory-design.md (§ The dossier — tradeable
-in v1, settled: a dossier is a payload block, stale by construction),
+signals carry), docs/observatory-design.md (§ Findings and
+understandings — findings tradeable in v1, settled: a shared finding
+is a payload block, stale by construction; the section also defines
+understandings, the standing arrangements light can verify),
 docs/vision.md (§ Decisions — signal format: composed for human pairs,
 settled), and docs/roadmap.md (§ Open build decisions — durable
 identity in Durable Objects' native SQLite storage, decided).
 
 What exists. A2.1–A2.5: the full vigil, the choice ceremony, and
 freeform traffic with AI counterparts on real clocks. Closed studies —
-called or grounded — produce dossiers server-side (belief, confidence,
-evidence chain, light-ages; a grounded one says the belief came back
-with a probe). Identity is still the A1 per-run token.
+called or grounded — produce shareable findings server-side (belief,
+confidence, evidence chain, light-ages; a grounded one says the belief
+came back with a probe). Identity is still the A1 per-run token.
 
 Build:
 1. The part grammar (the double-Opus deliverable): a composed signal is
    assembled from typed parts — payload blocks (knowledge, culture,
-   archive fragment, coordinates, dossier), quantity and reference
-   parts, and a small tone set. Expressive enough to carry Week 2's
+   archive fragment, coordinates, a shared finding), quantity and
+   reference parts, and a small tone set. Expressive enough to carry Week 2's
    texture between strangers; constrained enough that no free text
    ever crosses between humans. The composer UI builds a signal from
    parts in the Voice, one-thumb.
-2. Dossier payloads: attach a called study's dossier to a signal; it
+2. Finding payloads: attach a called study's finding to a signal; it
    arrives as a readable study summary wearing BOTH its original
    light-ages and the transit aging (stale by construction). Received
-   dossiers land in the observatory as foreign findings, marked by
+   findings land in the observatory as foreign findings, marked by
    provenance, never auto-merged into the player's own studies.
+   The stage's design note decides whether one thin understanding-form
+   (the mutual quiet: both hold dark, each verified by the other's
+   telescope, ended by withdrawal on breach) lands here or next stage
+   (observatory-design.md § Findings and understandings).
 3. Durable identity: an accounts table in the Cohort DO's SQLite
    storage; claim flow upgrades the A1 anonymous token to an account;
    second-device sign-in by account token; the old anonymous token is
@@ -532,12 +541,12 @@ Build:
    may reveal whether a counterpart is human.
 
 Do not build: moderation tooling beyond the composed constraint (that
-constraint IS the moderation posture), dossier brokering or forgery,
+constraint IS the moderation posture), finding brokering or forgery,
 joint studies, missions, push notifications.
 
 Invariants you personally verify: byte-level wire inspection shows
 human and AI threads identical in shape and cadence class; no freeform
-between humans by construction (parse-level, not UI-level); dossier
+between humans by construction (parse-level, not UI-level); finding
 payloads carry beliefs and ages, never truth; accounts never leak
 across civs (one seat per account per cohort); comms register and
 archetype-voice rules hold; strict TS; typecheck and build green.

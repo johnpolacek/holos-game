@@ -639,6 +639,19 @@ const COUNSEL_SCHEMA: Readonly<Record<string, unknown>> = {
 // protocol.ts's discipline applied to a new source. Structured outputs
 // constrain the shape at the API layer; that is a reason to expect the guards
 // to pass, not a reason to skip them.
+//
+// THE OTHER DIRECTION, A2.5: A SIGNAL BODY IS NEVER A GENERATION INPUT. The
+// freeform text a player sends down a thread (`ContactAct.text`, sanitized by
+// `sanitizeSignalText` and by nothing else) does not appear in any prompt
+// this module builds, in any payload it sends, or in any record it stores.
+// The player-authored source name already reaches a prompt and is defended
+// against by `forbiddenToken` on the way out; a 280-code-point paragraph the
+// player wrote is a different order of injection surface, and it is kept off
+// the input side entirely rather than defended on the output side. Greppable
+// from both ends:
+//
+//   grep -rn "\.text" server/src/voicegen.ts     # no ContactAct in here
+//   grep -rn "sanitizeSignalText" server/src     # protocol.ts, cohort.ts only
 // ---------------------------------------------------------------------------
 
 function stringField(parsed: unknown, key: string): string | null {

@@ -35,6 +35,7 @@ import {
 import {
   civAtStar,
   civById,
+  civDistanceLy,
   DEFAULT_GALAXY_CONFIG,
   distanceLy,
   generateGalaxy,
@@ -46,6 +47,45 @@ import {
   type Star,
 } from "./galaxy";
 import { emissionAt, lightConeFor, observeCiv, observeSky, visibleSky } from "./knowledge";
+import {
+  actsFrom,
+  appendAct,
+  applyBroadcast,
+  broadcastInFlight,
+  buildContactWire,
+  hasHailed,
+  resistanceFor,
+  MAX_ACTS_PER_CIV,
+  MAX_SIGNALS_PER_THREAD,
+  MIN_DELIBERATION_YEARS,
+  SIGNAL_COOLDOWN_YEARS,
+  type CeremonyKind,
+  type ContactAct,
+} from "./contact";
+// A2.5. Every symbol here is READ-SIDE: `buildThreads` feeds the sky and
+// `deriveAiSignals` feeds the wake queue, and neither appears inside a
+// handler that mutates `this.galaxy` (traffic.ts's derivation rule).
+import { buildThreads, deriveAiSignals, threadRefRowsFor } from "./traffic";
+// A2.6: the composed-signal grammar. `materializeParts` is the ONE place a
+// selector becomes a part, and its only caller is `onSendSignal`.
+import {
+  deriveAccord,
+  materializeParts,
+  parsePartRefs,
+  parseTone,
+  MAX_PARTS_PER_SIGNAL,
+} from "./signalparts";
+// A2.6, durable identity. accounts.ts owns the table, the key alphabet and the
+// rate limiters; this module owns the flows. Every function below is either an
+// index probe or a mint, and none of them is ever handed to a log.
+import {
+  AttemptLimiter,
+  createAccount,
+  ensureAccountSchema,
+  findAccountByKey,
+  findAccountByRunToken,
+  normalizeAccountKey,
+} from "./accounts";
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
@@ -53,14 +93,21 @@ import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine, silenceLin
 import {
   buildStudySnapshot,
   hypothesisMenus,
+  isClosed,
+  leadHypothesisOf,
   migrateStudyState,
   newStudyState,
+  tripwireHolds,
+  TRIPWIRE_KINDS,
+  type OvertakingTrigger,
   type StoredStudy,
+  type StoredTripwire,
   type StudyMove,
   type StudyState,
   type StoredStudyState,
 } from "./studies";
 import {
+  attentionCapAt,
   confidenceLiftAt,
   freeComputeAt,
   hasLanded,
@@ -139,6 +186,7 @@ import {
   type ReportPayload,
   type SelfView,
   isVoiceKey,
+  type ContactWire,
   type VoiceKey,
 } from "./protocol";
 // AV4: the generated voice. Imported ONLY here — the client never imports
@@ -187,6 +235,17 @@ const MAX_PENDING_EVENTS = 256;
  *  year a study was opened). */
 const YEAR_EPS = 1e-6;
 
+/** A2.4: a hair past an arrival year, so the wake that resends a sky lands
+ *  on the far side of the comparison it exists to reveal. About three real
+ *  seconds at the shipped clock ratio. */
+const WAKE_SLOP_YEARS = 0.01;
+
+/** A2.5: how far ahead the per-sky horizon pass queues derived arrivals.
+ *  Two hundred game years is well past any thread's round trip in a 25 ly
+ *  neighborhood, and bounding it is what keeps the pass from filling the
+ *  queue with a lantern's hail scheduled for the deep future. */
+const WAKE_HORIZON_YEARS = 200;
+
 interface GalaxyMeta {
   readonly seedKey: string;
   readonly config: GalaxyConfig;
@@ -210,12 +269,34 @@ export interface CohortEnv extends VoiceGenEnv {
  * A placed player's per-run record. `localNames` are the owner's private
  * labels for sky sources — echoed only back to this owner, never attached
  * to any DetectedSource and never broadcast.
+ *
+ * A2.6, DURABLE IDENTITY: `token` IS A SEAT ID. It was minted in A1 as a
+ * credential and it is still the credential of an UNCLAIMED run, but once a
+ * run is claimed the account key is the credential and this is only the name
+ * of the seat — the key under which every piece of that player's state lives
+ * (`run:`, `studies:`, `missions:`, `projects:`, `proposals:`, `report:`,
+ * `voice:`, `offerYear:`) and the string `onBecome` derives the civ id from.
+ * Accounts are indirection ONTO this id and never rebind it; a claimed token
+ * presented on its own is refused at `hello` (`token-claimed`). Do not rename
+ * these references and do not rotate this value: rotate the account key.
  */
 interface RunRecord {
   readonly token: string;
   readonly civId: string;
   readonly starId: string;
   readonly localNames: Record<string, string>;
+  /**
+   * A2.6: civilizations this player has gone dark to. OPTIONAL, so every
+   * record written before this field existed reads as an empty list with no
+   * migration (the `ContactAct.inReplyTo` precedent).
+   *
+   * ONE-SIDED AND SILENT. It filters the muted player's OWN thread list in
+   * `buildThreads` and nothing else: the sender's send still commits, their
+   * thread still renders on their rack, their beam still lands and still
+   * lights the sky. There is no notification, because a notification would
+   * tell the sender they had been muted, and the deniability is the point.
+   */
+  readonly muted?: readonly string[];
 }
 
 // A player's observatory state (StoredStudy/StudyState) is stored SEPARATELY
@@ -235,10 +316,21 @@ interface VoiceState {
   readonly seen: readonly VoiceKey[];
 }
 
-/** Live connection tracking: the socket, its token, and (once placed) civ. */
+/** Live connection tracking: the socket, its seat, and (once placed) civ. */
 interface ConnState {
   readonly conn: Connection;
+  /** THE SEAT ID — see RunRecord.token. Whether this connection proved it by
+   *  presenting the token itself or by presenting an account key, everything
+   *  downstream reads exactly this string, which is why the account layer
+   *  needed no handler below `hello` to know it exists. */
   readonly token: string;
+  /**
+   * A2.6: the account this connection authenticated as, or that it minted by
+   * claiming during this session. Null on an anonymous run. Its ONLY uses are
+   * `showAccountKey`'s permission test and the hub row's state; nothing about
+   * it is derived from, and nothing about it reaches, another player's wire.
+   */
+  accountId: string | null;
   civId: string | null;
   /** AV2: the lastServedYear the placement-path report was built against.
    *  A requestReport refresh in the same session rebuilds against THIS, not
@@ -246,6 +338,11 @@ interface ConnState {
    *  promoted remark survive a reopen instead of vanishing on the first
    *  refresh (the design's "a refresh reuses the same header"). */
   reportBaselineYear: number | null;
+  /** A2.5: which thread this CONNECTION has open, so `sky` can carry its
+   *  detail. Per-connection UI state with NO DO KEY behind it — two tabs may
+   *  read different threads, and a reconnect re-sends `openThread`. Storing
+   *  it would make a scroll position into durable truth, which it is not. */
+  openThreadStarId: string | null;
 }
 
 function json(data: unknown, status = 200, extraHeaders: Record<string, string> = {}): Response {
@@ -379,16 +476,52 @@ export class Cohort extends Server<CohortEnv> {
    *  the in-flight set and the circuit breaker; every guarantee that must
    *  survive a restart lives in storage instead. */
   private readonly gen = new VoiceGen();
+  /** A2.6: whether the accounts table has been created in THIS instance.
+   *  `sql.exec` is synchronous, so a plain flag is a sound guard — there is no
+   *  await between the test and the creation for a second call to slip into. */
+  private schemaReady = false;
+  /**
+   * A2.6: sign-in attempts. Five per connection and then the socket closes;
+   * a hundred failures across the whole object in ten rolling minutes, so a
+   * guesser cannot buy budget by reconnecting. Only FAILURES are charged.
+   */
+  private readonly signInLimiter = new AttemptLimiter({
+    perConn: 5,
+    windowMax: 100,
+    windowMs: 10 * 60 * 1000,
+  });
+  /** A2.6: claims per connection. A seat can be claimed exactly once, so any
+   *  connection reaching a fourth mint is a bug or a probe; there is no
+   *  object-wide window because a claim is an act on a seat you already hold. */
+  private readonly claimLimiter = new AttemptLimiter({ perConn: 3 });
+
+  /**
+   * A2.6: create the accounts table if this instance has not yet. Called from
+   * `onStart` and defensively at the top of every account path, because
+   * `onStart` is not the only way into this object (an alarm can wake it) and
+   * a table that is missing when a key is presented would be the one failure
+   * with no good answer.
+   */
+  private ensureSchema(): void {
+    if (this.schemaReady) return;
+    ensureAccountSchema(this.ctx.storage.sql);
+    this.schemaReady = true;
+  }
 
   async onStart(): Promise<void> {
+    this.ensureSchema();
     const clock = await this.ctx.storage.get<ClockState>("clock");
     this.clock = clock ?? null;
     const meta = await this.ctx.storage.get<GalaxyMeta>("galaxy:meta");
     const stars = await this.ctx.storage.get<Star[]>("galaxy:stars");
     const civs = await this.ctx.storage.get<PlacedCiv[]>("galaxy:civs");
+    // A2.4: the contact log. An absent key IS the migration — no stored
+    // shape changed, so a cohort seeded before this stage loads with an
+    // empty log and behaves exactly as it did.
+    const acts = await this.ctx.storage.get<ContactAct[]>("galaxy:acts");
     this.galaxy =
       meta !== undefined && stars !== undefined && civs !== undefined
-        ? { seedKey: meta.seedKey, config: meta.config, stars, civs }
+        ? { seedKey: meta.seedKey, config: meta.config, stars, civs, acts: acts ?? [] }
         : null;
   }
 
@@ -406,7 +539,13 @@ export class Cohort extends Server<CohortEnv> {
     if (msg === null) return; // ignore malformed, like Room
     switch (msg.type) {
       case "hello":
-        await this.onHello(conn, msg.token);
+        await this.onHello(conn, msg.token, msg.account);
+        return;
+      case "claimAccount":
+        await this.onClaimAccount(conn);
+        return;
+      case "showAccountKey":
+        this.onShowAccountKey(conn);
         return;
       case "become":
         await this.onBecome(conn, msg.candidateId, msg.name);
@@ -432,6 +571,15 @@ export class Cohort extends Server<CohortEnv> {
       case "launchMission":
         await this.onLaunchMission(conn, msg.starId, msg.kind, msg.charter);
         return;
+      case "callStudy":
+        await this.onCallStudy(conn, msg.starId);
+        return;
+      case "armTripwire":
+        await this.onArmTripwire(conn, msg.starId, msg.kind);
+        return;
+      case "disarmTripwire":
+        await this.onDisarmTripwire(conn, msg.starId, msg.kind);
+        return;
       case "voiceSeen":
         await this.onVoiceSeen(conn, msg.key);
         return;
@@ -441,26 +589,154 @@ export class Cohort extends Server<CohortEnv> {
       case "declineProposal":
         await this.onDeclineProposal(conn, msg.id);
         return;
+      case "commitContact":
+        await this.onCommitContact(conn, msg.choice, msg.starId, msg.acknowledged);
+        return;
+      case "sendSignal":
+        await this.onSendSignal(conn, msg.starId, msg.tone, msg.parts);
+        return;
+      case "muteThread":
+        await this.onMuteThread(conn, msg.starId, msg.muted);
+        return;
+      case "openThread":
+        await this.onOpenThread(conn, msg.starId);
+        return;
     }
   }
 
   onClose(conn: Connection): void {
     this.conns.delete(conn.id);
+    // A2.6: a closed socket's per-connection budgets are not worth keeping,
+    // and forgetting them is what stops the limiters' maps from growing for
+    // the life of the object. The object-wide sign-in window is untouched by
+    // this on purpose — see AttemptLimiter.forget.
+    this.signInLimiter.forget(conn.id);
+    this.claimLimiter.forget(conn.id);
   }
 
-  /** hello: resolve/mint a token, register, and send welcome + first payload. */
-  private async onHello(conn: Connection, tokenIn: string | null): Promise<void> {
+  /**
+   * hello: resolve a SEAT, register the connection, and send welcome + first
+   * payload.
+   *
+   * THE PRECEDENCE RULE (A2.6): a non-null `accountIn` means `tokenIn` IS
+   * IGNORED WHOLE. It is not a fallback, it is not merged, and it is not even
+   * looked at. Signing in on a device that already holds an anonymous run has
+   * to be a decidable act with one outcome, and the alternative — preferring
+   * whichever credential resolved — would make the outcome depend on storage
+   * the player cannot see.
+   */
+  private async onHello(
+    conn: Connection,
+    tokenIn: string | null,
+    accountIn: string | null,
+  ): Promise<void> {
     await this.ensureSeeded();
-    const galaxy = this.requireGalaxy();
+    if (accountIn !== null) {
+      await this.onHelloWithAccount(conn, accountIn);
+      return;
+    }
+    this.ensureSchema();
+    // A CLAIMED SEAT WILL NOT ANSWER TO ITS TOKEN. This connection is NOT
+    // registered and nothing is minted: the client drops its stored token and
+    // is offered the choice between signing in and beginning again. Weakening
+    // this would quietly hand every device that ever held the token a way past
+    // the account, which is the one thing an account is for.
+    if (tokenIn !== null && findAccountByRunToken(this.ctx.storage.sql, tokenIn) !== null) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "token-claimed",
+        message: "this run belongs to an account",
+      });
+      return;
+    }
     // Mint only when the client had no token; a non-null unknown token is a
     // choosing-phase / storage-evicted token and is reused as-is.
     const token = tokenIn ?? crypto.randomUUID();
+    await this.admit(conn, token, null, token);
+  }
+
+  /**
+   * A2.6: hello with an account key — the second-device path.
+   *
+   * The comparison is the UNIQUE INDEX PROBE and nothing else; there is no
+   * string compare of a submitted key against a stored one anywhere in this
+   * server. Malformed and unknown answer with the SAME code, because "that is
+   * not a key" and "that is not one of ours" are two facts an attacker would
+   * love to be able to tell apart.
+   *
+   * There is no artificial delay on failure. The limiter is the whole defence,
+   * and against 100 bits it is a formality.
+   */
+  private async onHelloWithAccount(conn: Connection, accountIn: string): Promise<void> {
+    this.ensureSchema();
+    if (this.signInLimiter.exhausted(conn.id)) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "too-many-attempts",
+        message: "too many attempts",
+      });
+      // Only a spent CONNECTION is closed. A spent object-wide window refuses
+      // the attempt and leaves the socket alone: that budget is shared, and
+      // closing sockets over a shared counter would let one guesser hang up on
+      // everybody else's sign-in.
+      if (this.signInLimiter.connSpent(conn.id)) conn.close(4290, "too many attempts");
+      return;
+    }
+    // FIVE TRIES ARE SPENT, NOT FOUR. The budget is charged below on failure
+    // and tested above on the NEXT attempt, so a person who mistypes their key
+    // five times is told five times what is wrong with it and is cut off on
+    // the sixth try, rather than being hung up on mid-answer.
+    const key = normalizeAccountKey(accountIn);
+    const row = key === null ? null : findAccountByKey(this.ctx.storage.sql, key);
+    if (row === null) {
+      this.signInLimiter.record(conn.id);
+      this.sendMsg(conn, {
+        type: "error",
+        code: "bad-account",
+        message: "no account with that key",
+      });
+      return;
+    }
+    // From here on this is an ordinary session on an ordinary seat. The whole
+    // difference an account makes is which string went into `admit`.
+    await this.admit(conn, row.run_token, row.account_id, null);
+  }
+
+  /**
+   * The ONE admission path, reached by both kinds of `hello`. Sharing it is
+   * not tidiness: an account-authenticated session has to be
+   * indistinguishable from an anonymous one from here down, and the cheapest
+   * way to guarantee that is for there to be only one path to be
+   * indistinguishable from.
+   *
+   * `welcomeToken` is what the client is told to store: the seat id for an
+   * anonymous run, and NULL for a device that authenticated with a key — that
+   * device already has a credential, and the seat id would be a second one
+   * that nobody could ever revoke.
+   */
+  private async admit(
+    conn: Connection,
+    token: string,
+    accountId: string | null,
+    welcomeToken: string | null,
+  ): Promise<void> {
+    const galaxy = this.requireGalaxy();
+    const account = accountId !== null;
     const run = await this.ctx.storage.get<RunRecord>(`run:${token}`);
     if (run !== undefined) {
-      this.conns.set(conn.id, { conn, token, civId: run.civId, reportBaselineYear: null });
+      this.conns.set(conn.id, {
+        conn,
+        token,
+        accountId,
+        civId: run.civId,
+        reportBaselineYear: null,
+        openThreadStarId: null,
+      });
+      await this.rememberCivToken(run.civId, token);
       this.sendMsg(conn, {
         type: "welcome",
-        token,
+        token: welcomeToken,
+        account,
         phase: "placed",
         clock: this.toClockWire(),
         catalog: galaxy.stars,
@@ -472,10 +748,18 @@ export class Cohort extends Server<CohortEnv> {
       await this.sendSky(conn, token, run.civId);
       return;
     }
-    this.conns.set(conn.id, { conn, token, civId: null, reportBaselineYear: null });
+    this.conns.set(conn.id, {
+      conn,
+      token,
+      accountId,
+      civId: null,
+      reportBaselineYear: null,
+      openThreadStarId: null,
+    });
     this.sendMsg(conn, {
       type: "welcome",
-      token,
+      token: welcomeToken,
+      account,
       phase: "choosing",
       clock: this.toClockWire(),
       catalog: galaxy.stars,
@@ -484,6 +768,104 @@ export class Cohort extends Server<CohortEnv> {
     });
     const offerYear = await this.getOfferYear(token);
     this.sendMsg(conn, { type: "offer", candidates: this.makeCandidates(token, offerYear) });
+  }
+
+  /**
+   * claimAccount: mint an account for the seat this connection is sitting in.
+   *
+   * WHAT DOES NOT HAPPEN HERE is most of the design. No state moves, no key is
+   * rewritten, no civ is touched, and the live socket keeps working — the run
+   * carries on mid-sentence, and the only difference afterwards is that a row
+   * exists pointing at it. That is why a claim is legal in either phase: there
+   * need not be a civilization yet for a seat to be worth keeping.
+   */
+  private async onClaimAccount(conn: Connection): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined) {
+      // Not registered: `hello` has not been answered on this socket. Same
+      // answer every handler gives to a message out of order.
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "not registered" });
+      return;
+    }
+    this.ensureSchema();
+    const sql = this.ctx.storage.sql;
+    const existing = findAccountByRunToken(sql, state.token);
+    if (existing !== null) {
+      // A seat has one account, forever. The way back to the key is
+      // `showAccountKey`, which is what the hub row offers once this is so.
+      state.accountId = existing.account_id;
+      this.sendMsg(conn, {
+        type: "error",
+        code: "already-claimed",
+        message: "this run already has an account",
+      });
+      return;
+    }
+    if (this.claimLimiter.exhausted(conn.id)) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "too-many-attempts",
+        message: "too many attempts",
+      });
+      return;
+    }
+    this.claimLimiter.record(conn.id);
+    const created = createAccount(sql, state.token, Date.now());
+    if (created === null) {
+      // The unique index refused: another connection on this same seat claimed
+      // it between the SELECT above and this INSERT. The index is the
+      // arbitrator, and the loser is told the truth rather than handed a
+      // second key to one run.
+      this.sendMsg(conn, {
+        type: "error",
+        code: "already-claimed",
+        message: "this run already has an account",
+      });
+      return;
+    }
+    state.accountId = created.account_id;
+    // The key crosses the wire HERE and in `onShowAccountKey`, and those two
+    // sends are the entire exposure of a key in this server.
+    this.sendMsg(conn, { type: "accountKey", key: created.account_key, fresh: true });
+  }
+
+  /**
+   * showAccountKey: read this seat's key back, for a player who wants to write
+   * it down again. Serves the CONNECTION'S OWN seat and can name no other —
+   * there is no argument to this message and there is deliberately nowhere to
+   * put one.
+   *
+   * This is the safety net that plaintext storage buys, and with no recovery
+   * in v1 it is the only one there is.
+   */
+  private onShowAccountKey(conn: Connection): void {
+    const state = this.conns.get(conn.id);
+    if (state === undefined) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "not registered" });
+      return;
+    }
+    if (state.accountId === null) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "not-signed-in",
+        message: "this run has no account",
+      });
+      return;
+    }
+    this.ensureSchema();
+    const row = findAccountByRunToken(this.ctx.storage.sql, state.token);
+    if (row === null) {
+      // Unreachable in practice: `accountId` is only ever set from a row that
+      // exists, and rows are never deleted. Answering rather than throwing
+      // keeps a wiped table from taking a live session down with it.
+      this.sendMsg(conn, {
+        type: "error",
+        code: "not-signed-in",
+        message: "this run has no account",
+      });
+      return;
+    }
+    this.sendMsg(conn, { type: "accountKey", key: row.account_key, fresh: false });
   }
 
   /**
@@ -572,6 +954,7 @@ export class Cohort extends Server<CohortEnv> {
 
     const run: RunRecord = { token, civId, starId: star.id, localNames: {} };
     await this.ctx.storage.put(`run:${token}`, run);
+    await this.rememberCivToken(civId, token);
     state.civId = civId;
 
     // This connection sees its own sky (and, this being its first placement,
@@ -633,7 +1016,7 @@ export class Cohort extends Server<CohortEnv> {
   private async onRequestSky(conn: Connection): Promise<void> {
     const state = this.conns.get(conn.id);
     if (state === undefined || state.civId === null) return;
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -692,6 +1075,7 @@ export class Cohort extends Server<CohortEnv> {
     const budget: ComputeBudget = {
       free: freeComputeAt(assembled.projectState, nowYear),
       ratePerYear: ratePerYearAt(assembled.projectState, nowYear),
+      cap: attentionCapAt(assembled.projectState, nowYear),
       asOfYear: nowYear,
     };
     const probeFlightYearsPerLy = effectiveFlightYearsPerLy(assembled.projectState, nowYear);
@@ -712,7 +1096,7 @@ export class Cohort extends Server<CohortEnv> {
     if (stored.declined.includes(hit.fingerprint)) return; // idempotent, skip the write
     const declined = [...stored.declined, hit.fingerprint].slice(-DECLINE_CAP);
     await this.saveProposalState(state.token, { version: 1, declined });
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -732,7 +1116,8 @@ export class Cohort extends Server<CohortEnv> {
     const galaxy = this.requireGalaxy();
     const nowYear = gameYearAt(this.requireClock(), Date.now());
     const visible = visibleSky(galaxy, state.civId, nowYear);
-    if (!visible.some((o) => o.starId === starId)) {
+    const source = visible.find((o) => o.starId === starId);
+    if (source === undefined) {
       this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
       return;
     }
@@ -745,6 +1130,13 @@ export class Cohort extends Server<CohortEnv> {
     // the grounded exit measures a report's arrival against, so reopening a
     // grounded study genuinely reopens it — the report that closed it has
     // already arrived and can never close it again.
+    //
+    // A2.3: `openedClass` is restamped for the same reason, and the two
+    // frozen exits are CLEARED. Reopening a called study drops the call
+    // (there is no path that reopens one by itself, so the player has said
+    // so); reopening an overtaken one starts the watch on what the source is
+    // now, which is exactly what its closing line offered. `tripwires`
+    // survives untouched: an order left standing is left standing.
     const existing = studyState.studies[starId];
     const studies: Record<string, StoredStudy> = {
       ...studyState.studies,
@@ -754,10 +1146,14 @@ export class Cohort extends Server<CohortEnv> {
         status: "open",
         bought: existing?.bought ?? [],
         openedYear: nowYear,
+        openedClass: source.signal.classification,
+        called: null,
+        overtaken: null,
+        tripwires: existing?.tripwires ?? [],
       },
     };
-    await this.saveStudyState(state.token, { version: 3, studies });
-    await this.sendSky(conn, state.token, state.civId);
+    await this.saveStudyState(state.token, { version: 4, studies });
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -782,8 +1178,217 @@ export class Cohort extends Server<CohortEnv> {
       ...studyState.studies,
       [starId]: { ...existing, status: "shelved" },
     };
-    await this.saveStudyState(state.token, { version: 3, studies });
-    await this.sendSky(conn, state.token, state.civId);
+    await this.saveStudyState(state.token, { version: 4, studies });
+    await this.sendSkyToSeat(state);
+  }
+
+  /**
+   * callStudy: the player decides they are done arguing and freezes the
+   * belief where it stands. Legal from open or shelved only — a study that
+   * has already closed cannot be closed a second time, whatever closed it.
+   *
+   * The frozen belief comes from the board this send would have shown, which
+   * is why this assembles the sky state rather than re-deriving anything: a
+   * call must name the reading the player was looking at when they made it,
+   * to the share. From here nothing reads it back. Light goes on arriving,
+   * the underlying board goes on moving, and none of that touches the call
+   * or is scored against it.
+   */
+  private async onCallStudy(conn: Connection, starId: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    const galaxy = this.requireGalaxy();
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    const visible = visibleSky(galaxy, state.civId, nowYear);
+    const source = visible.find((o) => o.starId === starId);
+    if (source === undefined) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
+      return;
+    }
+    const studyState = await this.loadStudyState(state.token, nowYear);
+    const existing = studyState.studies[starId];
+    if (existing === undefined || isClosed(existing.status)) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "study-unavailable",
+        message: "the study is not open",
+      });
+      return;
+    }
+
+    const assembled = await this.assembleSkyState(state.token, state.civId, nowYear);
+    const snapshot = assembled.studies.find((s) => s.starId === starId);
+    const lead = snapshot === undefined ? undefined : leadHypothesisOf(snapshot.hypotheses);
+    if (lead === undefined) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "study-unavailable",
+        message: "there is nothing on the board to call",
+      });
+      return;
+    }
+
+    // Re-read: `assembleSkyState` owns a write of its own (studyWrites), so
+    // the record loaded above may be stale by now. Same re-fetch-before-put
+    // discipline the mission and wake-queue writes use.
+    const current = await this.loadStudyState(state.token, nowYear);
+    const base = current.studies[starId] ?? existing;
+    if (isClosed(base.status)) {
+      // The assemble above closed it out from under us (a report landed, or
+      // the class changed in the same breath). Those exits are the sky's and
+      // they win; the player's call did not get there first.
+      this.sendMsg(conn, {
+        type: "error",
+        code: "study-unavailable",
+        message: "the study is not open",
+      });
+      return;
+    }
+    const studies: Record<string, StoredStudy> = {
+      ...current.studies,
+      [starId]: {
+        ...base,
+        status: "called",
+        called: {
+          hypothesisId: lead.id,
+          label: lead.label,
+          gloss: lead.gloss,
+          share: lead.share,
+          calledYear: nowYear,
+          asOfYear: nowYear - source.distanceLy,
+        },
+      },
+    };
+    await this.saveStudyState(state.token, { version: 4, studies });
+    await this.sendSkyToSeat(state);
+  }
+
+  /**
+   * armTripwire: leave one standing condition on a study. Free — this is a
+   * decision, not work, so there is no cost and no clock. At most one per
+   * kind (re-arming replaces, which is also how a fired one is reset), and
+   * the server REFUSES to arm a condition that already holds: arming
+   * something that would fire on the same breath is not an order, it is a
+   * misunderstanding, and `tripwire-unavailable` says so.
+   */
+  private async onArmTripwire(conn: Connection, starId: string, kind: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    const tripwireKind = TRIPWIRE_KINDS.find((k) => k === kind);
+    if (tripwireKind === undefined) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "tripwire-unavailable",
+        message: "no such tripwire",
+      });
+      return;
+    }
+    const galaxy = this.requireGalaxy();
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    const visible = visibleSky(galaxy, state.civId, nowYear);
+    const source = visible.find((o) => o.starId === starId);
+    if (source === undefined) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
+      return;
+    }
+    const studyState = await this.loadStudyState(state.token, nowYear);
+    const existing = studyState.studies[starId];
+    if (existing === undefined || isClosed(existing.status)) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "study-unavailable",
+        message: "the study is not open",
+      });
+      return;
+    }
+
+    // The already-holds check reads the same board a sky send would, through
+    // the same predicate the firing check uses. Only `crosses` can be true at
+    // the moment of arming; the other two are armed-year-relative and so are
+    // false by construction here, which is the whole reason the state machine
+    // needs nothing but a fired year.
+    const assembled = await this.assembleSkyState(state.token, state.civId, nowYear);
+    const snapshot = assembled.studies.find((s) => s.starId === starId);
+    const holds =
+      snapshot !== undefined &&
+      tripwireHolds(tripwireKind, nowYear, {
+        openQuestions: snapshot.openQuestions,
+        hypotheses: snapshot.hypotheses,
+        signal: source.signal,
+        distanceLy: source.distanceLy,
+      });
+    if (holds) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "tripwire-unavailable",
+        message: "that has already happened",
+      });
+      return;
+    }
+
+    const current = await this.loadStudyState(state.token, nowYear);
+    const base = current.studies[starId] ?? existing;
+    if (isClosed(base.status)) {
+      // Closed by the assemble above; a closed study evaluates no tripwires,
+      // so arming one on it would be an order nothing will ever read.
+      this.sendMsg(conn, {
+        type: "error",
+        code: "study-unavailable",
+        message: "the study is not open",
+      });
+      return;
+    }
+    const tripwires: StoredTripwire[] = [
+      ...base.tripwires.filter((t) => t.kind !== tripwireKind),
+      { kind: tripwireKind, armedYear: nowYear, firedYear: null },
+    ];
+    const studies: Record<string, StoredStudy> = {
+      ...current.studies,
+      [starId]: { ...base, tripwires },
+    };
+    await this.saveStudyState(state.token, { version: 4, studies });
+    await this.sendSkyToSeat(state);
+  }
+
+  /** disarmTripwire: take the order back. Idempotent — disarming a kind that
+   *  is not armed is a no-op write and a fresh sky, never an error. */
+  private async onDisarmTripwire(conn: Connection, starId: string, kind: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    const tripwireKind = TRIPWIRE_KINDS.find((k) => k === kind);
+    if (tripwireKind === undefined) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "tripwire-unavailable",
+        message: "no such tripwire",
+      });
+      return;
+    }
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    const studyState = await this.loadStudyState(state.token, nowYear);
+    const existing = studyState.studies[starId];
+    if (existing === undefined) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no study there" });
+      return;
+    }
+    const studies: Record<string, StoredStudy> = {
+      ...studyState.studies,
+      [starId]: {
+        ...existing,
+        tripwires: existing.tripwires.filter((t) => t.kind !== tripwireKind),
+      },
+    };
+    await this.saveStudyState(state.token, { version: 4, studies });
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -791,10 +1396,11 @@ export class Cohort extends Server<CohortEnv> {
    * visible source (so the class is known); it does NOT require an open
    * study — the spend is the statement of intent, so it opens the study
    * when none exists and reopens a shelved one (stamping `openedYear`
-   * exactly as onOpenStudy would). The one status a spend does not override
-   * is grounded: grounded is closed until the player deliberately reopens
-   * it, because reopening restamps `openedYear` and with it what the
-   * grounded exit measures against (observatory-design.md § The exits).
+   * exactly as onOpenStudy would). The statuses a spend does not override
+   * are the CLOSED ones: grounded, called, and overtaken all stay closed
+   * until the player deliberately reopens, because reopening restamps
+   * `openedYear` and `openedClass` and with them what those exits measure
+   * against (observatory-design.md § The exits).
    */
   private async onBuyQuestion(conn: Connection, starId: string, questionId: string): Promise<void> {
     const state = this.conns.get(conn.id);
@@ -812,11 +1418,11 @@ export class Cohort extends Server<CohortEnv> {
     }
     const studyState = await this.loadStudyState(state.token, nowYear);
     const existing = studyState.studies[starId];
-    if (existing !== undefined && existing.status === "grounded") {
+    if (existing !== undefined && isClosed(existing.status)) {
       this.sendMsg(conn, {
         type: "error",
         code: "question-unavailable",
-        message: "the study is grounded",
+        message: "the study is closed",
       });
       return;
     }
@@ -856,15 +1462,25 @@ export class Cohort extends Server<CohortEnv> {
         existing !== undefined && existing.status === "open"
           ? { ...existing, bought: [...existing.bought, bought] }
           : {
+              ...existing,
               starId,
               status: "open",
               bought: [...(existing?.bought ?? []), bought],
               openedYear: nowYear,
+              // The open/reopen branch stamps `openedClass` for the same
+              // reason it stamps `openedYear`: the study is being opened
+              // NOW, against the class the source shows now. The two frozen
+              // exits are already null here (the refusal above rejects every
+              // closed status), and writing them null says so out loud.
+              openedClass: source.signal.classification,
+              called: null,
+              overtaken: null,
+              tripwires: existing?.tripwires ?? [],
             },
     };
-    await this.saveStudyState(state.token, { version: 3, studies });
+    await this.saveStudyState(state.token, { version: 4, studies });
 
-    const updatedProjectState = commitCompute(projectState, cost);
+    const updatedProjectState = commitCompute(projectState, cost, nowYear);
     await this.saveProjectState(state.token, updatedProjectState);
 
     const answersYear = answersYearFor(def, bought, projectState);
@@ -874,7 +1490,7 @@ export class Cohort extends Server<CohortEnv> {
       key: `q/${starId}/${def.id}`,
     });
 
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -966,7 +1582,7 @@ export class Cohort extends Server<CohortEnv> {
     };
     await this.saveMissionState(state.token, updatedMissionState);
 
-    const updatedProjectState = commitCompute(projectState, kindDef.costCompute);
+    const updatedProjectState = commitCompute(projectState, kindDef.costCompute, nowYear);
     await this.saveProjectState(state.token, updatedProjectState);
 
     await this.pushWakeEvent({
@@ -976,7 +1592,541 @@ export class Cohort extends Server<CohortEnv> {
       key: `m/${mission.id}/0`,
     });
 
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
+  }
+
+  /**
+   * A2.4: the token that owns a civ, so an arrival wake can find whom to
+   * push. Idempotent, and written from every placement path — which
+   * back-fills every returning pre-A2.4 run on its next hello. Used for
+   * nothing else; it is not a second run record.
+   */
+  private async rememberCivToken(civId: string, token: string): Promise<void> {
+    await this.ctx.storage.put(`civToken:${civId}`, token);
+  }
+
+  /**
+   * commitContact: hail one civilization, speak to everyone, or stay dark.
+   *
+   * PRESENCE RULE (act3-design.md, the absence charter): irreversible acts
+   * require presence. This is the ONLY caller of applyBroadcast in the whole
+   * server and one of exactly TWO callers of appendAct (the other is
+   * `onSendSignal`), and — the invariant that actually matters — its first
+   * statement resolves a LIVE socket from `this.conns`, an in-memory entry
+   * deleted on close. Nothing else in this object may produce a ContactAct:
+   * alarms are wake-ups and never truth, the proposal route has no contact
+   * arm and gains none (the mind may not propose a hail into existence),
+   * tripwires fire beliefs rather than acts, and no AI civilization has a
+   * path here at any stage — its answers are DERIVED and stored nowhere
+   * (traffic.ts).
+   *
+   * THE ORDER OF THE VALIDATION TABLE BELOW IS LOAD-BEARING. The visibility
+   * test is `visibleSky` membership and nothing more — byte-identical to the
+   * test that produced the client's own `sources` — and unknown star, star
+   * with no civilization, and star whose light has not reached this observer
+   * all answer the SAME code, so the error can never be used as an oracle
+   * for what is out there. Requiring an open study instead would also price
+   * the ceremony in Compute, which is the wrong altitude: a hail's price is
+   * coherence and irreversibility, not inference.
+   */
+  private async onCommitContact(
+    conn: Connection,
+    choice: string,
+    starId: string | null,
+    acknowledged: boolean,
+  ): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    if (choice !== "hail" && choice !== "broadcast" && choice !== "stay-dark") {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no such choice" });
+      return;
+    }
+    // Stay dark WRITES NOTHING and sends nothing (the voiceSeen /
+    // declineProposal silent-bookkeeping precedent). Physics has no record
+    // of a non-event, the light cone has nothing to serve, and a stored
+    // `lastDarkYear` would be a fact no observer could ever read. The arm
+    // exists so the ceremony's vocabulary is complete and A2.5's declined
+    // answer has a home; the sky it leaves behind is byte-identical.
+    if (choice === "stay-dark") return;
+
+    const kind: CeremonyKind = choice;
+    const civId = state.civId;
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    // Captured AFTER the last await, as onBecome's comment requires: no
+    // storage read yields between here and the splice below, so a
+    // concurrent commit on another connection cannot be lost.
+    const galaxy = this.requireGalaxy();
+    const selfCiv = civById(galaxy, civId);
+
+    let toCivId: string | null = null;
+    if (kind === "hail") {
+      const visible = visibleSky(galaxy, civId, nowYear);
+      const target = starId === null ? undefined : civAtStar(galaxy, starId);
+      if (
+        starId === null ||
+        !visible.some((o) => o.starId === starId) ||
+        target === undefined ||
+        target.seed.id === civId
+      ) {
+        this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
+        return;
+      }
+      toCivId = target.seed.id;
+      if (hasHailed(galaxy.acts, civId, toCivId)) {
+        this.sendMsg(conn, {
+          type: "error",
+          code: "contact-unavailable",
+          message: "a beam is already aimed there",
+        });
+        return;
+      }
+    } else if (broadcastInFlight(galaxy.acts, civId, nowYear)) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "contact-unavailable",
+        message: "already speaking to everyone",
+      });
+      return;
+    }
+    if (actsFrom(galaxy.acts, civId).length >= MAX_ACTS_PER_CIV) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "contact-unavailable",
+        message: "too many acts committed",
+      });
+      return;
+    }
+
+    // The server recomputes the resistance and charges WHAT IT COMPUTES;
+    // `acknowledged` only decides whether a contested commit may proceed. So
+    // a client that never rendered the objection cannot silently wound the
+    // mind, and a client that lies about the flag still pays this number.
+    const resistance = resistanceFor(selfCiv.seed, kind);
+    if (resistance.contested && acknowledged !== true) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "contact-contested",
+        message: "the mind objects",
+      });
+      return;
+    }
+
+    // --- the writes ------------------------------------------------------
+    // A hail gets ONE append and no emission-history write: a beam is aimed,
+    // and putting it in the broadband history would broadcast it to every
+    // observer, which is exactly the leak the class exists to exclude. A
+    // broadcast gets two writes, the act and the residue.
+    const charged = Math.min(resistance.coherenceCost, selfCiv.seed.stocks.coherence);
+    const act: ContactAct = {
+      id: `act-${galaxy.acts.length}`,
+      kind,
+      fromCivId: civId,
+      toCivId,
+      sentYear: nowYear,
+      coherenceCost: charged,
+    };
+    const updatedSelf: PlacedCiv = {
+      ...selfCiv,
+      seed: {
+        ...selfCiv.seed,
+        emissionHistory:
+          kind === "broadcast"
+            ? applyBroadcast(selfCiv.seed.emissionHistory, nowYear)
+            : selfCiv.seed.emissionHistory,
+        stocks: {
+          ...selfCiv.seed.stocks,
+          // Floored at zero. v1 CHARGES AND DISPLAYS only: coherence's
+          // thresholds (fragmentation, wobbling endeavors) are the economy's
+          // later work and nothing here presumes them.
+          coherence: Math.max(0, selfCiv.seed.stocks.coherence - charged),
+        },
+      },
+    };
+    const civs = galaxy.civs.map((c) => (c.seed.id === civId ? updatedSelf : c));
+    this.galaxy = appendAct({ ...galaxy, civs }, act);
+    await this.ctx.storage.put("galaxy:civs", this.galaxy.civs);
+    await this.ctx.storage.put("galaxy:acts", this.galaxy.acts);
+
+    await this.scheduleContactWakes(this.galaxy, act);
+
+    // This SEAT sees the debit and its own echo immediately, on every device
+    // it is live on (the client re-derives every stamp from this sky, so the
+    // seam is one round trip). Every OTHER placed connection gets a fresh sky
+    // too: the membership of their sky can change on a commit, exactly as it
+    // does on a placement. A2.6 skips by SEAT rather than by socket id, so a
+    // second device on this account is served once by the fan-out above
+    // instead of twice.
+    await this.sendSkyToSeat(state);
+    for (const other of this.conns.values()) {
+      if (other.token === state.token) continue;
+      if (other.civId === null) continue;
+      await this.sendSky(other.conn, other.token, other.civId);
+    }
+  }
+
+  /**
+   * sendSignal: a COMPOSED follow-up inside a thread you already opened.
+   *
+   * PRESENCE RULE, second and final call site. Its first statement resolves a
+   * LIVE socket from `this.conns`, exactly as `onCommitContact`'s does; that
+   * — not a count of one — is the invariant contact.ts's header states.
+   *
+   * NO CEREMONY AND NO RESISTANCE. The mind objected once, at the door, and
+   * does not relitigate the conversation, so a signal costs no coherence and
+   * `CeremonyKind` never widened to admit it.
+   *
+   * NO CONTROLLER BRANCH ANYWHERE IN THIS METHOD, and that is the point of
+   * the slice. A2.5 refused a human target with its own error code, which
+   * made "type anything and read the reply" a perfect oracle for whether a
+   * neighbor was a person. Every path below is identical for both, the parts
+   * are materialized from the SENDER'S OWN state either way, and the claim is
+   * greppable:
+   *
+   *   grep -n "controller" server/src/cohort.ts
+   *
+   * must show no hit inside this method.
+   *
+   * THE ORDER OF THE VALIDATION TABLE IS LOAD-BEARING, and it inherits A2.4's
+   * oracle discipline whole. Everything decidable from the SENDER'S OWN BYTES
+   * runs first (tone vocabulary, selector vocabulary), because such a verdict
+   * cannot be a question about anybody else; then the visibility test, which
+   * is `visibleSky` membership and nothing more, so unknown star, star with no
+   * civilization and star whose light has not reached this observer all answer
+   * the SAME code; then the thread's own table, and materialization last,
+   * because it is the only step that reads state.
+   */
+  private async onSendSignal(
+    conn: Connection,
+    starId: string,
+    toneRaw: string,
+    partsRaw: readonly unknown[],
+  ): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    // (1) The sender's own bytes. Both of these are pure vocabulary checks on
+    // what the client sent and read no state at all, so neither can be turned
+    // into a question about the sky.
+    const tone = parseTone(toneRaw);
+    if (tone === null) {
+      this.sendMsg(conn, { type: "error", code: "bad-signal", message: "no such tone" });
+      return;
+    }
+    const refs = parsePartRefs(partsRaw);
+    if (refs === null || refs.length > MAX_PARTS_PER_SIGNAL) {
+      this.sendMsg(conn, { type: "error", code: "bad-signal", message: "the signal is malformed" });
+      return;
+    }
+
+    const civId = state.civId;
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    // Captured AFTER the last await (onBecome's rule): no storage read yields
+    // between here and the splice below.
+    const galaxy = this.requireGalaxy();
+    const visible = visibleSky(galaxy, civId, nowYear);
+    const target = civAtStar(galaxy, starId);
+    if (
+      !visible.some((o) => o.starId === starId) ||
+      target === undefined ||
+      target.seed.id === civId
+    ) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
+      return;
+    }
+    const toCivId = target.seed.id;
+
+    const mine = actsFrom(galaxy.acts, civId).filter(
+      (a) => (a.kind === "hail" || a.kind === "signal") && a.toCivId === toCivId,
+    );
+    // The thread exists iff you opened it. ANSWERING SOMEONE WHO HAILED YOU
+    // COSTS THE HAIL CEREMONY — the client routes there instead, which is the
+    // beat, not an omission.
+    if (!hasHailed(galaxy.acts, civId, toCivId)) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "thread-unavailable",
+        message: "no thread there",
+      });
+      return;
+    }
+    const last = mine[mine.length - 1];
+    if (last !== undefined && nowYear - last.sentYear < SIGNAL_COOLDOWN_YEARS) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "contact-unavailable",
+        message: "too soon after the last",
+      });
+      return;
+    }
+    // THE TURNAROUND FLOOR, on every thread alike. The thread's reference view
+    // is derived here (and not merely counted) because the floor, every
+    // verdict reference and the mutual quiet all read the SAME merged list the
+    // client is looking at — one derivation, one truth about what has landed.
+    const refRows = threadRefRowsFor(galaxy, civId, toCivId, nowYear);
+    const inbound = refRows.filter((r) => r.from === "them");
+    const lastInbound = inbound[inbound.length - 1];
+    if (
+      lastInbound !== undefined &&
+      nowYear - lastInbound.learnedYear < MIN_DELIBERATION_YEARS
+    ) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "contact-unavailable",
+        message: "the beam is still being read",
+      });
+      return;
+    }
+    if (mine.filter((a) => a.kind === "signal").length >= MAX_SIGNALS_PER_THREAD) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "contact-unavailable",
+        message: "this thread is full",
+      });
+      return;
+    }
+    if (actsFrom(galaxy.acts, civId).length >= MAX_ACTS_PER_CIV) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "contact-unavailable",
+        message: "too many acts committed",
+      });
+      return;
+    }
+
+    // (2) MATERIALIZATION. Selectors in, frozen parts out, every field read
+    // off this sender's own study, sky and seed state. A hostile selector
+    // answers here and writes nothing at all.
+    const studyState = await this.loadStudyState(state.token, nowYear);
+    const materialized = materializeParts(refs, {
+      galaxy,
+      senderId: civId,
+      nowYear,
+      studies: studyState.studies,
+      thread: refRows,
+      accord: deriveAccord(refRows),
+    });
+    if (!materialized.ok) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: materialized.code,
+        message: materialized.message,
+      });
+      return;
+    }
+
+    // --- the write -------------------------------------------------------
+    // ONE append and no emission-history write, for exactly the reason a hail
+    // gets none: a signal is aimed, and putting it in the broadband history
+    // would broadcast it to every observer.
+    //
+    // `inReplyTo` is deliberately UNSET. Threading is carried by the verdict
+    // part's own reference, which resolves inside this thread and is
+    // re-rendered into each viewer's own namespace on the way out — and, when
+    // it names a derived reply, it names an id that is append-only by
+    // construction, so it cannot come to mean something else (traffic.ts's
+    // header argues this where the derivation rule lives).
+    //
+    // `text` is deliberately UNSET, and there is no longer any code that
+    // could set it.
+    const act: ContactAct = {
+      id: `act-${galaxy.acts.length}`,
+      kind: "signal",
+      fromCivId: civId,
+      toCivId,
+      sentYear: nowYear,
+      coherenceCost: 0,
+      tone,
+      parts: materialized.parts,
+    };
+    this.galaxy = appendAct(galaxy, act);
+    await this.ctx.storage.put("galaxy:acts", this.galaxy.acts);
+
+    await this.scheduleContactWakes(this.galaxy, act);
+
+    // This seat sees its own echo immediately, on every device it is live on.
+    // Every OTHER placed connection gets a fresh sky too, on the same terms a
+    // commit does: the recipient may be a person, their thread list can change
+    // on this write, and — the load-bearing part — the fan-out is
+    // UNCONDITIONAL, so the set of sockets a send touches says nothing about
+    // who was aimed at. Skipping by SEAT rather than by socket id leaves that
+    // untouched: which OTHER players are served is unchanged, and a second
+    // device on the sender's own account is simply not served twice.
+    await this.sendSkyToSeat(state);
+    for (const other of this.conns.values()) {
+      if (other.token === state.token) continue;
+      if (other.civId === null) continue;
+      await this.sendSky(other.conn, other.token, other.civId);
+    }
+  }
+
+  /**
+   * muteThread: go dark to one counterpart. A TOGGLE, and pure bookkeeping —
+   * no error code, the `openThread` / `declineProposal` precedent, and a
+   * starId naming nothing simply resolves to nothing.
+   *
+   * ZERO SENDER-SIDE EFFECT, stated here because it is the whole design:
+   * their send still commits, their thread still renders on their own rack,
+   * their beam still lands and still lights this player's sky as a directed
+   * beam. What changes is that this player's THREAD LIST stops carrying the
+   * row. Nothing is notified, and nothing anywhere records that a mute
+   * happened in a form the other side could ever read.
+   */
+  private async onMuteThread(
+    conn: Connection,
+    starId: string,
+    muted: boolean,
+  ): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) return;
+    const galaxy = this.requireGalaxy();
+    const target = civAtStar(galaxy, starId);
+    if (target === undefined || target.seed.id === state.civId) return;
+    const run = await this.ctx.storage.get<RunRecord>(`run:${state.token}`);
+    if (run === undefined) return;
+    const current = run.muted ?? [];
+    const next = muted
+      ? current.includes(target.seed.id)
+        ? current
+        : [...current, target.seed.id]
+      : current.filter((id) => id !== target.seed.id);
+    if (next.length !== current.length) {
+      const updated: RunRecord = { ...run, muted: next };
+      await this.ctx.storage.put(`run:${state.token}`, updated);
+    }
+    // A muted thread cannot also be the open one.
+    if (muted && state.openThreadStarId === starId) state.openThreadStarId = null;
+    await this.sendSkyToSeat(state);
+  }
+
+  /**
+   * openThread: which thread this CONNECTION is reading. Per-connection UI
+   * state, no DO key, no error code — bookkeeping, the `declineProposal`
+   * precedent. A starId naming no thread yields a null detail, which is also
+   * what a starId naming nothing at all yields, so this cannot be used as an
+   * oracle for what is out there.
+   */
+  private async onOpenThread(conn: Connection, starId: string | null): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) return;
+    state.openThreadStarId = starId;
+    await this.sendSkyToSeat(state);
+  }
+
+  /**
+   * Wake the observers this act will eventually reach, at the year it
+   * reaches them: the target for a hail or signal, every player-controlled
+   * civ for a broadcast. A wake still only resends a sky computed through the
+   * cone, so it can never surface anything early, and a dropped queue costs
+   * nothing but a push the client would compute itself on its next
+   * `requestSky` (onAlarm's contract).
+   *
+   * A2.5 extends it and does not change its nature. NO WAKE IS REQUIRED FOR
+   * CORRECTNESS ANYWHERE — that sentence is the invariant, and it is why
+   * calling `deriveAiSignals` from here is a read and not a write: the
+   * derived arrival happens whether or not anything is queued for it, and
+   * this method mutates nothing at all.
+   */
+  private async scheduleContactWakes(galaxy: Galaxy, act: ContactAct): Promise<void> {
+    const observers: string[] =
+      act.kind === "hail" || act.kind === "signal"
+        ? act.toCivId === null
+          ? []
+          : [act.toCivId]
+        : galaxy.civs
+            .filter((c) => c.controller === "player" && c.seed.id !== act.fromCivId)
+            .map((c) => c.seed.id);
+    for (const observerId of observers) {
+      const token = await this.ctx.storage.get<string>(`civToken:${observerId}`);
+      if (token === undefined) continue; // never placed through a live socket
+      const arrivesYear = act.sentYear + civDistanceLy(galaxy, act.fromCivId, observerId);
+      await this.pushWakeEvent({
+        token,
+        atYear: arrivesYear + WAKE_SLOP_YEARS,
+        key: `c/${act.id}/${observerId}`,
+      });
+    }
+
+    // A2.5: an act aimed at a SEEDED counterpart wakes the SENDER twice over
+    // — once when their own beam lands (the thread's chip flips from
+    // in-flight to awaiting) and once at each derived arrival that is still
+    // in the future. The counterpart itself has no token and needs none:
+    // nothing is delivered to it, because nothing about it is stored.
+    if (act.toCivId === null) return;
+    const target = civById(galaxy, act.toCivId);
+    if (target.controller !== "ai") return;
+    const senderToken = await this.ctx.storage.get<string>(`civToken:${act.fromCivId}`);
+    if (senderToken === undefined) return;
+    const distance = civDistanceLy(galaxy, act.fromCivId, act.toCivId);
+    await this.pushWakeEvents([
+      {
+        token: senderToken,
+        atYear: act.sentYear + distance + WAKE_SLOP_YEARS,
+        key: `t/${act.id}/landed`,
+      },
+      ...this.threadWakes(galaxy, act.fromCivId, act.toCivId, senderToken, act.sentYear),
+    ]);
+  }
+
+  /**
+   * The wakes one pair wants: every derived arrival still ahead of `fromYear`,
+   * optionally bounded by a horizon. Idempotent by key — a derived signal's id
+   * is stable across derivations, so re-pushing overwrites the entry at the
+   * same id instead of growing the queue.
+   *
+   * PURE, and the point bears repeating: it computes a list. Its callers own
+   * the single storage write, and nothing here is truth. Wipe the queue and
+   * every one of these arrivals still lands, one `requestSky` later.
+   */
+  private threadWakes(
+    galaxy: Galaxy,
+    playerId: string,
+    aiId: string,
+    token: string,
+    fromYear: number,
+    horizonYears: number | null = null,
+  ): { readonly token: string; readonly atYear: number; readonly key: string }[] {
+    const wakes: { readonly token: string; readonly atYear: number; readonly key: string }[] = [];
+    for (const signal of deriveAiSignals(galaxy, aiId, playerId)) {
+      if (signal.arrivesYear <= fromYear) continue;
+      if (horizonYears !== null && signal.arrivesYear > fromYear + horizonYears) continue;
+      wakes.push({
+        token,
+        atYear: signal.arrivesYear + WAKE_SLOP_YEARS,
+        key: `t/${signal.id}`,
+      });
+    }
+    return wakes;
+  }
+
+  /**
+   * The horizon pass: on every sky send, queue a wake for each derived
+   * arrival within WAKE_HORIZON_YEARS. Self-healing, and the reason the queue
+   * can be wiped without losing anything — the arrivals are derived, so all a
+   * lost wake ever costs is a push.
+   *
+   * Runs over every SEEDED counterpart rather than over open threads: a
+   * lantern's unprompted hail arrives before any thread exists, and a pass
+   * that only looked at threads could never deliver it.
+   */
+  private async scheduleThreadHorizon(
+    token: string,
+    civId: string,
+    nowYear: number,
+  ): Promise<void> {
+    const galaxy = this.requireGalaxy();
+    const wakes = galaxy.civs
+      .filter((civ) => civ.controller === "ai")
+      .flatMap((civ) =>
+        this.threadWakes(galaxy, civId, civ.seed.id, token, nowYear, WAKE_HORIZON_YEARS),
+      );
+    // ONE read-modify-write for the whole pass, and none at all when there is
+    // nothing ahead.
+    await this.pushWakeEvents(wakes);
   }
 
   /**
@@ -1018,13 +2168,14 @@ export class Cohort extends Server<CohortEnv> {
       ...projectState.started,
       { id: def.id, startedYear: nowYear },
     ];
+    // Through commitCompute so the spend writes the capped-accrual anchor
+    // (projects.ts v3) — the started list rides along on the same state.
     const updated: ProjectState = {
-      ...projectState,
+      ...commitCompute(projectState, def.costCompute, nowYear),
       started,
-      committedCompute: projectState.committedCompute + def.costCompute,
     };
     await this.saveProjectState(state.token, updated);
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -1032,12 +2183,13 @@ export class Cohort extends Server<CohortEnv> {
    * just shipped and the tap bug meant no studies were ever opened in
    * production, so no migration shim is needed for THAT rename). A2.2 adds
    * a real v1→v2 migration (studies.ts's migrateStudyState, loadProjectState's
-   * exact idiom): every study gains an empty `bought[]`.
+   * exact idiom): every study gains an empty `bought[]`. A2.2b's v3 added
+   * `openedYear`; A2.3's v4 adds the exit fields.
    */
   private async loadStudyState(token: string, nowYear: number): Promise<StudyState> {
     const stored = await this.ctx.storage.get<StoredStudyState>(`studies:${token}`);
     if (stored === undefined) return newStudyState();
-    if (stored.version === 3) return stored;
+    if (stored.version === 4) return stored;
     const migrated = migrateStudyState(stored, nowYear);
     await this.ctx.storage.put(`studies:${token}`, migrated);
     return migrated;
@@ -1365,7 +2517,7 @@ export class Cohort extends Server<CohortEnv> {
   ): Promise<ProjectState> {
     const stored = await this.ctx.storage.get<StoredProjectState>(`projects:${token}`);
     if (stored !== undefined) {
-      if (stored.version === 2) return stored;
+      if (stored.version === 3) return stored;
       const migrated = migrateProjectState(stored);
       await this.ctx.storage.put(`projects:${token}`, migrated);
       return migrated;
@@ -1401,6 +2553,9 @@ export class Cohort extends Server<CohortEnv> {
     await this.ctx.storage.put("galaxy:meta", { seedKey, config } satisfies GalaxyMeta);
     await this.ctx.storage.put("galaxy:stars", galaxy.stars);
     await this.ctx.storage.put("galaxy:civs", galaxy.civs);
+    // A2.4: written explicitly at seed time so a re-seed cannot inherit the
+    // previous galaxy's contact log. `onStart` still tolerates its absence.
+    await this.ctx.storage.put("galaxy:acts", galaxy.acts);
     await this.ctx.storage.put("events", []);
     await this.ctx.storage.put("eventLog", []);
   }
@@ -1437,11 +2592,26 @@ export class Cohort extends Server<CohortEnv> {
       projects,
       projectState,
       designations,
-    } = await this.assembleSkyState(token, civId, nowYear);
+      contact,
+    } = await this.assembleSkyState(
+      token,
+      civId,
+      nowYear,
+      this.conns.get(conn.id)?.openThreadStarId ?? null,
+    );
+
+    // A2.5, THE HORIZON PASS. Self-healing delivery: every derived arrival
+    // inside WAKE_HORIZON_YEARS gets a wake on every sky send, so a player
+    // returning after a week gets everything on their first sky whatever the
+    // queue did or did not survive. It runs over every seeded counterpart and
+    // not merely over open threads, because a lantern's unprompted hail is
+    // the one arrival that exists before any thread does.
+    await this.scheduleThreadHorizon(token, civId, nowYear);
 
     const budget: ComputeBudget = {
       free: freeComputeAt(projectState, nowYear),
       ratePerYear: ratePerYearAt(projectState, nowYear),
+      cap: attentionCapAt(projectState, nowYear),
       asOfYear: nowYear,
     };
     const tend = buildTendList({
@@ -1518,6 +2688,7 @@ export class Cohort extends Server<CohortEnv> {
       tend,
       probeFlightYearsPerLy,
       proposals: counsel.proposals,
+      contact,
     });
 
     // AFTER the send, always. Generation is considered only once the message
@@ -1543,17 +2714,42 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
+   * A2.6: THE SEAT, NOT THE SOCKET. Every handler that changes a player's own
+   * state ends here rather than in a bare `sendSky`, and this sends to every
+   * live connection on the same seat.
+   *
+   * The ruling behind it is that two devices on one account BOTH STAY LIVE.
+   * Kicking the older one would be the easy implementation and the hostile
+   * one: two anonymous tabs have always worked, the object is single-threaded
+   * so there is no state to race, and the cadence of this game is slow enough
+   * that "signed in somewhere else" is not information anyone needs. What the
+   * fan-out buys is that the phone in the other hand is not stale — without
+   * it, device B self-heals on its next visibility change and looks broken
+   * until then.
+   *
+   * Each connection still gets its OWN sky: `sendSky` reads that connection's
+   * open thread, so per-connection view state survives the fan-out.
+   */
+  private async sendSkyToSeat(state: ConnState): Promise<void> {
+    await this.resendSkyTo(state.token);
+  }
+
+  /**
    * The wire-snapshot assembly `sendSky` sends and AV2's `materializeReport`
    * derives from — split out so both can reach it without either depending
-   * on the other having already run this turn. Owns the one A2.2b side
-   * effect in this whole pipeline (`groundedWrites`: a study transitioning
-   * to `status: "grounded"` is a write, not a pure derivation — see the
-   * comment at that block).
+   * on the other having already run this turn. Owns the one side effect in
+   * this whole pipeline (`studyWrites`: a study CHANGING STATE while nobody
+   * asked it to is a write, not a pure derivation — see the comment at that
+   * block). One merged map, one save, however many studies moved.
    */
   private async assembleSkyState(
     token: string,
     civId: string,
     nowYear: number,
+    /** A2.5: which thread the ASKING CONNECTION has open. Defaults to null,
+     *  so every caller that is not serving a socket (AV2's report
+     *  materialization) pays for no detail it would not render. */
+    openThreadStarId: string | null = null,
   ): Promise<{
     readonly self: SelfView;
     readonly sources: readonly DetectedSource[];
@@ -1563,6 +2759,7 @@ export class Cohort extends Server<CohortEnv> {
     readonly projects: readonly ProjectSnapshot[];
     readonly projectState: ProjectState;
     readonly designations: Readonly<Record<string, string>>;
+    readonly contact: ContactWire;
   }> {
     const galaxy = this.requireGalaxy();
     const selfCiv = civById(galaxy, civId);
@@ -1604,7 +2801,18 @@ export class Cohort extends Server<CohortEnv> {
     // the place that built it from missions.ts. The transition is a write:
     // derived grounding would re-close the study the instant it was
     // reopened, since the report never goes away.
-    let groundedWrites: Record<string, StoredStudy> | null = null;
+    //
+    // A2.3 widens that one write into `studyWrites` — the same map, the same
+    // single save, now carrying three more kinds of state change that a sky
+    // send can discover: an overtaking, a tripwire firing, and the
+    // `openedClass` back-fill for studies migrated from before that field
+    // existed. Every one of them has the same shape of reason as grounding:
+    // it must be written, because re-deriving it later would either repeat
+    // it forever or lose it entirely.
+    let studyWrites: Record<string, StoredStudy> | null = null;
+    const noteWrite = (settled: StoredStudy): void => {
+      studyWrites = { ...(studyWrites ?? studyState.studies), [settled.starId]: settled };
+    };
     const studies: StudySnapshot[] = Object.values(studyState.studies)
       .map((stored) => {
         const source = sources.find((s) => s.starId === stored.starId);
@@ -1644,11 +2852,50 @@ export class Cohort extends Server<CohortEnv> {
         // Only an OPEN study grounds: a shelved vigil is passive, and an
         // already-grounded one keeps the grounding it has.
         const grounds = stored.status === "open" && grounding !== null;
-        const settled: StoredStudy = grounds ? { ...stored, status: "grounded" } : stored;
+
+        // A2.3, the overtaken exit: the source is no longer the kind of
+        // thing this study was opened on. GROUNDED WINS A TIE — a probe was
+        // physically there, and the sky merely changed its mind about what
+        // it is looking at, so a report landing in the same settle as a
+        // class change closes the study the stronger way.
+        //
+        // A null `openedClass` (a study migrated from before the field) can
+        // never overtake; it is back-filled to the current class just below,
+        // and starts measuring from there.
+        //
+        // The detection-floor drop is deliberately NOT a trigger. It is
+        // unreachable in v1 anyway (a dark civ's emission levels sit above
+        // DETECTION_FLOOR), and the existing behavior for a source that
+        // vanishes is to omit the study silently, which stays.
+        const overtakes =
+          !grounds &&
+          stored.status === "open" &&
+          stored.openedClass !== null &&
+          stored.openedClass !== source.signal.classification;
+
+        let settled: StoredStudy = stored;
+        let overtaking: OvertakingTrigger | null = null;
         if (grounds) {
-          groundedWrites = { ...(groundedWrites ?? studyState.studies), [stored.starId]: settled };
+          settled = { ...stored, status: "grounded" };
+        } else if (overtakes && stored.openedClass !== null) {
+          settled = { ...stored, status: "overtaken" };
+          overtaking = {
+            fromClass: stored.openedClass,
+            toClass: source.signal.classification,
+            atYear: nowYear,
+            asOfYear: nowYear - cone.distanceLy,
+          };
+        } else if (stored.openedClass === null && !isClosed(stored.status)) {
+          // The back-fill. Not a state change and not visible anywhere: it
+          // only gives a legacy study the baseline every new study is
+          // stamped with, so the NEXT class change is a real one. A CLOSED
+          // study is left byte-identical — it can never overtake, so it has
+          // nothing to measure, and "a closed study does not change" is
+          // worth more than a field it will never read.
+          settled = { ...stored, openedClass: source.signal.classification };
         }
-        return buildStudySnapshot(
+
+        const assembledStudy = buildStudySnapshot(
           galaxy,
           cone,
           source,
@@ -1657,13 +2904,27 @@ export class Cohort extends Server<CohortEnv> {
           projectState,
           missionMoves,
           settled.status === "grounded" ? grounding : null,
+          overtaking,
         );
+
+        // One write per study, merged from every transition this send found:
+        // the status flip, the frozen overtaking, and any tripwire that fired
+        // while the board was being assembled.
+        const fired = assembledStudy.tripwires !== settled.tripwires;
+        if (settled !== stored || overtaking !== null || fired) {
+          noteWrite({
+            ...settled,
+            tripwires: assembledStudy.tripwires,
+            overtaken: assembledStudy.overtaken ?? settled.overtaken,
+          });
+        }
+        return assembledStudy.snapshot;
       })
       .filter((s): s is StudySnapshot => s !== null)
       .sort((a, b) => a.starId.localeCompare(b.starId));
 
-    if (groundedWrites !== null) {
-      await this.saveStudyState(token, { version: 3, studies: groundedWrites });
+    if (studyWrites !== null) {
+      await this.saveStudyState(token, { version: 4, studies: studyWrites });
     }
 
     const missions: MissionSnapshot[] = missionState.missions
@@ -1721,7 +2982,40 @@ export class Cohort extends Server<CohortEnv> {
       designations[starId] = starById(galaxy.stars, starId).designation;
     }
 
-    return { self, sources, localNames, studies, missions, projects, projectState, designations };
+    // A2.4: the ceremony's stances, derived from this civ's own dial sheet
+    // and its own acts. Nothing in either of them is about anyone else, which
+    // is why they need no cone.
+    //
+    // A2.5: the threads are the one part of this block that IS about somebody
+    // else, so they are built through traffic.ts and CALLED THROUGH — derived
+    // at read time, stored nowhere, and filtered at `arrivesYear <= nowYear`
+    // inside `buildThreads` so an answer in flight reaches no field here.
+    //
+    // A2.6: `buildThreads` now walks EVERY civilization rather than the
+    // seeded ones, merging stored inbound and derived inbound into one list
+    // with identical stamps, and it takes this player's mute list — the one
+    // filter that drops a thread from their own rack and changes nothing at
+    // all on the other side.
+    const threads = buildThreads(
+      galaxy,
+      civId,
+      nowYear,
+      openThreadStarId,
+      run?.muted ?? [],
+    );
+    const contact = buildContactWire(galaxy, selfCiv, nowYear, threads);
+
+    return {
+      self,
+      sources,
+      localNames,
+      studies,
+      missions,
+      projects,
+      projectState,
+      designations,
+      contact,
+    };
   }
 
   /**
@@ -1827,10 +3121,30 @@ export class Cohort extends Server<CohortEnv> {
     readonly key: string;
     readonly missionId?: string;
   }): Promise<void> {
+    await this.pushWakeEvents([input]);
+  }
+
+  /**
+   * The same write for SEVERAL wakes at once: one read, one put, one arm,
+   * however many events. A2.5's horizon pass runs on every sky send and can
+   * queue a wake per derived arrival per counterpart, and paying a
+   * read-modify-write for each of those would put a dozen storage round trips
+   * under an ordinary sky (the design note's own recorded risk: measure the
+   * sky weight). An empty batch writes nothing at all.
+   */
+  private async pushWakeEvents(
+    inputs: readonly {
+      readonly token: string;
+      readonly atYear: number;
+      readonly key: string;
+      readonly missionId?: string;
+    }[],
+  ): Promise<void> {
+    if (inputs.length === 0) return;
     const pending = (await this.ctx.storage.get<ScheduledEvent[]>("events")) ?? [];
-    const event = this.buildWakeEvent(input);
-    const withoutDup = pending.filter((e) => e.id !== event.id);
-    let queue = [...withoutDup, event];
+    const events = inputs.map((input) => this.buildWakeEvent(input));
+    const ids = new Set(events.map((e) => e.id));
+    let queue = [...pending.filter((e) => !ids.has(e.id)), ...events];
     if (queue.length > MAX_PENDING_EVENTS) {
       queue = queue.sort((a, b) => a.atYear - b.atYear).slice(0, MAX_PENDING_EVENTS);
     }
@@ -1982,6 +3296,9 @@ export class Cohort extends Server<CohortEnv> {
     } satisfies GalaxyMeta);
     await this.ctx.storage.put("galaxy:stars", galaxy.stars);
     await this.ctx.storage.put("galaxy:civs", galaxy.civs);
+    // A2.4: written explicitly at seed time so a re-seed cannot inherit the
+    // previous galaxy's contact log. `onStart` still tolerates its absence.
+    await this.ctx.storage.put("galaxy:acts", galaxy.acts);
     await this.ctx.storage.put("events", []);
     await this.ctx.storage.put("eventLog", []);
     await this.ctx.storage.deleteAlarm();

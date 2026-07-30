@@ -36,10 +36,21 @@
 //
 // Text stays in the DOM overlay (canvas for places, DOM for prose): the
 // tracking HOME label, the landmark names, and the scale readout.
+//
+// A2.4 adds two things to the sky and nothing else. First, THE ACTS ALREADY
+// SENT: a cyan mote crawling the sightline of a hail in flight, and one
+// hairline ring for a broadcast's echo shell. Both are derived from
+// `sky.contact.outbound` — the server's own record — and never from anything
+// the ceremony is doing locally, so what is on the sky is only ever what
+// actually left. Second, a CEREMONY MODE: the camera freezes, the canvas
+// becomes a single press target, and a renderer supplied from outside gets
+// one call per frame with the camera it needs (see ModelFrame). The Model
+// owns the projection and the input; it owns none of the choice.
 
 import { Application, Assets, Container, Graphics, Sprite, Texture } from "pixi.js";
-import type { DetectedSource, SelfView, Star, Vec3Ly } from "@holos/protocol";
+import type { ContactWire, DetectedSource, OutboundAct, SelfView, Star, Vec3Ly } from "@holos/protocol";
 import { worldArt } from "./art";
+import { formatCountdown, nowYear } from "./clock";
 import {
   AU_LY,
   buildHomeSystem,
@@ -275,6 +286,34 @@ const ORBIT_REACH_PX = 40_000;
 const PLANET_TEX_SIZE = 128;
 const WORLD_TEX_SIZE = 256;
 
+// ── A2.4: the ceremony's camera, and the acts already sent ────────────────
+
+/** The arming ease (storyboard §2): the same 700ms every ceremony opens with. */
+const FRAME_MS = 700;
+/** Past this the neighborhood is too small to aim in, so arming dollies back. */
+const FRAME_DIST_MAX = 90;
+/** How far off center a hail's target may sit, as a fraction of the SHORT
+ *  screen axis — a portrait phone is what decides whether a frame is good. */
+const FRAME_RADIUS_FRAC = 0.34;
+/** Below this fraction of a decade of change the framing ease does nothing at
+ *  all: a frame that is already good must not twitch. */
+const FRAME_EPS = 0.04;
+
+/** The path a hail has already covered. Faint on purpose — the light is gone,
+ *  and what is left is a record of where it went, not a beam. */
+const OUTBOUND_PATH_ALPHA = 0.1;
+/** The mote at the head, in screen pixels. Fixed size at every zoom: it is a
+ *  place in the sky, not an object with a diameter. */
+const OUTBOUND_MOTE_PX = 6;
+const OUTBOUND_MOTE_ALPHA = 0.55;
+/** Once it has arrived the mote parks on the target and stands down. */
+const OUTBOUND_ARRIVED_ALPHA = 0.3;
+/** A broadcast's echo shell, drawn forever. */
+const ECHO_RING_ALPHA = 0.22;
+/** Past this drawn radius the shell is a straight line across the screen and
+ *  costs tessellation for nothing. */
+const ECHO_MAX_PX = 40_000;
+
 /** True-color by spectral class: M dull red → K orange → G yellow-white → F white. */
 const SPECTRAL_TINT: Readonly<Record<Star["spectralClass"], number>> = {
   M: 0xcf5b43,
@@ -283,9 +322,13 @@ const SPECTRAL_TINT: Readonly<Record<Star["spectralClass"], number>> = {
   F: 0xeef1ff,
 };
 
-const COLOR_HOME = 0x5fe0e6; // cyan — you, the present tense
+// Exported since A2.4: a ceremony staged on the sky draws in the Model's own
+// palette or it is a second game happening on the same screen. Cyan is your
+// voice, gold is the line-work you aim with, amber stays what it always was —
+// somebody else, seen late.
+export const COLOR_HOME = 0x5fe0e6; // cyan — you, the present tense
 const COLOR_SOURCE = 0xdf9b52; // amber — belief / other
-const COLOR_SELECT = 0xb79b63; // gold hairline for a selected source
+export const COLOR_SELECT = 0xb79b63; // gold hairline for a selected source
 /** The gold the orbit rings are drawn in — the one line-work color in the
  *  Model, shared with a selected source's hairline. */
 const COLOR_ORRERY = 0xb79b63;
@@ -295,6 +338,77 @@ const COLOR_ATMOSPHERE = 0xbfe4ff;
 
 /** Callback fired on tap: the selected source, or null when tapping empty sky. */
 export type SelectSourceCallback = (source: DetectedSource | null) => void;
+
+/** A projected point, as handed out to a ceremony renderer. VALID UNTIL THE
+ *  NEXT `project` CALL — the Model reuses one scratch record per frame rather
+ *  than allocating a few hundred of them (the `proj` field's whole story). */
+export interface ScreenPoint {
+  readonly ok: boolean;
+  readonly x: number;
+  readonly y: number;
+  readonly depth: number;
+}
+
+/** Where a source's smudge landed this frame, and how wide it was drawn. */
+export interface SourceScreen {
+  readonly x: number;
+  readonly y: number;
+  readonly r: number;
+}
+
+/**
+ * ONE FRAME OF CAMERA, handed to whatever is staging a ceremony on the sky.
+ *
+ * This is the whole seam: the Model owns the projection, the layers and the
+ * textures, and a ceremony renderer owns what it draws with them. Nothing
+ * about hailing, shouting or staying dark appears in this file — the Model
+ * cannot tell one ceremony from another, and that is deliberate.
+ *
+ * `gfx` is cleared by the Model before every call, so a renderer that draws
+ * nothing leaves nothing behind.
+ */
+export interface ModelFrame {
+  readonly width: number;
+  readonly height: number;
+  readonly focal: number;
+  /** Camera distance, in light-years — the scale a world radius projects at. */
+  readonly dist: number;
+  /** HOME, this frame. `ok` is false while it is behind the near plane. */
+  readonly home: ScreenPoint;
+  readonly gfx: Graphics;
+  readonly sprites: Container;
+  readonly glowTex: Texture | null;
+  readonly pointTex: Texture | null;
+  project(x: number, y: number, z: number): ScreenPoint;
+  sourceAt(starId: string): SourceScreen | undefined;
+}
+
+/** The mutable twin the Model writes each frame and hands out as ModelFrame. */
+interface MutableModelFrame {
+  width: number;
+  height: number;
+  focal: number;
+  dist: number;
+  home: ScreenPoint;
+  gfx: Graphics;
+  sprites: Container;
+  glowTex: Texture | null;
+  pointTex: Texture | null;
+  project(x: number, y: number, z: number): ScreenPoint;
+  sourceAt(starId: string): SourceScreen | undefined;
+}
+
+/**
+ * THE CEREMONY'S HALF OF THE INPUT. While one of these is installed the
+ * camera is frozen — no orbit, no pinch, no wheel, no tap-to-select — and the
+ * canvas is a single press target. Movement past TAP_MOVE_PX is a release and
+ * so is a second finger, which is the same rule a tap has always been held to
+ * here, applied to a press that lasts.
+ */
+export interface CeremonyInput {
+  onPress(): void;
+  onRelease(): void;
+}
 
 interface StarSprite {
   readonly sprite: Sprite;
@@ -351,6 +465,13 @@ function clamp(v: number, lo: number, hi: number): number {
 
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
+}
+
+/** An angle folded into (−π, π]. Two yaws that differ by a full turn are the
+ *  same yaw, and the camera should always take the short way between them. */
+function wrapPi(a: number): number {
+  const t = (a + Math.PI) % (Math.PI * 2);
+  return (t < 0 ? t + Math.PI * 2 : t) - Math.PI;
 }
 
 function smoothstep(t: number): number {
@@ -583,6 +704,12 @@ export class Model {
   private readonly homeLabel: HTMLDivElement;
   private readonly scaleLabel: HTMLDivElement;
   private readonly landmarks: LandmarkLabel[] = [];
+  /** A2.5: ONE tracking label, on the newest outbound act still crossing.
+   *  One and only one: a label per act would turn the volume into a list,
+   *  and the sky is not a list. It is the landmark machinery exactly (a
+   *  positioned overlay div moved by transform each frame), pointed at a
+   *  thing that moves instead of at a thing that does not. */
+  private readonly outboundLabel: HTMLDivElement;
 
   private readonly app: Application;
   private ready = false;
@@ -605,6 +732,15 @@ export class Model {
   private homeGfx: Graphics | null = null;
   private homeMote: Sprite | null = null;
   private selectionGfx: Graphics | null = null;
+  // A2.4. Two layers, kept apart on purpose: `contactLayer` is what the
+  // server says has been sent, `ceremonyGfx`/`ceremonySprites` are what a
+  // ceremony is previewing right now. Nothing ever crosses between them.
+  private contactLayer: Container | null = null;
+  private contactGfx: Graphics | null = null;
+  private contactMotes: Sprite[] = [];
+  private ceremonyGfx: Graphics | null = null;
+  private ceremonySprites: Container | null = null;
+  private frame: MutableModelFrame | null = null;
 
   private pointTex: Texture | null = null;
   private glowTex: Texture | null = null;
@@ -632,6 +768,12 @@ export class Model {
 
   private stars: StarSprite[] = [];
   private sources: SourceSprite[] = [];
+  /** Catalog positions by star id. The catalog is public sky and fixed for a
+   *  cohort, so a hail already in flight still has somewhere to be drawn even
+   *  once its source has faded back below the wire. */
+  private readonly starPos = new Map<string, Vec3Ly>();
+  /** The player's own committed acts, straight off `sky.contact.outbound`. */
+  private outbound: readonly OutboundAct[] = [];
 
   // The backdrop. Static in world space, so it is re-projected only when the
   // camera actually moved (see cameraMoved) — otherwise a still sky costs
@@ -666,6 +808,19 @@ export class Model {
   private animFrom = DIST_VOLUME;
   private pullT = 0;
 
+  // A2.4's arming ease. Same shape as the pull-back's step (exponential in
+  // dist, linear in the angles) because it is the same move, shorter: the
+  // one camera gesture the game makes on the player's behalf.
+  private framing: {
+    readonly start: number;
+    readonly fromDist: number;
+    readonly toDist: number;
+    readonly fromAz: number;
+    readonly toAz: number;
+    readonly fromEl: number;
+    readonly toEl: number;
+  } | null = null;
+
   // Near clip, recomputed per frame from `dist` (see NEAR).
   private near = NEAR;
 
@@ -680,17 +835,40 @@ export class Model {
   private tapDown: { x: number; y: number; t: number; moved: boolean } | null = null;
   private selectedStarId: string | null = null;
   private selectCb: SelectSourceCallback | null = null;
+  private selectHomeCb: (() => void) | null = null;
   private pullbackEndCb: (() => void) | null = null;
+
+  // A2.4's input mode. Non-null means the camera is frozen and the canvas is
+  // a press target; `ceremonyPress` is the one live press, if any.
+  private ceremonyInput: CeremonyInput | null = null;
+  private ceremonyPress: { id: number; x: number; y: number } | null = null;
+  private ceremonyFrameCb: ((frame: ModelFrame) => void) | null = null;
 
   // Screen position AND drawn radius per source, refreshed every frame: the
   // hit test reads the radius so the tappable area is exactly what the player
   // can see (smudges range from 8 to 92 px).
   private readonly sourceScreen = new Map<string, { x: number; y: number; r: number }>();
   private readonly proj: Projected = { ok: false, x: 0, y: 0, depth: 0 };
+  /** Where HOME landed this frame — the ring's position after the
+   *  system/planet hand-off, so the thread of a hail leaves from the same
+   *  pixel the cyan ring is drawn around. Also the HOME mote's hit target. */
+  private readonly homeScreen: Projected = { ok: false, x: 0, y: 0, depth: 0 };
+  /** The frame's camera, latched in `tick` so `project` can be called from
+   *  outside the projection pass without re-deriving eight trig terms. */
+  private readonly camFrame = {
+    cx: 0,
+    cy: 0,
+    focal: 1,
+    sinAz: 0,
+    cosAz: 1,
+    sinEl: 0,
+    cosEl: 1,
+  };
 
   constructor(container: HTMLElement, catalog: readonly Star[]) {
     this.container = container;
     this.catalog = catalog;
+    for (const star of catalog) this.starPos.set(star.id, star.position);
 
     this.root = document.createElement("div");
     this.root.className = "model-root";
@@ -720,7 +898,14 @@ export class Model {
     this.scaleLabel.className = "model-scale holos-caps";
     this.scaleLabel.textContent = formatDistance(this.dist);
 
-    this.overlay.append(this.homeLabel, this.scaleLabel);
+    // Cyan, like the mote it follows: what you sent is yours and is
+    // happening now. It carries the clock pair, so the sky says the same
+    // thing about a beam in flight that the thread does.
+    this.outboundLabel = document.createElement("div");
+    this.outboundLabel.className = "model-outbound-label holos-caps";
+    this.outboundLabel.style.opacity = "0";
+
+    this.overlay.append(this.homeLabel, this.scaleLabel, this.outboundLabel);
     this.root.append(this.overlay);
     this.container.append(this.root);
 
@@ -817,6 +1002,16 @@ export class Model {
 
     this.selectionGfx = new Graphics();
 
+    // A2.4. The acts already sent ride with the game tier (they fade out with
+    // the neighborhood); the ceremony's own layer sits above everything,
+    // because a beam being aimed is the loudest thing on the sky while it is
+    // happening and nothing may draw over it.
+    this.contactLayer = new Container();
+    this.contactGfx = new Graphics();
+    this.contactLayer.addChild(this.contactGfx);
+    this.ceremonyGfx = new Graphics();
+    this.ceremonySprites = new Container();
+
     this.homeGfx = new Graphics();
     this.homeMote = new Sprite(pointTex);
     this.homeMote.anchor.set(0.5);
@@ -862,9 +1057,27 @@ export class Model {
       this.sourceLayer,
       this.systemLayer,
       this.selectionGfx,
+      this.contactLayer,
       this.homeGfx,
       this.homeMote,
+      this.ceremonyGfx,
+      this.ceremonySprites,
     );
+
+    // The one frame record, built once and rewritten in place every tick.
+    this.frame = {
+      width: 0,
+      height: 0,
+      focal: 1,
+      dist: this.dist,
+      home: this.homeScreen,
+      gfx: this.ceremonyGfx,
+      sprites: this.ceremonySprites,
+      glowTex: this.glowTex,
+      pointTex: this.pointTex,
+      project: (x, y, z) => this.projectPoint(x, y, z),
+      sourceAt: (starId) => this.sourceScreen.get(starId),
+    };
   }
 
   /** Instantiate the backdrop's sprites from cosmos.ts's data. Runs once. */
@@ -967,6 +1180,132 @@ export class Model {
     this.selectCb = cb;
   }
 
+  /** A2.4: the HOME mote answers a thumb too. It is the only present-tense
+   *  object on the sky, so tapping it goes where the player's own doings
+   *  live; the Model reports the tap and decides nothing. */
+  onSelectHome(cb: () => void): void {
+    this.selectHomeCb = cb;
+  }
+
+  /**
+   * A2.4: the player's own committed acts, from every `sky`. THE ONLY INPUT
+   * to the in-flight renders — a ceremony's local preview never reaches
+   * here, so nothing on the sky can claim a beam the server has not recorded.
+   */
+  setContact(wire: ContactWire | null): void {
+    this.outbound = wire === null ? [] : wire.outbound;
+  }
+
+  /** The player's own position in light-years — where every thread starts. */
+  homePosition(): Vec3Ly {
+    return this.homePos;
+  }
+
+  /** Where HOME is on screen as of the last frame. Read by anything that has
+   *  to place DOM over it (the commit bloom) rather than draw into the
+   *  canvas, which gets the same point through ModelFrame. */
+  homeScreenPoint(): ScreenPoint {
+    return this.homeScreen;
+  }
+
+  /** A catalog star's position, or null if the id is not in this cohort's
+   *  catalog. Public sky: the catalog is sent to everyone on `welcome`. */
+  starPosition(starId: string): Vec3Ly | null {
+    return this.starPos.get(starId) ?? null;
+  }
+
+  /**
+   * A2.4: enter (or leave, with null) the ceremony input mode. The camera
+   * freezes and the canvas becomes one press target; any press already down
+   * is dropped without being reported, because entering and leaving are the
+   * caller's decisions and never the player's.
+   */
+  setCeremonyInput(input: CeremonyInput | null): void {
+    this.ceremonyInput = input;
+    this.ceremonyPress = null;
+    this.pointers.clear();
+    this.lastOrbit = null;
+    this.tapDown = null;
+    this.overlay.style.opacity = input === null ? "" : "0.25";
+  }
+
+  /** A2.4: the ceremony's per-frame renderer, or null to draw nothing. */
+  onCeremonyFrame(cb: ((frame: ModelFrame) => void) | null): void {
+    this.ceremonyFrameCb = cb;
+    if (cb === null) this.ceremonyGfx?.clear();
+  }
+
+  /**
+   * THE ARMING EASE (storyboard §2). Dollies back far enough that `spanLy`
+   * of sky fits comfortably in frame, and — for a hail — yaws so the target
+   * lies in the screen plane rather than foreshortened down the view axis.
+   * A frame that is already good does not move at all.
+   */
+  easeFraming(target: Vec3Ly | null, spanLy: number): void {
+    if (!this.ready) return;
+    const w = this.app.screen.width;
+    const h = this.app.screen.height;
+    const focal = (h * 0.5) / Math.tan(FOV / 2);
+
+    // How far back the span has to be seen from to sit inside the short
+    // axis. A phone held upright is what makes this necessary: sixty
+    // light-years of camera distance frames a 25 ly source vertically and
+    // pushes it off the side.
+    const fit = (focal * Math.max(spanLy, 1e-6)) / (FRAME_RADIUS_FRAC * Math.min(w, h));
+    const toDist = clamp(Math.max(DIST_VOLUME, fit), DIST_MIN, DIST_MAX);
+
+    let toAz = this.az;
+    let toEl = this.el;
+    if (target !== null) {
+      const dx = target.x - this.homePos.x;
+      const dy = target.y - this.homePos.y;
+      const dz = target.z - this.homePos.z;
+      const len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (len > 1e-6) {
+        // Lay the sightline in the screen plane: solve the yaw that puts the
+        // target at the camera's own depth, so the thread runs across the
+        // screen at its true length instead of into it. Elevation is left
+        // where the player put it — the frame they already recognise.
+        const ux = dx / len;
+        const uy = dy / len;
+        const uz = dz / len;
+        const rho = Math.hypot(ux, uz);
+        const beta = Math.atan2(ux, uz);
+        const k = rho > 1e-6 ? (-uy * Math.tan(this.el)) / rho : 2;
+        if (Math.abs(k) <= 1) {
+          const a = Math.acos(k);
+          const c1 = -beta + a;
+          const c2 = -beta - a;
+          toAz =
+            Math.abs(wrapPi(c1 - this.az)) <= Math.abs(wrapPi(c2 - this.az)) ? c1 : c2;
+        } else {
+          // Unreachable at this elevation; take the nearest yaw there is.
+          toAz = k > 1 ? -beta : -beta + Math.PI;
+        }
+      }
+    }
+    // Shortest way round, so a ceremony never spins the sky the long way.
+    toAz = this.az + wrapPi(toAz - this.az);
+
+    const distMoves =
+      this.dist > FRAME_DIST_MAX ||
+      Math.abs(Math.log(toDist / this.dist)) > FRAME_EPS;
+    const angleMoves = Math.abs(toAz - this.az) > FRAME_EPS;
+    if (!distMoves && !angleMoves) {
+      this.framing = null;
+      return;
+    }
+    this.framing = {
+      start: performance.now(),
+      fromDist: this.dist,
+      toDist: distMoves ? toDist : this.dist,
+      fromAz: this.az,
+      toAz,
+      fromEl: this.el,
+      toEl,
+    };
+  }
+
   /** Fired once, the frame the one-shot dolly-out completes. Never fired for
    *  a "resume" enter — the caller owns that branch. */
   onPullbackEnd(cb: () => void): void {
@@ -996,6 +1335,9 @@ export class Model {
   destroy(): void {
     this.destroyed = true;
     this.pullbackEndCb = null;
+    this.selectHomeCb = null;
+    this.ceremonyFrameCb = null;
+    this.ceremonyInput = null;
     // Listeners and the renderer only exist once the async init completed.
     if (this.ready) {
       this.detachInput();
@@ -1190,6 +1532,7 @@ export class Model {
     const focal = h * 0.5 / Math.tan(FOV / 2);
 
     if (this.animating) this.stepPullback();
+    if (this.framing !== null) this.stepFraming();
 
     // Proportional below five light-years, the old constant above it (see
     // NEAR). Recomputed here because this is the one place after every input
@@ -1200,6 +1543,18 @@ export class Model {
     const cosAz = Math.cos(this.az);
     const sinEl = Math.sin(this.el);
     const cosEl = Math.cos(this.el);
+
+    // Latch the frame's camera so anything outside the projection pass — the
+    // acts already sent, a ceremony's renderer — projects through exactly the
+    // same numbers rather than a copy that could drift.
+    const cam = this.camFrame;
+    cam.cx = cx;
+    cam.cy = cy;
+    cam.focal = focal;
+    cam.sinAz = sinAz;
+    cam.cosAz = cosAz;
+    cam.sinEl = sinEl;
+    cam.cosEl = cosEl;
 
     // How much of the game itself is still on screen. Below this threshold
     // the neighborhood is a single point and everything in it — stars,
@@ -1307,7 +1662,178 @@ export class Model {
 
     this.drawHome(cx, cy, focal, sinAz, cosAz, sinEl, cosEl, nearAlpha);
     this.drawSelection();
+    this.drawOutbound(nearVisible, nearAlpha);
+    this.runCeremonyFrame(w, h, focal);
   };
+
+  /** The arming ease. Exponential in distance and linear in the angles — the
+   *  pull-back's step, over 700ms instead of 4,200. */
+  private stepFraming(): void {
+    const f = this.framing;
+    if (f === null) return;
+    const t = (performance.now() - f.start) / FRAME_MS;
+    const p = smoothstep(t);
+    this.dist = f.fromDist * Math.pow(f.toDist / f.fromDist, p);
+    this.az = lerp(f.fromAz, f.toAz, p);
+    this.el = lerp(f.fromEl, f.toEl, p);
+    if (t >= 1) {
+      this.dist = f.toDist;
+      this.az = f.toAz;
+      this.el = f.toEl;
+      this.framing = null;
+    }
+  }
+
+  /** Project a world point through the frame's latched camera. The returned
+   *  record is the shared scratch one; read it before calling again. */
+  private projectPoint(x: number, y: number, z: number): ScreenPoint {
+    const c = this.camFrame;
+    this.projectInto(x, y, z, c.cx, c.cy, c.focal, c.sinAz, c.cosAz, c.sinEl, c.cosEl);
+    return this.proj;
+  }
+
+  /**
+   * THE ACTS ALREADY SENT (storyboard §7). Derived from `outbound` and the
+   * clock and nothing else — no ceremony state reaches this method, so the
+   * sky can only ever show what the server recorded.
+   *
+   * A hail is a mote crawling its own sightline with the covered path behind
+   * it; a broadcast is one hairline ring whose radius is the years since it
+   * left. Both move at the game clock's rate, which is to say they look
+   * motionless for a whole session. That stillness is the point: a thing you
+   * sent is out of your hands, and the sky says so by not hurrying.
+   *
+   * A2.5 adds NO branch. A signal is a mote and a path exactly as a hail is,
+   * so the split below is already the right one: broadcast, or anything with
+   * a starId and an arrivesYear. The only addition is the tracking label on
+   * the newest act still crossing. Nothing INBOUND is drawn here and there is
+   * no field on the wire that would let it be: you cannot see a beam before
+   * it lands.
+   */
+  private drawOutbound(nearVisible: boolean, nearAlpha: number): void {
+    const layer = this.contactLayer;
+    const gfx = this.contactGfx;
+    if (layer === null || gfx === null) return;
+
+    layer.visible = nearVisible && this.outbound.length > 0;
+    for (const mote of this.contactMotes) mote.visible = false;
+    gfx.clear();
+    if (!layer.visible) {
+      this.outboundLabel.style.opacity = "0";
+      return;
+    }
+    layer.alpha = nearAlpha;
+
+    const home = this.homeScreen;
+    const year = nowYear();
+    const focal = this.camFrame.focal;
+    let moteIndex = 0;
+
+    // The newest thing still crossing, and only that one, wears the label.
+    let tracked: OutboundAct | null = null;
+    for (const act of this.outbound) {
+      if (act.kind === "broadcast" || act.starId === null) continue;
+      if (act.arrivesYear === null || act.arrivesYear <= year) continue;
+      if (tracked === null || act.sentYear > tracked.sentYear) tracked = act;
+    }
+    let labelPlaced = false;
+
+    for (const act of this.outbound) {
+      if (act.kind === "broadcast") {
+        // The shell swept so far, in light-years, re-derived locally from the
+        // year it left — the same arithmetic the server publishes as
+        // `shellRadiusLy`, so the two agree without a round trip.
+        const r = Math.max(0, year - act.sentYear);
+        if (!home.ok || r <= 0) continue;
+        const radiusPx = (focal * r) / this.dist;
+        if (radiusPx < 1 || radiusPx > ECHO_MAX_PX) continue;
+        gfx
+          .circle(home.x, home.y, radiusPx)
+          .stroke({ width: 1, color: COLOR_HOME, alpha: ECHO_RING_ALPHA });
+        continue;
+      }
+
+      const starId = act.starId;
+      const target = starId === null ? undefined : this.starPos.get(starId);
+      if (target === undefined || act.arrivesYear === null) continue;
+      const span = act.arrivesYear - act.sentYear;
+      const p = span <= 0 ? 1 : clamp((year - act.sentYear) / span, 0, 1);
+      const hp = this.projectPoint(
+        lerp(this.homePos.x, target.x, p),
+        lerp(this.homePos.y, target.y, p),
+        lerp(this.homePos.z, target.z, p),
+      );
+      if (!hp.ok) continue;
+      const hx = hp.x;
+      const hy = hp.y;
+      if (home.ok) {
+        gfx
+          .moveTo(home.x, home.y)
+          .lineTo(hx, hy)
+          .stroke({ width: 1, color: COLOR_HOME, alpha: OUTBOUND_PATH_ALPHA });
+      }
+      if (act === tracked) {
+        const countdown = formatCountdown(act.arrivesYear);
+        if (countdown !== null) {
+          this.outboundLabel.textContent = `ARRIVES IN ${countdown}`;
+          this.outboundLabel.style.opacity = String(0.8 * nearAlpha);
+          this.outboundLabel.style.transform = `translate(${hx + 10}px, ${hy - 8}px)`;
+          labelPlaced = true;
+        }
+      }
+
+      const mote = this.outboundMote(moteIndex);
+      moteIndex++;
+      if (mote === null) continue;
+      mote.visible = true;
+      mote.position.set(hx, hy);
+      mote.scale.set(OUTBOUND_MOTE_PX / 16);
+      mote.alpha = p >= 1 ? OUTBOUND_ARRIVED_ALPHA : OUTBOUND_MOTE_ALPHA;
+    }
+
+    // Nothing crossing, or the one thing crossing is off screen: the label
+    // is gone rather than parked. A name floating over nothing is worse than
+    // no name (updateLandmarks' rule, one more time).
+    if (!labelPlaced) this.outboundLabel.style.opacity = "0";
+  }
+
+  /** The nth in-flight mote, grown on demand. At most MAX_ACTS_PER_CIV of
+   *  these can ever exist, so the pool never needs shrinking. */
+  private outboundMote(index: number): Sprite | null {
+    const existing = this.contactMotes[index];
+    if (existing !== undefined) return existing;
+    const tex = this.pointTex;
+    const layer = this.contactLayer;
+    if (tex === null || layer === null) return null;
+    const sprite = new Sprite(tex);
+    sprite.anchor.set(0.5);
+    sprite.tint = COLOR_HOME;
+    sprite.blendMode = "add";
+    layer.addChild(sprite);
+    this.contactMotes.push(sprite);
+    return sprite;
+  }
+
+  /** Hand the frame to whoever is staging a ceremony. The Graphics is cleared
+   *  first, so a renderer that draws nothing this frame leaves nothing. */
+  private runCeremonyFrame(w: number, h: number, focal: number): void {
+    const gfx = this.ceremonyGfx;
+    const sprites = this.ceremonySprites;
+    const frame = this.frame;
+    if (gfx === null || sprites === null || frame === null) return;
+    gfx.clear();
+    const cb = this.ceremonyFrameCb;
+    if (cb === null) {
+      sprites.visible = false;
+      return;
+    }
+    sprites.visible = true;
+    frame.width = w;
+    frame.height = h;
+    frame.focal = focal;
+    frame.dist = this.dist;
+    cb(frame);
+  }
 
   /** True when anything that changes the projection has changed since the
    *  last call — and latches the new values, so it is a one-shot. */
@@ -1847,11 +2373,13 @@ export class Model {
     gfx.clear();
     if (!this.proj.ok) {
       mote.visible = false;
+      this.homeScreen.ok = false;
       this.homeLabel.style.opacity = "0";
       return;
     }
     const starX = this.proj.x;
     const starY = this.proj.y;
+    const starDepth = this.proj.depth;
 
     // HOME is the way back, so it is drawn at a fixed pixel size at every
     // zoom — from a couple of AU to four hundred million light-years, the
@@ -1884,6 +2412,14 @@ export class Model {
     mote.position.set(x, y);
     mote.scale.set(HOME_PX / 12);
     mote.alpha = clamp(homeSoft + 0.28, 0, 1) * (1 - bodyRead);
+
+    // Where HOME ended up, for the tap test and for anything a ceremony
+    // draws from here. It is the RING's position, past the hand-off — the
+    // thread of a hail must leave from the same pixel the ring encircles.
+    this.homeScreen.ok = true;
+    this.homeScreen.x = x;
+    this.homeScreen.y = y;
+    this.homeScreen.depth = starDepth;
 
     // Thin cyan ring — the one present-tense object.
     gfx
@@ -1946,6 +2482,7 @@ export class Model {
   private readonly onWheel = (e: WheelEvent): void => {
     e.preventDefault();
     if (this.animating) return; // the pull-back is a cutscene, not a control
+    if (this.ceremonyInput !== null) return; // the camera is frozen while armed
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
     this.dist = clamp(this.dist * Math.exp(e.deltaY * unit * WHEEL_K), DIST_MIN, DIST_MAX);
   };
@@ -1958,6 +2495,20 @@ export class Model {
   private readonly onPointerDown = (e: PointerEvent): void => {
     if (this.animating) return; // the pull-back is a cutscene, not a control
     const pt = this.localPoint(e);
+    const ceremony = this.ceremonyInput;
+    if (ceremony !== null) {
+      // A second finger is a release, exactly as it cancels a pending tap
+      // below: two fingers have always meant "I am moving the camera", and
+      // during a ceremony the camera is not moving anywhere.
+      if (this.ceremonyPress !== null) {
+        this.ceremonyPress = null;
+        ceremony.onRelease();
+        return;
+      }
+      this.ceremonyPress = { id: e.pointerId, x: pt.x, y: pt.y };
+      ceremony.onPress();
+      return;
+    }
     this.pointers.set(e.pointerId, pt);
     if (this.pointers.size === 1) {
       this.lastOrbit = pt;
@@ -1971,6 +2522,20 @@ export class Model {
   };
 
   private readonly onPointerMove = (e: PointerEvent): void => {
+    const ceremony = this.ceremonyInput;
+    if (ceremony !== null) {
+      const press = this.ceremonyPress;
+      if (press === null || press.id !== e.pointerId) return;
+      const pt = this.localPoint(e);
+      // A drag is a release. The hold has to be a hold — a thumb that
+      // wandered was reaching for the camera, and it does not get to
+      // half-commit on the way.
+      if (Math.hypot(pt.x - press.x, pt.y - press.y) > TAP_MOVE_PX) {
+        this.ceremonyPress = null;
+        ceremony.onRelease();
+      }
+      return;
+    }
     const existing = this.pointers.get(e.pointerId);
     if (existing === undefined) return;
     const pt = this.localPoint(e);
@@ -2001,6 +2566,14 @@ export class Model {
   };
 
   private readonly onPointerUp = (e: PointerEvent): void => {
+    const ceremony = this.ceremonyInput;
+    if (ceremony !== null) {
+      const press = this.ceremonyPress;
+      if (press === null || press.id !== e.pointerId) return;
+      this.ceremonyPress = null;
+      ceremony.onRelease();
+      return;
+    }
     const had = this.pointers.delete(e.pointerId);
     if (!had) return;
 
@@ -2048,6 +2621,21 @@ export class Model {
         bestId = starId;
       }
     }
+
+    // A2.4: HOME is on the same scoreboard, at the ring's own reach. It wins
+    // ties against a smudge the same way one smudge wins against another —
+    // by the tap having landed further inside it — so a source sitting near
+    // HOME on screen is still reachable.
+    const home = this.homeScreen;
+    if (home.ok && this.selectHomeCb !== null) {
+      const homeScore = Math.hypot(home.x - x, home.y - y) / THUMB_PX;
+      if (homeScore < bestScore) {
+        this.selectedStarId = null;
+        this.selectHomeCb();
+        return;
+      }
+    }
+
     this.selectedStarId = bestId;
     const hit = bestId === null ? null : this.sources.find((s) => s.source.starId === bestId);
     this.selectCb?.(hit?.source ?? null);

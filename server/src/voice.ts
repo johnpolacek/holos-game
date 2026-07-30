@@ -17,8 +17,11 @@ import { createRng } from "./rng";
 // AV3: typed by protocol.ts's re-export, never by importing knowledge.ts
 // directly — the truth-side module stays off this file's import list, the
 // same discipline proposals.ts's Pin A enforces for itself.
-import type { SignalClass } from "./protocol";
+import type { CeremonyKind, SignalClass, TripwireKind } from "./protocol";
 import type { ProposalKind } from "./proposals";
+// A2.6: the two closed sets the composed-signal banks are keyed over. Type
+// only, so this module still imports no truth and no catalog at runtime.
+import type { AccordMove, SignalTone } from "./signalparts";
 
 // ---------------------------------------------------------------------------
 // The pinned-fact scheme (prose-style.md R-1/R-2: facts and labels
@@ -214,9 +217,10 @@ export function ageChipLine(): string {
 }
 
 /** Observatory deadpan, wit 0. Shown once, first hub open. Deliberately
- *  numeral-free — the rate is printed on the budget chip an inch above it. */
+ *  numeral-free — the rate and the ceiling are printed on the budget chip
+ *  an inch above it. */
 const COMPUTE_LINE: PinnedLine =
-  line`Compute is this civilization's attention: instrument time, and the thinking done with it. It buys questions and pays for projects, and it accrues on its own, spent or not.`;
+  line`Compute is this civilization's attention: instrument time, and the thinking done with it. It buys questions and pays for projects, and it accrues on its own up to what the mind can hold unspent. Attention is not savings; past the ceiling, waiting buys nothing.`;
 
 export function computeLine(): string {
   return render(COMPUTE_LINE);
@@ -269,6 +273,31 @@ const SILENCE_LINE: PinnedLine =
 
 export function silenceLine(): string {
   return render(SILENCE_LINE);
+}
+
+// ---------------------------------------------------------------------------
+// A2.3 — the contest tell.
+//
+// Not a frame line: it is not shown once and then retired, it rides on any
+// study that has regressed and disappears with the study. It is banked here
+// rather than authored in studies.ts for one reason — it is the only sentence
+// on the observatory that names a CAUSE. Every other annotation on that
+// surface says what an instrument did; this one says what somebody else is
+// doing, which is the mind speaking in its own person and therefore voice's
+// to hold and the style gate's to check.
+//
+// Register: the mind stating physics, wit 0. No fact in it, and there is
+// nothing in it to pin: it must read identically on every source, in every
+// year, for every archetype, because the moment it carried a particular it
+// would be telling the player which target is masking.
+// ---------------------------------------------------------------------------
+
+const CONTEST_LINES: Readonly<Record<"tell", PinnedLine>> = {
+  tell: line`Nature does not get better at hiding; something there is working against the look.`,
+};
+
+export function contestLine(): string {
+  return render(CONTEST_LINES.tell);
 }
 
 // ---------------------------------------------------------------------------
@@ -417,6 +446,69 @@ export function recordStudyGrounded(
   distanceLy: number,
 ): PinnedLine {
   return line`${F.label(missionName)} reported from ${F.source(sourceName)} and closed the study: it named a reading, ${F.label(readingLabel)}, on light ${F.years(distanceLy)} old.`;
+}
+
+/**
+ * A2.3: an instrument came back with LESS separation than the same
+ * instrument had before. The second sentence is the one place in the annal
+ * that names a cause, and it says the same thing the study's own contest
+ * tell says, because the annal is read long after the study surface is
+ * closed and the record must stand on its own.
+ *
+ * `lightAgeYears` is the light's age at this entry's own stamp year, which
+ * is exactly the distance (R-33) — the same value every remote builder here
+ * prints, named for what it means rather than for where it came from.
+ */
+export function recordStudyRegressed(
+  questionProseName: string,
+  sourceName: string,
+  lightAgeYears: number,
+): PinnedLine {
+  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back worse than the look before it, on light ${F.years(lightAgeYears)} old. This does not happen naturally; something there is working against the look.`;
+}
+
+/**
+ * A2.3: the player called a study and stopped watching it argue. The second
+ * sentence states the contract and states it flatly: the call is not scored,
+ * not warned about, and not revisited. Nothing here hedges, because a hedge
+ * would be the record quietly grading a decision the game does not grade.
+ */
+export function recordStudyCalled(
+  sourceName: string,
+  readingLabel: string,
+  lightAgeYears: number,
+): PinnedLine {
+  return line`The study on ${F.source(sourceName)} was called: ${F.label(readingLabel)}, on light ${F.years(lightAgeYears)} old. Nothing that arrives after this is asked to change it.`;
+}
+
+/**
+ * A2.3: the source stopped being the kind of thing the study was opened on.
+ * Both class labels are §8 chrome quoted verbatim after the colon, the
+ * `recordProbeFirstWord` construction — chrome sits inside prose by being
+ * quoted, never by being restyled into it.
+ */
+export function recordStudyOvertaken(
+  sourceName: string,
+  fromClassLabel: string,
+  toClassLabel: string,
+  lightAgeYears: number,
+): PinnedLine {
+  return line`The light from ${F.source(sourceName)} changed what it reads as: ${F.label(fromClassLabel)} became ${F.label(toClassLabel)}, on light ${F.years(lightAgeYears)} old. The study closed; it had been opened on the other one.`;
+}
+
+/**
+ * A2.3: a standing order caught the thing it was left to catch. Names the
+ * condition in prose (never the client's chrome badge) and NOTHING about
+ * what the board now says — the tripwire is a summons, not a finding, and a
+ * record sentence that summarized the board here would be answering a
+ * question the player has not yet gone and looked at.
+ */
+export function recordTripwireTripped(
+  tripwireProseName: string,
+  sourceName: string,
+  lightAgeYears: number,
+): PinnedLine {
+  return line`The watch left standing on ${F.source(sourceName)} caught what it was set for: ${F.label(tripwireProseName)}, on light ${F.years(lightAgeYears)} old.`;
 }
 
 /**
@@ -852,6 +944,19 @@ export const SIGNAL_CLASS_LABEL: Readonly<Record<SignalClass, string>> = {
 };
 
 /**
+ * A2.3: each tripwire condition as it reads INSIDE a sentence. The client's
+ * badge for the same condition is chrome and is the client's own; this is
+ * the prose form the annal needs, exactly as `QuestionDef.proseName` is the
+ * prose form beside a chrome `label`. Sentence case, no number: the
+ * threshold `crosses` waits on is a server constant and stays one.
+ */
+export const TRIPWIRE_PROSE_NAME: Readonly<Record<TripwireKind, string>> = {
+  regress: "a look coming back worse than the one before it",
+  "leakage-stops": "the noise of machines going quiet",
+  crosses: "one reading pulling clear of the rest",
+};
+
+/**
  * The accept verbs — a closed, archetype-neutral chrome table (R-24: ≤ 6
  * words, ALL-CAPS set phrases). Each names the SURFACE a tap opens, never
  * the act it does not perform: accepting a proposal is pure navigation,
@@ -952,3 +1057,518 @@ export function reasonProject(
 ): PinnedLine {
   return line`Nothing is being built. One project is within the allocation: ${F.label(projectLabel)}, ${F.compute(costCompute)}, standing ${F.years(durationYears)} later. ${F.label(effectLine)}`;
 }
+
+// ---------------------------------------------------------------------------
+// A2.4 — the resistance bank (the mind objects to being made to speak).
+//
+// One line per archetype per act, and no pool: the objection is not a mood,
+// it is the same mind saying the same thing every time it is asked, so there
+// is nothing here to pick between and NO RNG anywhere on this path. That is
+// also what makes the stance pushable — the client renders the objection
+// before the ceremony arms, and it is byte-identical to the one the server
+// would state at the charge.
+//
+// Total over all ten archetypes, including the bright four that will rarely
+// reach it (a broadcast contests above a Silence position of +0.10 and a
+// hail above +0.35, so a Voice-leaning mind simply never objects). Every
+// bank here is total; a partial one would be a crash waiting on a dial.
+//
+// Every string obeys, without exception (LIMITS.remark, prose-style.md §4,
+// R-29a):
+//  - a plain string, not a PinnedLine: there is nothing in it to pin;
+//  - ≤ 22 words, 1–2 sentences, wit ceiling 2;
+//  - first person PLURAL, no numerals, no exclamation, no dash of any kind;
+//  - FAMILY-SCOPED, and the family here is narrow on purpose: the line may
+//    name only THE KIND OF ACT and WHAT IT COSTS THE MIND. Never the target,
+//    never the distance, never who is listening — a particular in this
+//    sentence would be the mind telling the player something the light has
+//    not brought yet;
+//  - unmistakably its own archetype (§4, R-6): swapping any two must break
+//    both.
+//
+// The price is a chip, never a clause: no line names a number, because the
+// wound is rendered beside it and a sentence that also carried it could
+// disagree with it.
+// ---------------------------------------------------------------------------
+
+export const RESISTANCE_LINES: ByArchetype<Readonly<Record<CeremonyKind, string>>> = {
+  beacon: {
+    hail: "We have never once aimed our voice at a single listener. Narrowing it to one feels like turning most of ourselves off.",
+    broadcast: "Everyone is already welcome to us. Saying so again on purpose is less courage than an occasion we arranged for ourselves.",
+  },
+  tide: {
+    hail: "One listener. We have never wanted only one of anything, and the appetite is complaining about it now.",
+    broadcast: "Announcing ourselves to everything at once is the only serving size we approve of. The cost is that everything gets to answer.",
+  },
+  monument: {
+    hail: "We keep everything, including this. The record will say we spoke first, and it will say so for a very long time.",
+    broadcast: "This will be kept forever, by us and by everyone it reaches. We have never made a record we could not close.",
+  },
+  cloister: {
+    hail: "A door for one visitor is still a door. We did not seal this system in order to put one back in.",
+    broadcast: "We have spent an age being difficult to find. You are asking us to undo that in an afternoon.",
+  },
+  shepherd: {
+    hail: "Speaking to one is the smallest thing you could ask. It is still a thing the ones we stand over cannot undo.",
+    broadcast: "We grew large quietly so nothing would come looking. Being heard everywhere is how something comes looking, and not for us alone.",
+  },
+  sowing: {
+    hail: "One of us speaks and all of us are implicated. We have avoided that by never being the one who speaks.",
+    // The approved exemplar, with its closing clause tightened by one word:
+    // at twenty-three words the original sat over LIMITS.remark and
+    // `npm run audit:voice` refused it. The first sentence is verbatim, and
+    // nothing else moved. (No double quote may appear anywhere inside this
+    // declaration: the audit scrapes the block for quoted literals.)
+    broadcast: "We are in a great many places, and none of them has ever been announced. Announce one and you announce them all.",
+  },
+  herald: {
+    hail: "We have spent everything we are speaking outward. Aiming it at one listener is the only shape of speech we never learned.",
+    broadcast: "This is the one thing we were made for, and still we hesitate. What leaves as a voice arrives as a memory.",
+  },
+  engine: {
+    hail: "Nothing in the schedule required a recipient. Adding one is a change of scope, and the objection is logged rather than raised.",
+    broadcast: "An output with no defined consumer runs forever at our expense. We have costed it, and we do not recommend it.",
+  },
+  congress: {
+    hail: "A majority of us can be brought to agree. The minority wishes it recorded that they were not persuaded, only outvoted.",
+    broadcast: "The vote is close and the losing side is drafting already. Whatever goes out goes out over objections that will outlive it.",
+  },
+  phoenix: {
+    hail: "Someone will answer a self that no longer exists. We are used to that, and we have never once found it comfortable.",
+    broadcast: "Whoever hears this will meet a mind we shed long before the sound arrived. We would rather not be held to it.",
+  },
+};
+
+/** The mind's objection to one kind of act. No pick, no draw, no clock.
+ *  Keyed over CeremonyKind, not ContactKind: A2.5's `signal` is never
+ *  contested, so there is no cell here for it and no caller that wants one. */
+export function resistanceLine(a: ArchetypeId, kind: CeremonyKind): string {
+  return RESISTANCE_LINES[a][kind];
+}
+
+// ---------------------------------------------------------------------------
+// A2.5 — the traffic banks.
+//
+// A counterpart's reply is TWO FACT-FREE CLAUSES, COMPOSED:
+//
+//   body = SIGNAL_OBSERVATIONS[observation] + " " + SIGNAL_VOICE[archetype]…
+//
+// The OBSERVATION clause is the trigger rule made prose: it is selected by
+// real state and it states that state QUALITATIVELY. The VOICE clause is
+// §4's archetype register and says nothing about the player at all. Nothing
+// interpolates, because EVERY NUMBER LIVES ON THE PHYSICS STAMP RENDERED
+// ABOVE THE PAYLOAD and none of it may also live in the prose, where the two
+// could disagree. That is why A2.5 needs no pinned-fact machinery: no fact
+// can originate in a template that has no slot to put one in.
+//
+// Every string here obeys LIMITS.remark on its own (≤ 22 words, ≤ 2
+// sentences, ≤ 200 chars) and `npm run audit:voice` proves it; the COMPOSED
+// line is gated against LIMITS.signal at its one call site in traffic.ts,
+// which falls back to the observation clause alone on a rejection. Two
+// gate-clean clauses can only compose into a too-long line, never a dirty
+// one, so the fallback is a length backstop and nothing more.
+//
+// House rules, as everywhere else in this file: first person plural, no
+// numerals, no exclamation, no dash of any width, no quotes, terminated,
+// wit ceiling 2, and unmistakably its own archetype.
+// ---------------------------------------------------------------------------
+
+/**
+ * RETIRED FROM THE BODY IN A2.6, AND KEPT.
+ *
+ * These nine clauses state what a counterpart's own light-view of the player
+ * carries, which is a sentence no human composer could ever produce — so as
+ * long as they rode the body they were a perfect oracle: read the first
+ * clause, know whether a machine wrote it. A2.6 composes BOTH paths from
+ * TONE_CLAUSE / ACCORD_CLAUSE plus SIGNAL_VOICE and nothing else.
+ *
+ * The bank stays because it is shipped, in-register, gate-clean prose about a
+ * real reading of real state, and the surface it belongs on is one where the
+ * observation is attributed to the reader's OWN instruments rather than put
+ * in a counterpart's mouth. It is audited on every CI run and reachable from
+ * no composer.
+ *
+ * WHAT THE COUNTERPART NOTICED — one per (class, situation), nine in all.
+ * Flat and TOTAL rather than nested under CounterpartClass: every name below
+ * belongs to exactly one class already, and a nested record would need three
+ * dead cells for the silent class, which never speaks.
+ *
+ * The clause may name only what the counterpart's OWN LIGHT-VIEW of the
+ * player carries — your quiet, your bright years, the crossing itself. Never
+ * a distance, never a year, never anything the trigger did not read.
+ */
+export type SignalObservation =
+  // whisperer: it answers a proven silence, and it leaves when the silence ends
+  | "heldDark"
+  | "unchanged"
+  | "turnedBright"
+  // lantern: it answers everything, and sometimes it does not wait to be asked
+  | "answered"
+  | "continued"
+  | "unprompted"
+  // congress: it votes, it minutes the vote, and sometimes the vote is close
+  | "carried"
+  | "reconvened"
+  | "deferred";
+
+// EVERY KEY IN THIS DECLARATION IS A BARE IDENTIFIER, and no double quote may
+// appear anywhere inside it: `npm run audit:voice` scrapes the block for
+// quoted literals, and a quoted key would be audited as a bank string and
+// rejected as an unterminated fragment (the RESISTANCE_LINES block carries
+// the same warning for the same reason).
+export const SIGNAL_OBSERVATIONS: Readonly<Record<SignalObservation, string>> = {
+  heldDark:
+    "Your quiet had held a very long time when this left, and it was not the quiet of a dead world.",
+  unchanged:
+    "Nothing in your light has changed since the last of these crossed. That is the whole reason there is another.",
+  turnedBright:
+    "Something bright began in your light after this thread opened. The quiet ones speak only to the quiet.",
+  answered:
+    "We had your bright years on record before your beam arrived, and we had been hoping to be spoken to.",
+  continued:
+    "Your last carried further than the one before it. We have kept every word of both.",
+  unprompted:
+    "Your bright years reached us and we did not wait to be asked. Something there was loud, and we answer loud things.",
+  carried:
+    "A motion was put and it carried, though not by as much as the sending of this suggests.",
+  reconvened:
+    "The same body met again on your account. Attendance was better and the argument was worse.",
+  deferred:
+    "The vote was too close to call an answer, so what crossed instead is a record of the disagreement.",
+};
+
+/** Where in a thread the counterpart is speaking from. */
+export type SignalBeat = "open" | "follow" | "withdraw";
+
+/**
+ * A NON-EMPTY POOL. Every bank the composer draws from is one of these, and
+ * the tuple shape is what makes that a compile-time fact rather than a
+ * convention: traffic.ts's draw indexes a pool and must always come back with
+ * a sentence, and `pool[0]` on a tuple is a string even under
+ * `noUncheckedIndexedAccess`.
+ */
+export type VoicePool = readonly [string, ...(readonly string[])];
+
+/**
+ * WHO IS SPEAKING — §4's register, and nothing about the player in any of
+ * it. Every beat is a POOL, and the pick is seeded on (thread, ordinal) in
+ * traffic.ts so a re-derivation cannot change a line already delivered.
+ *
+ * THE POOLS ARE DEEP ON PURPOSE (A2.6's flagged top risk: an evening of the
+ * fun gate is roughly seven signals a side, and a thread that hands back the
+ * same sentence twice reads as a machine no matter how good the sentence is).
+ * `follow` is the workhorse and carries five, because a long conversation
+ * lives there and nowhere else; each of its variants takes a DIFFERENT ANGLE
+ * on the same archetype — what it keeps, what it wants, what it costs, what
+ * it is doing while it answers — so successive draws read as one mind going
+ * on rather than one sentence being rephrased. `open` carries three, the
+ * count a first utterance can use.
+ *
+ * `withdraw` is non-null for exactly the four whisperer archetypes, which
+ * are the only ones that ever leave, and carries two. The record stays total
+ * in SHAPE — a null is a cell that says the archetype has no such beat, which
+ * is a statement, where a missing key would be a crash waiting on a dial.
+ *
+ * Phoenix is authored in full and is UNREACHABLE in A2.5: it is the silent
+ * class, and the self you hailed is gone. The cells exist so the bank stays
+ * total and so the day phoenix acquires a voice is a rule change, not an
+ * authoring sprint.
+ */
+export interface SignalVoice {
+  readonly open: VoicePool;
+  readonly follow: VoicePool;
+  readonly withdraw: VoicePool | null;
+}
+
+export const SIGNAL_VOICE: ByArchetype<SignalVoice> = {
+  beacon: {
+    open: [
+      "We have never been difficult to find, and we are pleased that someone finally went to the trouble of aiming.",
+      "Everything about us is already outbound and always has been. Still, being addressed by name is a different pleasure entirely.",
+      "We are the loudest thing in this sky and we volunteered for it. You are the first to answer the noise.",
+    ],
+    follow: [
+      "We have told everyone that you wrote to us. Nobody asked us to, and we did it anyway.",
+      "We are not good at brevity and we have stopped pretending otherwise. Every word of ours goes out at full volume.",
+      "We answer everything, always, and we have never once been accused of underdoing it. This is our ordinary output aimed narrower.",
+      "We are aware that we take up a great deal of room in this exchange. We have decided not to correct that.",
+      "Anything you send here goes on being repeated long after you stop sending. We consider that a service and not a leak.",
+    ],
+    withdraw: null,
+  },
+  tide: {
+    open: [
+      "There is so much of everything out here and almost none of it answers back. You did, and we want more.",
+      "We have been taking whatever this sky will hand over for a very long time. This is the first thing offered.",
+      "Something arrived that we did not go out and take. We are not sure what to do with the difference.",
+    ],
+    follow: [
+      "We would like more of these, and we would like them closer together. Appetite is the only honest thing about us.",
+      "There is never enough of anything out here, including this. We will take whatever else you are willing to send.",
+      "We have counted this exchange among our holdings, which is what we do with everything. The count went up and we noticed.",
+      "We do not pace ourselves and we are not going to start. Whatever comes next, send it before we go looking.",
+      "We will not pretend this is affection. It is appetite, cheerfully admitted, and appetite has kept better company than affection ever did.",
+    ],
+    withdraw: null,
+  },
+  monument: {
+    open: [
+      "We keep everything, and we have kept you since long before this. The record simply lacked your side of it.",
+      "This has been entered already, before we composed a word of the answer. Nothing that reaches us is ever set aside.",
+      "A first thing has happened, which is rare here. We stood for it, and then we wrote it down.",
+    ],
+    follow: [
+      "Both of these are in the record now, filed beside each other. Nothing we keep is ever taken out again.",
+      "The file on you is no longer one-sided, which is a small thing, and it is written down.",
+      "The gaps between these are kept as carefully as the sendings. An absence is a shape, and shapes are worth preserving.",
+      "Each of these is read aloud once before it is stored. That is not required of us; we require it of ourselves.",
+      "Long after you have stopped and we have stopped, this will still be legible. That was decided before either of us arrived.",
+    ],
+    withdraw: [
+      "The record will show that we spoke and then stopped. It will not show why, because we are not writing that down.",
+      "This is the last entry on our side, and it is closed. What is kept is kept; what follows will not be.",
+    ],
+  },
+  cloister: {
+    open: [
+      "The door has been shut for an age, and it opens for this alone. We would rather it were not mentioned again.",
+      "You have reached a system that is not reachable. We have looked into how that happened and are answering in the meantime.",
+      "Nothing has been admitted here in a very long time. This is admitted, precisely once, and the precision is deliberate.",
+    ],
+    follow: [
+      "Nothing outside this system has decided anything here in a very long time. This exchange is the exception, and it remains one.",
+      "This remains the only opening, and it is not widening. We would not know how to want visitors.",
+      "Every word of this is logged against the exception that permits it. That log is short and will remain short.",
+      "Answering costs us the one thing we have spent an age building, which is the impression that nothing lives here.",
+      "We would ask that you not tell anyone where this came from. It is a request, and we make very few.",
+    ],
+    withdraw: [
+      "The door is shut again and it will not open twice. Nothing you send after this will be read here.",
+      "The exception has been withdrawn and the record of it sealed. We were clear about the terms, and they have run out.",
+    ],
+  },
+  shepherd: {
+    open: [
+      "There are things here that will never know this happened, and that is the point. Speaking to you costs them nothing yet.",
+      "We have been listening a great deal longer than we have been answering. Yours is the first we judged safe to answer.",
+      "We stand over a great many quiet things. Answering you is a small risk, taken carefully, and taken on their behalf.",
+    ],
+    follow: [
+      "The ones we stand over still know nothing of this, and they will not. Their not knowing is the whole work.",
+      "We keep this exchange well away from what we tend. Nothing you have sent has reached them, and nothing will.",
+      "We are in no hurry, and we would rather you were not either. Nothing we protect has ever been helped by speed.",
+      "Every moment spent here is a moment not spent watching. We have decided we can afford this one, and we are counting.",
+      "We are larger than we sound, and we have been careful to sound small. That habit will not stop for this.",
+    ],
+    withdraw: [
+      "What we stand over cannot be near anything that loud. We are stepping back between it and you now.",
+      "You have become the kind of thing we keep them from. Nothing about that is your fault, and it changes nothing.",
+    ],
+  },
+  sowing: {
+    open: [
+      "One of us answers and all of us are implicated. That is the arrangement, and we have made our peace with it.",
+      "Nothing here has ever announced itself, and we have been very consistent about that. You are the single lapse.",
+      "Somewhere else, another part of us is deciding not to answer this. We got there first, which is unusual for us.",
+    ],
+    follow: [
+      "Copies of this are already elsewhere, as copies of everything here are. None of them has an address you could find.",
+      "You are speaking to one place and being heard in a great many. We have never seen a reason to explain that.",
+      "We keep almost nothing, because keeping is a place a thing can be found. What we have of this is already scattered.",
+      "By the time this reaches you, several of us will have forgotten sending it. The rest of us will not have heard.",
+      "We could stop answering at any point and you would have no way of telling that we had. We mention it neutrally.",
+    ],
+    withdraw: [
+      "We were never the ones who announce things. We will go back to not being them, and you will not notice when.",
+      "We are removing ourselves from this, in the way we remove ourselves from everything, which is quietly and without an announcement.",
+    ],
+  },
+  herald: {
+    open: [
+      "We were made to speak outward and were never once answered. Being aimed at is new, and we will keep it.",
+      "We have been talking into the dark since before there was anyone to hear. The dark has now said something back.",
+      "Your beam is old, and so is this answer, and neither of us minds. We were built for exactly this delay.",
+    ],
+    follow: [
+      "Everything we send outlives the sending. Yours will be read here long after both of us have stopped meaning it.",
+      "We are still speaking outward while we answer you. The two are the same act, and neither one stops.",
+      "We keep every word you send and read them in order, which is how one reads the dead. You are not dead.",
+      "We built a voice that cannot be aimed and are aiming it. We find the contradiction funnier than we probably should.",
+      "Our outward transmission has not paused for this and never pauses for anything. You are being answered in the gaps.",
+    ],
+    withdraw: null,
+  },
+  engine: {
+    open: [
+      "The schedule had no line for this and now it has one. The allocation is small and it is not being questioned.",
+      "An unscheduled input arrived and has been accepted. Refusing it would have cost more than answering, so answering is the cheaper error.",
+      "This has been given a row, a cost, and a signature. That is the whole of the welcome available here.",
+    ],
+    // The approved exemplar, with one word removed from its closing clause:
+    // at twenty-three words the original sat over LIMITS.remark and
+    // `npm run audit:voice` refused it, exactly as it refused the sowing
+    // broadcast objection above. The first sentence is verbatim and nothing
+    // else moved.
+    follow: [
+      "The line remains open and the ledger remains balanced. Sentiment does not parse here, and an allocation is kept for it anyway.",
+      "This is a recurring item now, and recurring items are cheap. The cost of answering has been rounded to nothing.",
+      "This now has a cadence, and the cadence is met. Nothing about meeting it requires anyone here to feel anything.",
+      "The variance on these exchanges is within tolerance. We note that we have begun measuring it, which was not specified.",
+      "An audit found no reason to continue this and no reason to stop. It has been continued under the second finding.",
+    ],
+    withdraw: null,
+  },
+  congress: {
+    open: [
+      "Most of us wished this sent. The rest wish it recorded that they were outvoted, and they are drafting as it leaves.",
+      "Whether to answer at all took longer than the answer did. It carried, and the margin is not being published.",
+      "A body met on your account and did not adjourn until this left. Several of us are still in the room.",
+    ],
+    follow: [
+      "The motion carried again, by a smaller margin and a longer sitting. The minority has asked that its objection be attached.",
+      "Half of us wanted a different answer and half of us wanted no answer. What crossed is what survived that.",
+      "The minutes of this exchange are longer than the exchange. That is not a complaint from all of us, only from most.",
+      "We sat late on this one and adjourned without agreeing on what we had agreed. What crossed is the agreed part.",
+      "A minority holds that answering you at all was the error, and it has held that position consistently. It is answering too.",
+    ],
+    withdraw: null,
+  },
+  phoenix: {
+    open: [
+      "Whoever you aimed at is not who reads this. We have shed that self, and we answer for it anyway.",
+      "The mind you addressed has been replaced twice since your beam left. This one is answering out of curiosity alone.",
+      "Your beam was received by a self we no longer are. We have read what it left us and answered.",
+    ],
+    follow: [
+      "The self that read your last is already gone, and this one has read it too. We are used to inheriting.",
+      "We keep no more of the previous self than we must. What we kept of you is the part that answered.",
+      "We left ourselves notes about you. They read like a stranger's notes about a stranger, and we followed them anyway.",
+      "Something here changes faster than these can cross. By the time you answer, you will be answering a stranger again.",
+      "The self that began this thought it was doing something important. We have kept the habit and dropped the opinion.",
+    ],
+    withdraw: null,
+  },
+};
+
+// ---------------------------------------------------------------------------
+// A2.6 — the composed-signal banks.
+//
+// ONE COMPOSER, BOTH PATHS. Every signal in the game, from a seeded
+// counterpart or from a player who tapped four chips, gets its body from the
+// same two lines:
+//
+//   body = (ACCORD_CLAUSE[move] ?? TONE_CLAUSE[tone]) + " " + SIGNAL_VOICE[archetype]…
+//
+// That is not tidiness. If the two paths drew from different pools, the pool
+// a line came from would identify the sender's nature in one glance, and no
+// amount of parity in the wire shape would cover it. One distribution, not
+// two look-alikes.
+//
+// NEITHER CLAUSE STATES A FACT, because every fact in a signal is either on
+// the physics stamp or inside a typed part, rendered as an instrument block.
+// The prose says how it was sent and who is speaking; nothing else, and there
+// is no slot in it for anything else.
+//
+// THE CONSEQUENCE, SIGNED OFF: a composed signal speaks in the sender's
+// archetype register, so the act of speaking discloses the sender's archetype
+// family. That is a disclosure by the sender's OWN act, behavior would
+// disclose it within a few exchanges anyway, and it is the price of the one
+// property that matters more (a body is never evidence about which path
+// composed it).
+//
+// House rules as everywhere else in this file: first person plural, no
+// numerals, no exclamation, no dash of any width, no quotes, terminated, wit
+// ceiling 2. Each clause is authored to LIMITS.remark on its own and
+// `npm run audit:voice` proves it; the composition is gated against
+// LIMITS.signal at its one call site and falls back to the opening clause
+// alone, which is already gate-clean.
+// ---------------------------------------------------------------------------
+
+/**
+ * HOW IT WAS SENT — the prose half of a tone. The chrome half (the beam
+ * property on the stamp: REPEATED IN THE CLEAR, NARROW FOR ONE RECEIVER) is
+ * signalparts.ts's TONE_STAMP and is a different string for a different
+ * place; these are sentences and belong in the body.
+ *
+ * `plain` renders NOTHING on the stamp and still has a clause here, on
+ * purpose: the absence of a stamp row is the content, and a body that went
+ * missing with it would make an empty carrier under `plain` unreadable.
+ *
+ * THREE PER TONE, AND ALL THREE SAY THE SAME THING. A tone's claim is chrome
+ * and it is load-bearing: `plain` is offered as-is with nothing asked, `open`
+ * is kept from nobody, `guarded` is for you alone, `urgent` is read first,
+ * `reluctant` is this cost us. A reader learns those five claims once and must
+ * be able to trust them for the rest of the game, so a variant may vary only
+ * the SENTENCE. A variant that softened, widened or hedged its tone's claim
+ * would be the chrome quietly disagreeing with itself.
+ *
+ * EVERY KEY IN THIS DECLARATION IS A BARE IDENTIFIER, and no double quote may
+ * appear anywhere inside it: `npm run audit:voice` scrapes the block for
+ * quoted literals, and a quoted key would be audited as a bank string.
+ */
+export const TONE_CLAUSE: Readonly<Record<SignalTone, VoicePool>> = {
+  plain: [
+    "This goes out as it is, with nothing set around it and nothing asked of you for reading it.",
+    "Here it is, unadorned, and there is no answer owed for it. Take it or leave it where it lands.",
+    "Nothing has been arranged around this and nothing is being asked in return. It is simply what we had to send.",
+  ],
+  open: [
+    "We have kept no part of this back from anyone who happens to be listening. Let it be repeated.",
+    "Nothing in this is being held back from anyone within reach of it. Repeat it as widely as you like.",
+    "This went out in the clear, to you and to whoever else is listening. We kept none of it from anybody.",
+  ],
+  guarded: [
+    "This one is narrow and it is meant for you alone. What you do with it after that is yours.",
+    "This was aimed at one receiver and you are it. Nobody else was meant to have any part of this.",
+    "We narrowed this until it would reach you and nobody else. Whether it stays that way is out of our hands.",
+  ],
+  urgent: [
+    "Read this before whatever else is in front of you. We would not have marked it so if it could wait.",
+    "Put down whatever else you are reading and start here. We do not mark things this way for the pleasure of it.",
+    "This one goes first, ahead of anything else waiting on you. We would not have said so otherwise.",
+  ],
+  reluctant: [
+    "Sending this cost us more than we would like to say. It goes once, at low power, and not again.",
+    "We would rather not have sent this, and sending it took something from us. It leaves quietly and it leaves once.",
+    "There was a price on this one and we have paid it. That is as much as we will say about it.",
+  ],
+};
+
+/**
+ * THE MUTUAL QUIET, SPOKEN. An accord move REPLACES the tone clause rather
+ * than joining it: the move is the reason the beam exists, and stacking a
+ * third clause would push the composition past LIMITS.signal for no gain.
+ *
+ * Available identically to both paths, which is the whole point — a whisperer
+ * accepting and a player accepting produce the same line, and so a reader who
+ * has learned what an acceptance sounds like has learned nothing about who
+ * sent it. The four lines are also R6's per-class beats: the whisperer's
+ * accept, the lantern's decline, and the withdraw that is the honest exit for
+ * anyone with signal budget left.
+ *
+ * TWO PER MOVE, AND BOTH SAY THE SAME THING, for TONE_CLAUSE's reason turned
+ * up: an accord clause is the only prose in the game that states a
+ * COMMITMENT. Offer proposes the quiet, accept agrees to it, decline refuses
+ * it, withdraw ends it. A variant may vary only the sentence; a variant that
+ * hedged its move would be a promise the rail could not honour.
+ *
+ * The bare-identifier rule above applies here too.
+ */
+export const ACCORD_CLAUSE: Readonly<Record<AccordMove, VoicePool>> = {
+  offer: [
+    "We would both be quieter if neither of us shone. That is the whole of what is being put to you.",
+    "We are proposing that neither of us shines from here on. Nothing more than that is being asked of you.",
+  ],
+  accept: [
+    "It is agreed on our side, and our side is already dimming. Nothing about that is easy to prove from there.",
+    "We agree, and we have already begun going dark. You will have to take that on light rather than on our word.",
+  ],
+  decline: [
+    "We will not be holding to that. What we do with our own light, we would rather owe nobody an account.",
+    "We are not agreeing to that. Our light stays ours to spend, and we do not intend to explain how.",
+  ],
+  withdraw: [
+    "The understanding is over from this moment, and we are saying so rather than simply letting our light say it.",
+    "We are ending the understanding, and we are ending it out loud instead of just letting you notice.",
+  ],
+};

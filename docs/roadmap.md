@@ -127,7 +127,50 @@ break that widens. Running it on a phone-sized viewport is also what
 caught a real A2.2 bug — a Sentinel that had kept every appointment read
 SILENT, on exact float equality between two identical schedules.
 
-**→ Next to build: AV — the voice (the narrator slice).** Decided
+**A2.3 shipped (2026-07): the contest and study tripwires.** Mask
+upkeep as archetype rules over the seed (`contest.ts`), regression as
+temperature entering through `settleShares` (order preserved, the
+board contracts toward the even split), the banked one-sentence tell,
+three standing tripwires firing in-app as persisted transitions, and
+the `called` / `overtaken` exits inheriting grounded's closed-state
+and reopen rules. The stage's double-Opus confidence-model call was
+run and synthesized; systems-a.md §2.7 and §2.8 are the as-built
+record, and observatory-design's confidence-math open question is
+settled. The same session shipped the scarcity pass (the attention
+ceiling, systems-a.md §2.2b).
+
+**A2.4 shipped (2026-07): the choice ceremony.** Hail and broadcast
+write emission truth through the light cone (`contact.ts`; the act
+log on the Galaxy, a beam served only to its addressee and only at
+arrival), the resistance beat charges Coherence through the
+voice-silence dial with twenty banked archetype objections, and the
+ceremony stages on the Model: hold-compressed flight previews with
+running arrival years, a commit that collapses into the clock's real
+crawl, and persistent in-flight renders derived from the player's own
+outbound acts. Stay dark writes nothing. systems-a.md §12 is the
+as-built record.
+
+**A2.5 shipped (2026-07): traffic, against the AI.** Derived-truth
+counterparts (no AI ever writes: replies are pure functions of the act
+log, evaluated at read time, byte-stable forever), threads and signals
+on real light clocks through the existing wake queue, four counterpart
+classes over all ten archetypes with forty-three banked reply strings,
+physics stamps as the header of every received payload, and the game's
+first text composer, freeform-with-AI only, enforced server-side.
+systems-a.md §13 is the as-built record.
+
+**A2.6 shipped (2026-07): human pairs.** The composed-signal grammar
+(the stage's double-Opus call: both framings converged on selectors-
+never-content and one composer everywhere; freeform retired game-wide
+as a path oracle), findings as tradeable payloads wearing three ages,
+the thin mutual quiet derived from the act log with breach-by-light,
+the full indistinguishability closure set with audit:parity in CI,
+the mute, and durable identity as SQLite accounts over the seat-id
+indirection. systems-a.md §14 is the as-built record. **A2 is
+feature-complete: the fun gate (two phones, one evening) is the
+remaining exit condition — a play test, not a build item.**
+
+**→ Previously next (now shipped in code): AV — the voice.** Decided
 2026-07: the shipped game has the machinery but no narrator — the
 pull-back is wordless, nothing states the frame, and the mind never
 speaks. AV fixes what a new player finds confusing, which sits on the

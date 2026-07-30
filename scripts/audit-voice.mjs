@@ -77,9 +77,61 @@ function check(label, strings, limits) {
 
 const arrivals = tagged(block("const ARRIVAL_LINES: ByArchetype<PinnedLine> = {"));
 const remarks = quoted(block("export const REPORT_REMARKS: ByArchetype<"));
+// A2.3's contest tell. It is fact-free by construction (nothing in it may be
+// particular to a source, or it would name which target is masking), so it is
+// checked against the remark bounds like the rest of the fact-free prose.
+const contest = tagged(block("const CONTEST_LINES: Readonly<Record<\"tell\", PinnedLine>> = {"));
+// A2.4's resistance bank. Twenty plain strings, the REPORT_REMARKS shape, and
+// fact-free by construction — the objection names the kind of act and nothing
+// particular about the target — so it is checked against the remark bounds.
+const resistance = quoted(block("export const RESISTANCE_LINES: ByArchetype<"));
+// A2.5's traffic banks. A counterpart's reply is an observation clause and a
+// voice clause COMPOSED, and each half is authored to remark size on its own —
+// so each half is audited against LIMITS.remark here, exactly like every other
+// fact-free bank, and the COMPOSITION is gated against LIMITS.signal at its one
+// call site in traffic.ts. Auditing the halves is the stronger test: it is what
+// guarantees the fallback path (observation clause alone, on a rejected
+// composition) can only ever emit a line the gate already accepts.
+const observations = quoted(block("export const SIGNAL_OBSERVATIONS: Readonly<"));
+const signalVoice = quoted(block("export const SIGNAL_VOICE: ByArchetype<"));
+// A2.6's composed-signal banks. A signal's body is an OPENING CLAUSE plus a
+// voice clause: the opening is the tone spoken (TONE_CLAUSE) unless the beam
+// carries a move in the mutual quiet, in which case it is the move spoken
+// (ACCORD_CLAUSE). Both banks are drawn on by BOTH paths — a seeded
+// counterpart and a player composing with chips produce lines from the same
+// pool, which is what makes a body useless as evidence about who sent it — so
+// each is audited exactly like every other fact-free bank, at remark size.
+const toneClauses = quoted(block("export const TONE_CLAUSE: Readonly<"));
+const accordClauses = quoted(block("export const ACCORD_CLAUSE: Readonly<"));
 
 const arrivalCount = check("arrival line", arrivals, LIMITS.arrival);
 const remarkCount = check("report remark", remarks, LIMITS.remark);
+const contestCount = check("contest line", contest, LIMITS.remark);
+const resistanceCount = check("resistance line", resistance, LIMITS.remark);
+const observationCount = check("signal observation", observations, LIMITS.remark);
+const signalVoiceCount = check("signal voice", signalVoice, LIMITS.remark);
+const toneCount = check("tone clause", toneClauses, LIMITS.remark);
+const accordCount = check("accord clause", accordClauses, LIMITS.remark);
+
+// The composition is what actually ships, so prove it fits: every opening
+// against every voice clause would be the exhaustive test, but the bound is
+// decided by the LONGEST of each, and a cross product of the worst cases is
+// the only pair that can fail.
+//
+// SIGNAL_OBSERVATIONS is checked here even though A2.6 retired it from the
+// body: the bank is still shipped and still audited (voice.ts says why), and
+// keeping it in the worst-case set costs nothing and catches the day somebody
+// composes with it again.
+const longest = (pool) =>
+  pool.reduce((best, s) => (s.split(/\s+/).length > best.split(/\s+/).length ? s : best), "");
+const openings = [...observations, ...toneClauses, ...accordClauses];
+const worstComposition = `${longest(openings)} ${longest(signalVoice)}`;
+const composed = gateFactFree(worstComposition, LIMITS.signal);
+if (!composed.ok) {
+  fail(
+    `signal composition: the longest opening clause and the longest voice clause compose to "${composed.reason}"\n      ${worstComposition}`,
+  );
+}
 
 // The fact-carrying gate has ZERO call sites in AV4 (every generated surface
 // is fact-free by construction), so it is exercised here instead — masking a
@@ -101,6 +153,12 @@ if (invented.ok) fail("fact-carrying gate accepted an unpinned figure in the res
 
 console.log(`arrival lines   ${arrivalCount}`);
 console.log(`report remarks  ${remarkCount}`);
+console.log(`contest lines   ${contestCount}`);
+console.log(`resistance      ${resistanceCount}`);
+console.log(`observations    ${observationCount}`);
+console.log(`signal voice    ${signalVoiceCount}`);
+console.log(`tone clauses    ${toneCount}`);
+console.log(`accord clauses  ${accordCount}`);
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} failure(s):`);

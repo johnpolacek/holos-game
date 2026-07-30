@@ -25,14 +25,23 @@ import type {
   VoiceKey,
   ReportPayload,
   Proposal,
+  ContactWire,
+  AccordRail,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { StudyBoard } from "./studyboard";
-import { clearPendingBecome, hasPendingBecome, renderCeremony } from "./ceremony";
+import {
+  clearPendingBecome,
+  hasPendingBecome,
+  mountSignIn,
+  renderCeremony,
+  type SignInMount,
+} from "./ceremony";
 import { Model } from "./model";
-import { SourceCard, type MissionCardState } from "./sourcecard";
+import { SourceCard, type ContactCardState, type MissionCardState } from "./sourcecard";
 import { setClockAnchor } from "./clock";
 import { VoiceBeat } from "./voicebeat";
+import { ContactCeremony } from "./contactceremony";
 
 /** Tend states that mean a mission is still under way — everything but a
  *  terminal returned/silent (missions.ts's missionWorkState never emits
@@ -71,7 +80,7 @@ export class App {
   private studies: readonly StudySnapshot[] = [];
   private sources: readonly DetectedSource[] = [];
   private projects: readonly ProjectSnapshot[] = [];
-  private budget: ComputeBudget = { free: 0, ratePerYear: 0, asOfYear: 0 };
+  private budget: ComputeBudget = { free: 0, ratePerYear: 0, cap: 0, asOfYear: 0 };
   private missions: readonly MissionSnapshot[] = [];
   private tend: readonly TendRow[] = [];
   private probeFlightYearsPerLy = 10;
@@ -79,6 +88,16 @@ export class App {
   // never appended, never re-sorted client-side (the server's ranked order
   // is load-bearing, per the AV3 design).
   private proposals: readonly Proposal[] = [];
+
+  // A2.4: the contact block from the latest `sky` — both stances (pushed,
+  // never preflighted, so the ceremony can render the mind's objection with
+  // no round trip) and the player's own committed acts. Null until the first
+  // sky, which is the only state in which no ceremony can be armed.
+  // A2.5 widens the same block with `threads` and `openThread`, so the
+  // thread list and the one open detail reach the board through the field
+  // that was already being handed over — no new plumbing, no second store.
+  private contact: ContactWire | null = null;
+  private contactCeremony: ContactCeremony | null = null;
 
   // AV1: one-time lines the mind speaks. A key present means unseen — the
   // payload's whole shape carries no-replay, so this is just the latest
@@ -108,6 +127,19 @@ export class App {
   // whichever SourceCard is currently mounted.
   private readonly localNames = new Map<string, string>();
 
+  // ── A2.6: durable identity ────────────────────────────────────────────
+  // Whether THIS SEAT has an account, from the latest `welcome.account` —
+  // forwarded to the study board (its hub row's either/or) on every welcome
+  // and again the moment the board mounts, so its very first render already
+  // knows.
+  private hasAccount = false;
+  // The re-onboard sheet: a sibling overlay appended directly to `this.root`
+  // (the voicebeat.ts mold), NOT torn down by `mount()` — `token-claimed`
+  // can arrive before any screen has mounted at all (the very first hello
+  // on a dead token), so this cannot depend on a screen existing to sit on.
+  private reclaimRoot: HTMLDivElement | null = null;
+  private reclaimSignIn: SignInMount | null = null;
+
   constructor(root: HTMLElement, socket: CohortSocket) {
     this.root = root;
     this.socket = socket;
@@ -131,6 +163,12 @@ export class App {
         this.menus = message.menus;
         this.missionCatalog = message.missionCatalog;
         setClockAnchor(message.clock);
+        // A2.6: any welcome at all means the hello it answered was accepted
+        // — a fresh anonymous seat, a resumed one, or a successful sign-in —
+        // so whatever reclaim sheet was up has done its job.
+        this.hideReclaim();
+        this.hasAccount = message.account;
+        this.studyBoard?.setHasAccount(this.hasAccount);
         break;
       case "offer":
         this.showCeremony(message.candidates);
@@ -148,6 +186,7 @@ export class App {
         this.tend = message.tend;
         this.probeFlightYearsPerLy = message.probeFlightYearsPerLy;
         this.proposals = message.proposals;
+        this.contact = message.contact;
         this.showSky(message.self, message.sources);
         break;
       case "sourceNamed":
@@ -167,6 +206,12 @@ export class App {
         this.reportPayload = message.report;
         this.studyBoard?.setReport(message.report);
         break;
+      case "accountKey":
+        // A2.6: the ONLY message that carries a key. It only ever answers
+        // `claimAccount`/`showAccountKey`, both sent from the hub row, so the
+        // board is always mounted by the time this arrives.
+        this.studyBoard?.showAccountKey(message.key, message.fresh);
+        break;
       case "error":
         // The ceremony subscribes to the socket directly for become-
         // rejection errors; the source card only reacts while it has a
@@ -174,7 +219,19 @@ export class App {
         // safe even outside the sky screen. The observatory needs it to
         // release a begin that will never be confirmed by a `sky`.
         this.sourceCard?.handleServerMessage(message);
-        this.studyBoard?.handleServerError();
+        // A2.6: the board takes the CODE now, for one branch only — a
+        // `contact-unavailable` on a send is the turnaround floor, and the
+        // composer has a line to say about it. Every other code still
+        // releases the same silent way it always has.
+        this.studyBoard?.handleServerError(message.code);
+        // A2.4: only reacts while a commit of its own is in flight, and then
+        // it reverses the optimistic bloom and states the reason.
+        this.contactCeremony?.handleServerError(message.message);
+        // A2.6: the seat this connection's stored token names now belongs to
+        // an account. net.ts has already dropped the dead token by the time
+        // this runs (its own absorbCredentials); this is the UI half — the
+        // re-onboard sheet, over whatever else is on screen.
+        if (message.code === "token-claimed") this.showReclaim();
         break;
     }
   }
@@ -184,6 +241,77 @@ export class App {
     this.root.innerHTML = "";
     const cleanup = render();
     this.currentCleanup = cleanup ?? null;
+  }
+
+  /**
+   * A2.6: the re-onboard sheet. A sibling overlay on `this.root`, appended
+   * rather than mounted, so it survives whatever `mount()` last put up (or
+   * the fact that nothing has mounted yet) — this can fire before the very
+   * first `welcome`. No ambient dismiss: [Sign in] and [Begin again] are the
+   * only two ways out, and `hideReclaim()` (called unconditionally on the
+   * next `welcome`) takes it down the moment either one succeeds.
+   */
+  private showReclaim(): void {
+    if (this.reclaimRoot !== null) return;
+
+    const root = document.createElement("div");
+    root.className = "reclaim-root";
+    root.setAttribute("role", "dialog");
+    root.setAttribute("aria-label", "This run now belongs to an account");
+
+    const scrim = document.createElement("div");
+    scrim.className = "reclaim-scrim";
+
+    const panel = document.createElement("div");
+    panel.className = "reclaim-panel";
+
+    const line = document.createElement("p");
+    line.className = "reclaim-line";
+    line.textContent =
+      "This run now belongs to an account. Sign in with your key, or begin again.";
+    panel.append(line);
+
+    const actions = document.createElement("div");
+    actions.className = "reclaim-actions";
+
+    const signInToggle = document.createElement("button");
+    signInToggle.type = "button";
+    signInToggle.className = "reclaim-signin-toggle holos-caps";
+    signInToggle.textContent = "Sign in";
+    signInToggle.addEventListener("click", () => {
+      if (this.reclaimSignIn !== null) return;
+      signInToggle.hidden = true;
+      const field = mountSignIn(this.socket);
+      this.reclaimSignIn = field;
+      panel.append(field.el);
+    });
+
+    const beginBtn = document.createElement("button");
+    beginBtn.type = "button";
+    beginBtn.className = "reclaim-begin-btn holos-caps";
+    beginBtn.textContent = "Begin again";
+    beginBtn.addEventListener("click", () => {
+      // A fresh anonymous hello, on the live socket — the exact shape a
+      // brand-new tab sends (net.ts's sendHello with nothing stored yet).
+      this.socket.send({ type: "hello", token: null, account: null });
+      this.hideReclaim();
+    });
+
+    actions.append(signInToggle, beginBtn);
+    panel.append(actions);
+
+    root.append(scrim, panel);
+    this.root.append(root);
+    this.reclaimRoot = root;
+    requestAnimationFrame(() => root.classList.add("open"));
+  }
+
+  private hideReclaim(): void {
+    if (this.reclaimRoot === null) return;
+    this.reclaimSignIn?.destroy();
+    this.reclaimSignIn = null;
+    this.reclaimRoot.remove();
+    this.reclaimRoot = null;
   }
 
   private showCeremony(candidates: readonly CivCard[]): void {
@@ -208,6 +336,27 @@ export class App {
     if (onStar.some((m) => isLiveMissionState(m.state))) return "live";
     if (onStar.length > 0) return "inactive";
     return "none";
+  }
+
+  /** A2.4: the contact row's state for `starId` — the arrival year of a beam
+   *  already aimed there, or null. Straight off the server's own record of
+   *  the player's acts; nothing local ever fills this in. */
+  private findContactState(starId: string): ContactCardState {
+    const act = this.contact?.outbound.find(
+      (a) => a.kind === "hail" && a.starId === starId,
+    );
+    if (act === undefined || act.arrivesYear === null) return null;
+    return { arrivesYear: act.arrivesYear };
+  }
+
+  /** A2.6: the mutual quiet standing with this source, for the card's rail.
+   *  Straight off the thread summary the sky already carries — the card
+   *  renders it and derives nothing (findContactState's contract). Null when
+   *  there is no thread there, or no understanding in it. */
+  private findAccord(starId: string): AccordRail | null {
+    const thread = this.contact?.threads.find((t) => t.starId === starId);
+    if (thread === undefined || thread.accord.state === "none") return null;
+    return thread.accord;
   }
 
   /** The one live mission on `starId`, if any — for the source card's
@@ -292,6 +441,8 @@ export class App {
     // just update the Model and, if a card is open, its live source data.
     if (this.mountedScreen === "sky" && this.model !== null) {
       this.model.setSky(self, sources);
+      this.model.setContact(this.contact);
+      this.contactCeremony?.setSky(sources);
       this.studyBoard?.setSelf(self);
       this.sourceCard?.setLocalNames(this.localNames);
       const openId = this.sourceCard?.currentStarId() ?? null;
@@ -301,6 +452,8 @@ export class App {
           this.sourceCard?.setSource(updated);
           this.sourceCard?.setStudyStatus(this.findStudy(openId)?.status ?? null);
           this.sourceCard?.setMissionState(this.findMissionState(openId));
+          this.sourceCard?.setContactState(this.findContactState(openId));
+          this.sourceCard?.setAccord(this.findAccord(openId));
         }
         // else: the Model's setSky above already fired onSelectSource(null)
         // for a selection that no longer corresponds to a live source.
@@ -315,6 +468,7 @@ export class App {
         this.tend,
         this.probeFlightYearsPerLy,
         this.proposals,
+        this.contact,
       );
       this.maybeFocusPendingStudy();
       return;
@@ -334,9 +488,29 @@ export class App {
         this.missionCatalog,
         this.catalog,
       );
+      const contactCeremony = new ContactCeremony(this.root, model, this.socket);
       this.model = model;
       this.sourceCard = sourceCard;
       this.studyBoard = studyBoard;
+      this.contactCeremony = contactCeremony;
+      // A2.6: this board's very first render already knows — no waiting on
+      // a welcome that, on a resume, already came and went.
+      studyBoard.setHasAccount(this.hasAccount);
+
+      // While a ceremony is armed the sky belongs to it: the two standing
+      // chips stand down, so the only things a thumb can reach are the
+      // canvas (the press) and the one word that says no.
+      contactCeremony.onActive((active) => studyBoard.setChromeHidden(active));
+
+      /** Stage a ceremony. The three entry points all funnel through here so
+       *  there is one place that closes what is open, drops the selection
+       *  ring and hands the sky over. */
+      const stage = (arm: () => void): void => {
+        sourceCard.close();
+        model.clearSelection();
+        studyBoard.close();
+        arm();
+      };
 
       model.onSelectSource((source) => {
         if (source === null) {
@@ -345,6 +519,8 @@ export class App {
           sourceCard.open(source, this.localNames);
           sourceCard.setStudyStatus(this.findStudy(source.starId)?.status ?? null);
           sourceCard.setMissionState(this.findMissionState(source.starId));
+          sourceCard.setContactState(this.findContactState(source.starId));
+          sourceCard.setAccord(this.findAccord(source.starId));
           sourceCard.setExplainer(this.takeSourceCardVoice());
         }
       });
@@ -356,6 +532,8 @@ export class App {
         sourceCard.open(source, this.localNames);
         sourceCard.setStudyStatus(this.findStudy(starId)?.status ?? null);
         sourceCard.setMissionState(this.findMissionState(starId));
+        sourceCard.setContactState(this.findContactState(starId));
+        sourceCard.setAccord(this.findAccord(starId));
         sourceCard.setExplainer(this.takeSourceCardVoice());
       });
       sourceCard.onStudyAction((starId) => {
@@ -367,6 +545,36 @@ export class App {
           this.socket.send({ type: "openStudy", starId });
           this.pendingStudyFocus = starId;
         }
+      });
+      // A2.4: AIM A BEAM. The stance rides the same `sky` that produced this
+      // source, so the mind's objection (if it has one) is already in hand
+      // and the ceremony arms with no round trip.
+      sourceCard.onContactAction((starId) => {
+        const contact = this.contact;
+        if (contact === null) return;
+        stage(() => contactCeremony.armHail(starId, contact.hail, this.sources));
+      });
+      // A2.4: SPEAK TO EVERYONE, from the hub's own one-row section.
+      studyBoard.onVoiceAction(() => {
+        const contact = this.contact;
+        if (contact === null) return;
+        stage(() => contactCeremony.armBroadcast(contact.broadcast, this.sources));
+      });
+      // A2.5: a thread the player has never spoken into — they hailed first
+      // and nothing of ours has ever been aimed at them. Answering is the
+      // hail ceremony at its usual price, staged through the same funnel as
+      // every other way in, so the sky is handed over exactly once.
+      studyBoard.onHailAction((starId) => {
+        const contact = this.contact;
+        if (contact === null) return;
+        stage(() => contactCeremony.armHail(starId, contact.hail, this.sources));
+      });
+      // A2.4: the HOME mote is the one present-tense object on the sky, so
+      // tapping it goes to where the player's own voice lives.
+      model.onSelectHome(() => {
+        sourceCard.close();
+        model.clearSelection();
+        studyBoard.openHub("voice");
       });
       sourceCard.onMissionAction((starId) => {
         const live = this.findLiveMission(starId);
@@ -399,6 +607,7 @@ export class App {
       });
 
       model.setSky(self, sources);
+      model.setContact(this.contact);
       studyBoard.setSelf(self);
       studyBoard.update(
         this.studies,
@@ -410,6 +619,7 @@ export class App {
         this.tend,
         this.probeFlightYearsPerLy,
         this.proposals,
+        this.contact,
       );
       // AV2: a `report` message can (and on placement, does) arrive before
       // this board exists — handleMessage stored it on `this.reportPayload`
@@ -430,6 +640,7 @@ export class App {
         }, 600);
       }
       return () => {
+        contactCeremony.destroy();
         model.destroy();
         sourceCard.destroy();
         studyBoard.destroy();
@@ -438,6 +649,7 @@ export class App {
         if (this.model === model) this.model = null;
         if (this.sourceCard === sourceCard) this.sourceCard = null;
         if (this.studyBoard === studyBoard) this.studyBoard = null;
+        if (this.contactCeremony === contactCeremony) this.contactCeremony = null;
       };
     });
   }

@@ -137,6 +137,17 @@ year the universe will not give back. Artificial limits are never the
 source of a hard choice; if a choice is not already hard because of
 scarcity, adding a slot to make it hard is forbidden.
 
+**The attention ceiling is a budget, not a slot** (working decision,
+2026-07). Uncommitted Compute saturates at a ceiling proportional to the
+income rate (systems-a.md §2.2b). This limits *stockpiling*, never
+simultaneity: a player may still commit to any number of things at once,
+up to what the pool and its refill can cover. It exists because Compute is
+attention — capacity, not wealth — and an unbounded pool under a real-time
+clock quietly becomes the store of value § *No money* forbids: away-time
+accrual alone was outbuying every priced choice. The ceiling growing with
+income keeps "an era's savings" real for Endeavor-class work: the era's
+saving is done by the projects that widen the mind, not by waiting.
+
 **The mask-versus-instrument contest is priced the same way, not modeled
 separately.** Going dark and being found are opposing, open-ended
 investments, not a stealth stat and a detection stat resolved by a hidden

@@ -50,6 +50,21 @@ export function formatRealDuration(ms: number): string {
   return remHours > 0 ? `${totalDays} d ${remHours} h` : `${totalDays} d`;
 }
 
+/**
+ * An ABSOLUTE game year as chrome: "Y1204". For a date that simply is where
+ * it is — a mission that already started, an arrival the light has fixed —
+ * as opposed to a duration still running down, which always goes through
+ * formatCountdown/formatClockPair instead.
+ *
+ * It lives here rather than in whichever surface first needed it because two
+ * surfaces now render the same stamp (the observatory's dates and the choice
+ * ceremony's arrival years), and a stamp that reads "Y1204" in one place and
+ * "1204" in the other is two facts rather than one.
+ */
+export function formatAbsoluteYear(year: number): string {
+  return `Y${Math.round(year)}`;
+}
+
 /** Compact game-time span: "20 y", "1,200 y". Whole years, thousands-separated. */
 export function formatGameYears(years: number): string {
   const rounded = Math.max(0, Math.round(years));

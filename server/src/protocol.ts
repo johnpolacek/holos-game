@@ -80,6 +80,22 @@ import type {
   MissionKindDef,
 } from "./missions";
 import type { TendRow } from "./tend";
+// The tripwire vocabulary is studies.ts's (it owns the conditions and the
+// stored record); the wire borrows the id set, the TendRow precedent exactly.
+import type { TripwireKind } from "./studies";
+// A2.4: same borrowing, one more time — contact.ts owns the act vocabulary
+// and the stored ContactAct; the wire takes the id set only.
+import type { CeremonyKind, ContactKind } from "./contact";
+// A2.5: the stamp is measured in traffic.ts (it is derived from the distance
+// and nothing else) and rendered by the client, so it is named here the way
+// ObservedSignal is — a type-only re-export, erased at build, pulling no
+// truth-side runtime behind it.
+import type { PhysicsStamp } from "./traffic";
+// A2.6: the composed-signal grammar. Type-only on purpose — signalparts.ts
+// carries the materializer and therefore imports the knowledge layer, and
+// this module is the one the CLIENT imports. Types are erased at build, so
+// the grammar's shapes reach a phone and not one byte of its truth code.
+import type { AccordState, SignalPart, SignalTone } from "./signalparts";
 
 // Re-exports the client needs to render. Types are erased; DIAL_AXES is the
 // ONE runtime value the client genuinely needs (in-world dial pole labels),
@@ -110,6 +126,34 @@ export type {
 // The work-list row shape rides inside `sky`; the client renders it directly, so
 // it is named here rather than reached for through the message union.
 export type { TendRow } from "./tend";
+export type { TripwireKind } from "./studies";
+export type { CeremonyKind, ContactKind } from "./contact";
+export type { PhysicsStamp } from "./traffic";
+// A2.6: the grammar's shapes, re-exported for the composer and the thread
+// renderer. TYPES ONLY, and `TONE_STAMP` is deliberately NOT among them —
+// the stamp strings are chrome the client owns, in the same way block labels
+// and class labels already are.
+export type {
+  AccordForm,
+  AccordMove,
+  AccordState,
+  ArchivePart,
+  ArchiveSample,
+  ArchiveWindow,
+  CulturePart,
+  CultureSource,
+  FindingDepth,
+  FindingPart,
+  PartKind,
+  PartRef,
+  RequestPart,
+  RequestWant,
+  SightingPart,
+  SignalPart,
+  SignalTone,
+  VerdictPart,
+  VerdictStance,
+} from "./signalparts";
 
 /** Clock anchor; the client computes nowYear locally (no time polling). */
 export interface ClockWire {
@@ -211,10 +255,16 @@ export interface EvidenceEntry {
   readonly kind: "arrival" | "answer" | "report";
 }
 
-/** "called" | "overtaken" join in A2.3. `grounded` is A2.2b's: a mission
- *  report that arrived after the study was last opened closed it, and the
- *  belief it settled came back from the ground rather than from the light. */
-export type StudyStatus = "open" | "shelved" | "grounded";
+/**
+ * The five states a vigil can be in. `grounded` is A2.2b's: a mission report
+ * that arrived after the study was last opened closed it, and the belief it
+ * settled came back from the ground rather than from the light. A2.3 adds
+ * the other two exits — `called`, the player deciding they are done arguing,
+ * and `overtaken`, the source ceasing to be the kind of thing the study was
+ * opened on. All three are CLOSED (studies.ts's `isClosed`); `shelved` is
+ * merely paused.
+ */
+export type StudyStatus = "open" | "shelved" | "grounded" | "called" | "overtaken";
 
 /**
  * What grounded a study, for the board to name. Ids and dates only — the
@@ -268,7 +318,10 @@ export interface QuestionFinding {
   readonly lightAgeYears: number; // nowYear − asOfYear
   readonly annotation: string;
   readonly moved: readonly HypothesisId[];
-  readonly shape: "sharpen" | "plateau";
+  /** A2.3 adds `regress`: the answer landed and moved no share toward
+   *  anything, but took definition out of the whole board. `moved` is empty
+   *  on a regress, exactly as it is on a plateau. */
+  readonly shape: "sharpen" | "plateau" | "regress";
 }
 
 /**
@@ -285,6 +338,17 @@ export interface OpenQuestion {
   readonly costClass: CostClass; // "investment"
   readonly costCompute: number;
   readonly integrationYears: number;
+  /**
+   * The receipt behind a discounted `costCompute`: the catalog base and
+   * the landed project(s) that granted the reduction, composed server-side
+   * (ProjectSnapshot's effectLine precedent) — e.g. "DOWN FROM 90 COMPUTE
+   * · GRANTED BY THE SPECTROGRAPH BANK". Null when no discount has landed,
+   * which is the common case. Live while `offered`, frozen at `boughtYear`
+   * once bought, exactly like the numbers it explains.
+   */
+  readonly costProvenance: string | null;
+  /** Same receipt for a hastened `integrationYears`, or null. */
+  readonly hasteProvenance: string | null;
   readonly separates: readonly HypothesisId[]; // derived per class at snapshot time
   readonly state: QuestionState;
   readonly boughtYear: number | null; // null iff offered
@@ -307,6 +371,50 @@ export interface StudySnapshot {
   readonly annotationLine: string;
   /** Non-null iff `status === "grounded"` (A2.2b). */
   readonly grounding: StudyGrounding | null;
+  /**
+   * A2.3: the mind's one sentence about a study that has regressed at least
+   * once, banked in voice.ts and gated by `npm run audit:voice`. Null until a
+   * regression has actually been earned. It states a CAUSE, which is why it
+   * lives here and not in the finding's own annotation: the answer says the
+   * look got worse, and this says the one thing an instrument cannot tell
+   * you. `annotationLine` is untouched by it; the two claims stay apart.
+   */
+  readonly contestLine: string | null;
+  /** A2.3: all three kinds, always, with the state the server computed. The
+   *  chrome labels are the client's; nothing here names a condition's
+   *  threshold, and there is no number on this row a client could send back. */
+  readonly tripwires: readonly {
+    readonly kind: TripwireKind;
+    readonly state: "available" | "armed" | "tripped";
+    readonly firedYear: number | null;
+  }[];
+  /**
+   * A2.3: the belief FROZEN when the player called the study, non-null iff
+   * `status === "called"`. It is a belief already on the wire plus two dates.
+   * It is never compared against the live board anywhere, on either side.
+   */
+  readonly call: {
+    readonly hypothesisId: string;
+    readonly label: string;
+    readonly gloss: string;
+    readonly share: number;
+    readonly calledYear: number;
+    readonly lightAgeYears: number;
+  } | null;
+  /** A2.3: what the source turned into and what the study had believed up to
+   *  then, frozen at the transition. Non-null iff `status === "overtaken"`. */
+  readonly overtaking: {
+    readonly fromClass: SignalClass;
+    readonly toClass: SignalClass;
+    readonly atYear: number;
+    readonly lightAgeYears: number;
+    readonly lead: {
+      readonly id: string;
+      readonly label: string;
+      readonly gloss: string;
+      readonly share: number;
+    };
+  } | null;
 }
 
 // ── A2.2: the compute economy ───────────────────────────────────────────
@@ -335,11 +443,15 @@ export interface ProjectSnapshot {
 
 /**
  * The civ's compute allocation — an allocation, not a balance: `free` is
- * what is not already committed, never a store of value.
+ * what is not already committed, never a store of value. Since the 2026-07
+ * scarcity pass that is enforced by the attention ceiling: `free`
+ * saturates at `cap`, which grows only when income projects land.
  */
 export interface ComputeBudget {
   readonly free: number; // uncommitted as of asOfYear
   readonly ratePerYear: number; // compute per GAME year
+  /** The attention ceiling: the client clamps its local accrual here. */
+  readonly cap: number;
   readonly asOfYear: number; // so the client accrues locally
 }
 
@@ -511,9 +623,234 @@ export interface Proposal {
   readonly route: ProposalRoute;
 }
 
+// ── A2.4: the choice ceremony ──────────────────────────────────────────
+// Hail one, speak to everyone, or stay dark. Everything rides `sky`: there
+// is no new server message and no commit acknowledgment, because the commit
+// handler sends a fresh sky immediately and that sky is the truth the client
+// re-derives its stamps from. Nothing in this block is about anyone else —
+// both stances are functions of the player's OWN dial sheet, and `outbound`
+// is the player's own acts.
+
+/**
+ * Whether the mind objects to one kind of act, and what forcing it anyway
+ * would cost. PUSHED, NEVER PREFLIGHTED: `contested` and `coherenceCost` are
+ * pure functions of the civ's own dials, so the client can render the
+ * objection before the ceremony arms, with no round trip and no staleness.
+ *
+ * `coherenceCost` is a number and the client renders the chip (the
+ * `OpenQuestion.costCompute` precedent). `line` carries no numeral and could
+ * not: the mind's sentence is fact-free prose, and the style gate rejects
+ * digits in it.
+ */
+export interface ContactStance {
+  /** CeremonyKind, not ContactKind: a signal is never contested, so there is
+   *  no stance about one to render. */
+  readonly kind: CeremonyKind;
+  readonly contested: boolean;
+  /** The archetype's objection. Non-null iff `contested`. */
+  readonly line: string | null;
+  /** What the server will charge. 0 iff uncontested. */
+  readonly coherenceCost: number;
+}
+
+/**
+ * One of the player's own committed acts — the "your echo" view. It crosses
+ * nothing new: a hail's `starId` is a source the player aimed at and already
+ * sees, and `distanceLy` is already on the matching DetectedSource, so the
+ * client computes every per-source arrival stamp locally.
+ */
+export interface OutboundAct {
+  readonly id: string;
+  /**
+   * A2.5 widens this to the full ContactKind and adds NOTHING else: a signal
+   * already has a `starId` and an `arrivesYear`, which is the whole in-flight
+   * render, so the Model's outbound pass generalizes with no new field.
+   */
+  readonly kind: ContactKind;
+  /** Hail/signal: the star aimed at. Broadcast: null, it is aimed at nobody. */
+  readonly starId: string | null;
+  readonly sentYear: number;
+  /** Hail/signal only: `sentYear + distanceLy`. */
+  readonly arrivesYear: number | null;
+  /** Broadcast only: `nowYear − sentYear`, the shell swept so far. */
+  readonly shellRadiusLy: number | null;
+}
+
+// ── A2.5: threads ──────────────────────────────────────────────────────────
+//
+// A thread is one ordered pair (you, them) and the log's own order; it has no
+// stored identity, which is why every shape below is keyed by `starId`.
+//
+// THE NO-LEAK AUDIT, written where the shapes are so it cannot drift from
+// them:
+//  - `nextEventYear` NEVER carries a pending reply. Knowing that an answer is
+//    coming is knowing their present. Once your signal lands, the state is
+//    `awaiting` and `nextEventYear` is null.
+//  - An inbound signal reaches this wire only once `arrivesYear <= nowYear`.
+//    Future-dated derived signals are legal, ordinary, and INVISIBLE.
+//  - No inbound arc renders on the Model. You cannot see a beam before it
+//    lands, and there is no field here that would let you.
+
+/**
+ * Where a thread stands, from YOUR side of the light.
+ *
+ * `silent` is a statement about your own arithmetic and not about them: the
+ * window in which an answer could have arrived has passed. It leaks nothing,
+ * because you computed it from the distance you already knew and a bound on
+ * deliberation that is the same for every counterpart of that class.
+ */
+export type ThreadState =
+  | "unopened"
+  | "in-flight"
+  | "awaiting"
+  | "answered"
+  | "silent"
+  | "withdrawn";
+
+export interface ThreadSignal {
+  /**
+   * A2.6: AN OPAQUE PER-THREAD ORDINAL, `sig/0`, `sig/1`, minted in
+   * `buildThreads` and meaningful nowhere else. The underlying ids (a log
+   * act's `act-N`, a derived reply's `ai/...`) NEVER REACH THE WIRE: a stored
+   * act id counts the whole galaxy's log and a derived id names its own
+   * derivation, and either one would say which side of the machinery a
+   * signal came from. `inReplyTo` and every reference inside `parts` live in
+   * this same namespace.
+   */
+  readonly id: string;
+  readonly from: "you" | "them";
+  readonly kind: ContactKind;
+  readonly sentYear: number;
+  readonly arrivesYear: number;
+  /**
+   * The rendered line. A2.6 composes it SERVER-SIDE on both paths from the
+   * same two banks (voice.ts: a tone or accord clause, then the sender's
+   * archetype register), so a body is never evidence about who composed it.
+   * Null on a hail, which carries no payload, and on a legacy A2.5 act it is
+   * that act's own player prose.
+   */
+  readonly body: string | null;
+  /** A2.6: exactly one tone per signal. Null on a hail and on legacy acts. */
+  readonly tone: SignalTone | null;
+  /**
+   * A2.6: the payload, materialized from the SENDER's own state at send and
+   * frozen. Empty is legal and ordinary — a carrier is a beam with nothing on
+   * it, arriving dated.
+   */
+  readonly parts: readonly SignalPart[];
+  /**
+   * The instrument readout, rendered ABOVE the payload. Non-null only on a
+   * signal you RECEIVED: a stamp measures an arriving beam, and you have no
+   * instrument at the far end of your own. Your own landing year is your own
+   * arithmetic, never a receipt.
+   */
+  readonly stamp: PhysicsStamp | null;
+  readonly inReplyTo: string | null;
+}
+
+/**
+ * A2.6, THE COMPLIANCE RAIL. The mutual quiet has no stored object behind it:
+ * this whole block is derived from the accord moves that have ARRIVED on this
+ * side, plus one read of the counterpart's OBSERVED light.
+ *
+ * `theirLight` is A BELIEF ABOUT THE PAST and the wire says so by carrying
+ * `asOfYear` beside it. It is `emissionAt` on the counterpart's observed
+ * history since the accord year against the darkness floor, arriving on
+ * delay like everything else; it is never a verdict, and a breach read here
+ * ends the accord with no message from anybody, which is what keeps a thread
+ * cap from locking somebody into one.
+ */
+export interface AccordRail {
+  readonly form: "mutual-quiet";
+  readonly state: AccordState;
+  /** The year THIS SIDE learned the accord was accepted. Null unless held. */
+  readonly heldSinceYear: number | null;
+  /** Null until light from the accord era has actually arrived. */
+  readonly theirLight: "below-the-floor" | "above-the-floor" | null;
+  /** The target year that reading speaks to. */
+  readonly asOfYear: number | null;
+  // Which moves the composer may offer right now. Derived from the same view
+  // the materializer validates against, so a chip the client shows is a chip
+  // the server will accept.
+  readonly canOffer: boolean;
+  readonly canAccept: boolean;
+  readonly canDecline: boolean;
+  readonly canWithdraw: boolean;
+}
+
+export interface ThreadSummary {
+  readonly starId: string;
+  readonly state: ThreadState;
+  readonly signalCount: number;
+  readonly lastEventYear: number;
+  /** YOUR OWN next arrival only. NEVER a predicted reply. */
+  readonly nextEventYear: number | null;
+  /** You have hailed them and the thread has room: the composer is live. */
+  readonly canSpeak: boolean;
+  /** A2.6: the mutual quiet, from this side of the light. */
+  readonly accord: AccordRail;
+}
+
+export interface ThreadDetail extends ThreadSummary {
+  /** Oldest to newest, by the year YOU learned of each: at most
+   *  MAX_SIGNALS_ON_WIRE, newest kept. */
+  readonly signals: readonly ThreadSignal[];
+  readonly truncated: boolean;
+}
+
+export interface ContactWire {
+  readonly hail: ContactStance;
+  readonly broadcast: ContactStance;
+  /** The player's own acts, in commit order. */
+  readonly outbound: readonly OutboundAct[];
+  // ── A2.5 ──
+  /** One row per thread, list view. */
+  readonly threads: readonly ThreadSummary[];
+  /** The one thread this CONNECTION has open, in full. Per-connection UI
+   *  state with no DO key behind it: a reconnect re-sends `openThread`. */
+  readonly openThread: ThreadDetail | null;
+  // ── A2.6 ──
+  /**
+   * Threads this player has gone dark to. They are ABSENT from `threads` and
+   * can never be `openThread`; this list exists so the player can find what
+   * they muted and undo it, and it carries a star id and nothing else — no
+   * count, no state, no last event. A mute is not a record of a
+   * conversation, it is the absence of one.
+   */
+  readonly mutedStarIds: readonly string[];
+}
+
+/**
+ * A2.6 (durable identity): the parse-layer bound on a submitted account key,
+ * in CODE POINTS, in the MAX_PART_STRING_CPS mould. The real rule is
+ * `normalizeAccountKey`'s — exactly twenty symbols after folding — and this is
+ * only the bound that stops an untrusted string from being walked at all. It
+ * is generous on purpose: a person typing their key with the display hyphens
+ * in, or with spaces, is well inside it.
+ */
+export const MAX_ACCOUNT_KEY_ON_WIRE = 64;
+
 // client → server (UNTRUSTED — every field guarded on parse)
 export type CohortClientMessage =
-  | { type: "hello"; token: string | null }
+  /**
+   * A2.6: `hello` carries BOTH credentials, and the precedence between them is
+   * the server's rule, not the client's: a non-null `account` means the token
+   * is IGNORED WHOLE. That is what makes signing in on a device that already
+   * holds an anonymous run a well-defined act rather than a merge.
+   *
+   * `account` is nullable and an ABSENT field parses as null, which is the
+   * whole compatibility story: a tab left open across the deploy that
+   * introduced this keeps sending `{type, token}` and keeps working.
+   */
+  | { type: "hello"; token: string | null; account: string | null }
+  /** A2.6: claim this seat — mint an account and bind it to the run token this
+   *  connection is already on. Takes no argument, because the seat it claims
+   *  is the one the connection is sitting in. */
+  | { type: "claimAccount" }
+  /** A2.6: show me the key again. Served only to a connection that is already
+   *  signed in (`not-signed-in` otherwise) — it re-reads THIS seat's key and
+   *  can name no other. */
+  | { type: "showAccountKey" }
   | { type: "become"; candidateId: string; name: string }
   | { type: "nameSource"; starId: string; name: string } // "" = delete
   | { type: "requestSky" }
@@ -523,18 +860,78 @@ export type CohortClientMessage =
   // ── A2.2 ──
   | { type: "buyQuestion"; starId: string; questionId: string }
   | { type: "launchMission"; starId: string; kind: string; charter: readonly string[] }
+  // ── A2.3 ──
+  // `kind` is parsed as a bare string and validated in the handler, the
+  // `launchMission.kind` precedent: the parse layer checks types, the
+  // handler owns the vocabulary and the error code.
+  | { type: "callStudy"; starId: string }
+  | { type: "armTripwire"; starId: string; kind: string }
+  | { type: "disarmTripwire"; starId: string; kind: string }
   // ── AV1 ──
   | { type: "voiceSeen"; key: VoiceKey }
   // ── AV2 ──
   | { type: "requestReport" }
   // ── AV3 ──
-  | { type: "declineProposal"; id: string };
+  | { type: "declineProposal"; id: string }
+  // ── A2.4 ──
+  // `choice` is parsed as a bare string and validated in the handler, the
+  // `launchMission.kind` precedent again. `acknowledged` is CONSENT, NEVER
+  // PRICE: the server recomputes the resistance at commit and charges what
+  // it computes, so a client that lies about this flag still pays the
+  // server's number and a client that never rendered the objection cannot
+  // silently wound the mind.
+  | { type: "commitContact"; choice: string; starId: string | null; acknowledged: boolean }
+  // ── A2.6 ──
+  // THE COMPOSED SIGNAL. `tone` is a bare string and `parts` is an array of
+  // bare `unknown`s: the parse layer checks SHAPE (array bound, per-string
+  // bound, finite integers, no nesting) and signalparts.ts owns the
+  // VOCABULARY and the error code, which is the `launchMission.kind`
+  // precedent one more time.
+  //
+  // There is no `text` field and there is deliberately no way to add one:
+  // the client sends SELECTORS, the server materializes every part from the
+  // sender's own state, and no player-authored string crosses between
+  // players at parse level. That sentence is the moderation posture, and it
+  // is greppable from right here.
+  | { type: "sendSignal"; starId: string; tone: string; parts: readonly unknown[] }
+  // A2.6: go dark to one thread. A TOGGLE, and pure bookkeeping on the muted
+  // player's own side — the sender's send still commits, their thread still
+  // renders, their beam still lands, and nothing is notified. Deniability is
+  // the whole design (conduct.md's "any player can go dark to a sender").
+  | { type: "muteThread"; starId: string; muted: boolean }
+  // Which thread is on screen is per-CONNECTION UI state. Null closes it.
+  // There is no DO key behind this and there is deliberately no error code:
+  // it is bookkeeping (the declineProposal precedent), and a starId naming
+  // no thread simply produces a null detail, which is also the answer for a
+  // starId naming nothing at all — so it cannot be used as an oracle.
+  | { type: "openThread"; starId: string | null };
 
 // server → client
 export type CohortServerMessage =
-  | { type: "welcome"; token: string; phase: "choosing" | "placed";
+  /**
+   * A2.6 widens `token` to nullable and adds `account`.
+   *
+   * `token` is NULL on an account-authenticated welcome, and the client stores
+   * it only when it is non-null. That is not squeamishness: the seat id is a
+   * credential only while the seat is unclaimed, and handing it back to a
+   * device that authenticated with a key would leave that device holding a
+   * second way in that no one can revoke.
+   *
+   * `account` is a BOOLEAN and could not be anything else — this message goes
+   * to one player about their own session, and there is no account-shaped
+   * value another player could ever be told.
+   */
+  | { type: "welcome"; token: string | null; account: boolean;
+      phase: "choosing" | "placed";
       clock: ClockWire; catalog: readonly Star[]; menus: HypothesisMenus;
       missionCatalog: MissionCatalog }
+  /**
+   * A2.6: THE ONE MESSAGE THAT CARRIES A KEY, and the greppable form of that
+   * claim is that `accountKey` appears in exactly one arm of this union.
+   * `fresh` distinguishes the claim ceremony (the write-it-down sheet, which
+   * is mandatory because there is no recovery) from a quiet re-read.
+   */
+  | { type: "accountKey"; key: string; fresh: boolean }
   | { type: "offer"; candidates: readonly CivCard[] }
   | { type: "sky"; nowYear: number; self: SelfView;
       sources: readonly DetectedSource[];
@@ -549,7 +946,9 @@ export type CohortServerMessage =
        *  sheet preview a mission's clock before committing. */
       probeFlightYearsPerLy: number;
       // ── AV3 ──
-      proposals: readonly Proposal[] }
+      proposals: readonly Proposal[];
+      // ── A2.4 ──
+      contact: ContactWire }
   | { type: "sourceNamed"; starId: string; name: string }
   /** A re-anchored clock, pushed when the server moves the anchor under a
    *  live connection (today only the dev time-skip; a future ratio retune
@@ -569,12 +968,73 @@ export type CohortErrorCode =
   | "question-unavailable" // not offered on this class, or already bought
   | "unknown-mission-kind" // no such mission kind
   | "bad-charter" // wrong count, unknown clause, two from one group, wrong kind
-  | "mission-unavailable"; // a live mission of this kind already runs on this star
+  | "mission-unavailable" // a live mission of this kind already runs on this star
+  // ── A2.3 ──
+  | "study-unavailable" // not open or shelved: a closed study cannot be closed again
+  | "tripwire-unavailable" // no such kind, or the condition already holds
+  // ── A2.4 ──
+  // Two codes, not five. Every way of naming a star that cannot be hailed
+  // answers `bad-message` instead, deliberately: "unknown star", "star with
+  // no civilization on it" and "star whose light has not reached you" must
+  // be indistinguishable from outside, or the error code becomes an oracle.
+  | "contact-unavailable" // already hailing them, already shouting, or the log is full
+  | "contact-contested" // the mind objects and the client did not acknowledge it
+  // ── A2.5 ──
+  // The oracle discipline above is UNCHANGED and extends to these: unknown
+  // star, star with no civilization, and star whose light has not reached
+  // you still all answer `bad-message`. What is new is only what can be said
+  // once the target has resolved through the SAME visibleSky test the
+  // client's own `sources` came from.
+  | "thread-unavailable" // no thread there: you have not hailed them
+  // ── A2.6 ──
+  // A2.5's TWO SIGNAL CODES ARE DELETED, and neither identifier survives
+  // anywhere in this server — the greppable form of the claim is that a
+  // search for either one returns this comment and nothing else.
+  //
+  // The first policed player prose, and there is no player prose. The second
+  // is the oracle that forced this whole slice: it fired only when the target
+  // was another player, so typing anything at all told you who your
+  // counterpart was, and rejecting with `bad-message` instead would have
+  // oracled just as loudly (the seeded path succeeded).
+  //
+  // The two replacements are BOTH DECIDABLE FROM THE SENDER'S OWN BYTES AND
+  // THEIR OWN STATE, which is what keeps them off the oracle list: neither
+  // one can be reached by a selector that asks a question about somebody
+  // else, and everything sky-shaped still answers `bad-message`.
+  | "bad-signal" // structurally illegal: count, kind, duplicate, or a reference resolving to nothing here
+  | "part-unavailable" // a selector naming state the sender does not hold
+  // ── A2.6, durable identity ──
+  // The oracle discipline above does not reach these, and it does not need
+  // to: an account is a fact about the ASKING player and nobody else, so none
+  // of the five can be made to answer a question about a third party.
+  | "token-claimed" // this seat now belongs to an account; the token alone is spent
+  | "bad-account" // malformed OR unknown, deliberately one code for both
+  | "already-claimed" // this seat already has an account; ask it for the key
+  | "not-signed-in" // a key was asked for by a connection that holds none
+  | "too-many-attempts"; // the rate limit, and the only thing it ever says
 
 /** Parse-time bound on the untrusted `launchMission.charter` array (a parse
  *  concern); the 2–3 count rule and one-per-group rule are handler concerns
  *  answered with `bad-charter`. */
 export const MAX_CHARTER_CLAUSES_ON_WIRE = 8;
+
+// ── A2.6: the parse-layer bounds on a composed signal ──────────────────────
+//
+// All three are TOTALITY BACKSTOPS in the MAX_CHARTER_CLAUSES_ON_WIRE mould:
+// they bound an untrusted payload before anything walks it. The real caps
+// (four parts, per-kind limits) are the handler's, answered with
+// `bad-signal`, and they are deliberately tighter than these.
+
+/** Elements in the untrusted `parts` array. */
+export const MAX_PARTS_ON_WIRE = 8;
+
+/** Any string inside a selector, in CODE POINTS — so an astral character
+ *  costs one and not two, `sanitizeSignalText`'s own reason. */
+export const MAX_PART_STRING_CPS = 64;
+
+/** The serialized selector array. Two kilobytes is far past any legal
+ *  composition and far short of anything worth parsing twice. */
+export const MAX_PARTS_BYTES = 2048;
 
 /** Max civilization / local-source name length (post-trim). */
 export const MAX_NAME_LEN = 24;
@@ -606,6 +1066,110 @@ export function validateName(raw: string): string | null {
   return collapsed;
 }
 
+/** LEGACY (A2.5). Max signal payload length, in CODE POINTS, after cleaning.
+ *  Nothing writes a payload of this kind any more; see `sanitizeSignalText`. */
+export const MAX_SIGNAL_LEN = 280;
+
+/** How many signals one thread detail may carry. The newest are kept, and
+ *  `ThreadDetail.truncated` says the older ones exist. */
+export const MAX_SIGNALS_ON_WIRE = 24;
+
+/**
+ * LEGACY, A2.5 — RETAINED ONLY TO RENDER ACTS ALREADY IN THE LOG.
+ *
+ * A2.6 retired freeform everywhere, including with seeded counterparts (the
+ * AI never read the prose: `deriveAiSignals` triggers on emission history and
+ * act years, never on `act.text`). NOTHING NEW CALLS THIS. A2.5's stored acts
+ * carry `ContactAct.text` and a live cohort still has to render them, so the
+ * cleaner stays exactly as it shipped, and this comment is the reason it is
+ * not deleted rather than an invitation to reuse it. A new call site is a bug.
+ *
+ * The original contract, unchanged below:
+ *
+ * The one door player prose comes through. Returns the cleaned signal, or
+ * null if it may not be sent at all.
+ *
+ * `validateName`'s code-point table is the FLOOR here, not the whole of it —
+ * the same controls and the same invisible/bidi block, plus a bound on
+ * combining-mark stacking, which a name's 24 characters made uninteresting
+ * and 280 do not.
+ *
+ * WHAT THIS DELIBERATELY DOES NOT DO: it strips no markup, polices no
+ * punctuation, and runs no style gate. THIS IS NOT GENERATED PROSE. The gate
+ * exists so no fact originates in a model; a player writing to another
+ * civilization may write badly, may use a dash, and may shout, and none of
+ * that is the gate's business. Two rules carry the safety instead: the
+ * payload is rendered with `textContent` and never as markup, and it is
+ * NEVER HANDED TO VOICEGEN — stated again in voicegen.ts beside the
+ * untrusted-source-name comment, and greppable from both ends.
+ */
+export function sanitizeSignalText(raw: string): string | null {
+  // 1. One canonical form, so the length bound and the mark scan below both
+  //    measure what a reader will actually see.
+  const normalized = raw.normalize("NFC");
+  // 2. A SIGNAL IS ONE PARAGRAPH: every whitespace run, newlines included,
+  //    collapses to a single space. This is a shape rule, not a filter — the
+  //    composer suppresses newlines client-side and this is what makes that
+  //    non-authoritative.
+  const collapsed = normalized.replace(/\s+/g, " ").trim();
+  // 3. The same controls and the same invisible/bidi block validateName
+  //    rejects: a signal must be what it looks like.
+  for (const ch of collapsed) {
+    const code = ch.codePointAt(0);
+    if (code === undefined) continue;
+    if (code < 0x20 || (code >= 0x7f && code <= 0x9f)) return null;
+    if (
+      (code >= 0x200b && code <= 0x200f) ||
+      (code >= 0x202a && code <= 0x202e) ||
+      (code >= 0x2060 && code <= 0x206f) ||
+      code === 0xfeff
+    ) {
+      return null;
+    }
+  }
+  // 4. Combining-mark stacking: a run this long is not a language, it is a
+  //    line-height attack on whoever reads the thread.
+  if (/\p{M}{9,}/u.test(collapsed)) return null;
+  // 5. Length in CODE POINTS, not UTF-16 units, so an astral character costs
+  //    one and not two.
+  const points = [...collapsed].length;
+  if (points < 1 || points > MAX_SIGNAL_LEN) return null;
+  // 6. That is the whole door. See the contract above for what is not here.
+  return collapsed;
+}
+
+/**
+ * A2.6: the shape half of the composed-signal guard. Every element must be a
+ * plain object whose values are bare scalars — string (bounded in code
+ * points), finite integer, boolean or null. NO ARRAYS, NO OBJECTS, NO
+ * FLOATS, no prototype tricks.
+ *
+ * Integrality is not fussiness: every number a selector can legally carry is
+ * an ordinal (a chronicle line, a dial axis, a part index), and a float there
+ * is either a probe or a bug. Rejecting it here means signalparts.ts's walk
+ * is over a payload that has already been proved finite and flat, and the
+ * serialized bound below caps the total work whatever the element count did.
+ */
+function isFlatSelectorArray(parts: readonly unknown[]): boolean {
+  if (JSON.stringify(parts).length > MAX_PARTS_BYTES) return false;
+  for (const part of parts) {
+    if (typeof part !== "object" || part === null || Array.isArray(part)) return false;
+    for (const value of Object.values(part as Record<string, unknown>)) {
+      if (value === null || typeof value === "boolean") continue;
+      if (typeof value === "string") {
+        if ([...value].length > MAX_PART_STRING_CPS) return false;
+        continue;
+      }
+      if (typeof value === "number") {
+        if (!Number.isInteger(value)) return false;
+        continue;
+      }
+      return false;
+    }
+  }
+  return true;
+}
+
 /** Untrusted client→server parse. Mirror parseClientMessage's exact style:
  *  JSON.parse in try/catch, object/null checks, per-field typeof guards,
  *  return null on any mismatch. Do NOT validate name length here (the handler
@@ -620,11 +1184,33 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
   if (typeof data !== "object" || data === null) return null;
   const msg = data as Record<string, unknown>;
 
+  // A2.6: `account` is OPTIONAL on the wire and absent parses as null, so a
+  // client built before this stage still produces a legal `hello`. Anything
+  // present and not a bounded string fails the whole message, the same way a
+  // malformed `token` always has.
   if (
     msg["type"] === "hello" &&
     (msg["token"] === null || typeof msg["token"] === "string")
   ) {
-    return { type: "hello", token: msg["token"] };
+    const account: unknown = msg["account"];
+    if (account === undefined || account === null) {
+      return { type: "hello", token: msg["token"], account: null };
+    }
+    if (typeof account === "string" && [...account].length <= MAX_ACCOUNT_KEY_ON_WIRE) {
+      return { type: "hello", token: msg["token"], account };
+    }
+    return null;
+  }
+
+  // A2.6: no fields, so nothing to guard beyond the discriminant — the
+  // `requestReport` shape exactly. Both are answered against the connection's
+  // OWN registered seat, which is why neither needs to name one.
+  if (msg["type"] === "claimAccount") {
+    return { type: "claimAccount" };
+  }
+
+  if (msg["type"] === "showAccountKey") {
+    return { type: "showAccountKey" };
   }
 
   if (
@@ -685,6 +1271,26 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
     }
   }
 
+  if (msg["type"] === "callStudy" && typeof msg["starId"] === "string") {
+    return { type: "callStudy", starId: msg["starId"] };
+  }
+
+  if (
+    msg["type"] === "armTripwire" &&
+    typeof msg["starId"] === "string" &&
+    typeof msg["kind"] === "string"
+  ) {
+    return { type: "armTripwire", starId: msg["starId"], kind: msg["kind"] };
+  }
+
+  if (
+    msg["type"] === "disarmTripwire" &&
+    typeof msg["starId"] === "string" &&
+    typeof msg["kind"] === "string"
+  ) {
+    return { type: "disarmTripwire", starId: msg["starId"], kind: msg["kind"] };
+  }
+
   if (msg["type"] === "requestSky") {
     return { type: "requestSky" };
   }
@@ -714,6 +1320,70 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
   // cancel a real in-progress buy/launch for a bookkeeping miss.
   if (msg["type"] === "declineProposal" && typeof msg["id"] === "string") {
     return { type: "declineProposal", id: msg["id"] };
+  }
+
+  // A2.4: the parse layer checks TYPES; the handler owns the vocabulary and
+  // the error code (the `launchMission.kind` precedent). `starId` is
+  // nullable on the wire because a broadcast is aimed at nobody and stay
+  // dark aims at nothing at all.
+  if (
+    msg["type"] === "commitContact" &&
+    typeof msg["choice"] === "string" &&
+    (msg["starId"] === null || typeof msg["starId"] === "string") &&
+    typeof msg["acknowledged"] === "boolean"
+  ) {
+    return {
+      type: "commitContact",
+      choice: msg["choice"],
+      starId: msg["starId"],
+      acknowledged: msg["acknowledged"],
+    };
+  }
+
+  // A2.6. THE PARSE LAYER CHECKS SHAPE AND NOTHING ELSE. `tone` is a bare
+  // string and each part is a flat object of bare scalars; what the words
+  // mean is signalparts.ts's business, answered by the handler with
+  // `bad-signal` / `part-unavailable`.
+  //
+  // The four bounds below are what a hostile client can spend before anything
+  // walks its payload: the serialized size, the element count, the per-string
+  // code-point bound, and the flatness rule. Flatness is load-bearing rather
+  // than tidy — every legal selector is one level deep, so refusing nesting
+  // here means no later walk can be made to recurse.
+  if (
+    msg["type"] === "sendSignal" &&
+    typeof msg["starId"] === "string" &&
+    typeof msg["tone"] === "string" &&
+    msg["tone"].length <= MAX_PART_STRING_CPS &&
+    Array.isArray(msg["parts"]) &&
+    msg["parts"].length <= MAX_PARTS_ON_WIRE &&
+    isFlatSelectorArray(msg["parts"])
+  ) {
+    return {
+      type: "sendSignal",
+      starId: msg["starId"],
+      tone: msg["tone"],
+      parts: msg["parts"],
+    };
+  }
+
+  // A2.6: a toggle, and bookkeeping — no error code, exactly like
+  // `openThread` above and for the same reason (the client's global error
+  // handler releases in-flight purchase flags on ANY error message, so an
+  // error code here would cancel a live buy for a mute that missed).
+  if (
+    msg["type"] === "muteThread" &&
+    typeof msg["starId"] === "string" &&
+    typeof msg["muted"] === "boolean"
+  ) {
+    return { type: "muteThread", starId: msg["starId"], muted: msg["muted"] };
+  }
+
+  if (
+    msg["type"] === "openThread" &&
+    (msg["starId"] === null || typeof msg["starId"] === "string")
+  ) {
+    return { type: "openThread", starId: msg["starId"] };
   }
 
   return null;
@@ -840,6 +1510,11 @@ export function parseCohortServerMessage(raw: string): CohortServerMessage | nul
     case "welcome":
     case "offer":
     case "sourceNamed":
+    // A2.6: joins the wholesale-cast group rather than getting a bespoke
+    // parser. Two scalars and nothing to walk — there is no partial parse of
+    // this payload that could be "best effort", and the same-origin trust the
+    // group rests on is unchanged.
+    case "accountKey":
     case "error":
       return data as CohortServerMessage;
     // AV3: validate `proposals` field-by-field rather than trusting the

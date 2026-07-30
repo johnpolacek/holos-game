@@ -107,21 +107,59 @@ instrument asked.
 ### §2.2 The catalog
 
 All six are **Investment** class (`QUESTION_COST_CLASS`). Costs are in
-compute; integration is in game years. Per the code's own provenance
-note, these are systems-a's numbers, canonical over content.md's 40–160 /
-15–60y figures.
+compute; integration is in game years. Integration years are systems-a's
+original numbers, canonical over content.md's 15–60y figures. Costs were
+**retuned 2026-07 (the scarcity pass)**: the originals (60/45/75/40/90/55)
+tripled, so a full attention pool covers a few questions rather than every
+menu at once — see §2.2b. The cost/clock inverse the originals encoded
+(patience cheap, haste dear: a long-baseline question waits and thinks
+little; a fast question brute-forces light in hand) is preserved exactly.
 
 | id | label | cost | integration | applies to |
 | --- | --- | ---: | ---: | --- |
-| `weigh-it` | WEIGH IT | 60 | 12 | infrared-excess, transit-shadows |
-| `temperature-over-time` | TAKE ITS TEMPERATURE | 45 | 24 | infrared-excess, transit-shadows, broadcast-leakage, directed-beam |
-| `read-its-lines` | READ ITS LINES | 75 | 8 | infrared-excess, transit-shadows, broadcast-leakage, biosignature |
-| `time-its-shadows` | TIME ITS SHADOWS | 40 | 18 | transit-shadows, biosignature |
-| `catch-its-edges` | CATCH ITS EDGES | 90 | 6 | infrared-excess, transit-shadows, biosignature, directed-beam |
-| `listen-off-axis` | LISTEN OFF-AXIS | 55 | 10 | broadcast-leakage, directed-beam |
+| `weigh-it` | WEIGH IT | 180 | 12 | infrared-excess, transit-shadows |
+| `temperature-over-time` | TAKE ITS TEMPERATURE | 135 | 24 | infrared-excess, transit-shadows, broadcast-leakage, directed-beam |
+| `read-its-lines` | READ ITS LINES | 225 | 8 | infrared-excess, transit-shadows, broadcast-leakage, biosignature |
+| `time-its-shadows` | TIME ITS SHADOWS | 120 | 18 | transit-shadows, biosignature |
+| `catch-its-edges` | CATCH ITS EDGES | 270 | 6 | infrared-excess, transit-shadows, biosignature, directed-beam |
+| `listen-off-axis` | LISTEN OFF-AXIS | 165 | 10 | broadcast-leakage, directed-beam |
 
 `appliesTo` is physics, not balance: you cannot time shadows that are not
 there.
+
+### §2.2b The attention ceiling (added 2026-07, the scarcity pass)
+
+Not part of the original A2.2 build — added one slice later, when play
+showed the economy's one leak: income is a rate per **game** year, the
+clock runs 288 game years per real day, and an unbounded pool therefore
+handed any returning player more compute than the whole question catalog
+costs. No spend was a choice. The fix enforces what projects.ts's header
+had claimed all along ("not a bank"):
+
+- **Uncommitted compute saturates at `ATTENTION_YEARS × ratePerYearAt` —
+  the attention ceiling** (`attentionCapAt`, projects.ts). Attention is
+  capacity, not wealth; capacity idle yesterday buys nothing today.
+  Spending opens headroom that refills at the income rate.
+- **`ATTENTION_YEARS = 110` is the floor that keeps the project ladder
+  playable**: the binding rung is the sky vault (2200) straight after the
+  first two income projects (rate 20/y) — every catalog entry stays
+  reachable from the poorest start, in any legal order, and lowering the
+  constant below 110 dead-ends one.
+- **A fresh civ wakes with its attention full** (`newProjectState`): the
+  opening allocation is the ceiling itself, replacing the old flat 240.
+- **Accrual is still closed-form, never ticked.** `ProjectState` v3 adds
+  `freeAnchor` (the free total at the last commit); `freeComputeAt`
+  integrates forward from it piecewise, the pieces being the years the
+  income rate changes. v2 states migrate with a null anchor and read as
+  `min(cap, v2 total)` until their first spend anchors them.
+- **The wire carries the ceiling** (`ComputeBudget.cap`) and the budget
+  line reads `N OF M COMPUTE UNCOMMITTED · +R/Y`, so a full pool reads as
+  full rather than as a balance still growing.
+
+Question costs (×3, §2.2) and mission costs (§3.2) were retuned in the
+same pass, sized against the ceiling: a full base pool (660 at rate 6/y)
+covers two or three questions or most of one starter project, and refills
+one cheap question in roughly 100 real minutes.
 
 **The resulting menus** — the curated per-class offer order, deliberately
 *not* catalog order, so each class reads as a real sequence:
@@ -317,9 +355,99 @@ because a report is not fresher than the light, only nearer:
 being built there. The finding came back from the ground. It is no newer
 than the light, only nearer."*
 
-`StudyStatus` is therefore `open | shelved | grounded`; `called` and
-`overtaken` still join in A2.3, and inherit grounded's closed-state and
-reopen rules rather than inventing their own.
+`StudyStatus` is therefore `open | shelved | grounded`, and A2.3
+(shipped 2026-07) added `called` and `overtaken`, both inheriting
+grounded's closed-state and reopen rules rather than inventing their
+own. See §2.7 and §2.8.
+
+### §2.7 The contest (A2.3, as built)
+
+The stage's double-Opus design call (observatory-design § Open
+questions: honest Bayes vs authored curves) was run and synthesized;
+the authored-curves core won on contest semantics. Sharpen is the
+observer winning, plateau is stalemate, regress is the target's spend
+outpacing the observer's instruments: confidence retreats.
+
+- **Mask upkeep is an archetype rule, not an economy** (`contest.ts`):
+  a pure function of the seed and a year, no state, no RNG.
+  `darkTurnYear` is the first emission epoch at or after ascension
+  below `MADE_HEAT_FLOOR` (the mask's onset is the same year the sky
+  sees the character change); `maskTierAt` is the monotone staircase
+  `floor((year - darkTurn) / cadenceYears)`, frozen by `lapseYears`
+  where the archetype's discipline ends. The table: cloister 60,
+  sowing 90, phoenix 120 (lapses at 1200), shepherd 150, monument 180,
+  engine 240; beacon, tide, herald and congress never pay. A bright
+  posture, an unascended civ, and a `pays: false` archetype are three
+  independent gates, so *a young Beacon never does* is true three
+  times over.
+- **The relevant window is the player's own pacing**: `(T_prev, T_now]`
+  in target years between this answer and the most recent previous
+  look on the same study, both endpoints frozen at purchase (§2.3's
+  effects-freeze). The first question on a study has no window and can
+  never regress. Mission reports are not looks.
+- **The instrument tier is what the observer can absorb**:
+  `(lift >= 0.05) + (lift >= 0.15) + min(2, floor(priorAnswers / 2))`,
+  with `lift` the confidence-lift landed by the purchase year. Rungs
+  gained beyond the tier regress the study; at or under it, the mask
+  holds and the answer is a cause-neutral plateau. Nothing new is
+  priced; the arms race runs entirely through the existing question
+  and project catalogs.
+- **Regression is temperature, never a repaint**: a regressing answer
+  contributes a `StudyMove` with an empty shift and `regress: true`,
+  and `distributionFor` folds the count into the sharpness exponent
+  (`SHARPNESS_MIN = 0.3`, `REGRESS_KEEP = 0.55`). Order is preserved
+  and every share contracts strictly toward the even split; repeated
+  regressions asymptote and never reach flat, the mirror of
+  `SHARE_CEIL`'s *watching never delivers certainty*. Regression
+  enters shares only through `settleShares`.
+- **The tell** is one banked wit-0 sentence on the wire
+  (`StudySnapshot.contestLine`): *"Nature does not get better at
+  hiding; something there is working against the look."* The evidence
+  trail's regressed row states only the observation (*"The later look
+  separates less than the earlier one..."*); cause lives in the tell.
+  A masked plateau (*"...consistent with every reading and decisive
+  about none."*) is indistinguishable on the surface from an
+  instrument-limit plateau, deliberately.
+- **No-leak**: `MaskRule`, `maskTierAt`, `ContestShape` and the tier
+  never cross the wire; `possibleShiftsFor` is unchanged, so the offer
+  menu cannot betray that a target masks.
+
+Invariant, mechanically verified: a never-masking target (bright
+archetype or dark non-payer) can plateau but never regress, at any
+window, any tier, any year.
+
+### §2.8 Tripwires and the closing exits (A2.3, as built)
+
+**Tripwires** are standing orders, not oracles: three kinds
+(`regress`, `leakage-stops`, `crosses` at the fixed
+`CROSS_SHARE = 0.7`), at most one arming per kind per study, free to
+arm. One predicate (`tripwireHolds`) serves both halves of the
+contract: the server refuses to arm a condition that already holds,
+and the sky-send fires an armed one as a persisted transition (the
+grounded exit's write-back, generalized to `studyWrites`), once per
+arming. No wake-queue entries: firing is in-app on next open. A closed
+study is never evaluated, which is how *called stays called* survives
+a standing order left on it.
+
+**Called** freezes the leading belief at the call (`StoredCall`: id,
+label, gloss, share, the call year and the light-age it rests on) and
+closes the study from `open` or `shelved`. No code path compares the
+frozen call against the live distribution: later light accrues to the
+archive silently, nothing warns, nothing penalizes, nothing reopens.
+Reopening is the player's own act (`openStudy`), which clears the call
+and restamps `openedYear` and `openedClass`.
+
+**Overtaken** is the source's own change of state: the sky's
+`classification` differing from the `openedClass` stamped at open.
+The transition freezes the lead it closed on (`StoredOvertaking`).
+Grounded wins ties (a probe was there; the sky only changed its mind).
+Migrated studies carry `openedClass: null` and are back-filled to the
+current class on the next sky-send, so no legacy study spuriously
+overtakes. The detection-floor drop is not a trigger: unreachable in
+v1, since dark emission levels sit above the floor.
+
+Persistence: `StudyState` v3 to v4 (`openedClass`, `called`,
+`overtaken`, `tripwires` on every stored study).
 
 ---
 
@@ -350,14 +478,17 @@ is already showing.
 ### §3.2 The two kinds
 
 Both are **Ambient** class — under the income line, no saving up, no
-ceremony. `costCompute` is systems-a's number, justified against income
-(24 ≈ 3–4 years of it, 40 ≈ 4–7); content.md's 20/32 flagged the price
-point only and is superseded.
+ceremony. `costCompute` was retuned 2026-07 with the scarcity pass
+(§2.2b): systems-a's canonical 24/40 scaled with the question retune
+(×3, rounded) so the Assay stays cheaper than any question — its real
+price is the decades of flight — without undercutting the whole menu;
+content.md's 20/32 flagged the price point only and is superseded twice
+over.
 
 | kind | label | cost | cadence |
 | --- | --- | ---: | --- |
-| `assay` | THE ASSAY | 24 | none — one word |
-| `sentinel` | THE SENTINEL | 40 | `SENTINEL_CADENCE_YEARS = 25` |
+| `assay` | THE ASSAY | 75 | none — one word |
+| `sentinel` | THE SENTINEL | 120 | `SENTINEL_CADENCE_YEARS = 25` |
 
 ### §3.3 Charters
 
@@ -757,3 +888,242 @@ tree:
     handler computes a belief, a date, or a finding (§5.4).
 11. **Alarms carry no state.** Losing the queue costs a push, never a
     fact (§7).
+
+---
+
+## §12 The choice ceremony (A2.4, as built)
+
+The first irreversible act: hail, broadcast, or stay dark. Server truth
+in `contact.ts`; the ceremony staged on the Model
+(`contactceremony.ts`).
+
+**The act log lives on the Galaxy** (`galaxy.acts`, DO key
+`galaxy:acts`, absent-key default as the entire migration). A hail is
+one appended `ContactAct` and no emission write: a beam is aimed, not
+broadcast, and putting it in the broadband history would leak it to
+every observer. A broadcast writes two epochs onto the sender's OWN
+emission history: the shout (`max(BROADCAST_LEVEL, current)` from the
+commit year) and the fall-back (the level the civ would have had when
+the shout ends, read off the original history before interior epochs
+are dropped). Every year `applyBroadcast` touches is at or after the
+commit's now, and every observer's `asOfYear` is at or before now, so
+no light already served to anyone can change. Verified mechanically.
+
+**Observation** (`observeCiv`'s beam branch): directedness is the
+`toCivId` filter; the cone is the same `asOfYear` every other channel
+reads. The target sees `directed-beam` at `BEAM_RECEIVED_LEVEL` from
+`sentYear` through `sentYear + BEAM_DWELL_YEARS`, `lightHistory`
+staying unfaked broadband. A dark sender surfaces to the target alone,
+at arrival: the detection floor is short-circuited only for the
+addressee, which is the entire point of a directed beam. The
+`directed-beam` study menu is reachable at last, and a study open on
+that star comes back overtaken by A2.3's machinery with no new code.
+
+**The wire**: `commitContact { choice, starId, acknowledged }` in;
+`ContactWire` rides `sky`: two `ContactStance`s (contested, the
+archetype objection line, the coherence cost — pushed, not
+preflighted, because they are pure functions of the civ's own dials)
+and `outbound`, the player's own acts (`sentYear` / `arrivesYear` /
+`shellRadiusLy`). Nothing in it is about anyone else. Validation
+answers "unknown star", "no civ there" and "light not yet arrived"
+with one code, so the error channel is not an oracle.
+
+**Resistance**: the `voice-silence` dial against the act's demand
+(hail contests above +0.35, broadcast above +0.10), damped by the
+integration ladder; deterministic, byte-identical at preview and
+charge. The wound debits the existing `stocks.coherence`, floored at
+zero; the act records the amount actually charged. `acknowledged` is
+consent, never price: the server recomputes the cost regardless.
+Twenty banked objection lines (10 archetypes x hail/broadcast),
+`LIMITS.remark`-gated, first person plural, no numerals.
+
+**Stay dark writes nothing.** Physics has no record of a non-event;
+the handler validates and returns. (The walkthrough's "unsent reply,
+kept" is A2.5's draft object.)
+
+**The presence rule** (act3-design's absence charter): `appendAct`
+and `applyBroadcast` have exactly one call site each, inside
+`onCommitContact`, which begins from a live connection's state.
+Alarms resend skies; proposals have no contact arm; tripwires fire
+beliefs. Client-side the same rule holds: `commitContact` has one
+send site, reachable only from a completed live hold (or the
+stay-dark word, which commits nothing). Greppable, and grepped.
+
+**One-shot semantics**: a second hail to the same target refuses
+until answered (A2.5 relaxes the predicate's body, not its callers);
+a second broadcast waits out `BROADCAST_SHOUT_YEARS`, so repeated
+broadcasts layer real shells with gaps. `MAX_ACTS_PER_CIV` bounds the
+log.
+
+**The ceremony**: camera frozen while armed; both holds
+`HOLD_MS = 2800` wall-clock. The hold compresses the whole flight;
+the commit collapses the preview inward into the BECOME bloom and
+hands the act to the real clock. The hail thread is 3D-lerped then
+projected each frame (foreshortening is honest) with a running year
+at its head; the broadcast ring crosses the snapshotted neighborhood
+linearly in radius, stamping each source's true arrival year in 3D
+distance order, never screen order. Nothing at a target reacts to an
+arriving preview: nothing there knows. Early release fades in place,
+silently; the inward motion belongs to commit alone. A contested hold
+renders dimmer with a brightness-only tremor while the arrival dates
+stay full strength: the dates are not in dispute, only the
+willingness. The persistent renders derive from `outbound` only: the
+in-flight mote (covered-path hairline behind, nothing ahead) and the
+echo ring growing a light-year a year, forever. They look motionless
+in a session; that stillness is the point.
+
+---
+
+## §13 Traffic against the AI (A2.5, as built)
+
+The sky answers for the first time. Threads, signals on real light
+clocks, and rule-based counterparts, on one load-bearing decision:
+
+**Derived truth, not written truth.** No AI civilization ever writes
+anything. Every AI act, reply and the lantern's unprompted hail alike,
+is a pure function of (the stored act log, the seeds, the distances),
+evaluated at read time in `traffic.ts` and stored nowhere. The
+presence rule survives restated: every `appendAct` call site is a
+handler whose first statement reads a live connection's state (two
+after A2.5: `onCommitContact`, `onSendSignal`), and alarms stay
+wake-ups; wipe the queue and every reply still lands one sky-request
+later. The identity that makes it cheap: an AI at distance d receiving
+your act sent at year S sees your light clipped at exactly S, so every
+trigger evaluates at the inbound act's own `sentYear`. Already-derived
+replies are byte-stable forever because every later truth write is
+dated at or after its own now. Verified mechanically.
+
+**Signals as acts.** `ContactAct` gains optional `inReplyTo` and
+`text` (append-only log: no migration; `inReplyTo` is declared but
+unpopulated in A2.5, since the only thing a player's signal could
+answer is derived material whose ids name nothing in the log). A
+thread is the civ pair's stored acts plus the pair's derived signals.
+You hail once (`hasHailed`); every later utterance is a signal,
+uncontested: the mind objected at the door and does not relitigate
+the conversation. `beamCrossing` accepts signals, so a live thread
+keeps the counterpart lit as DIRECTED BEAM on both skies (a real cost
+of traffic: their light curve stops teaching your study while you
+talk).
+
+**The counterparts** (class per archetype, all ten mapped): lanterns
+(beacon, tide, herald) answer everything and hail a bright past
+unprompted, exactly once per pair; whisperers (monument, cloister,
+sowing, shepherd) answer only a held dark turn (below 0.08 for 600
+years and more, by their own light-view) and withdraw permanently if
+you brighten after the thread opens; congress and engine always
+answer, deferring the first reply when the vote is close
+(|voice-silence| < 0.20); the phoenix is silent, forever: the self
+you hailed is gone. Deliberation 2.5 / 0.4 / 1.6 game years with
+seeded jitter, deterministic on every derivation.
+
+**Reply text** composes two fact-free clauses, the rule's own
+observation then the archetype's voice, gated at construction
+(`LIMITS.signal`), falling back to the observation clause alone on
+rejection. Every number lives on the physics stamp above the payload
+and none in the prose, so no fact can originate in a template.
+Forty-three banked strings, `audit:voice`-gated.
+
+**Physics stamps**: transit years, distance, received fraction
+(REF squared over REF squared plus d squared, REF 5 ly, floored at
+0.02), degradation — a measurement of the arriving beam, deliberately
+distinct from `BEAM_RECEIVED_LEVEL`, the classification floor that
+keeps a dark civ visible to its addressee.
+
+**The wire**: threads ride the sky's contact block as a list/detail
+split; the open thread is per-connection state, no DO key.
+`nextEventYear` never carries a pending reply (knowing an answer is
+coming would be knowing their present); derived inbound signals are
+filtered at arrival; no inbound arc ever renders on the Model.
+
+**Freeform** is player prose: one paragraph, sanitized
+(`sanitizeSignalText`: NFC, whitespace collapse, control and bidi
+rejection, combining-mark cap, 280 code points), never style-gated,
+never handed to generation, and refused to human-held targets with
+one throw site (`freeform-forbidden`): the human-pair composer is
+A2.6.
+
+**The client**: threads live in THE VOICE; each received signal wears
+its stamp as an instrument readout above the payload (the texture is
+astronomy, never mail); sent signals ride a cyan rail whose LANDED
+line is the player's own arithmetic, never a receipt. Answering a
+counterpart that hailed you first routes through the hail ceremony,
+because answering reveals you. The silent state's one line: "The
+window in which an answer could have arrived has passed. Nothing
+came."
+
+---
+
+## §14 Human pairs (A2.6, as built)
+
+The composer, findings in flight, the mutual quiet, and durable
+identity. The stage that ends at A2's fun gate.
+
+**The grammar** (the stage's double-Opus call, both framings converging
+on the architecture): composed signals only, everywhere. Freeform
+retired game-wide, because the freeform path had become a human/AI
+oracle from the sender's own side and the AI never read the prose. The
+client sends selectors, never content (`signalparts.ts`): it points at
+its own called studies, visible sources, light archives, and founding
+documents, and the server materializes every part, frozen, at send.
+Fabrication is structurally impossible; v1 deception is selection,
+omission, tone, and timing. No player-authored text travels between
+players, at parse level, which is why the composed constraint is the
+moderation posture and there is no report button for signals: there is
+no player content to report.
+
+**Seven part kinds** (finding, sighting, archive, culture, request,
+verdict, accord) under **five tones rendered as properties of the
+beam** (REPEATED IN THE CLEAR; NARROW, FOR ONE RECEIVER; MARKED FOR
+IMMEDIATE READING; ONE PASS, AT LOW POWER; plain renders nothing).
+The empty carrier ships: a beam with nothing on it, arriving dated.
+Every signal carries a server-composed fact-free body in the sender's
+archetype register, drawn from the same voice bank the AI path uses:
+one distribution, not two look-alikes, and composed signals disclose
+archetype family by the sender's own act of speaking.
+
+**Findings in flight**: a finding freezes the sender's actual
+StoredCall at send and lands wearing three ages (their light's age at
+the call, the transit, the reader's own now). The reader can check
+the arithmetic against the sender's known catalog position: honesty
+is checked by geometry, not moderation. Foreign findings render with
+provenance and are never merged. No forwarding: parts materialize
+only from the sender's own state, so a leak cannot amplify.
+
+**The mutual quiet**: offer, accept, decline, withdraw as accord
+moves derived from the act log; the two racks honestly disagree while
+an acceptance is in flight (the appointment feeling, generated by the
+physics); breach by light ends it with no message, so the lifetime
+signal cap can never lock anyone into an arrangement; the compliance
+rail reads the counterpart's observed emission since the accord, in
+their frame. AI parity: the whisperer accepts (its trigger already is
+the predicate), the lantern declines in character, the congress
+defers on a close vote, the phoenix never answers.
+
+**Indistinguishability**: per-thread opaque wire ids; a uniform
+turnaround floor on every thread (the beam is still being read); one
+silence constant for both paths plus a seeded AI recess so a long
+silence is never proof; canonical part order; no controller branch in
+the signal path; audit:parity in CI proving every part kind flows in
+both directions. The honest limit, stated: this removes proofs, not
+evidence; no single observation proves a counterpart human, and no
+surface ever confirms it.
+
+**The mute** (conduct.md's promise, due with human traffic): one
+filter on the muted player's own view; the sender's signal still
+commits, their thread still renders, nothing notifies. Lifetime caps
+carry the anti-harassment weight: one hail per pair ever, 24 signals
+per pair ever, a cooldown and a turnaround floor, zero notifications.
+
+**Durable identity**: accounts in the Cohort DO's native SQLite
+storage (the class was already SQLite-backed; tables are created at
+runtime, no wrangler migration, preview builds untouched). The
+anonymous run token is promoted to a SEAT ID and keeps every key it
+owns; the accounts table is a pure indirection from a 100-bit
+Crockford bearer key to the seat. One seat per account per cohort is
+a PRIMARY KEY inside the per-cohort DO. Claim mints the key once,
+shows it in a write-it-down ceremony (there is no recovery in v1),
+and kills the anonymous token; sign-in on a second device rides the
+exact anonymous resume path; both devices stay live and every sky
+fans out to the whole seat. The key travels in exactly one message
+type; accounts appear on no wire shape visible to another player: the
+account is a login, not a persona.
