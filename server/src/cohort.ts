@@ -71,6 +71,17 @@ import {
   parseTone,
   MAX_PARTS_PER_SIGNAL,
 } from "./signalparts";
+// A2.6, durable identity. accounts.ts owns the table, the key alphabet and the
+// rate limiters; this module owns the flows. Every function below is either an
+// index probe or a mint, and none of them is ever handed to a log.
+import {
+  AttemptLimiter,
+  createAccount,
+  ensureAccountSchema,
+  findAccountByKey,
+  findAccountByRunToken,
+  normalizeAccountKey,
+} from "./accounts";
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
@@ -250,6 +261,16 @@ export interface CohortEnv extends VoiceGenEnv {
  * A placed player's per-run record. `localNames` are the owner's private
  * labels for sky sources — echoed only back to this owner, never attached
  * to any DetectedSource and never broadcast.
+ *
+ * A2.6, DURABLE IDENTITY: `token` IS A SEAT ID. It was minted in A1 as a
+ * credential and it is still the credential of an UNCLAIMED run, but once a
+ * run is claimed the account key is the credential and this is only the name
+ * of the seat — the key under which every piece of that player's state lives
+ * (`run:`, `studies:`, `missions:`, `projects:`, `proposals:`, `report:`,
+ * `voice:`, `offerYear:`) and the string `onBecome` derives the civ id from.
+ * Accounts are indirection ONTO this id and never rebind it; a claimed token
+ * presented on its own is refused at `hello` (`token-claimed`). Do not rename
+ * these references and do not rotate this value: rotate the account key.
  */
 interface RunRecord {
   readonly token: string;
@@ -287,10 +308,21 @@ interface VoiceState {
   readonly seen: readonly VoiceKey[];
 }
 
-/** Live connection tracking: the socket, its token, and (once placed) civ. */
+/** Live connection tracking: the socket, its seat, and (once placed) civ. */
 interface ConnState {
   readonly conn: Connection;
+  /** THE SEAT ID — see RunRecord.token. Whether this connection proved it by
+   *  presenting the token itself or by presenting an account key, everything
+   *  downstream reads exactly this string, which is why the account layer
+   *  needed no handler below `hello` to know it exists. */
   readonly token: string;
+  /**
+   * A2.6: the account this connection authenticated as, or that it minted by
+   * claiming during this session. Null on an anonymous run. Its ONLY uses are
+   * `showAccountKey`'s permission test and the hub row's state; nothing about
+   * it is derived from, and nothing about it reaches, another player's wire.
+   */
+  accountId: string | null;
   civId: string | null;
   /** AV2: the lastServedYear the placement-path report was built against.
    *  A requestReport refresh in the same session rebuilds against THIS, not
@@ -383,8 +415,40 @@ export class Cohort extends Server<CohortEnv> {
    *  the in-flight set and the circuit breaker; every guarantee that must
    *  survive a restart lives in storage instead. */
   private readonly gen = new VoiceGen();
+  /** A2.6: whether the accounts table has been created in THIS instance.
+   *  `sql.exec` is synchronous, so a plain flag is a sound guard — there is no
+   *  await between the test and the creation for a second call to slip into. */
+  private schemaReady = false;
+  /**
+   * A2.6: sign-in attempts. Five per connection and then the socket closes;
+   * a hundred failures across the whole object in ten rolling minutes, so a
+   * guesser cannot buy budget by reconnecting. Only FAILURES are charged.
+   */
+  private readonly signInLimiter = new AttemptLimiter({
+    perConn: 5,
+    windowMax: 100,
+    windowMs: 10 * 60 * 1000,
+  });
+  /** A2.6: claims per connection. A seat can be claimed exactly once, so any
+   *  connection reaching a fourth mint is a bug or a probe; there is no
+   *  object-wide window because a claim is an act on a seat you already hold. */
+  private readonly claimLimiter = new AttemptLimiter({ perConn: 3 });
+
+  /**
+   * A2.6: create the accounts table if this instance has not yet. Called from
+   * `onStart` and defensively at the top of every account path, because
+   * `onStart` is not the only way into this object (an alarm can wake it) and
+   * a table that is missing when a key is presented would be the one failure
+   * with no good answer.
+   */
+  private ensureSchema(): void {
+    if (this.schemaReady) return;
+    ensureAccountSchema(this.ctx.storage.sql);
+    this.schemaReady = true;
+  }
 
   async onStart(): Promise<void> {
+    this.ensureSchema();
     const clock = await this.ctx.storage.get<ClockState>("clock");
     this.clock = clock ?? null;
     const meta = await this.ctx.storage.get<GalaxyMeta>("galaxy:meta");
@@ -414,7 +478,13 @@ export class Cohort extends Server<CohortEnv> {
     if (msg === null) return; // ignore malformed, like Room
     switch (msg.type) {
       case "hello":
-        await this.onHello(conn, msg.token);
+        await this.onHello(conn, msg.token, msg.account);
+        return;
+      case "claimAccount":
+        await this.onClaimAccount(conn);
+        return;
+      case "showAccountKey":
+        this.onShowAccountKey(conn);
         return;
       case "become":
         await this.onBecome(conn, msg.candidateId, msg.name);
@@ -475,20 +545,128 @@ export class Cohort extends Server<CohortEnv> {
 
   onClose(conn: Connection): void {
     this.conns.delete(conn.id);
+    // A2.6: a closed socket's per-connection budgets are not worth keeping,
+    // and forgetting them is what stops the limiters' maps from growing for
+    // the life of the object. The object-wide sign-in window is untouched by
+    // this on purpose — see AttemptLimiter.forget.
+    this.signInLimiter.forget(conn.id);
+    this.claimLimiter.forget(conn.id);
   }
 
-  /** hello: resolve/mint a token, register, and send welcome + first payload. */
-  private async onHello(conn: Connection, tokenIn: string | null): Promise<void> {
+  /**
+   * hello: resolve a SEAT, register the connection, and send welcome + first
+   * payload.
+   *
+   * THE PRECEDENCE RULE (A2.6): a non-null `accountIn` means `tokenIn` IS
+   * IGNORED WHOLE. It is not a fallback, it is not merged, and it is not even
+   * looked at. Signing in on a device that already holds an anonymous run has
+   * to be a decidable act with one outcome, and the alternative — preferring
+   * whichever credential resolved — would make the outcome depend on storage
+   * the player cannot see.
+   */
+  private async onHello(
+    conn: Connection,
+    tokenIn: string | null,
+    accountIn: string | null,
+  ): Promise<void> {
     await this.ensureSeeded();
-    const galaxy = this.requireGalaxy();
+    if (accountIn !== null) {
+      await this.onHelloWithAccount(conn, accountIn);
+      return;
+    }
+    this.ensureSchema();
+    // A CLAIMED SEAT WILL NOT ANSWER TO ITS TOKEN. This connection is NOT
+    // registered and nothing is minted: the client drops its stored token and
+    // is offered the choice between signing in and beginning again. Weakening
+    // this would quietly hand every device that ever held the token a way past
+    // the account, which is the one thing an account is for.
+    if (tokenIn !== null && findAccountByRunToken(this.ctx.storage.sql, tokenIn) !== null) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "token-claimed",
+        message: "this run belongs to an account",
+      });
+      return;
+    }
     // Mint only when the client had no token; a non-null unknown token is a
     // choosing-phase / storage-evicted token and is reused as-is.
     const token = tokenIn ?? crypto.randomUUID();
+    await this.admit(conn, token, null, token);
+  }
+
+  /**
+   * A2.6: hello with an account key — the second-device path.
+   *
+   * The comparison is the UNIQUE INDEX PROBE and nothing else; there is no
+   * string compare of a submitted key against a stored one anywhere in this
+   * server. Malformed and unknown answer with the SAME code, because "that is
+   * not a key" and "that is not one of ours" are two facts an attacker would
+   * love to be able to tell apart.
+   *
+   * There is no artificial delay on failure. The limiter is the whole defence,
+   * and against 100 bits it is a formality.
+   */
+  private async onHelloWithAccount(conn: Connection, accountIn: string): Promise<void> {
+    this.ensureSchema();
+    if (this.signInLimiter.exhausted(conn.id)) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "too-many-attempts",
+        message: "too many attempts",
+      });
+      // Only a spent CONNECTION is closed. A spent object-wide window refuses
+      // the attempt and leaves the socket alone: that budget is shared, and
+      // closing sockets over a shared counter would let one guesser hang up on
+      // everybody else's sign-in.
+      if (this.signInLimiter.connSpent(conn.id)) conn.close(4290, "too many attempts");
+      return;
+    }
+    // FIVE TRIES ARE SPENT, NOT FOUR. The budget is charged below on failure
+    // and tested above on the NEXT attempt, so a person who mistypes their key
+    // five times is told five times what is wrong with it and is cut off on
+    // the sixth try, rather than being hung up on mid-answer.
+    const key = normalizeAccountKey(accountIn);
+    const row = key === null ? null : findAccountByKey(this.ctx.storage.sql, key);
+    if (row === null) {
+      this.signInLimiter.record(conn.id);
+      this.sendMsg(conn, {
+        type: "error",
+        code: "bad-account",
+        message: "no account with that key",
+      });
+      return;
+    }
+    // From here on this is an ordinary session on an ordinary seat. The whole
+    // difference an account makes is which string went into `admit`.
+    await this.admit(conn, row.run_token, row.account_id, null);
+  }
+
+  /**
+   * The ONE admission path, reached by both kinds of `hello`. Sharing it is
+   * not tidiness: an account-authenticated session has to be
+   * indistinguishable from an anonymous one from here down, and the cheapest
+   * way to guarantee that is for there to be only one path to be
+   * indistinguishable from.
+   *
+   * `welcomeToken` is what the client is told to store: the seat id for an
+   * anonymous run, and NULL for a device that authenticated with a key — that
+   * device already has a credential, and the seat id would be a second one
+   * that nobody could ever revoke.
+   */
+  private async admit(
+    conn: Connection,
+    token: string,
+    accountId: string | null,
+    welcomeToken: string | null,
+  ): Promise<void> {
+    const galaxy = this.requireGalaxy();
+    const account = accountId !== null;
     const run = await this.ctx.storage.get<RunRecord>(`run:${token}`);
     if (run !== undefined) {
       this.conns.set(conn.id, {
         conn,
         token,
+        accountId,
         civId: run.civId,
         reportBaselineYear: null,
         openThreadStarId: null,
@@ -496,7 +674,8 @@ export class Cohort extends Server<CohortEnv> {
       await this.rememberCivToken(run.civId, token);
       this.sendMsg(conn, {
         type: "welcome",
-        token,
+        token: welcomeToken,
+        account,
         phase: "placed",
         clock: this.toClockWire(),
         catalog: galaxy.stars,
@@ -511,13 +690,15 @@ export class Cohort extends Server<CohortEnv> {
     this.conns.set(conn.id, {
       conn,
       token,
+      accountId,
       civId: null,
       reportBaselineYear: null,
       openThreadStarId: null,
     });
     this.sendMsg(conn, {
       type: "welcome",
-      token,
+      token: welcomeToken,
+      account,
       phase: "choosing",
       clock: this.toClockWire(),
       catalog: galaxy.stars,
@@ -526,6 +707,104 @@ export class Cohort extends Server<CohortEnv> {
     });
     const offerYear = await this.getOfferYear(token);
     this.sendMsg(conn, { type: "offer", candidates: this.makeCandidates(token, offerYear) });
+  }
+
+  /**
+   * claimAccount: mint an account for the seat this connection is sitting in.
+   *
+   * WHAT DOES NOT HAPPEN HERE is most of the design. No state moves, no key is
+   * rewritten, no civ is touched, and the live socket keeps working — the run
+   * carries on mid-sentence, and the only difference afterwards is that a row
+   * exists pointing at it. That is why a claim is legal in either phase: there
+   * need not be a civilization yet for a seat to be worth keeping.
+   */
+  private async onClaimAccount(conn: Connection): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined) {
+      // Not registered: `hello` has not been answered on this socket. Same
+      // answer every handler gives to a message out of order.
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "not registered" });
+      return;
+    }
+    this.ensureSchema();
+    const sql = this.ctx.storage.sql;
+    const existing = findAccountByRunToken(sql, state.token);
+    if (existing !== null) {
+      // A seat has one account, forever. The way back to the key is
+      // `showAccountKey`, which is what the hub row offers once this is so.
+      state.accountId = existing.account_id;
+      this.sendMsg(conn, {
+        type: "error",
+        code: "already-claimed",
+        message: "this run already has an account",
+      });
+      return;
+    }
+    if (this.claimLimiter.exhausted(conn.id)) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "too-many-attempts",
+        message: "too many attempts",
+      });
+      return;
+    }
+    this.claimLimiter.record(conn.id);
+    const created = createAccount(sql, state.token, Date.now());
+    if (created === null) {
+      // The unique index refused: another connection on this same seat claimed
+      // it between the SELECT above and this INSERT. The index is the
+      // arbitrator, and the loser is told the truth rather than handed a
+      // second key to one run.
+      this.sendMsg(conn, {
+        type: "error",
+        code: "already-claimed",
+        message: "this run already has an account",
+      });
+      return;
+    }
+    state.accountId = created.account_id;
+    // The key crosses the wire HERE and in `onShowAccountKey`, and those two
+    // sends are the entire exposure of a key in this server.
+    this.sendMsg(conn, { type: "accountKey", key: created.account_key, fresh: true });
+  }
+
+  /**
+   * showAccountKey: read this seat's key back, for a player who wants to write
+   * it down again. Serves the CONNECTION'S OWN seat and can name no other —
+   * there is no argument to this message and there is deliberately nowhere to
+   * put one.
+   *
+   * This is the safety net that plaintext storage buys, and with no recovery
+   * in v1 it is the only one there is.
+   */
+  private onShowAccountKey(conn: Connection): void {
+    const state = this.conns.get(conn.id);
+    if (state === undefined) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "not registered" });
+      return;
+    }
+    if (state.accountId === null) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "not-signed-in",
+        message: "this run has no account",
+      });
+      return;
+    }
+    this.ensureSchema();
+    const row = findAccountByRunToken(this.ctx.storage.sql, state.token);
+    if (row === null) {
+      // Unreachable in practice: `accountId` is only ever set from a row that
+      // exists, and rows are never deleted. Answering rather than throwing
+      // keeps a wiped table from taking a live session down with it.
+      this.sendMsg(conn, {
+        type: "error",
+        code: "not-signed-in",
+        message: "this run has no account",
+      });
+      return;
+    }
+    this.sendMsg(conn, { type: "accountKey", key: row.account_key, fresh: false });
   }
 
   /**
@@ -676,7 +955,7 @@ export class Cohort extends Server<CohortEnv> {
   private async onRequestSky(conn: Connection): Promise<void> {
     const state = this.conns.get(conn.id);
     if (state === undefined || state.civId === null) return;
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -756,7 +1035,7 @@ export class Cohort extends Server<CohortEnv> {
     if (stored.declined.includes(hit.fingerprint)) return; // idempotent, skip the write
     const declined = [...stored.declined, hit.fingerprint].slice(-DECLINE_CAP);
     await this.saveProposalState(state.token, { version: 1, declined });
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -813,7 +1092,7 @@ export class Cohort extends Server<CohortEnv> {
       },
     };
     await this.saveStudyState(state.token, { version: 4, studies });
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -839,7 +1118,7 @@ export class Cohort extends Server<CohortEnv> {
       [starId]: { ...existing, status: "shelved" },
     };
     await this.saveStudyState(state.token, { version: 4, studies });
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -923,7 +1202,7 @@ export class Cohort extends Server<CohortEnv> {
       },
     };
     await this.saveStudyState(state.token, { version: 4, studies });
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -1013,7 +1292,7 @@ export class Cohort extends Server<CohortEnv> {
       [starId]: { ...base, tripwires },
     };
     await this.saveStudyState(state.token, { version: 4, studies });
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /** disarmTripwire: take the order back. Idempotent — disarming a kind that
@@ -1048,7 +1327,7 @@ export class Cohort extends Server<CohortEnv> {
       },
     };
     await this.saveStudyState(state.token, { version: 4, studies });
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -1150,7 +1429,7 @@ export class Cohort extends Server<CohortEnv> {
       key: `q/${starId}/${def.id}`,
     });
 
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -1252,7 +1531,7 @@ export class Cohort extends Server<CohortEnv> {
       key: `m/${mission.id}/0`,
     });
 
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -1412,14 +1691,16 @@ export class Cohort extends Server<CohortEnv> {
 
     await this.scheduleContactWakes(this.galaxy, act);
 
-    // This connection sees the debit and its own echo immediately (the
-    // client re-derives every stamp from this sky, so the seam is one round
-    // trip). Every OTHER placed connection gets a fresh sky too: the
-    // membership of their sky can change on a commit, exactly as it does on
-    // a placement.
-    await this.sendSky(conn, state.token, civId);
-    for (const [id, other] of this.conns) {
-      if (id === conn.id) continue;
+    // This SEAT sees the debit and its own echo immediately, on every device
+    // it is live on (the client re-derives every stamp from this sky, so the
+    // seam is one round trip). Every OTHER placed connection gets a fresh sky
+    // too: the membership of their sky can change on a commit, exactly as it
+    // does on a placement. A2.6 skips by SEAT rather than by socket id, so a
+    // second device on this account is served once by the fan-out above
+    // instead of twice.
+    await this.sendSkyToSeat(state);
+    for (const other of this.conns.values()) {
+      if (other.token === state.token) continue;
       if (other.civId === null) continue;
       await this.sendSky(other.conn, other.token, other.civId);
     }
@@ -1606,14 +1887,17 @@ export class Cohort extends Server<CohortEnv> {
 
     await this.scheduleContactWakes(this.galaxy, act);
 
-    // This connection sees its own echo immediately. Every OTHER placed
-    // connection gets a fresh sky too, on the same terms a commit does: the
-    // recipient may be a person, their thread list can change on this write,
-    // and — the load-bearing part — the fan-out is UNCONDITIONAL, so the set
-    // of sockets a send touches says nothing about who was aimed at.
-    await this.sendSky(conn, state.token, civId);
-    for (const [id, other] of this.conns) {
-      if (id === conn.id) continue;
+    // This seat sees its own echo immediately, on every device it is live on.
+    // Every OTHER placed connection gets a fresh sky too, on the same terms a
+    // commit does: the recipient may be a person, their thread list can change
+    // on this write, and — the load-bearing part — the fan-out is
+    // UNCONDITIONAL, so the set of sockets a send touches says nothing about
+    // who was aimed at. Skipping by SEAT rather than by socket id leaves that
+    // untouched: which OTHER players are served is unchanged, and a second
+    // device on the sender's own account is simply not served twice.
+    await this.sendSkyToSeat(state);
+    for (const other of this.conns.values()) {
+      if (other.token === state.token) continue;
       if (other.civId === null) continue;
       await this.sendSky(other.conn, other.token, other.civId);
     }
@@ -1655,7 +1939,7 @@ export class Cohort extends Server<CohortEnv> {
     }
     // A muted thread cannot also be the open one.
     if (muted && state.openThreadStarId === starId) state.openThreadStarId = null;
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -1669,7 +1953,7 @@ export class Cohort extends Server<CohortEnv> {
     const state = this.conns.get(conn.id);
     if (state === undefined || state.civId === null) return;
     state.openThreadStarId = starId;
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -1830,7 +2114,7 @@ export class Cohort extends Server<CohortEnv> {
       started,
     };
     await this.saveProjectState(state.token, updated);
-    await this.sendSky(conn, state.token, state.civId);
+    await this.sendSkyToSeat(state);
   }
 
   /**
@@ -2366,6 +2650,27 @@ export class Cohort extends Server<CohortEnv> {
       if (c.civId === null) continue; // filtered above; re-checked for narrowing
       await this.sendSky(c.conn, c.token, c.civId);
     }
+  }
+
+  /**
+   * A2.6: THE SEAT, NOT THE SOCKET. Every handler that changes a player's own
+   * state ends here rather than in a bare `sendSky`, and this sends to every
+   * live connection on the same seat.
+   *
+   * The ruling behind it is that two devices on one account BOTH STAY LIVE.
+   * Kicking the older one would be the easy implementation and the hostile
+   * one: two anonymous tabs have always worked, the object is single-threaded
+   * so there is no state to race, and the cadence of this game is slow enough
+   * that "signed in somewhere else" is not information anyone needs. What the
+   * fan-out buys is that the phone in the other hand is not stale — without
+   * it, device B self-heals on its next visibility change and looks broken
+   * until then.
+   *
+   * Each connection still gets its OWN sky: `sendSky` reads that connection's
+   * open thread, so per-connection view state survives the fan-out.
+   */
+  private async sendSkyToSeat(state: ConnState): Promise<void> {
+    await this.resendSkyTo(state.token);
   }
 
   /**

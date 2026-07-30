@@ -820,9 +820,37 @@ export interface ContactWire {
   readonly mutedStarIds: readonly string[];
 }
 
+/**
+ * A2.6 (durable identity): the parse-layer bound on a submitted account key,
+ * in CODE POINTS, in the MAX_PART_STRING_CPS mould. The real rule is
+ * `normalizeAccountKey`'s — exactly twenty symbols after folding — and this is
+ * only the bound that stops an untrusted string from being walked at all. It
+ * is generous on purpose: a person typing their key with the display hyphens
+ * in, or with spaces, is well inside it.
+ */
+export const MAX_ACCOUNT_KEY_ON_WIRE = 64;
+
 // client → server (UNTRUSTED — every field guarded on parse)
 export type CohortClientMessage =
-  | { type: "hello"; token: string | null }
+  /**
+   * A2.6: `hello` carries BOTH credentials, and the precedence between them is
+   * the server's rule, not the client's: a non-null `account` means the token
+   * is IGNORED WHOLE. That is what makes signing in on a device that already
+   * holds an anonymous run a well-defined act rather than a merge.
+   *
+   * `account` is nullable and an ABSENT field parses as null, which is the
+   * whole compatibility story: a tab left open across the deploy that
+   * introduced this keeps sending `{type, token}` and keeps working.
+   */
+  | { type: "hello"; token: string | null; account: string | null }
+  /** A2.6: claim this seat — mint an account and bind it to the run token this
+   *  connection is already on. Takes no argument, because the seat it claims
+   *  is the one the connection is sitting in. */
+  | { type: "claimAccount" }
+  /** A2.6: show me the key again. Served only to a connection that is already
+   *  signed in (`not-signed-in` otherwise) — it re-reads THIS seat's key and
+   *  can name no other. */
+  | { type: "showAccountKey" }
   | { type: "become"; candidateId: string; name: string }
   | { type: "nameSource"; starId: string; name: string } // "" = delete
   | { type: "requestSky" }
@@ -880,9 +908,30 @@ export type CohortClientMessage =
 
 // server → client
 export type CohortServerMessage =
-  | { type: "welcome"; token: string; phase: "choosing" | "placed";
+  /**
+   * A2.6 widens `token` to nullable and adds `account`.
+   *
+   * `token` is NULL on an account-authenticated welcome, and the client stores
+   * it only when it is non-null. That is not squeamishness: the seat id is a
+   * credential only while the seat is unclaimed, and handing it back to a
+   * device that authenticated with a key would leave that device holding a
+   * second way in that no one can revoke.
+   *
+   * `account` is a BOOLEAN and could not be anything else — this message goes
+   * to one player about their own session, and there is no account-shaped
+   * value another player could ever be told.
+   */
+  | { type: "welcome"; token: string | null; account: boolean;
+      phase: "choosing" | "placed";
       clock: ClockWire; catalog: readonly Star[]; menus: HypothesisMenus;
       missionCatalog: MissionCatalog }
+  /**
+   * A2.6: THE ONE MESSAGE THAT CARRIES A KEY, and the greppable form of that
+   * claim is that `accountKey` appears in exactly one arm of this union.
+   * `fresh` distinguishes the claim ceremony (the write-it-down sheet, which
+   * is mandatory because there is no recovery) from a quiet re-read.
+   */
+  | { type: "accountKey"; key: string; fresh: boolean }
   | { type: "offer"; candidates: readonly CivCard[] }
   | { type: "sky"; nowYear: number; self: SelfView;
       sources: readonly DetectedSource[];
@@ -953,7 +1002,16 @@ export type CohortErrorCode =
   // one can be reached by a selector that asks a question about somebody
   // else, and everything sky-shaped still answers `bad-message`.
   | "bad-signal" // structurally illegal: count, kind, duplicate, or a reference resolving to nothing here
-  | "part-unavailable"; // a selector naming state the sender does not hold
+  | "part-unavailable" // a selector naming state the sender does not hold
+  // ── A2.6, durable identity ──
+  // The oracle discipline above does not reach these, and it does not need
+  // to: an account is a fact about the ASKING player and nobody else, so none
+  // of the five can be made to answer a question about a third party.
+  | "token-claimed" // this seat now belongs to an account; the token alone is spent
+  | "bad-account" // malformed OR unknown, deliberately one code for both
+  | "already-claimed" // this seat already has an account; ask it for the key
+  | "not-signed-in" // a key was asked for by a connection that holds none
+  | "too-many-attempts"; // the rate limit, and the only thing it ever says
 
 /** Parse-time bound on the untrusted `launchMission.charter` array (a parse
  *  concern); the 2–3 count rule and one-per-group rule are handler concerns
@@ -1126,11 +1184,33 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
   if (typeof data !== "object" || data === null) return null;
   const msg = data as Record<string, unknown>;
 
+  // A2.6: `account` is OPTIONAL on the wire and absent parses as null, so a
+  // client built before this stage still produces a legal `hello`. Anything
+  // present and not a bounded string fails the whole message, the same way a
+  // malformed `token` always has.
   if (
     msg["type"] === "hello" &&
     (msg["token"] === null || typeof msg["token"] === "string")
   ) {
-    return { type: "hello", token: msg["token"] };
+    const account: unknown = msg["account"];
+    if (account === undefined || account === null) {
+      return { type: "hello", token: msg["token"], account: null };
+    }
+    if (typeof account === "string" && [...account].length <= MAX_ACCOUNT_KEY_ON_WIRE) {
+      return { type: "hello", token: msg["token"], account };
+    }
+    return null;
+  }
+
+  // A2.6: no fields, so nothing to guard beyond the discriminant — the
+  // `requestReport` shape exactly. Both are answered against the connection's
+  // OWN registered seat, which is why neither needs to name one.
+  if (msg["type"] === "claimAccount") {
+    return { type: "claimAccount" };
+  }
+
+  if (msg["type"] === "showAccountKey") {
+    return { type: "showAccountKey" };
   }
 
   if (
@@ -1430,6 +1510,11 @@ export function parseCohortServerMessage(raw: string): CohortServerMessage | nul
     case "welcome":
     case "offer":
     case "sourceNamed":
+    // A2.6: joins the wholesale-cast group rather than getting a bespoke
+    // parser. Two scalars and nothing to walk — there is no partial parse of
+    // this payload that could be "best effort", and the same-origin trust the
+    // group rests on is unchanged.
+    case "accountKey":
     case "error":
       return data as CohortServerMessage;
     // AV3: validate `proposals` field-by-field rather than trusting the
