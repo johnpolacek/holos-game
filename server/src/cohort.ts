@@ -53,6 +53,7 @@ import {
   resistanceFor,
   MAX_ACTS_PER_CIV,
   MAX_SIGNALS_PER_THREAD,
+  MIN_DELIBERATION_YEARS,
   SIGNAL_COOLDOWN_YEARS,
   type CeremonyKind,
   type ContactAct,
@@ -60,7 +61,16 @@ import {
 // A2.5. Every symbol here is READ-SIDE: `buildThreads` feeds the sky and
 // `deriveAiSignals` feeds the wake queue, and neither appears inside a
 // handler that mutates `this.galaxy` (traffic.ts's derivation rule).
-import { buildThreads, deriveAiSignals } from "./traffic";
+import { buildThreads, deriveAiSignals, threadRefRowsFor } from "./traffic";
+// A2.6: the composed-signal grammar. `materializeParts` is the ONE place a
+// selector becomes a part, and its only caller is `onSendSignal`.
+import {
+  deriveAccord,
+  materializeParts,
+  parsePartRefs,
+  parseTone,
+  MAX_PARTS_PER_SIGNAL,
+} from "./signalparts";
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
@@ -145,7 +155,6 @@ import {
 } from "./proposals";
 import {
   parseCohortClientMessage,
-  sanitizeSignalText,
   toWireSource,
   validateName,
   type StudyGrounding,
@@ -247,6 +256,18 @@ interface RunRecord {
   readonly civId: string;
   readonly starId: string;
   readonly localNames: Record<string, string>;
+  /**
+   * A2.6: civilizations this player has gone dark to. OPTIONAL, so every
+   * record written before this field existed reads as an empty list with no
+   * migration (the `ContactAct.inReplyTo` precedent).
+   *
+   * ONE-SIDED AND SILENT. It filters the muted player's OWN thread list in
+   * `buildThreads` and nothing else: the sender's send still commits, their
+   * thread still renders on their rack, their beam still lands and still
+   * lights the sky. There is no notification, because a notification would
+   * tell the sender they had been muted, and the deniability is the point.
+   */
+  readonly muted?: readonly string[];
 }
 
 // A player's observatory state (StoredStudy/StudyState) is stored SEPARATELY
@@ -441,7 +462,10 @@ export class Cohort extends Server<CohortEnv> {
         await this.onCommitContact(conn, msg.choice, msg.starId, msg.acknowledged);
         return;
       case "sendSignal":
-        await this.onSendSignal(conn, msg.starId, msg.text);
+        await this.onSendSignal(conn, msg.starId, msg.tone, msg.parts);
+        return;
+      case "muteThread":
+        await this.onMuteThread(conn, msg.starId, msg.muted);
         return;
       case "openThread":
         await this.onOpenThread(conn, msg.starId);
@@ -1402,7 +1426,7 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
-   * sendSignal: a follow-up inside a thread you already opened.
+   * sendSignal: a COMPOSED follow-up inside a thread you already opened.
    *
    * PRESENCE RULE, second and final call site. Its first statement resolves a
    * LIVE socket from `this.conns`, exactly as `onCommitContact`'s does; that
@@ -1412,34 +1436,48 @@ export class Cohort extends Server<CohortEnv> {
    * does not relitigate the conversation, so a signal costs no coherence and
    * `CeremonyKind` never widened to admit it.
    *
-   * THE ORDER OF THE VALIDATION TABLE IS LOAD-BEARING, and it inherits
-   * A2.4's oracle discipline whole: the visibility test is `visibleSky`
-   * membership and nothing more — byte-identical to the test that produced
-   * the client's own `sources` — and unknown star, star with no
-   * civilization, and star whose light has not reached this observer all
-   * answer the SAME code. Sanitation runs FIRST, ahead of any lookup, because
-   * its verdict depends only on the sender's own bytes, so a malformed
-   * payload never gets to probe the sky at all.
+   * NO CONTROLLER BRANCH ANYWHERE IN THIS METHOD, and that is the point of
+   * the slice. A2.5 refused a human target with its own error code, which
+   * made "type anything and read the reply" a perfect oracle for whether a
+   * neighbor was a person. Every path below is identical for both, the parts
+   * are materialized from the SENDER'S OWN state either way, and the claim is
+   * greppable:
+   *
+   *   grep -n "controller" server/src/cohort.ts
+   *
+   * must show no hit inside this method.
+   *
+   * THE ORDER OF THE VALIDATION TABLE IS LOAD-BEARING, and it inherits A2.4's
+   * oracle discipline whole. Everything decidable from the SENDER'S OWN BYTES
+   * runs first (tone vocabulary, selector vocabulary), because such a verdict
+   * cannot be a question about anybody else; then the visibility test, which
+   * is `visibleSky` membership and nothing more, so unknown star, star with no
+   * civilization and star whose light has not reached this observer all answer
+   * the SAME code; then the thread's own table, and materialization last,
+   * because it is the only step that reads state.
    */
   private async onSendSignal(
     conn: Connection,
     starId: string,
-    text: string,
+    toneRaw: string,
+    partsRaw: readonly unknown[],
   ): Promise<void> {
     const state = this.conns.get(conn.id);
     if (state === undefined || state.civId === null) {
       this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
       return;
     }
-    // The one door player prose comes through. It is not gated and never
-    // will be: this is the player's own sentence, not generated prose.
-    const clean = sanitizeSignalText(text);
-    if (clean === null) {
-      this.sendMsg(conn, {
-        type: "error",
-        code: "signal-rejected",
-        message: "signal is invalid",
-      });
+    // (1) The sender's own bytes. Both of these are pure vocabulary checks on
+    // what the client sent and read no state at all, so neither can be turned
+    // into a question about the sky.
+    const tone = parseTone(toneRaw);
+    if (tone === null) {
+      this.sendMsg(conn, { type: "error", code: "bad-signal", message: "no such tone" });
+      return;
+    }
+    const refs = parsePartRefs(partsRaw);
+    if (refs === null || refs.length > MAX_PARTS_PER_SIGNAL) {
+      this.sendMsg(conn, { type: "error", code: "bad-signal", message: "the signal is malformed" });
       return;
     }
 
@@ -1459,20 +1497,6 @@ export class Cohort extends Server<CohortEnv> {
       return;
     }
     const toCivId = target.seed.id;
-
-    // THE FORMAT RULE, and its one throw site in the whole server:
-    //   grep -rn "freeform-forbidden" server/src
-    // A2.5 ships freeform to seeded counterparts only. Human-to-human threads
-    // are a moderation surface with none of the machinery a moderation
-    // surface needs, and shipping them by omission is how that happens.
-    if (target.controller === "player") {
-      this.sendMsg(conn, {
-        type: "error",
-        code: "freeform-forbidden",
-        message: "no freeform there",
-      });
-      return;
-    }
 
     const mine = actsFrom(galaxy.acts, civId).filter(
       (a) => (a.kind === "hail" || a.kind === "signal") && a.toCivId === toCivId,
@@ -1497,6 +1521,24 @@ export class Cohort extends Server<CohortEnv> {
       });
       return;
     }
+    // THE TURNAROUND FLOOR, on every thread alike. The thread's reference view
+    // is derived here (and not merely counted) because the floor, every
+    // verdict reference and the mutual quiet all read the SAME merged list the
+    // client is looking at — one derivation, one truth about what has landed.
+    const refRows = threadRefRowsFor(galaxy, civId, toCivId, nowYear);
+    const inbound = refRows.filter((r) => r.from === "them");
+    const lastInbound = inbound[inbound.length - 1];
+    if (
+      lastInbound !== undefined &&
+      nowYear - lastInbound.learnedYear < MIN_DELIBERATION_YEARS
+    ) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "contact-unavailable",
+        message: "the beam is still being read",
+      });
+      return;
+    }
     if (mine.filter((a) => a.kind === "signal").length >= MAX_SIGNALS_PER_THREAD) {
       this.sendMsg(conn, {
         type: "error",
@@ -1514,15 +1556,41 @@ export class Cohort extends Server<CohortEnv> {
       return;
     }
 
+    // (2) MATERIALIZATION. Selectors in, frozen parts out, every field read
+    // off this sender's own study, sky and seed state. A hostile selector
+    // answers here and writes nothing at all.
+    const studyState = await this.loadStudyState(state.token, nowYear);
+    const materialized = materializeParts(refs, {
+      galaxy,
+      senderId: civId,
+      nowYear,
+      studies: studyState.studies,
+      thread: refRows,
+      accord: deriveAccord(refRows),
+    });
+    if (!materialized.ok) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: materialized.code,
+        message: materialized.message,
+      });
+      return;
+    }
+
     // --- the write -------------------------------------------------------
     // ONE append and no emission-history write, for exactly the reason a hail
     // gets none: a signal is aimed, and putting it in the broadband history
     // would broadcast it to every observer.
     //
-    // `inReplyTo` is deliberately UNSET. The only thing this could be
-    // answering is a derived reply, whose id names nothing in this log, and a
-    // stored pointer into derived material would dangle the moment the
-    // derivation moved (contact.ts, ContactAct.inReplyTo).
+    // `inReplyTo` is deliberately UNSET. Threading is carried by the verdict
+    // part's own reference, which resolves inside this thread and is
+    // re-rendered into each viewer's own namespace on the way out — and, when
+    // it names a derived reply, it names an id that is append-only by
+    // construction, so it cannot come to mean something else (traffic.ts's
+    // header argues this where the derivation rule lives).
+    //
+    // `text` is deliberately UNSET, and there is no longer any code that
+    // could set it.
     const act: ContactAct = {
       id: `act-${galaxy.acts.length}`,
       kind: "signal",
@@ -1530,18 +1598,64 @@ export class Cohort extends Server<CohortEnv> {
       toCivId,
       sentYear: nowYear,
       coherenceCost: 0,
-      text: clean,
+      tone,
+      parts: materialized.parts,
     };
     this.galaxy = appendAct(galaxy, act);
     await this.ctx.storage.put("galaxy:acts", this.galaxy.acts);
 
     await this.scheduleContactWakes(this.galaxy, act);
 
-    // Only this connection is resent. The target is a seeded counterpart (a
-    // player target was refused above), so no other player's sky can have
-    // changed — the beam is filtered on its recipient and nothing broadband
-    // moved.
+    // This connection sees its own echo immediately. Every OTHER placed
+    // connection gets a fresh sky too, on the same terms a commit does: the
+    // recipient may be a person, their thread list can change on this write,
+    // and — the load-bearing part — the fan-out is UNCONDITIONAL, so the set
+    // of sockets a send touches says nothing about who was aimed at.
     await this.sendSky(conn, state.token, civId);
+    for (const [id, other] of this.conns) {
+      if (id === conn.id) continue;
+      if (other.civId === null) continue;
+      await this.sendSky(other.conn, other.token, other.civId);
+    }
+  }
+
+  /**
+   * muteThread: go dark to one counterpart. A TOGGLE, and pure bookkeeping —
+   * no error code, the `openThread` / `declineProposal` precedent, and a
+   * starId naming nothing simply resolves to nothing.
+   *
+   * ZERO SENDER-SIDE EFFECT, stated here because it is the whole design:
+   * their send still commits, their thread still renders on their own rack,
+   * their beam still lands and still lights this player's sky as a directed
+   * beam. What changes is that this player's THREAD LIST stops carrying the
+   * row. Nothing is notified, and nothing anywhere records that a mute
+   * happened in a form the other side could ever read.
+   */
+  private async onMuteThread(
+    conn: Connection,
+    starId: string,
+    muted: boolean,
+  ): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) return;
+    const galaxy = this.requireGalaxy();
+    const target = civAtStar(galaxy, starId);
+    if (target === undefined || target.seed.id === state.civId) return;
+    const run = await this.ctx.storage.get<RunRecord>(`run:${state.token}`);
+    if (run === undefined) return;
+    const current = run.muted ?? [];
+    const next = muted
+      ? current.includes(target.seed.id)
+        ? current
+        : [...current, target.seed.id]
+      : current.filter((id) => id !== target.seed.id);
+    if (next.length !== current.length) {
+      const updated: RunRecord = { ...run, muted: next };
+      await this.ctx.storage.put(`run:${state.token}`, updated);
+    }
+    // A muted thread cannot also be the open one.
+    if (muted && state.openThreadStarId === starId) state.openThreadStarId = null;
+    await this.sendSky(conn, state.token, state.civId);
   }
 
   /**
@@ -2510,7 +2624,19 @@ export class Cohort extends Server<CohortEnv> {
     // else, so they are built through traffic.ts and CALLED THROUGH — derived
     // at read time, stored nowhere, and filtered at `arrivesYear <= nowYear`
     // inside `buildThreads` so an answer in flight reaches no field here.
-    const threads = buildThreads(galaxy, civId, nowYear, openThreadStarId);
+    //
+    // A2.6: `buildThreads` now walks EVERY civilization rather than the
+    // seeded ones, merging stored inbound and derived inbound into one list
+    // with identical stamps, and it takes this player's mute list — the one
+    // filter that drops a thread from their own rack and changes nothing at
+    // all on the other side.
+    const threads = buildThreads(
+      galaxy,
+      civId,
+      nowYear,
+      openThreadStarId,
+      run?.muted ?? [],
+    );
     const contact = buildContactWire(galaxy, selfCiv, nowYear, threads);
 
     return {

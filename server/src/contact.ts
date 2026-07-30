@@ -57,6 +57,10 @@ import type { CivId, CivSeed, EmissionEpoch } from "./civseed";
 import { LEAN } from "./dials";
 import { civById, civDistanceLy, type Galaxy, type PlacedCiv } from "./galaxy";
 import { emissionAt } from "./knowledge";
+// A2.6: the composed payload's shapes. TYPE-ONLY, which keeps this module's
+// "no RNG, no clock, no storage" header true — signalparts.ts's materializer
+// reads the sky, and nothing here may.
+import type { SignalPart, SignalTone } from "./signalparts";
 import type {
   ContactStance,
   ContactWire,
@@ -116,12 +120,33 @@ export interface ContactAct {
    */
   readonly inReplyTo?: string;
   /**
-   * A2.5, optional: the freeform payload. Present iff `kind === "signal"`,
-   * and it is PLAYER PROSE — sanitized by `sanitizeSignalText` at the door,
-   * rendered with textContent only, never gated, and never handed to
-   * voicegen.
+   * A2.5, optional and now LEGACY: the freeform payload. Present only on acts
+   * A2.5 wrote. It is PLAYER PROSE — sanitized by `sanitizeSignalText` at the
+   * door, rendered with textContent only, never gated, never handed to
+   * voicegen. NOTHING NEW WRITES IT (A2.6 retired freeform everywhere), and
+   * the field survives only because an append-only log is never rewritten and
+   * a live cohort still has to render what is already in it.
    */
   readonly text?: string;
+  /**
+   * A2.6, optional: the composed signal. Present together iff
+   * `kind === "signal"` and the act was written by A2.6 or later. Two more
+   * optional fields on an append-only log need no migration and get none,
+   * which is the same reason `inReplyTo` and `text` are shaped this way.
+   *
+   * `parts` IS SERVER-WRITTEN, ALWAYS. The client sent selectors;
+   * `materializeParts` resolved each one against the sender's own study, sky
+   * and seed state and froze the result here. No number and no string in it
+   * came off the wire, so an act in this log cannot carry a fabricated fact
+   * even if the storage were edited by hand — there is no code path that
+   * would have put one there.
+   *
+   * References inside a part (a verdict's target, an accord's offer) hold
+   * UNDERLYING ids in storage; `renderPartsForViewer` re-renders them into
+   * each reader's own `sig/N` namespace on the way out.
+   */
+  readonly tone?: SignalTone;
+  readonly parts?: readonly SignalPart[];
 }
 
 /**
@@ -160,6 +185,45 @@ export const MAX_SIGNALS_PER_THREAD = 24;
  *  floor under the write rate, so a held-down SEND cannot turn a thread into
  *  a log-growth primitive. */
 export const SIGNAL_COOLDOWN_YEARS = 0.2;
+
+/**
+ * A2.6, THE TURNAROUND FLOOR. No send on a thread within this many game years
+ * of the latest inbound arrival on it. About one and a half real minutes at
+ * the shipped clock ratio, and IDENTICAL ON EVERY THREAD.
+ *
+ * It exists for parity, not for pacing. A seeded counterpart deliberates for
+ * a class-dependent stretch before its answer departs (traffic.ts's
+ * DELIBERATION_YEARS, floored around 0.32 y by the shortest of them); a human
+ * with a thumb on the composer can answer in real seconds. Reply latency was
+ * therefore a free human/AI tell on any thread, readable without sending
+ * anything. One uniform floor closes it, and it is uniform precisely so that
+ * hitting it says nothing about who is on the other end.
+ *
+ * It answers `contact-unavailable`, which is the same code a cooldown or a
+ * full thread answers, and the client renders the composer briefly closed.
+ */
+export const MIN_DELIBERATION_YEARS = 0.32;
+
+/**
+ * A2.6, WHEN SILENCE IS DECLARED. A thread reads `silent` once your own
+ * arithmetic says an answer could have come and did not:
+ * `sentYear + 2 × distance + SILENCE_DECLARED_YEARS`. ONE CONSTANT FOR BOTH
+ * PATHS, and it leaks nothing, because it is a statement about deliberation
+ * in general rather than about the particular counterpart.
+ *
+ * THE ARITHMETIC, at the shipped ratio of five real minutes per game year:
+ *
+ *   longest seeded deliberation  3.0 y  =  15 real minutes  (whisperer + jitter)
+ *   longest seeded RECESS       96.0 y  =   8 real hours    (traffic.ts)
+ *   SILENCE_DECLARED_YEARS     288.0 y  =  24 real hours
+ *
+ * Three times the longest recess and a full real day of quiet. That gap is
+ * the point: a counterpart on recess must never be declarable silent, or the
+ * declaration becomes a test that a human (who sleeps) fails and a machine
+ * (which does not) passes. Above the floor the reading is honest for both —
+ * a day of nothing is a day of nothing, whoever is out there.
+ */
+export const SILENCE_DECLARED_YEARS = 288;
 
 /** Slop so a float-adjacent year at the exact departure edge never reads as
  *  not-yet-arrived (knowledge.ts's LIGHT_CONE_EPS, same reason). */
@@ -394,6 +458,10 @@ export function buildContactWire(
   threads: {
     readonly summaries: readonly ThreadSummary[];
     readonly detail: ThreadDetail | null;
+    /** A2.6: the threads this player has gone dark to, already filtered out
+     *  of `summaries` by `buildThreads`. Carried through untouched — this
+     *  module does not know what a mute is and does not need to. */
+    readonly mutedStarIds: readonly string[];
   },
 ): ContactWire {
   const selfId = selfCiv.seed.id;
@@ -419,5 +487,6 @@ export function buildContactWire(
     outbound,
     threads: threads.summaries,
     openThread: threads.detail,
+    mutedStarIds: threads.mutedStarIds,
   };
 }

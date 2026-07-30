@@ -19,6 +19,9 @@ import { createRng } from "./rng";
 // same discipline proposals.ts's Pin A enforces for itself.
 import type { CeremonyKind, SignalClass, TripwireKind } from "./protocol";
 import type { ProposalKind } from "./proposals";
+// A2.6: the two closed sets the composed-signal banks are keyed over. Type
+// only, so this module still imports no truth and no catalog at runtime.
+import type { AccordMove, SignalTone } from "./signalparts";
 
 // ---------------------------------------------------------------------------
 // The pinned-fact scheme (prose-style.md R-1/R-2: facts and labels
@@ -1171,6 +1174,20 @@ export function resistanceLine(a: ArchetypeId, kind: CeremonyKind): string {
 // ---------------------------------------------------------------------------
 
 /**
+ * RETIRED FROM THE BODY IN A2.6, AND KEPT.
+ *
+ * These nine clauses state what a counterpart's own light-view of the player
+ * carries, which is a sentence no human composer could ever produce — so as
+ * long as they rode the body they were a perfect oracle: read the first
+ * clause, know whether a machine wrote it. A2.6 composes BOTH paths from
+ * TONE_CLAUSE / ACCORD_CLAUSE plus SIGNAL_VOICE and nothing else.
+ *
+ * The bank stays because it is shipped, in-register, gate-clean prose about a
+ * real reading of real state, and the surface it belongs on is one where the
+ * observation is attributed to the reader's OWN instruments rather than put
+ * in a counterpart's mouth. It is audited on every CI run and reachable from
+ * no composer.
+ *
  * WHAT THE COUNTERPART NOTICED — one per (class, situation), nine in all.
  * Flat and TOTAL rather than nested under CounterpartClass: every name below
  * belongs to exactly one class already, and a nested record would need three
@@ -1335,4 +1352,90 @@ export const SIGNAL_VOICE: ByArchetype<SignalVoice> = {
     ],
     withdraw: null,
   },
+};
+
+// ---------------------------------------------------------------------------
+// A2.6 — the composed-signal banks.
+//
+// ONE COMPOSER, BOTH PATHS. Every signal in the game, from a seeded
+// counterpart or from a player who tapped four chips, gets its body from the
+// same two lines:
+//
+//   body = (ACCORD_CLAUSE[move] ?? TONE_CLAUSE[tone]) + " " + SIGNAL_VOICE[archetype]…
+//
+// That is not tidiness. If the two paths drew from different pools, the pool
+// a line came from would identify the sender's nature in one glance, and no
+// amount of parity in the wire shape would cover it. One distribution, not
+// two look-alikes.
+//
+// NEITHER CLAUSE STATES A FACT, because every fact in a signal is either on
+// the physics stamp or inside a typed part, rendered as an instrument block.
+// The prose says how it was sent and who is speaking; nothing else, and there
+// is no slot in it for anything else.
+//
+// THE CONSEQUENCE, SIGNED OFF: a composed signal speaks in the sender's
+// archetype register, so the act of speaking discloses the sender's archetype
+// family. That is a disclosure by the sender's OWN act, behavior would
+// disclose it within a few exchanges anyway, and it is the price of the one
+// property that matters more (a body is never evidence about which path
+// composed it).
+//
+// House rules as everywhere else in this file: first person plural, no
+// numerals, no exclamation, no dash of any width, no quotes, terminated, wit
+// ceiling 2. Each clause is authored to LIMITS.remark on its own and
+// `npm run audit:voice` proves it; the composition is gated against
+// LIMITS.signal at its one call site and falls back to the opening clause
+// alone, which is already gate-clean.
+// ---------------------------------------------------------------------------
+
+/**
+ * HOW IT WAS SENT — the prose half of a tone. The chrome half (the beam
+ * property on the stamp: REPEATED IN THE CLEAR, NARROW FOR ONE RECEIVER) is
+ * signalparts.ts's TONE_STAMP and is a different string for a different
+ * place; these are sentences and belong in the body.
+ *
+ * `plain` renders NOTHING on the stamp and still has a clause here, on
+ * purpose: the absence of a stamp row is the content, and a body that went
+ * missing with it would make an empty carrier under `plain` unreadable.
+ *
+ * EVERY KEY IN THIS DECLARATION IS A BARE IDENTIFIER, and no double quote may
+ * appear anywhere inside it: `npm run audit:voice` scrapes the block for
+ * quoted literals, and a quoted key would be audited as a bank string.
+ */
+export const TONE_CLAUSE: Readonly<Record<SignalTone, string>> = {
+  plain:
+    "This goes out as it is, with nothing set around it and nothing asked of you for reading it.",
+  open:
+    "We have kept no part of this back from anyone who happens to be listening. Let it be repeated.",
+  guarded:
+    "This one is narrow and it is meant for you alone. What you do with it after that is yours.",
+  urgent:
+    "Read this before whatever else is in front of you. We would not have marked it so if it could wait.",
+  reluctant:
+    "Sending this cost us more than we would like to say. It goes once, at low power, and not again.",
+};
+
+/**
+ * THE MUTUAL QUIET, SPOKEN. An accord move REPLACES the tone clause rather
+ * than joining it: the move is the reason the beam exists, and stacking a
+ * third clause would push the composition past LIMITS.signal for no gain.
+ *
+ * Available identically to both paths, which is the whole point — a whisperer
+ * accepting and a player accepting produce the same line, and so a reader who
+ * has learned what an acceptance sounds like has learned nothing about who
+ * sent it. The four lines are also R6's per-class beats: the whisperer's
+ * accept, the lantern's decline, and the withdraw that is the honest exit for
+ * anyone with signal budget left.
+ *
+ * The bare-identifier rule above applies here too.
+ */
+export const ACCORD_CLAUSE: Readonly<Record<AccordMove, string>> = {
+  offer:
+    "We would both be quieter if neither of us shone. That is the whole of what is being put to you.",
+  accept:
+    "It is agreed on our side, and our side is already dimming. Nothing about that is easy to prove from there.",
+  decline:
+    "We will not be holding to that. What we do with our own light, we would rather owe nobody an account.",
+  withdraw:
+    "The understanding is over from this moment, and we are saying so rather than simply letting our light say it.",
 };

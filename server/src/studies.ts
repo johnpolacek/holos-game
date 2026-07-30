@@ -476,6 +476,21 @@ export function hypothesisMenus(): Record<SignalClass, readonly HypothesisMenuEn
   return out;
 }
 
+/**
+ * A2.6: the same menu with its IDS, for a caller that has to name one
+ * reading rather than list them all. `hypothesisMenus` above deliberately
+ * drops the ids (the briefing screen renders wording and nothing else);
+ * traffic.ts needs them, because a seeded counterpart's finding names a
+ * hypothesis and the recipient renders it from the label that travelled
+ * beside it. Wording and ids only — still no shares, still nothing
+ * source-specific, so this leaks exactly as little as its sibling.
+ */
+export function menuReadings(
+  signalClass: SignalClass,
+): readonly { readonly id: HypothesisId; readonly label: string; readonly gloss: string }[] {
+  return MENUS[signalClass].entries.map((e) => ({ id: e.id, label: e.label, gloss: e.gloss }));
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }

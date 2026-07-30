@@ -1,4 +1,5 @@
-// Traffic — what an AI counterpart does when you speak to it (A2.5).
+// Traffic — what a counterpart does when you speak to it, and how a thread
+// is assembled for one reader (A2.5, opened to human threads in A2.6).
 //
 // ===========================================================================
 // THE DERIVATION RULE. READ THIS BEFORE THE CODE.
@@ -49,12 +50,25 @@
 //
 //   grep -rn "deriveAiSignals" server/src
 //
-// must show the definition here, this module's own two read paths
+// must show the definition here, this module's own read paths
 // (`aiBeamCrossing`, which is how knowledge.ts's beam branch reaches it, and
-// `buildThreads`), and cohort.ts's READ-SIDE paths only (`buildThreads`
-// through `assembleSkyState`, and `scheduleThreadWakes`, which schedules a
-// wake and mutates nothing). It must never appear inside a handler that
-// mutates `this.galaxy`.
+// `mergedThreadRows`, which both `buildThreads` and A2.6's
+// `threadRefRowsFor` go through), and cohort.ts's READ-SIDE paths only
+// (`buildThreads` through `assembleSkyState`, and `scheduleThreadWakes`,
+// which schedules a wake and mutates nothing). It must never appear inside a
+// handler that mutates `this.galaxy`.
+//
+// A2.6 NOTE, because it looks like an exception and is not:
+// `onSendSignal` — which does append an act — calls `threadRefRowsFor`, and
+// that reaches the derivation. It is a READ, and the strongest statement of
+// why is that its result is used only to REFUSE: the turnaround floor, a
+// verdict's reference, and the mutual quiet's legality. The one derived
+// value that survives into storage is an id inside a verdict reference, and
+// derived ids are append-only by construction (a new act appends a candidate
+// at the end and moves no existing ordinal), so a stored reference cannot
+// come to mean something else. If one ever did point at nothing,
+// `renderPartsForViewer` renders it as null and the reader sees a verdict on
+// a signal they cannot see, which is the honest render of that situation.
 //
 // NO CLOCK, NO STORAGE. `deriveAiSignals` does not take `nowYear`: it
 // produces the FULL set, future-dated arrivals included, and every caller
@@ -76,25 +90,43 @@ import {
   BEAM_DWELL_YEARS,
   hasHailed,
   MAX_SIGNALS_PER_THREAD,
+  SILENCE_DECLARED_YEARS,
   type ContactAct,
 } from "./contact";
-import { civById, civDistanceLy, type Galaxy } from "./galaxy";
-import { lightConeFor, peekTruth } from "./knowledge";
+import { civById, civDistanceLy, starById, type Galaxy } from "./galaxy";
+import { emissionAt, lightConeFor, peekTruth, visibleSky } from "./knowledge";
 import type { ArchetypeId } from "./minds";
 import {
   MAX_SIGNALS_ON_WIRE,
+  type AccordRail,
   type ThreadDetail,
   type ThreadSignal,
   type ThreadState,
   type ThreadSummary,
 } from "./protocol";
+import { questionsFor } from "./questions";
 import { createRng } from "./rng";
+import {
+  accordAvailability,
+  buildArchivePart,
+  deriveAccord,
+  MAX_PARTS_PER_SIGNAL,
+  orderParts,
+  PER_KIND_CAP,
+  renderPartsForViewer,
+  type AccordMove,
+  type PartKind,
+  type SignalPart,
+  type SignalTone,
+  type ThreadRefRow,
+} from "./signalparts";
+import { menuReadings } from "./studies";
 import { gateFactFree, LIMITS } from "./stylegate";
 import {
-  SIGNAL_OBSERVATIONS,
+  ACCORD_CLAUSE,
   SIGNAL_VOICE,
+  TONE_CLAUSE,
   type SignalBeat,
-  type SignalObservation,
 } from "./voice";
 
 // ---------------------------------------------------------------------------
@@ -127,8 +159,16 @@ export interface AiSignal {
    *  at a REAL log id; the reverse pointer never exists (see
    *  `ContactAct.inReplyTo`). */
   readonly inReplyTo: string | null;
-  /** Composed and gated at construction. */
+  /** Composed and gated at construction, through the SAME composer the human
+   *  path uses (`composeSignalBody`). */
   readonly body: string;
+  /** A2.6: exactly one tone, drawn seeded from the class's pool or forced by
+   *  an accord move. Every reply carries one, because every signal does. */
+  readonly tone: SignalTone;
+  /** A2.6: the payload, assembled from the counterpart's OWN state through
+   *  the same part shapes a human composes into. References inside it hold
+   *  underlying ids; `buildThreads` re-renders them for the viewer. */
+  readonly parts: readonly SignalPart[];
   /**
    * Which beat the voice clause came from. Not on the wire and not in the
    * prose: `buildThreads` reads it to decide that a thread is `withdrawn`,
@@ -214,11 +254,56 @@ export const DELIBERATION_YEARS: Readonly<Record<CounterpartClass, number>> = {
  *  and ordinal, so it is the same number on every derivation forever. */
 const DELIB_JITTER = 0.2;
 
-/** The longest any counterpart can take. What the `silent` state is measured
- *  against, and a statement about deliberation in general rather than about
- *  the particular counterpart, so computing it leaks nothing. */
+/** The longest any counterpart can take to DELIBERATE, recess aside. Kept as
+ *  the honest name for that quantity; A2.6 measures the `silent` state
+ *  against contact.ts's SILENCE_DECLARED_YEARS instead, which is the same
+ *  number on a human thread and on this one. */
 export const MAX_DELIBERATION_YEARS =
   Math.max(...Object.values(DELIBERATION_YEARS)) * (1 + DELIB_JITTER);
+
+/**
+ * A2.6, THE RECESS. Roughly one reply in four does not go out when it was
+ * ready: the counterpart puts it down and comes back to it, on a scale a
+ * human away-time is drawn on.
+ *
+ * This exists to make LONG SILENCE UNPROVABLE. Without it, deliberation is
+ * bounded by fifteen real minutes, so any quiet longer than that is a
+ * machine-free zone and every human on a thread is legible by the clock
+ * alone. With it, a gap of hours is ordinary on both kinds of thread, which
+ * is what the silence predicate needs in order to say nothing about who is
+ * out there. The seeded draw means a delivered reply's departure year is the
+ * same forever (traffic.ts's stability property, unchanged).
+ *
+ * At five real minutes per game year: 12 y is one real hour, 96 y is eight.
+ * contact.ts's SILENCE_DECLARED_YEARS sits three times above the longest of
+ * them; the arithmetic is written out there.
+ */
+const RECESS_CHANCE = 0.25;
+const RECESS_MIN_YEARS = 12;
+const RECESS_MAX_YEARS = 96;
+
+/** A2.6: which tones a class reaches for. Seeded, so a counterpart's habits
+ *  are stable and eventually readable as character — the deferral precedent
+ *  (a fact about who you are speaking to, not a die roll). Every pool holds
+ *  more than one entry, because a class that always sent the same tone would
+ *  be identifiable by tone alone. */
+const CLASS_TONES: Readonly<Record<CounterpartClass, readonly SignalTone[]>> = {
+  whisperer: ["guarded", "reluctant", "plain"],
+  lantern: ["open", "plain", "urgent"],
+  congress: ["plain", "open", "guarded"],
+  silent: ["plain"],
+};
+
+/** A2.6: the share a seeded counterpart's own reading carries. Bounded well
+ *  inside studies.ts's SHARE_FLOOR/SHARE_CEIL: a counterpart is confident,
+ *  never certain, and never usefully precise. */
+const AI_SHARE_MIN = 0.45;
+const AI_SHARE_MAX = 0.85;
+
+/** A2.6: how often a counterpart's finding travels with its working. Matches
+ *  the human lever exactly — an empty evidence list is a headline — so
+ *  neither depth is ever a tell about which path composed the part. */
+const AI_FULL_FINDING_CHANCE = 0.5;
 
 /** A congress whose voice-silence dial sits this close to balanced cannot
  *  settle the first vote, and answers with the disagreement instead. */
@@ -407,34 +492,74 @@ function deliberationFor(
 // ---------------------------------------------------------------------------
 
 /**
- * body = observation clause + " " + voice clause. The observation is the rule
- * made prose (selected by real state, stating that state QUALITATIVELY); the
- * voice is §4's register and knows nothing about the player. Neither may
- * carry a number, because every number is on the stamp above the payload.
+ * THE ONE COMPOSER, USED BY BOTH PATHS.
+ *
+ *   body = (ACCORD_CLAUSE[move] ?? TONE_CLAUSE[tone]) + " " + voice clause
+ *
+ * The opening says HOW IT WAS SENT (or, when the beam carries a move in the
+ * mutual quiet, what the move is); the voice clause is §4's archetype
+ * register and says nothing about the recipient at all. Neither may carry a
+ * number, because every number in a signal is on the stamp or inside a typed
+ * part, where the two could not disagree.
+ *
+ * A2.5's observation clause is gone from here on purpose: it stated what the
+ * counterpart's own light-view of the player carried, which no human composer
+ * could ever produce, so it identified the sender's nature in one glance. One
+ * distribution, not two look-alikes (voice.ts's header carries the argument).
  *
  * Gated at construction against LIMITS.signal. A rejection falls back to the
- * observation clause ALONE, which is already gate-clean on its own: "reject,
- * then template, never retry" is the gate's own policy, and there is nothing
- * to retry here because nothing was generated.
+ * OPENING CLAUSE ALONE, which is already gate-clean on its own: "reject, then
+ * template, never retry" is the gate's own policy, and there is nothing to
+ * retry here because nothing was generated.
  */
-function composeBody(
+export function composeSignalBody(
   archetype: ArchetypeId,
-  observation: SignalObservation,
+  tone: SignalTone,
+  parts: readonly SignalPart[],
   beat: SignalBeat,
   threadId: string,
   ordinal: number,
 ): string {
-  const opening = SIGNAL_OBSERVATIONS[observation];
+  const move = accordMoveOf(parts);
+  const opening = move === null ? TONE_CLAUSE[tone] : ACCORD_CLAUSE[move];
   const card = SIGNAL_VOICE[archetype];
   let clause: string | null;
   if (beat === "open") clause = card.open;
   else if (beat === "withdraw") clause = card.withdraw;
-  else clause = card.follow.length === 0
-    ? null
-    : createRng(`signal/${threadId}/${ordinal}`).pick(card.follow);
+  else clause = null;
+  // `follow` is the fallback as well as the ordinary case: six archetypes
+  // have no `withdraw` cell, and a body that went bare on those would be a
+  // tell about which archetypes can leave.
+  if (clause === null) {
+    clause =
+      card.follow.length === 0
+        ? null
+        : createRng(`signal/${threadId}/${ordinal}`).pick(card.follow);
+  }
   if (clause === null) return opening;
   const verdict = gateFactFree(`${opening} ${clause}`, LIMITS.signal);
   return verdict.ok ? verdict.line : opening;
+}
+
+/** The accord move a signal carries, or null. At most one accord part rides
+ *  a signal (PER_KIND_CAP), so this is total. */
+export function accordMoveOf(parts: readonly SignalPart[]): AccordMove | null {
+  for (const part of parts) {
+    if (part.kind === "accord") return part.move;
+  }
+  return null;
+}
+
+/**
+ * Which beat a SENDER is speaking from, computed identically on both paths:
+ * a withdraw in the mutual quiet is the withdraw beat (which is what makes
+ * `withdrawn` reachable on a human thread — A2.5's tell was that only a
+ * whisperer could ever reach it), an opening signal opens, everything else
+ * follows.
+ */
+function beatFor(parts: readonly SignalPart[], senderSignalIndex: number): SignalBeat {
+  if (accordMoveOf(parts) === "withdraw") return "withdraw";
+  return senderSignalIndex === 0 ? "open" : "follow";
 }
 
 // ---------------------------------------------------------------------------
@@ -443,17 +568,17 @@ function composeBody(
 
 /** Your acts aimed at them, in commit order. Bounded, so a derivation's cost
  *  is bounded whatever the log does. */
-function inboundActs(
+function actsBetween(
   acts: readonly ContactAct[],
-  playerId: CivId,
-  aiId: CivId,
+  fromCivId: CivId,
+  toCivId: CivId,
 ): readonly ContactAct[] {
   return acts
     .filter(
       (a) =>
         (a.kind === "hail" || a.kind === "signal") &&
-        a.fromCivId === playerId &&
-        a.toCivId === aiId,
+        a.fromCivId === fromCivId &&
+        a.toCivId === toCivId,
     )
     .slice(0, MAX_SIGNALS_PER_THREAD);
 }
@@ -471,8 +596,280 @@ interface Candidate {
   readonly kind: "hail" | "signal";
   readonly evalYear: number;
   readonly inReplyTo: string | null;
+  /** The act that triggered this, for reading what it carried. Null on the
+   *  lantern's unprompted opener, which answers nothing. */
+  readonly act: ContactAct | null;
   /** Hail before signal at an identical year, so the ordering is total. */
   readonly tie: number;
+}
+
+// ---------------------------------------------------------------------------
+// The counterpart's own composer (A2.6)
+// ---------------------------------------------------------------------------
+//
+// A counterpart answers IN PARTS, through the same shapes a player composes
+// into, and every part is built from state the counterpart itself holds: its
+// own sky, its own seed, and its LIGHT-VIEW OF THE PLAYER — which is the
+// universal source, the one thing every counterpart can always speak from
+// ("here is what your light has done, as we have it"). That view is the same
+// clipped history every trigger predicate already reads, so speaking costs
+// the derivation no new capability and can leak nothing a trigger could not.
+//
+// The class table is character, and each row is performable by a human, which
+// is what makes it safe to ship: a whisperer declines to reciprocate a
+// sighting, and so may anybody.
+
+/** Never a carrier when a move in the mutual quiet is riding: an accord beam
+ *  exists to carry the move. Otherwise a counterpart sometimes sends nothing
+ *  but the beam, because a player can, and an empty signal that only ever
+ *  came from a person would be the cheapest tell in the game. */
+const CARRIER_CHANCE = 0.12;
+
+interface AiComposeInput {
+  readonly g: Galaxy;
+  readonly aiId: CivId;
+  readonly playerId: CivId;
+  readonly cls: CounterpartClass;
+  readonly beat: SignalBeat;
+  /** The trigger's own year — and, by the free identity, the year the
+   *  counterpart's light-view of the player is clipped at. */
+  readonly evalYear: number;
+  readonly distanceLy: number;
+  /** The player's emission history as this counterpart could have seen it. */
+  readonly clip: readonly EmissionEpoch[];
+  /** What the act being answered carried, or empty. */
+  readonly inbound: readonly SignalPart[];
+  /** The underlying id of the act being answered, for a verdict's reference. */
+  readonly inboundId: string | null;
+  /** A move in the mutual quiet this reply owes, and the offer it answers. */
+  readonly accordMove: AccordMove | null;
+  readonly accordRef: string | null;
+  readonly threadId: string;
+  readonly ordinal: number;
+}
+
+function roundShare(share: number): number {
+  return Math.round(share * 100) / 100;
+}
+
+/** Sources this counterpart can see, minus the player themselves. Only
+ *  reached when a reply actually names a third party, which is rare — the
+ *  ordinary reply speaks from the light-view and the seed. */
+function ownSky(input: AiComposeInput): ReturnType<typeof visibleSky> {
+  return visibleSky(input.g, input.aiId, input.evalYear + input.distanceLy).filter(
+    (o) => o.targetId !== input.playerId,
+  );
+}
+
+/** THE UNIVERSAL SOURCE. Every class can send this, always. */
+function aiArchiveOfPlayer(input: AiComposeInput, window: "recent" | "long"): SignalPart {
+  return buildArchivePart(
+    starById(input.g.stars, civById(input.g, input.playerId).starId).id,
+    false,
+    input.clip,
+    input.evalYear,
+    window,
+  );
+}
+
+function aiSighting(input: AiComposeInput, rng: ReturnType<typeof createRng>): SignalPart | null {
+  const sky = ownSky(input);
+  if (sky.length === 0) return null;
+  const seen = rng.pick(sky);
+  return {
+    kind: "sighting",
+    subjectStarId: seen.starId,
+    signalClass: seen.signal.classification,
+    asOfYear: seen.asOfYear,
+  };
+}
+
+/**
+ * A reading of a third source, as this counterpart holds it. Seeded and
+ * therefore stable forever, and DELIBERATELY NOT SCORED AGAINST THE TRUTH:
+ * a counterpart's belief can be wrong in exactly the way a player's frozen
+ * call can be wrong, and the reader's only recourse is the same one they
+ * have against a human — check the ages, and go look themselves.
+ */
+function aiFinding(input: AiComposeInput, rng: ReturnType<typeof createRng>): SignalPart | null {
+  const sky = ownSky(input);
+  if (sky.length === 0) return null;
+  const seen = rng.pick(sky);
+  const readings = menuReadings(seen.signal.classification);
+  if (readings.length === 0) return null;
+  const reading = rng.pick(readings);
+  // The evidence list is the same omission lever the human composer has: an
+  // empty one is a headline, and neither depth may be a tell about the path.
+  const questions = questionsFor(seen.signal.classification);
+  const evidence = rng.chance(AI_FULL_FINDING_CHANCE)
+    ? questions.slice(0, rng.int(1, Math.min(3, questions.length))).map((q) => q.id)
+    : [];
+  return {
+    kind: "finding",
+    subjectStarId: seen.starId,
+    hypothesisId: reading.id,
+    label: reading.label,
+    gloss: reading.gloss,
+    share: roundShare(rng.range(AI_SHARE_MIN, AI_SHARE_MAX)),
+    basis: "called",
+    asOfYear: seen.asOfYear,
+    calledYear: input.evalYear,
+    evidence,
+  };
+}
+
+function aiCulture(input: AiComposeInput, rng: ReturnType<typeof createRng>, opening: boolean): SignalPart {
+  const seed = civById(input.g, input.aiId).seed;
+  // The opening beat leads with the founding epigraph; later beats reach for
+  // a line of the history instead. Both are catalog prose and neither
+  // interpolates the civilization's name (signalparts.ts states the check).
+  if (opening || seed.chronicle.length === 0) {
+    return { kind: "culture", source: "charter", index: 0, axis: null, pole: null, text: seed.charter };
+  }
+  const index = rng.int(0, seed.chronicle.length - 1);
+  const line = seed.chronicle[index];
+  if (line === undefined) {
+    return { kind: "culture", source: "charter", index: 0, axis: null, pole: null, text: seed.charter };
+  }
+  return { kind: "culture", source: "chronicle", index, axis: null, pole: null, text: line };
+}
+
+function aiRequest(input: AiComposeInput, rng: ReturnType<typeof createRng>): SignalPart {
+  const want = rng.pick(["finding", "sighting", "archive", "culture"] as const);
+  // Either an open ask, or one aimed at the player's own star — which this
+  // counterpart certainly sees, because the player aimed a beam at it.
+  const aimed = rng.chance(0.5);
+  return {
+    kind: "request",
+    want,
+    subjectStarId: aimed ? civById(input.g, input.playerId).starId : null,
+  };
+}
+
+function aiVerdict(input: AiComposeInput, rng: ReturnType<typeof createRng>): SignalPart | null {
+  if (input.inboundId === null) return null;
+  const index = input.inbound.findIndex((p) => p.kind === "finding");
+  if (index < 0) return null;
+  return {
+    kind: "verdict",
+    signalId: input.inboundId,
+    partIndex: index,
+    stance: rng.pick(["confirm", "contradict", "nothing"] as const),
+  };
+}
+
+/** Caps, then canonical order. The human path REFUSES an over-cap selection
+ *  (the client built it and can fix it); this path TRIMS, because nobody is
+ *  there to be told. Both emit a list obeying the same bounds in the same
+ *  order, which is the only thing the wire can see. */
+function capParts(parts: readonly SignalPart[]): readonly SignalPart[] {
+  const counts = new Map<PartKind, number>();
+  const kept: SignalPart[] = [];
+  for (const part of parts) {
+    if (kept.length >= MAX_PARTS_PER_SIGNAL) break;
+    const next = (counts.get(part.kind) ?? 0) + 1;
+    if (next > PER_KIND_CAP[part.kind]) continue;
+    counts.set(part.kind, next);
+    kept.push(part);
+  }
+  return orderParts(kept);
+}
+
+function aiTone(
+  cls: CounterpartClass,
+  beat: SignalBeat,
+  accordMove: AccordMove | null,
+  rng: ReturnType<typeof createRng>,
+): SignalTone {
+  if (accordMove === "accept" || accordMove === "offer") return "guarded";
+  if (accordMove === "decline" || accordMove === "withdraw") return "reluctant";
+  if (beat === "withdraw") return "reluctant";
+  return rng.pick(CLASS_TONES[cls]);
+}
+
+/**
+ * THE REPLY TABLE (R10). What came in decides what goes out, and the class
+ * decides how. Seeded throughout, so a delivered reply is byte-identical on
+ * every later derivation.
+ */
+function composeAiParts(input: AiComposeInput): {
+  readonly tone: SignalTone;
+  readonly parts: readonly SignalPart[];
+} {
+  const rng = createRng(`parts/${input.threadId}/${input.ordinal}`);
+  const tone = aiTone(input.cls, input.beat, input.accordMove, rng);
+  const parts: SignalPart[] = [];
+
+  if (input.accordMove !== null) {
+    parts.push({
+      kind: "accord",
+      form: "mutual-quiet",
+      move: input.accordMove,
+      ref: input.accordRef,
+    });
+  } else if (rng.chance(CARRIER_CHANCE)) {
+    return { tone, parts: [] };
+  }
+
+  const inKinds = new Set(input.inbound.map((p) => p.kind));
+  const opening = input.beat === "open";
+  const push = (part: SignalPart | null): void => {
+    if (part !== null) parts.push(part);
+  };
+  const answerRequest = (): void => {
+    for (const part of input.inbound) {
+      if (part.kind !== "request") continue;
+      if (part.want === "finding") push(aiFinding(input, rng));
+      else if (part.want === "sighting") {
+        // A whisperer will not hand over coordinates, and says who it is by
+        // answering with itself instead. A human can perform the same refusal.
+        push(input.cls === "whisperer" ? aiCulture(input, rng, false) : aiSighting(input, rng));
+      } else if (part.want === "archive") push(aiArchiveOfPlayer(input, "long"));
+      else push(aiCulture(input, rng, false));
+    }
+  };
+
+  switch (input.cls) {
+    case "lantern":
+      // It was already talking, and it reciprocates in kind.
+      if (inKinds.has("sighting")) push(aiSighting(input, rng));
+      if (inKinds.has("finding")) push(aiArchiveOfPlayer(input, "recent"));
+      if (inKinds.has("archive")) push(aiArchiveOfPlayer(input, "long"));
+      answerRequest();
+      if (opening) push(aiCulture(input, rng, true));
+      if (parts.length === 0) {
+        push(rng.chance(0.5) ? aiFinding(input, rng) : aiArchiveOfPlayer(input, "long"));
+        push(aiRequest(input, rng));
+      }
+      break;
+    case "whisperer":
+      // It answers a proven silence, and it does not trade coordinates.
+      if (inKinds.has("sighting")) push(aiCulture(input, rng, false));
+      if (opening) {
+        push(aiCulture(input, rng, true));
+        push(aiRequest(input, rng));
+      }
+      answerRequest();
+      if (parts.length === 0) push(aiArchiveOfPlayer(input, "long"));
+      break;
+    case "congress":
+      // Minutes of a meeting: the record it holds, and the vote on yours.
+      if (inKinds.has("finding")) {
+        push(aiArchiveOfPlayer(input, "recent"));
+        push(aiVerdict(input, rng));
+      }
+      if (inKinds.has("sighting")) push(aiSighting(input, rng));
+      answerRequest();
+      if (opening) push(aiCulture(input, rng, true));
+      if (parts.length === 0) {
+        push(rng.chance(0.5) ? aiFinding(input, rng) : aiArchiveOfPlayer(input, "recent"));
+      }
+      break;
+    case "silent":
+      break;
+  }
+
+  return { tone, parts: capParts(parts) };
 }
 
 /**
@@ -490,10 +887,18 @@ export function deriveAiSignals(
 ): readonly AiSignal[] {
   if (aiId === playerId) return [];
   const ai = civById(g, aiId);
-  // A counterpart is a seeded civilization. A player never answers by rule,
-  // and A2.5 has no human-to-human freeform at all (onSendSignal refuses it
-  // at the door with its own code).
+  // A counterpart is a seeded civilization. A player never answers by rule:
+  // their side of a thread is the acts they committed, and A2.6's
+  // `buildThreads` reads those directly.
   if (ai.controller !== "ai") return [];
+  // AND THE MIRROR, which A2.6 needs and A2.5 did not: derivation exists so a
+  // PLAYER can read an answer. Without this line, a reply's part list (which
+  // reads the counterpart's own sky) would re-enter `observeCiv`, and
+  // `observeCiv -> aiBeamCrossing -> deriveAiSignals -> ownSky -> observeCiv`
+  // would recurse without bound. With it, the chain stops dead one level in.
+  // NOT a branch in the signal path (`onSendSignal` names no controller
+  // anywhere); a bound on what the derivation is FOR.
+  if (civById(g, playerId).controller !== "player") return [];
   const cls = counterpartClass(ai.seed.archetype);
   if (cls === "silent") return [];
 
@@ -502,17 +907,23 @@ export function deriveAiSignals(
   // Seeded per cohort as well as per pair, so two cohorts running the same
   // archetype at the same distance do not draw the same variants.
   const threadId = `${g.seedKey}/${aiId}/${playerId}`;
-  const inbound = inboundActs(g.acts, playerId, aiId);
+  const inbound = actsBetween(g.acts, playerId, aiId);
 
   const candidates: Candidate[] = [];
   if (cls === "lantern" && MAX_UNPROMPTED_PER_PAIR > 0) {
     const bright = firstBrightYear(player.seed.emissionHistory);
     if (bright !== null) {
-      candidates.push({ kind: "hail", evalYear: bright, inReplyTo: null, tie: 0 });
+      candidates.push({ kind: "hail", evalYear: bright, inReplyTo: null, act: null, tie: 0 });
     }
   }
   for (const act of inbound) {
-    candidates.push({ kind: "signal", evalYear: act.sentYear, inReplyTo: act.id, tie: 1 });
+    candidates.push({
+      kind: "signal",
+      evalYear: act.sentYear,
+      inReplyTo: act.id,
+      act,
+      tie: 1,
+    });
   }
   candidates.sort(
     (a, b) =>
@@ -529,10 +940,23 @@ export function deriveAiSignals(
    *  whisperer that declined your hail and answers a later signal is opening,
    *  not following. */
   let replyIndex = 0;
+  // A2.6, the mutual quiet from this counterpart's side. Thin by design: one
+  // live understanding per ordered pair, answered once, with no stored object
+  // anywhere. A congress that cannot call the vote DEFERS — it sends the
+  // reply with no move on it — and answers on its next one.
+  let pendingOffer: string | null = null;
+  let accordSettled = false;
+  let congressDeferred = false;
   for (let ordinal = 0; ordinal < candidates.length; ordinal++) {
     const candidate = candidates[ordinal];
     if (candidate === undefined) continue;
     const evalYear = candidate.evalYear;
+    const inboundParts = candidate.act?.parts ?? [];
+    for (const part of inboundParts) {
+      if (part.kind === "accord" && part.move === "offer" && !accordSettled) {
+        pendingOffer = candidate.act?.id ?? null;
+      }
+    }
 
     // The causal read, through the gate and not around it: mint the cone for
     // the counterpart at the moment the trigger reaches it, and take the
@@ -544,17 +968,14 @@ export function deriveAiSignals(
     const clip = clippedHistory(player.seed.emissionHistory, cone.asOfYear);
 
     let beat: SignalBeat;
-    let observation: SignalObservation;
 
     if (candidate.kind === "hail") {
       // The lantern did not wait to be asked.
       beat = "open";
-      observation = "unprompted";
     } else if (cls === "whisperer") {
       if (openingYear !== null && brightAfter(clip, openingYear, evalYear)) {
         // ONE withdrawal, then nothing, forever. The loop stops below.
         beat = "withdraw";
-        observation = "turnedBright";
       } else if (!heldDark(clip, evalYear)) {
         // SILENCE IS NOT A DECLINE. Nothing is sent and nothing is recorded;
         // the thread's own arithmetic will call it `silent` in due course,
@@ -562,22 +983,64 @@ export function deriveAiSignals(
         continue;
       } else {
         beat = replyIndex === 0 ? "open" : "follow";
-        observation = replyIndex === 0 ? "heldDark" : "unchanged";
       }
-    } else if (cls === "lantern") {
-      beat = replyIndex === 0 ? "open" : "follow";
-      observation = replyIndex === 0 ? "answered" : "continued";
     } else {
       beat = replyIndex === 0 ? "open" : "follow";
-      observation =
-        replyIndex === 0
-          ? voteClose(ai.seed.dials["voice-silence"].position)
-            ? "deferred"
-            : "carried"
-          : "reconvened";
     }
 
-    const sentYear = evalYear + d + deliberationFor(cls, threadId, ordinal);
+    // The move in the mutual quiet this reply owes, if any. Each class
+    // answers in character (R6), and the congress that cannot call the vote
+    // spends one reply saying nothing about it — which is a fact about who
+    // you are speaking to rather than a die roll (`voteClose`'s own reason).
+    let accordMove: AccordMove | null = null;
+    let accordRef: string | null = null;
+    if (pendingOffer !== null && !accordSettled && beat !== "withdraw") {
+      if (cls === "whisperer") accordMove = "accept";
+      else if (cls === "lantern") accordMove = "decline";
+      else if (voteClose(ai.seed.dials["voice-silence"].position) && !congressDeferred) {
+        congressDeferred = true;
+      } else accordMove = "accept";
+      if (accordMove !== null) {
+        accordRef = pendingOffer;
+        accordSettled = true;
+        pendingOffer = null;
+      }
+    }
+
+    // A HAIL CARRIES NO PAYLOAD, on this side exactly as on the other: the
+    // lantern's unprompted opener is a beam that says only that it exists.
+    // It still carries a tone, because every signal does.
+    const composed =
+      candidate.kind === "hail"
+        ? {
+            tone: aiTone(cls, beat, null, createRng(`parts/${threadId}/${ordinal}`)),
+            parts: [] as readonly SignalPart[],
+          }
+        : composeAiParts({
+            g,
+            aiId,
+            playerId,
+            cls,
+            beat,
+            evalYear,
+            distanceLy: d,
+            clip,
+            inbound: inboundParts,
+            inboundId: candidate.inReplyTo,
+            accordMove,
+            accordRef,
+            threadId,
+            ordinal,
+          });
+
+    // Deliberation, then — one reply in four — a recess on top of it. Both
+    // are seeded on the thread and the ordinal, so a reply that has already
+    // been delivered departs at the same year forever.
+    const recessRng = createRng(`recess/${threadId}/${ordinal}`);
+    const recess = recessRng.chance(RECESS_CHANCE)
+      ? recessRng.range(RECESS_MIN_YEARS, RECESS_MAX_YEARS)
+      : 0;
+    const sentYear = evalYear + d + deliberationFor(cls, threadId, ordinal) + recess;
     out.push({
       id: `ai/${aiId}/${playerId}/${ordinal}`,
       fromCivId: aiId,
@@ -586,7 +1049,16 @@ export function deriveAiSignals(
       sentYear,
       arrivesYear: sentYear + d,
       inReplyTo: candidate.inReplyTo,
-      body: composeBody(ai.seed.archetype, observation, beat, threadId, ordinal),
+      body: composeSignalBody(
+        ai.seed.archetype,
+        composed.tone,
+        composed.parts,
+        beat,
+        threadId,
+        ordinal,
+      ),
+      tone: composed.tone,
+      parts: composed.parts,
       beat,
     });
     if (beat === "withdraw") break;
@@ -617,14 +1089,205 @@ export function aiBeamCrossing(
   return latest;
 }
 
+
 // ---------------------------------------------------------------------------
 // The thread view
 // ---------------------------------------------------------------------------
+//
+// A2.6 OPENS THIS TO HUMANS, and the way it does so is the whole of B's
+// error-path parity: there is no `controller` branch anywhere below. Every
+// civilization in the galaxy is walked, stored inbound and derived inbound
+// are merged into ONE sorted list, and both halves are stamped by the same
+// code. A player-controlled counterpart simply has no derived half
+// (`deriveAiSignals` returns empty for one), and a seeded counterpart simply
+// has no stored half (no AI civilization ever writes an act). Neither
+// emptiness is visible in any field of any shape below.
 
-/** What a thread row sorts and states by: the year YOU learned of the event.
- *  Yours is when you sent it; theirs is when it arrived. */
-function learnedYear(signal: ThreadSignal): number {
-  return signal.from === "you" ? signal.sentYear : signal.arrivesYear;
+/**
+ * One signal in a thread, BEFORE it is given a wire identity. The internal id
+ * (a log act's `act-N`, a derived reply's `ai/...`) lives here and nowhere
+ * further out: `buildThreads` mints per-thread ordinals over the sorted list
+ * and every reference is re-rendered into that namespace on the way out.
+ */
+interface ThreadRow {
+  readonly internalId: string;
+  readonly from: "you" | "them";
+  readonly kind: ContactAct["kind"];
+  readonly sentYear: number;
+  readonly arrivesYear: number;
+  /** The year THIS PLAYER learned of it: yours when you sent it, theirs when
+   *  it arrived. */
+  readonly learnedYear: number;
+  readonly tone: SignalTone | null;
+  readonly parts: readonly SignalPart[];
+  readonly beat: SignalBeat;
+  /** Composed here for a stored act, and already composed for a derived one.
+   *  Null on a hail, which carries no payload at all. */
+  readonly body: string | null;
+  readonly inReplyToInternal: string | null;
+  /** A stamp measures an ARRIVING beam. You have no instrument at the far end
+   *  of your own, so your own rows carry none. */
+  readonly stamped: boolean;
+}
+
+/**
+ * Turn one side's stored acts into rows. `senderIndex` counts that sender's
+ * own SIGNALS in this thread, which is what decides the beat and seeds the
+ * body — so both readers of a human thread compose the same line for the same
+ * act, and the sender's own rack and the recipient's agree.
+ */
+function rowsFromActs(
+  g: Galaxy,
+  acts: readonly ContactAct[],
+  from: "you" | "them",
+  distanceLy: number,
+  senderId: CivId,
+  recipientId: CivId,
+): ThreadRow[] {
+  const archetype = civById(g, senderId).seed.archetype;
+  const threadSeed = `${g.seedKey}/${senderId}/${recipientId}`;
+  const rows: ThreadRow[] = [];
+  let senderIndex = 0;
+  for (const act of acts) {
+    const parts = act.parts ?? [];
+    const arrivesYear = act.sentYear + distanceLy;
+    const beat = beatFor(parts, senderIndex);
+    // A hail carries no payload and never has. A legacy A2.5 act carries the
+    // player's own prose and no tone, and is rendered as it was written; a
+    // composed act gets its body from the one composer, on both paths.
+    const body =
+      act.kind === "hail"
+        ? null
+        : act.tone === undefined
+          ? (act.text ?? null)
+          : composeSignalBody(archetype, act.tone, parts, beat, threadSeed, senderIndex);
+    rows.push({
+      internalId: act.id,
+      from,
+      kind: act.kind,
+      sentYear: act.sentYear,
+      arrivesYear,
+      learnedYear: from === "you" ? act.sentYear : arrivesYear,
+      tone: act.tone ?? null,
+      parts,
+      beat,
+      body,
+      inReplyToInternal: act.inReplyTo ?? null,
+      stamped: from === "them",
+    });
+    if (act.kind === "signal") senderIndex++;
+  }
+  return rows;
+}
+
+/** The compliance read: the counterpart's OBSERVED light since the accord
+ *  year, against the darkness floor. A belief about the past, arriving on
+ *  delay like everything else, and never a verdict. */
+function accordCompliance(
+  observed: readonly EmissionEpoch[],
+  heldSinceYear: number,
+  asOfYear: number,
+): "below-the-floor" | "above-the-floor" | null {
+  if (asOfYear < heldSinceYear - YEAR_EPS) return null;
+  if (emissionAt(observed, heldSinceYear) >= DARK_LEVEL) return "above-the-floor";
+  const brightened = observed.some(
+    (e) =>
+      e.level >= DARK_LEVEL &&
+      e.fromYear > heldSinceYear + YEAR_EPS &&
+      e.fromYear <= asOfYear + YEAR_EPS,
+  );
+  return brightened ? "above-the-floor" : "below-the-floor";
+}
+
+/**
+ * ONE THREAD, MERGED AND SORTED, before any of it is given a wire identity.
+ * The single derivation both readers of a thread go through: `buildThreads`
+ * renders it, and `threadRefRowsFor` hands its reference view to the
+ * materializer, so a selector is legal exactly when the row it names is one
+ * the client could see.
+ *
+ * Empty when nothing has been delivered either way.
+ */
+function mergedThreadRows(
+  g: Galaxy,
+  playerId: CivId,
+  otherId: CivId,
+  nowYear: number,
+  distanceLy: number,
+): ThreadRow[] {
+  const mine = actsBetween(g.acts, playerId, otherId);
+  // Their stored acts, gated by the SAME arrival comparison the derived half
+  // uses. A player counterpart has these and no derived half; a seeded one
+  // has the derived half and none of these, and neither emptiness shows.
+  const storedTheirs = actsBetween(g.acts, otherId, playerId).filter(
+    (a) => a.sentYear + distanceLy <= nowYear + YEAR_EPS,
+  );
+  const derivedTheirs = deriveAiSignals(g, otherId, playerId).filter(
+    (s) => s.arrivesYear <= nowYear + YEAR_EPS,
+  );
+  if (mine.length === 0 && storedTheirs.length === 0 && derivedTheirs.length === 0) {
+    return [];
+  }
+  return [
+    ...rowsFromActs(g, mine, "you", distanceLy, playerId, otherId),
+    ...rowsFromActs(g, storedTheirs, "them", distanceLy, otherId, playerId),
+    ...derivedTheirs.map(
+      (s): ThreadRow => ({
+        internalId: s.id,
+        from: "them",
+        kind: s.kind,
+        sentYear: s.sentYear,
+        arrivesYear: s.arrivesYear,
+        learnedYear: s.arrivesYear,
+        tone: s.kind === "hail" ? null : s.tone,
+        parts: s.kind === "hail" ? [] : s.parts,
+        beat: s.beat,
+        body: s.kind === "hail" ? null : s.body,
+        inReplyToInternal: s.inReplyTo,
+        stamped: true,
+      }),
+    ),
+  ].sort((a, b) => a.learnedYear - b.learnedYear || a.internalId.localeCompare(b.internalId));
+}
+
+/**
+ * THE WIRE NAMESPACE. Ordinals are minted over the sorted list, so they are
+ * append-only in practice — everything newly visible was learned at or after
+ * everything already visible — and a reference minted last year still
+ * resolves this year.
+ */
+function refRowsOf(rows: readonly ThreadRow[]): ThreadRefRow[] {
+  return rows.map((row, index) => {
+    const accordPart = row.parts.find((p) => p.kind === "accord");
+    return {
+      wireId: `sig/${index}`,
+      internalId: row.internalId,
+      from: row.from,
+      learnedYear: row.learnedYear,
+      partKinds: row.parts.map((p) => p.kind),
+      accord:
+        accordPart !== undefined && accordPart.kind === "accord"
+          ? { move: accordPart.move, ref: accordPart.ref }
+          : null,
+    };
+  });
+}
+
+/**
+ * The reference view of one thread, for the send handler: what has landed on
+ * this player, in the same order and under the same `sig/N` names the client
+ * is reading. `onSendSignal` resolves the turnaround floor, every verdict
+ * reference and the mutual quiet's legality against exactly this.
+ */
+export function threadRefRowsFor(
+  g: Galaxy,
+  playerId: CivId,
+  otherId: CivId,
+  nowYear: number,
+): readonly ThreadRefRow[] {
+  return refRowsOf(
+    mergedThreadRows(g, playerId, otherId, nowYear, civDistanceLy(g, playerId, otherId)),
+  );
 }
 
 /**
@@ -632,69 +1295,113 @@ function learnedYear(signal: ThreadSignal): number {
  * connection has open.
  *
  * THE NO-LEAK RULES, enforced here and asserted on the wire shapes:
- *  - derived inbound is filtered at `arrivesYear <= nowYear`, so an answer in
- *    flight is invisible in every field of every shape below;
+ *  - derived inbound is filtered at `arrivesYear <= nowYear` and stored
+ *    inbound at `sentYear + distance <= nowYear`, by the same comparison, so
+ *    an answer in flight is invisible in every field of every shape below;
  *  - `nextEventYear` is computed from the player's OWN acts only and can
  *    never carry a predicted reply;
  *  - a pair with nothing delivered either way produces NO ROW, so the
- *    existence of a row is never itself news about a counterpart.
+ *    existence of a row is never itself news about a counterpart;
+ *  - wire ids are per-thread ordinals and the underlying ids stay in here.
  */
 export function buildThreads(
   g: Galaxy,
   playerId: CivId,
   nowYear: number,
   openStarId: string | null,
-): { summaries: ThreadSummary[]; detail: ThreadDetail | null } {
+  /** A2.6: civilizations this player has gone dark to. Their beams still
+   *  land and their acts are still stored; the threads simply do not appear
+   *  on this rack, and NOTHING about that reaches the other side. */
+  mutedCivIds: readonly CivId[] = [],
+): {
+  summaries: ThreadSummary[];
+  detail: ThreadDetail | null;
+  mutedStarIds: string[];
+} {
   const summaries: ThreadSummary[] = [];
+  const mutedStarIds: string[] = [];
   let detail: ThreadDetail | null = null;
 
   for (const civ of g.civs) {
-    if (civ.controller !== "ai") continue;
-    const aiId = civ.seed.id;
-    const mine = inboundActs(g.acts, playerId, aiId);
-    const theirs = deriveAiSignals(g, aiId, playerId)
-      .filter((s) => s.arrivesYear <= nowYear + YEAR_EPS)
-      .sort((a, b) => a.arrivesYear - b.arrivesYear);
-    if (mine.length === 0 && theirs.length === 0) continue;
+    const otherId = civ.seed.id;
+    if (otherId === playerId) continue;
+    const d = civDistanceLy(g, playerId, otherId);
 
-    const d = civDistanceLy(g, playerId, aiId);
-    const signals: ThreadSignal[] = [
-      ...mine.map((act) => ({
-        id: act.id,
-        from: "you" as const,
-        kind: act.kind,
-        sentYear: act.sentYear,
-        arrivesYear: act.sentYear + d,
-        // Your own words, always: a hail has none, a signal is what you wrote.
-        body: act.text ?? null,
-        // NEVER a stamp on your own beam. You have no instrument at the far
-        // end, and the landing year the client renders is your own arithmetic
-        // rather than a receipt.
-        stamp: null,
-        inReplyTo: act.inReplyTo ?? null,
-      })),
-      ...theirs.map((s) => ({
-        id: s.id,
-        from: "them" as const,
-        kind: s.kind,
-        sentYear: s.sentYear,
-        arrivesYear: s.arrivesYear,
-        body: s.body,
-        stamp: stampFor(d, s.sentYear),
-        inReplyTo: s.inReplyTo,
-      })),
-    ].sort((a, b) => learnedYear(a) - learnedYear(b) || a.id.localeCompare(b.id));
+    const rows = mergedThreadRows(g, playerId, otherId, nowYear, d);
+    if (rows.length === 0) continue;
+
+    // THE MUTE, and the whole of its sender-side cost: nothing. The thread is
+    // dropped from this rack after it has been fully derived, so muting
+    // changes no act, no arrival and no counterpart behavior, and there is no
+    // notification anywhere because there is nothing to notify.
+    if (mutedCivIds.includes(otherId)) {
+      mutedStarIds.push(civ.starId);
+      continue;
+    }
+
+    const mine = actsBetween(g.acts, playerId, otherId);
+    const wireIdOf = new Map<string, string>();
+    rows.forEach((row, index) => wireIdOf.set(row.internalId, `sig/${index}`));
+    const wireFor = (internalId: string): string | null =>
+      wireIdOf.get(internalId) ?? null;
+
+    // The mutual quiet, derived from what has ARRIVED on this side.
+    const accordView = deriveAccord(refRowsOf(rows));
+    const asOfYear = nowYear - d;
+    const observed = civ.seed.emissionHistory.filter((e) => e.fromYear <= asOfYear);
+    // THE ACCORD YEAR IN THEIR OWN FRAME, which is the only year their light
+    // can be read against: their acceptance left them one transit before you
+    // learned of it, and yours reaches them one transit after you sent it.
+    const accordYearThere =
+      accordView.heldSinceYear === null
+        ? null
+        : accordView.acceptedBy === "them"
+          ? accordView.heldSinceYear - d
+          : accordView.heldSinceYear + d;
+    const compliance =
+      accordView.state === "held" && accordYearThere !== null
+        ? accordCompliance(observed, accordYearThere, asOfYear)
+        : null;
+    // BREACH BY LIGHT ENDS IT, AND NO MESSAGE IS REQUIRED. That is what keeps
+    // the thread cap from ever locking somebody into an accord: the exit that
+    // costs nothing is always available, and the withdraw move is the honest
+    // version for anyone with signal budget left.
+    const accord: AccordRail = {
+      form: "mutual-quiet",
+      state: compliance === "above-the-floor" ? "broken" : accordView.state,
+      heldSinceYear: accordView.heldSinceYear,
+      theirLight: compliance,
+      // Non-null exactly when there IS a reading, so the rail can never show
+      // a year beside a blank and invite the reader to fill it in.
+      asOfYear: compliance === null ? null : asOfYear,
+      ...accordAvailability(accordView),
+    };
+
+    const signals: ThreadSignal[] = rows.map((row, index) => ({
+      id: `sig/${index}`,
+      from: row.from,
+      kind: row.kind,
+      sentYear: row.sentYear,
+      arrivesYear: row.arrivesYear,
+      body: row.body,
+      tone: row.tone,
+      parts: renderPartsForViewer(row.parts, wireFor),
+      stamp: row.stamped ? stampFor(d, row.sentYear) : null,
+      inReplyTo: row.inReplyToInternal === null ? null : wireFor(row.inReplyToInternal),
+    }));
 
     const lastMine = mine[mine.length - 1] ?? null;
-    const lastTheirs = theirs[theirs.length - 1] ?? null;
-    const inFlight =
-      lastMine !== null && lastMine.sentYear + d > nowYear + YEAR_EPS;
+    const theirRows = rows.filter((r) => r.from === "them");
+    const lastTheirs = theirRows[theirRows.length - 1] ?? null;
+    const inFlight = lastMine !== null && lastMine.sentYear + d > nowYear + YEAR_EPS;
 
     let state: ThreadState;
     if (inFlight) {
       state = "in-flight";
     } else if (lastTheirs !== null && lastTheirs.beat === "withdraw") {
       // Permanent, and the one dead end the player can read as a decision.
+      // A2.6 makes it reachable on a human thread too: the accord's withdraw
+      // move maps to this beat, so `withdrawn` stopped being a whisperer tell.
       state = "withdrawn";
     } else if (lastMine === null) {
       state = lastTheirs !== null ? "answered" : "unopened";
@@ -703,18 +1410,17 @@ export function buildThreads(
       lastTheirs.arrivesYear >= lastMine.sentYear + d - YEAR_EPS
     ) {
       state = "answered";
-    } else if (
-      nowYear >
-      lastMine.sentYear + 2 * d + MAX_DELIBERATION_YEARS + YEAR_EPS
-    ) {
-      // Your own arithmetic: the round trip plus the longest anyone thinks.
+    } else if (nowYear > lastMine.sentYear + 2 * d + SILENCE_DECLARED_YEARS + YEAR_EPS) {
+      // Your own arithmetic: the round trip plus ONE constant that is the same
+      // on every thread and sits far above any seeded recess (contact.ts
+      // writes out the sum). A long quiet is never proof of anything.
       state = "silent";
     } else {
       state = "awaiting";
     }
 
-    const lastEventYear = signals.reduce(
-      (latest, s) => Math.max(latest, learnedYear(s)),
+    const lastEventYear = rows.reduce(
+      (latest, r) => Math.max(latest, r.learnedYear),
       Number.NEGATIVE_INFINITY,
     );
     // YOUR OWN next arrival, and there is deliberately no branch here that
@@ -732,7 +1438,8 @@ export function buildThreads(
       lastEventYear: Number.isFinite(lastEventYear) ? lastEventYear : nowYear,
       nextEventYear: pending[0] ?? null,
       canSpeak:
-        hasHailed(g.acts, playerId, aiId) && mySignalCount < MAX_SIGNALS_PER_THREAD,
+        hasHailed(g.acts, playerId, otherId) && mySignalCount < MAX_SIGNALS_PER_THREAD,
+      accord,
     };
     summaries.push(summary);
 
@@ -743,5 +1450,6 @@ export function buildThreads(
   }
 
   summaries.sort((a, b) => a.starId.localeCompare(b.starId));
-  return { summaries, detail };
+  mutedStarIds.sort((a, b) => a.localeCompare(b));
+  return { summaries, detail, mutedStarIds };
 }

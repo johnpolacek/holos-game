@@ -59,6 +59,15 @@ jobs:
       - name: Audit dashes (R-8)
         run: npm run audit:dashes
 
+      # A2.6, the indistinguishability ledger. Asserts PART_PARITY is total in
+      # BOTH directions: every part kind a human can compose is emitted by some
+      # seeded counterpart class, and every kind a counterpart emits is offered
+      # in the human composer's own selector vocabulary. A kind that only ever
+      # arrives from one side is a population-level tell no wire shape covers.
+      # Source-scraping (audit-names.mjs's mould), so it runs before `build`.
+      - name: Audit part parity (A2.6)
+        run: npm run audit:parity
+
       - name: Build (client + server)
         run: npm run build
 
