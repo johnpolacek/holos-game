@@ -110,7 +110,7 @@ export function counselEnabled(env: VoiceGenEnv): boolean {
  * previously-rejected key permanently negative for a reason that no longer
  * exists.
  */
-export const PROMPT_VERSION = "v3";
+export const PROMPT_VERSION = "v4";
 
 const MODEL = "claude-opus-5";
 
@@ -326,7 +326,9 @@ The wit is perspective: a mind for which a ten-thousand-year project is a Tuesda
 
 The wit is never a pop-culture reference, a meme, an anachronism, or a wink at the reader. It is never aimed at the person reading, who is this mind's purpose and not its punchline. It never undercuts the physics.
 
-At most one comic beat in the whole line, and most lines have none. Overwriting is the failure mode. When in doubt, write it true and grand and let one dry clause do the work.`;
+At most one comic beat in the whole line, and most lines have none. Overwriting is the failure mode. When in doubt, write it true and grand and let one dry clause do the work.
+
+Do not close on a trailing clause that comments on the sentence you just wrote: "…, which is the usual order of things", "…, which we consider a healthy sign", "…, which is at least a clean outcome". It is a soft landing rather than a decision, it fits any mind equally well, and a line that could belong to another civilization unchanged has failed. End on the thing itself, and stop.`;
 
 const HARD_RULES = `## Hard rules
 
