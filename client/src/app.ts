@@ -53,6 +53,9 @@ import {
 import { setClockAnchor } from "./clock";
 import { VoiceBeat } from "./voicebeat";
 import { ContactCeremony } from "./contactceremony";
+// A5: the boot re-sync, and nothing else from here. The row, the sheet and
+// the ask all live in the study board.
+import { resyncWatch } from "./push";
 
 /** Tend states that mean a mission is still under way — everything but a
  *  terminal returned/silent (missions.ts's missionWorkState never emits
@@ -169,6 +172,15 @@ export class App {
   private reclaimRoot: HTMLDivElement | null = null;
   private reclaimSignIn: SignInMount | null = null;
 
+  // ── A5: the watch ─────────────────────────────────────────────────────
+  // The deployment's VAPID application server key from `welcome.push`, and
+  // whether the SEAT holds a subscription from `sky.pushSubscribed`. Both are
+  // forwarded to the study board the moment they arrive and again when the
+  // board mounts, exactly as `hasAccount` is: a resume's welcome came and went
+  // before the first sky.
+  private pushPublicKey: string | null = null;
+  private pushSubscribed = false;
+
   constructor(root: HTMLElement, socket: CohortSocket) {
     this.root = root;
     this.socket = socket;
@@ -199,6 +211,19 @@ export class App {
         this.hideReclaim();
         this.hasAccount = message.account;
         this.studyBoard?.setHasAccount(this.hasAccount);
+        // A5: the deployment's application server key, or null when no VAPID
+        // pair is configured — then nothing below runs, no service worker is
+        // registered and the panel renders no watch row.
+        this.pushPublicKey = message.push?.publicKey ?? null;
+        this.studyBoard?.setPushKey(this.pushPublicKey);
+        // THE BOOT RE-SYNC. Endpoints rot silently and
+        // `pushsubscriptionchange` is unevenly implemented, so a device that
+        // already holds permission re-sends its subscription on every load.
+        // Idempotent server-side (keyed by the endpoint's hash), and the only
+        // thing that reliably heals a rotated endpoint or a rotated key.
+        if (this.pushPublicKey !== null) {
+          void resyncWatch(this.pushPublicKey, (msg) => this.socket.send(msg));
+        }
         break;
       case "offer":
         this.showCeremony(message.candidates);
@@ -220,6 +245,9 @@ export class App {
         this.voyages = message.voyages;
         this.survey = message.survey;
         this.ledger = message.ledger;
+        // A5: whether the SEAT holds a subscription on any device. The board
+        // combines it with what the browser says about this one.
+        this.pushSubscribed = message.pushSubscribed;
         this.showSky(message.self, message.sources);
         break;
       case "sourceNamed":
@@ -542,6 +570,9 @@ export class App {
       // A2.6: this board's very first render already knows — no waiting on
       // a welcome that, on a resume, already came and went.
       studyBoard.setHasAccount(this.hasAccount);
+      // A5: the same, for the watch — the welcome that carried the key may
+      // already have come and gone on a resume.
+      studyBoard.setPushKey(this.pushPublicKey);
 
       // While a ceremony is armed the sky belongs to it: the two standing
       // chips stand down, so the only things a thumb can reach are the
@@ -668,6 +699,7 @@ export class App {
       studyBoard.setSelf(self);
       studyBoard.setVoyages(this.voyages, this.survey);
       studyBoard.setLedger(this.ledger);
+      studyBoard.setPushSubscribed(this.pushSubscribed);
       studyBoard.update(
         this.studies,
         this.sources,

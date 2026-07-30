@@ -227,7 +227,12 @@ body {
 /* A2.6: the key sheet's title and the ceremony's quiet sign-in line — both
    short label-voice lines, never prose. */
 .study-account-title,
-.ceremony-signin-toggle {
+.ceremony-signin-toggle,
+/* A5: the watch sheet's header and its quiet refusal. Both short chrome, and
+   both on the .holos-caps contract above anyway; listed so a later restyle
+   that drops the utility class does not silently drop the policy with it. */
+.study-watch-title,
+.study-watch-decline {
   text-wrap: balance;
 }
 
@@ -284,6 +289,8 @@ body {
    sheet's line — both running prose, sentences like the rest of this list. */
 .study-account-ceremony-line,
 .reclaim-line,
+/* A5: what the watch would do while you are away. Two sentences, so prose. */
+.study-watch-line,
 /* A4: the survey's one qualitative line about arriving second, straight from
    the server. A sentence, like the rest of this list. */
 .voyage-risk,
@@ -1203,6 +1210,36 @@ body {
 .study-account-ceremony-line {
   max-width: 24em;
   color: var(--holos-ink-dim);
+}
+
+/* ── A5: the watch's ask ──────────────────────────────────────────────────
+ * The key sheet's chassis exactly (.study-account-sheet, .study-account-bar,
+ * .study-account-body), because it is the same kind of moment: one question,
+ * two answers, nothing else on screen. The only differences are the ones the
+ * content forces — this sheet has no secret in it, so the border is the
+ * panel's own gold rather than the credential cyan, and the sentence is set
+ * at reading size rather than as a display object. */
+.study-watch-sheet {
+  border-top-color: var(--holos-gold-dim);
+}
+
+.study-watch-line {
+  max-width: 26em;
+  font-size: var(--holos-text-md);
+  color: var(--holos-ink-dim);
+}
+
+/* The quiet answer. Not a button-shaped pill: ALLOW is the verb the sheet is
+   here for, and "not now" is the way out, so it wears the aside voice the hub
+   reset already uses rather than competing with the pill above it. */
+.study-watch-decline {
+  background: none;
+  border: none;
+  padding: 0.6rem 1rem;
+  min-height: 2.75rem;
+  color: var(--holos-ink-faint);
+  font-family: inherit;
+  cursor: pointer;
 }
 
 /* A2.4: THE VOICE's one row. On the hub-row chassis but in the verb voice

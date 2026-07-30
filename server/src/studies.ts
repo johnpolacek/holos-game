@@ -1221,21 +1221,45 @@ export function tripwireHolds(
 }
 
 /**
+ * A5: the catch-up walk's answer for one study — for each kind, the CHANGE
+ * POINT at which the condition became true while nobody was looking.
+ *
+ * A tripwire fires on its condition holding, not on the player being present
+ * when it held (a5-push-note.md §3.2). Two of the three conditions are not
+ * monotone, so one that came and went across an absence would otherwise never
+ * be recorded at all: cohort.ts's `findFirings` walks the dated years at which
+ * a study can change and hands the first true one in here.
+ */
+export type TripwireFiredAt = ReadonlyMap<TripwireKind, number>;
+
+/**
  * Folds this send's firings into the stored tripwire record. Returns the
  * SAME array by identity when nothing changed, which is how cohort.ts knows
  * whether it owes a write. Fires once per arming (`firedYear` is set and
  * never cleared); a closed study is not evaluated at all, which is how
  * "called stays called" survives a standing order left on it.
+ *
+ * A5: `firedAt` is folded in BEFORE the now-year evaluation, so a condition
+ * the catch-up walk caught is recorded at the year it actually held rather
+ * than at the year somebody happened to look. That is both more truthful for
+ * the report and the property the push rests on: the phone and the record
+ * cannot disagree, because the same `findFirings` produced both.
  */
 function settleTripwires(
   stored: StoredStudy,
   board: TripwireBoard,
   nowYear: number,
+  firedAt: TripwireFiredAt | null,
 ): readonly StoredTripwire[] {
   if (isClosed(stored.status)) return stored.tripwires;
   let changed = false;
   const next = stored.tripwires.map((t) => {
     if (t.firedYear !== null) return t;
+    const caught = firedAt?.get(t.kind);
+    if (caught !== undefined) {
+      changed = true;
+      return { ...t, firedYear: caught };
+    }
     if (!tripwireHolds(t.kind, t.armedYear, board)) return t;
     changed = true;
     return { ...t, firedYear: nowYear };
@@ -1311,6 +1335,10 @@ export function buildStudySnapshot(
   missionMoves: readonly StudyMove[],
   grounding: StudyGrounding | null,
   overtaking: OvertakingTrigger | null,
+  /** A5: the catch-up walk's firings for THIS study, or null (the default for
+   *  every caller that is evaluating a single year, including `findFirings`'
+   *  own probe builds). */
+  firedAt: TripwireFiredAt | null = null,
 ): AssembledStudy {
   const signal = source.signal;
   const catalog = questionsFor(signal.classification);
@@ -1343,7 +1371,7 @@ export function buildStudySnapshot(
     signal,
     distanceLy: cone.distanceLy,
   };
-  const tripwires = settleTripwires(stored, board, nowYear);
+  const tripwires = settleTripwires(stored, board, nowYear, firedAt);
 
   // Freeze the lead the moment the class changes, or read the one that was
   // frozen the last time it did. An overtaken card must go on saying what

@@ -41,6 +41,85 @@ Two known wrinkles:
   secret (`npx wrangler secret put ANTHROPIC_API_KEY`) and never appears
   in `wrangler.jsonc`. Locally it goes in `.dev.vars` (gitignored).
 
+## Web push (VAPID)
+
+A5's tripwire watch pushes a payload-free notification to a player's
+phone while they are away. The transport needs one ECDSA P-256 keypair
+(the "application server key"), and nothing else: no third-party
+service, no account, no SDK.
+
+### Generating the keypair
+
+Zero dependencies, Node 18 or newer:
+
+```sh
+node -e '
+const { webcrypto: c } = require("node:crypto");
+(async () => {
+  const kp = await c.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+  const jwk = await c.subtle.exportKey("jwk", kp.privateKey);
+  const raw = new Uint8Array(await c.subtle.exportKey("raw", kp.publicKey));
+  console.log("HOLOS_VAPID_PRIVATE_JWK=" + JSON.stringify({ kty: jwk.kty, crv: jwk.crv, d: jwk.d, x: jwk.x, y: jwk.y }));
+  console.log("HOLOS_VAPID_PUBLIC_KEY=" + Buffer.from(raw).toString("base64url"));
+})();
+'
+```
+
+`exportKey("raw", publicKey)` yields the 65-byte uncompressed point
+(`0x04 ‖ X ‖ Y`) directly; there is nothing to assemble by hand, and
+there is no DER anywhere in this feature.
+
+### Setting it
+
+Two secrets and one var, the `ANTHROPIC_API_KEY` pattern exactly:
+
+```sh
+npx wrangler secret put HOLOS_VAPID_PRIVATE_JWK
+npx wrangler secret put HOLOS_VAPID_PUBLIC_KEY
+```
+
+`HOLOS_VAPID_SUBJECT` is in `wrangler.jsonc`'s `vars` (currently
+`https://playholos.com/`) because it is public by definition: it travels
+in every JWT. The two keys are **never** in that file and never in the
+repo. Locally, all three go in `.dev.vars` (gitignored) — see
+`.dev.vars.example`.
+
+**They are one keypair and must be set together.** At boot the Worker
+rebuilds the public point from the private JWK's own coordinates and
+compares it against `HOLOS_VAPID_PUBLIC_KEY`; a mismatch logs once and
+turns notifications off, rather than minting subscriptions no signature
+this Worker can produce will ever be allowed to deliver to.
+
+With both absent — the default — the feature is **silently absent**:
+`welcome.push` is null, the client registers no service worker, no hub
+row renders, and no watch is ever scheduled.
+
+### Rotation is destructive
+
+A push subscription is bound to the application server key it was
+created with, so **changing the keypair invalidates every existing
+subscription**. The `keyId` on each stored subscription makes that
+recoverable rather than silent — the send path deletes a subscription
+made with an older key instead of pushing into the void, and the client
+compares `welcome.push.publicKey` against its own stored copy on boot
+and re-subscribes when they differ — but every player still has to
+re-grant on their next visit. **Rotate only for a compromise.**
+
+### The `/sw.js` check
+
+`not_found_handling: "single-page-application"` means a *missing* asset
+returns `index.html` with a 200 and `content-type: text/html`, and a
+service worker served as HTML fails registration with a MIME error that
+names nothing useful. So the deploy verification gains one line:
+
+```sh
+curl -sSI https://playholos.com/sw.js | head -n 3   # 200 + content-type: text/javascript
+```
+
+The service worker **has no fetch handler and caches nothing** — it
+exists to receive pushes and does nothing else — so it can never serve a
+stale asset and the pipeline's semantics are unchanged by its presence.
+
 ## Custom domain — playholos.com
 
 The domain is registered at **Porkbun**. Porkbun stays the registrar;

@@ -141,6 +141,16 @@ import { startOver } from "./startover";
 import { QUESTION_METHOD } from "./questionmethod";
 import { CLASS_LABEL } from "./sourcecard";
 import { accordFlightLine, accordHeadline, accordLightLine } from "./accord";
+// A5: the watch. Everything about a subscription lives in push.ts; this panel
+// owns the row, the sheet and the moment the ask is spent.
+import {
+  disableWatch,
+  enableWatch,
+  markWatchAsked,
+  pushCapability,
+  watchAsked,
+  watchOnThisDevice,
+} from "./push";
 import {
   formatAbsoluteYear,
   formatClockPair,
@@ -1074,6 +1084,25 @@ export class StudyBoard {
   // tap-outside dismiss); false is a quiet re-read (showAccountKey).
   private accountKeyFresh = false;
 
+  // ── A5: the watch ─────────────────────────────────────────────────────
+  // The deployment's application server key, from `welcome.push` (null means
+  // no VAPID pair is configured, and then NO ROW RENDERS AT ALL — the whole
+  // dev-mode story is that the feature is silently absent).
+  private pushPublicKey: string | null = null;
+  // Whether the SEAT holds a subscription on any device, from every `sky`.
+  // The ask sheet's precondition; the row itself speaks about this device,
+  // because that is the only thing it can honestly promise.
+  private pushSubscribedOnSeat = false;
+  // Whether THIS device holds one. Read from the browser (an async call), so
+  // it is refreshed and then re-rendered rather than derived at render time.
+  private pushOnThisDevice = false;
+  // A subscribe/unsubscribe in flight: guards a double tap, released when the
+  // device state is re-read.
+  private pushBusy = false;
+  // The ask sheet, a child of the SHEET like the key sheet, so renderHub()
+  // rebuilding the body underneath cannot tear it down mid-ask.
+  private watchSheetEl: HTMLDivElement | null = null;
+
   private dragStartY: number | null = null;
   private dragDy = 0;
 
@@ -1188,6 +1217,30 @@ export class StudyBoard {
   setLedger(ledger: LedgerWire): void {
     this.ledger = ledger;
     this.ledgerRowsById = new Map(ledger.rows.map((r) => [r.voyageId, r] as const));
+  }
+
+  /** A5: the deployment's application server key, from every `welcome`. Null
+   *  is the dev default and means this panel renders no watch row at all. */
+  setPushKey(publicKey: string | null): void {
+    this.pushPublicKey = publicKey;
+    if (publicKey !== null) void this.refreshWatchState();
+  }
+
+  /** A5: whether the SEAT holds a subscription, from every `sky`. Handed over
+   *  just before update(), exactly as setLedger is. */
+  setPushSubscribed(subscribed: boolean): void {
+    this.pushSubscribedOnSeat = subscribed;
+  }
+
+  /** Re-read what the BROWSER says about this device and repaint the hub if it
+   *  is what is on screen. The subscription lives outside this panel's state,
+   *  so it is asked rather than assumed. */
+  private async refreshWatchState(): Promise<void> {
+    const on = await watchOnThisDevice();
+    if (on === this.pushOnThisDevice && !this.pushBusy) return;
+    this.pushOnThisDevice = on;
+    this.pushBusy = false;
+    if (this.view === "hub") this.renderHub();
   }
 
   update(
@@ -1306,6 +1359,11 @@ export class StudyBoard {
     // that whatever was in flight either landed or was refused (in which
     // case handleServerError already cleared it) — no per-key bookkeeping.
     this.pendingTripwireKeys.clear();
+
+    // A5: the sky that carries an arming is the moment to ask about the
+    // phone. Every other precondition is checked inside, and the localStorage
+    // mark makes the whole thing once per device.
+    this.maybeAskForWatch();
 
     // A4: an arm/disarm is the same shape of write, and releases the same
     // way. The confirming sky carries the order's new state, which is the
@@ -2065,6 +2123,12 @@ export class StudyBoard {
       ),
     );
 
+    // A5: the watch. It belongs here, under the report, because it is about
+    // the same thing the report is about: what happened while you were not
+    // looking. Absent entirely when the deployment has no VAPID keypair.
+    const watchRow = this.buildWatchRow();
+    if (watchRow !== null) this.body.append(watchRow);
+
     // A2.6: durable identity. Unclaimed offers the verb; claimed offers the
     // re-read — never both, the same either/or the hub's other rows never
     // need because nothing else here has two faces.
@@ -2116,6 +2180,170 @@ export class StudyBoard {
     this.accountKeyValue = key;
     this.accountKeyFresh = fresh;
     this.renderAccountSheet();
+  }
+
+  /**
+   * A5: the watch row, in its five states, or null when the deployment has no
+   * VAPID keypair and there is nothing to offer.
+   *
+   * IT SPEAKS ABOUT THIS DEVICE, and only about this device. Subscriptions are
+   * per-browser-per-device and several may hang off one seat; inventing a
+   * device roster in a hub row is a feature this slice does not ship, so the
+   * row promises exactly what it can deliver. The three inert states use the
+   * existing --inert treatment (the closed study's tripwire row, one panel
+   * over): visible, legible, not tappable, and each one names the actual
+   * remedy rather than shrugging.
+   */
+  private buildWatchRow(): HTMLButtonElement | null {
+    if (this.pushPublicKey === null) return null;
+    const capability = pushCapability();
+
+    if (capability === "unsupported") {
+      return this.buildHubRow(
+        "Keep watch while you are away",
+        "This browser does not carry notifications. The watch still trips.",
+        false,
+        () => undefined,
+      );
+    }
+    if (capability === "ios-not-installed") {
+      return this.buildHubRow(
+        "Keep watch while you are away",
+        "On this phone, notifications need Holos on the Home Screen.",
+        false,
+        () => undefined,
+      );
+    }
+    if (capability === "blocked") {
+      return this.buildHubRow(
+        "Keep watch while you are away",
+        "This device is blocking notifications. Only its own settings can undo that.",
+        false,
+        () => undefined,
+      );
+    }
+    if (this.pushOnThisDevice) {
+      return this.buildHubRow(
+        "This device keeps watch",
+        "Stop the notifications, on this device only.",
+        !this.pushBusy,
+        () => void this.turnWatchOff(),
+      );
+    }
+    return this.buildHubRow(
+      "Keep watch while you are away",
+      "Let this device tell you when a watch trips.",
+      !this.pushBusy,
+      () => void this.turnWatchOn(),
+    );
+  }
+
+  /** The row's own tap. No toast on success: the row flips, which is how
+   *  every other state in this panel reports itself. */
+  private async turnWatchOn(): Promise<void> {
+    const publicKey = this.pushPublicKey;
+    if (publicKey === null || this.pushBusy) return;
+    this.pushBusy = true;
+    await enableWatch(publicKey, (message) => this.socket.send(message));
+    await this.refreshWatchState();
+    this.pushBusy = false;
+    if (this.view === "hub") this.renderHub();
+  }
+
+  private async turnWatchOff(): Promise<void> {
+    if (this.pushBusy) return;
+    this.pushBusy = true;
+    await disableWatch((message) => this.socket.send(message));
+    await this.refreshWatchState();
+    this.pushBusy = false;
+    if (this.view === "hub") this.renderHub();
+  }
+
+  /**
+   * A5: the ask, at the first successful arming and once per seat.
+   *
+   * That is the only moment in the product where "and should your phone tell
+   * you?" is a continuation of the player's own sentence rather than an
+   * interruption: they have just told the game to watch something for them.
+   * Notification permission needs a gesture and ONE DENIAL IS PERMANENT in
+   * practice, so the ask is spent carefully and never where it cannot be
+   * granted (the capability ladder above rules out three of the five states).
+   */
+  private maybeAskForWatch(): void {
+    if (this.watchSheetEl !== null) return;
+    const publicKey = this.pushPublicKey;
+    if (publicKey === null) return;
+    if (this.pushSubscribedOnSeat) return;
+    if (pushCapability() !== "available") return;
+    if (watchAsked()) return;
+    const armed = [...this.studiesByStarId.values()].some((s) =>
+      s.tripwires.some((t) => t.state === "armed"),
+    );
+    if (!armed) return;
+    this.renderWatchSheet();
+  }
+
+  /** The account key sheet's mould exactly: a child of the SHEET, two buttons,
+   *  no backdrop trickery. */
+  private renderWatchSheet(): void {
+    let el = this.watchSheetEl;
+    if (el === null) {
+      el = document.createElement("div");
+      el.className = "study-account-sheet study-watch-sheet";
+      this.sheet.append(el);
+      this.watchSheetEl = el;
+    }
+    el.innerHTML = "";
+
+    const bar = document.createElement("div");
+    bar.className = "study-account-bar";
+    const title = document.createElement("div");
+    title.className = "study-account-title study-watch-title holos-caps";
+    title.textContent = "KEEP WATCH WHILE YOU ARE AWAY";
+    bar.append(title);
+    el.append(bar);
+
+    const body = document.createElement("div");
+    body.className = "study-account-body";
+
+    const line = document.createElement("p");
+    line.className = "study-watch-line";
+    line.textContent =
+      "The sky keeps moving whether or not the tab is open. If you allow it, this device can say when a watch you left trips.";
+    body.append(line);
+
+    const allow = document.createElement("button");
+    allow.type = "button";
+    allow.className = "study-account-ack holos-caps";
+    allow.textContent = "ALLOW";
+    // THE iOS GESTURE TRAP: `enableWatch` calls requestPermission as its first
+    // statement, so nothing may be awaited between this click and that call.
+    allow.addEventListener("click", () => {
+      const publicKey = this.pushPublicKey;
+      this.closeWatchSheet();
+      if (publicKey === null) return;
+      void this.turnWatchOn();
+    });
+    body.append(allow);
+
+    const decline = document.createElement("button");
+    decline.type = "button";
+    decline.className = "study-watch-decline holos-caps";
+    decline.textContent = "NOT NOW";
+    decline.addEventListener("click", () => {
+      // The mark is what makes it once per device: a permission this player
+      // declined is not a question worth asking twice.
+      markWatchAsked();
+      this.closeWatchSheet();
+    });
+    body.append(decline);
+
+    el.append(body);
+  }
+
+  private closeWatchSheet(): void {
+    this.watchSheetEl?.remove();
+    this.watchSheetEl = null;
   }
 
   /** A child of the SHEET (the composer's own mold): survives renderHub()

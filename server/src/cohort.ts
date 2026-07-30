@@ -78,6 +78,9 @@
 //   POST /dev/event    {inYears, note}                 schedule an alarm-driven event
 //   GET  /dev/events                                   pending + fired events
 //   POST /dev/skip     {years}                         skip the clock forward (testing)
+//   GET  /dev/push?token=…                             one seat's push record
+//   POST /dev/watch    {token}                         evaluate the watch, send NOTHING
+//   GET  /dev/vapid?aud=…                              the Authorization we would send
 
 import { Server, type Connection, type WSMessage } from "partyserver";
 import {
@@ -156,6 +159,7 @@ import {
   tripwireHolds,
   TRIPWIRE_KINDS,
   type OvertakingTrigger,
+  type TripwireKind,
   type StoredStudy,
   type StoredTripwire,
   type StudyMove,
@@ -208,6 +212,26 @@ import {
   type BoughtQuestion,
 } from "./questions";
 import { buildTendList } from "./tend";
+// A5, WEB PUSH. Every symbol here is TRANSPORT: base64url, a VAPID signature,
+// one bodyless POST, and the record of which devices asked to be told. push.ts
+// imports nothing from this file or any other module of the game and therefore
+// cannot see a fact, which is the whole no-leak argument for the payload-free
+// design (a5-push-note.md §2).
+import {
+  deliverWatch,
+  keyIdFor,
+  newPushState,
+  subIdFor,
+  validatePushEndpoint,
+  vapidAuthorization,
+  vapidPublicKey,
+  warnPushUnconfigured,
+  withNotified,
+  withoutSub,
+  withSub,
+  type PushEnv,
+  type PushState,
+} from "./push";
 // A5. The behavior fold is READ-SIDE and has exactly one call site, inside
 // `derivedFold` below (behavior.ts's greppable form). It rewrites emission
 // histories and nothing else, and `saveGalaxyCivs` refuses to persist a civ
@@ -337,14 +361,80 @@ import type { RemarkFamily } from "./voice";
 interface ScheduledEvent {
   readonly id: string;
   readonly atYear: number;
-  readonly kind: "dev-ping" | "wake";
+  /**
+   * A5 adds "watch": the wake that runs when NOBODY is in the room, so an
+   * armed tripwire can reach a phone. It is still a wake-up and still never
+   * truth — `runWatch` derives, decides and sends, and the only key it may
+   * write is `push:${token}`. The firing itself is recorded, as it always
+   * was, by the sky the player comes back to.
+   */
+  readonly kind: "dev-ping" | "wake" | "watch";
   readonly note: string;
-  readonly token?: string; // wake only
+  readonly token?: string; // wake and watch
   readonly missionId?: string; // wake only, so a sentinel can re-arm
 }
 
 interface FiredEvent extends ScheduledEvent {
   readonly firedAtYear: number;
+}
+
+/**
+ * A5: one tripwire that became true, and the year it became true in.
+ *
+ * `firedYear` is a CHANGE POINT, never "now": the whole point of the catch-up
+ * walk is that a condition holds when it holds, whether or not anybody was
+ * looking. `armedYear` is on the key because re-arming is a fresh order, so a
+ * genuinely new arming is notifiable again.
+ */
+interface Firing {
+  readonly starId: string;
+  readonly kind: TripwireKind;
+  readonly armedYear: number;
+  readonly firedYear: number;
+}
+
+/**
+ * Every component of the key is STORED TRUTH, which is what makes the
+ * once-only guarantee idempotent rather than merely unlikely to double-fire:
+ * re-derivation, a Durable Object restart and a re-armed alarm all produce the
+ * same string.
+ */
+function firingKey(f: Firing): string {
+  return `${f.starId}/${f.kind}/${f.armedYear}`;
+}
+
+/**
+ * A5: the three per-seat records a watch reads, MIGRATED IN MEMORY AND NEVER
+ * WRITTEN BACK. The ordinary loaders persist a migration as they go, which is
+ * right on a live socket and wrong on the alarm path: `runWatch` may write
+ * `push:${token}` and nothing else, so it reads through here instead.
+ */
+interface WatchInputs {
+  readonly studies: Readonly<Record<string, StoredStudy>>;
+  readonly missions: readonly StoredMission[];
+  readonly projectState: ProjectState;
+}
+
+/** Why a watch did or did not push. The dev route reports these verbatim, so
+ *  they are the vocabulary the runbook in docs/playtest.md names. */
+type WatchReason =
+  | "not subscribed"
+  | "not placed"
+  | "connection live"
+  | "pushed this absence"
+  | "absent too long"
+  | "no firing"
+  | "already notified"
+  | "send";
+
+interface WatchVerdict {
+  readonly reason: WatchReason;
+  readonly firings: readonly Firing[];
+  /** The year to re-arm at, or null when the watch stops existing for this
+   *  absence (the biggest saving in the design: after one push the object
+   *  stops waking for this seat until the player comes back). */
+  readonly rearmYear: number | null;
+  readonly state: PushState | null;
 }
 
 /** Bounds the stored queue, dropping the farthest-future first. */
@@ -366,6 +456,33 @@ const WAKE_SLOP_YEARS = 0.01;
  *  queue with a lantern's hail scheduled for the deep future. */
 const WAKE_HORIZON_YEARS = 200;
 
+// ── A5: the watch (a5-push-note.md §14) ────────────────────────────────────
+
+/** How far ahead a watch re-arms when no change point is in sight. Twenty
+ *  four real hours at the shipped clock ratio. It covers everything the
+ *  change-point enumeration cannot see (a retuned behavior rule, a change
+ *  point past a study's own horizon, a bug) and costs one wake per day per
+ *  push-enabled ABSENT seat, which is the whole bill for being self-healing. */
+const WATCH_BACKSTOP_YEARS = 288;
+
+/** How far back the catch-up walk looks. About fourteen real days: a player
+ *  gone longer than this may lose the oldest firings from the scan, and still
+ *  gets today's fire-if-it-holds-now behavior on top. Stated rather than
+ *  hidden — the watch had already pushed at the time. */
+const WATCH_SCAN_YEARS = 4000;
+
+/** Per study, oldest-first, so a later scan finds the same first firing. */
+const MAX_CHANGE_POINTS = 24;
+
+/** The watch's own liveness bound, the analogue of the sentinel re-arm rule:
+ *  an absent player's watch must not re-arm forever. The next connect
+ *  restarts it. */
+const WATCH_MAX_REAL_MS = 30 * 24 * 3600e3;
+
+/** Hysteresis on the `seenRealMs` write, so a chatty session does not pay a
+ *  put per sky send. */
+const SEEN_WRITE_GAP_MS = 60e3;
+
 interface GalaxyMeta {
   readonly seedKey: string;
   readonly config: GalaxyConfig;
@@ -377,7 +494,7 @@ interface GalaxyMeta {
  * views of its own bindings cannot drift apart — the generation flags and the
  * key are declared once, in voicegen.ts, where they are read.
  */
-export interface CohortEnv extends VoiceGenEnv {
+export interface CohortEnv extends VoiceGenEnv, PushEnv {
   Cohort: DurableObjectNamespace;
   /** Opens the local-only half of the dev HTTP surface. "on" enables;
    *  anything else, absence included, is off. Belongs in `.dev.vars` and
@@ -777,6 +894,12 @@ export class Cohort extends Server<CohortEnv> {
       case "openThread":
         await this.onOpenThread(conn, msg.starId);
         return;
+      case "pushSubscribe":
+        await this.onPushSubscribe(conn, msg.endpoint);
+        return;
+      case "pushUnsubscribe":
+        await this.onPushUnsubscribe(conn, msg.endpoint);
+        return;
     }
   }
 
@@ -919,6 +1042,7 @@ export class Cohort extends Server<CohortEnv> {
         menus: hypothesisMenus(),
         missionCatalog: this.missionCatalog(),
         voyageCatalog: this.voyageCatalog(),
+        push: this.pushWire(),
       });
       await this.sendVoice(conn, token, run.civId);
       await this.sendReport(conn, token, run.civId, { advance: true });
@@ -942,7 +1066,8 @@ export class Cohort extends Server<CohortEnv> {
       catalog: galaxy.stars,
       menus: hypothesisMenus(),
       missionCatalog: this.missionCatalog(),
-        voyageCatalog: this.voyageCatalog(),
+      voyageCatalog: this.voyageCatalog(),
+      push: this.pushWire(),
     });
     const offerYear = await this.getOfferYear(token);
     this.sendMsg(conn, { type: "offer", candidates: this.makeCandidates(token, offerYear) });
@@ -2709,6 +2834,464 @@ export class Cohort extends Server<CohortEnv> {
     await this.pushWakeEvents(wakes);
   }
 
+  // ── A5: WEB PUSH, AND THE WATCH ──────────────────────────────────────────
+  //
+  // THE DERIVATION DISCIPLINE IS UNCHANGED AND THIS IS THE PROOF OF IT. A
+  // watch may derive the board at a year, evaluate `tripwireHolds`, decide to
+  // send, send, and write down that it sent. It may NOT set `firedYear`, touch
+  // `studies:${token}`, fire a standing order, or advance anything a player
+  // will later read as a fact. The one key the alarm path writes is
+  // `push:${token}`, which is infrastructure: a list of devices that asked to
+  // be told, and the record of what they were already told about.
+  //
+  // The consequence that shapes the rest: THE PUSH HAPPENS BEFORE THE SETTLE.
+  // The player is told a watch tripped, and only when they open the game does
+  // the record of the tripping get written. That is sound only because the two
+  // cannot disagree, and they cannot because `findFirings` is one function with
+  // two callers — the sky settle folds its answer into `firedYear`, and the
+  // watch counts it. The year on the record is the year the condition held,
+  // not the year somebody looked.
+
+  /** The constant every welcome carries: this deployment's application server
+   *  key, or null when no VAPID pair is configured (the dev default, and the
+   *  whole silent-absence story). */
+  private pushWire(): { publicKey: string } | null {
+    const publicKey = vapidPublicKey(this.env);
+    return publicKey === null ? null : { publicKey };
+  }
+
+  private async loadPushState(token: string): Promise<PushState | null> {
+    const stored = await this.ctx.storage.get<PushState>(`push:${token}`);
+    return stored === undefined ? null : stored;
+  }
+
+  /** THE ONLY WRITER OF `push:` — and, on the alarm path, the only writer of
+   *  anything at all. */
+  private async savePushState(token: string, state: PushState): Promise<void> {
+    await this.ctx.storage.put(`push:${token}`, state);
+  }
+
+  /**
+   * pushSubscribe: this device would like to be told while its player is away.
+   *
+   * A REJECTED endpoint answers `push-unavailable`, because the row has to
+   * flip back rather than go on claiming a watch nobody holds. A MALFORMED
+   * message answers nothing at all (protocol.ts's parse layer drops it) — that
+   * is bookkeeping, and an error code there would cancel a live purchase.
+   */
+  private async onPushSubscribe(conn: Connection, endpoint: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined) return;
+    const publicKey = vapidPublicKey(this.env);
+    if (publicKey === null) {
+      warnPushUnconfigured();
+      this.sendMsg(conn, {
+        type: "error",
+        code: "push-unavailable",
+        message: "notifications are not configured",
+      });
+      return;
+    }
+    if (!validatePushEndpoint(endpoint)) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "push-unavailable",
+        message: "that endpoint is not a push service",
+      });
+      return;
+    }
+    const realMs = Date.now();
+    const current = (await this.loadPushState(state.token)) ?? newPushState(realMs);
+    const next = withSub(current, {
+      id: await subIdFor(endpoint),
+      endpoint,
+      keyId: keyIdFor(publicKey),
+      addedRealMs: realMs,
+      failures: 0,
+    });
+    await this.savePushState(state.token, { ...next, seenRealMs: realMs });
+    // The fresh sky is what flips the row: `pushSubscribed` rides `sky` and
+    // only `sky`, exactly as every other piece of this seat's state does.
+    if (state.civId !== null) await this.sendSkyToSeat(state);
+  }
+
+  /** pushUnsubscribe: forget this ONE endpoint. Other devices on the same seat
+   *  are untouched, which is the only promise the hub row makes. Silent on an
+   *  endpoint we never held: this is bookkeeping. */
+  private async onPushUnsubscribe(conn: Connection, endpoint: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined) return;
+    const current = await this.loadPushState(state.token);
+    if (current === null) return;
+    const next = withoutSub(current, await subIdFor(endpoint));
+    if (next === current) return;
+    await this.savePushState(state.token, next);
+    if (state.civId !== null) await this.sendSkyToSeat(state);
+  }
+
+  /**
+   * The three per-seat records the watch derives from, migrated in memory.
+   * Null when the seat has never opened a study or started a project, which is
+   * a seat with nothing to watch.
+   */
+  private async readWatchInputs(token: string, nowYear: number): Promise<WatchInputs | null> {
+    const storedStudies = await this.ctx.storage.get<StoredStudyState>(`studies:${token}`);
+    if (storedStudies === undefined) return null;
+    const storedProjects = await this.ctx.storage.get<StoredProjectState>(`projects:${token}`);
+    if (storedProjects === undefined) return null;
+    const storedMissions = await this.ctx.storage.get<MissionState>(`missions:${token}`);
+    const studyState =
+      storedStudies.version === 4 ? storedStudies : migrateStudyState(storedStudies, nowYear);
+    return {
+      studies: studyState.studies,
+      projectState:
+        storedProjects.version === 3 ? storedProjects : migrateProjectState(storedProjects),
+      missions: storedMissions === undefined ? [] : migrateMissionState(storedMissions).missions,
+    };
+  }
+
+  /**
+   * The years at which one study can change, inside `(fromYear, toYear]`.
+   *
+   * THE BOARD IS A STEP FUNCTION, which is the whole reason the catch-up walk
+   * is cheap: between arrivals nothing about a study moves, because the
+   * hypotheses move when evidence lands and evidence lands only at dated
+   * years. So "was this ever true" becomes a short loop over a short list.
+   *
+   * Three sources, and no fourth. A landed project is deliberately NOT one: a
+   * haste project moves the PREVIEW of a future answer, never an answer
+   * already frozen.
+   */
+  private studyChangePoints(
+    stored: StoredStudy,
+    targetCiv: PlacedCiv,
+    distanceLy: number,
+    missions: readonly StoredMission[],
+    projectState: ProjectState,
+    fromYear: number,
+    toYear: number,
+  ): readonly number[] {
+    const points: number[] = [];
+    // 1. LIGHT. The derived roster's emission epochs are already grown two
+    //    eras past the present (`derivedFold`), so the future ones are
+    //    computed today; an epoch reaches this observer at its own year plus
+    //    the distance.
+    for (const epoch of targetCiv.seed.emissionHistory) {
+      points.push(epoch.fromYear + distanceLy);
+    }
+    // 2. ANSWERS. The same frozen number the assembly uses, from the same
+    //    function, so a haste project that landed after the buy cannot make
+    //    the two disagree.
+    for (const bought of stored.bought) {
+      const def = questionById(bought.id);
+      if (def === undefined) continue;
+      points.push(answersYearFor(def, bought, projectState));
+    }
+    // 3. REPORTS, the light-return leg already inside `expectedArrivals`.
+    for (const m of missions) {
+      if (m.starId !== stored.starId) continue;
+      points.push(
+        ...expectedArrivals(m.kind, m.launchedYear, m.distanceLy, m.flightYearsPerLy, toYear),
+      );
+    }
+
+    const sorted = points
+      .filter((y) => y > fromYear + YEAR_EPS && y <= toYear + YEAR_EPS)
+      .sort((a, b) => a - b);
+    const deduped: number[] = [];
+    for (const year of sorted) {
+      const last = deduped[deduped.length - 1];
+      if (last !== undefined && year - last <= YEAR_EPS) continue;
+      deduped.push(year);
+    }
+    // OLDEST-FIRST at the cap, so a later scan finds the same first firing.
+    return deduped.slice(0, MAX_CHANGE_POINTS);
+  }
+
+  /** This star's mission-report moves as of `year`, and whether one of them
+   *  would already have grounded the study by then. The same loop
+   *  `assembleSkyState` runs, at a year that is not now. */
+  private missionMovesAt(
+    galaxy: Galaxy,
+    civId: string,
+    stored: StoredStudy,
+    missions: readonly StoredMission[],
+    year: number,
+  ): { readonly moves: readonly StudyMove[]; readonly grounds: boolean } {
+    const moves: StudyMove[] = [];
+    let grounds = false;
+    for (const m of missions) {
+      if (m.starId !== stored.starId) continue;
+      const cone = lightConeFor(galaxy, civId, m.targetCivId, year);
+      const plan = resolveMissionPlan(galaxy, cone, m, year);
+      if (plan === null) continue;
+      const found = deriveStudyMoves(galaxy, cone, m, plan, missionArrivalYear(m), year);
+      moves.push(...found);
+      if (found.some((mv) => mv.arrivedYear > stored.openedYear + YEAR_EPS)) grounds = true;
+    }
+    return { moves, grounds };
+  }
+
+  /**
+   * THE ONE FUNCTION, WITH TWO CALLERS: the sky settle (which records what it
+   * finds) and the watch (which counts it). Because both walk from the arming
+   * and stop at the first hit, a firing the watch observes at year Y is still
+   * found by a settle at any later year Z, and the push and the record cannot
+   * disagree. That property is what the whole design was for.
+   *
+   * PURE, and more strongly than the design asked: it touches no storage at
+   * all. Everything it reads was handed in, which is how the alarm path can
+   * claim, greppably, that it writes nothing but `push:`.
+   */
+  private findFirings(civId: string, inputs: WatchInputs, toYear: number): readonly Firing[] {
+    const galaxy = this.requireGalaxy();
+    const firings: Firing[] = [];
+
+    for (const stored of Object.values(inputs.studies)) {
+      // A closed study evaluates no tripwires, and a fired one is done.
+      if (isClosed(stored.status)) continue;
+      const armed = stored.tripwires.filter((t) => t.firedYear === null);
+      if (armed.length === 0) continue;
+      const targetCiv = civAtStar(galaxy, stored.starId);
+      if (targetCiv === undefined) continue;
+      const targetId = targetCiv.seed.id;
+
+      const oldestArming = Math.min(...armed.map((t) => t.armedYear));
+      const fromYear = Math.max(oldestArming, toYear - WATCH_SCAN_YEARS);
+      const points = this.studyChangePoints(
+        stored,
+        targetCiv,
+        civDistanceLy(galaxy, civId, targetId),
+        inputs.missions,
+        inputs.projectState,
+        fromYear,
+        toYear,
+      );
+
+      const remaining = new Map<TripwireKind, number>(armed.map((t) => [t.kind, t.armedYear]));
+      for (const year of points) {
+        if (remaining.size === 0) break;
+        const observed = observeCiv(galaxy, civId, targetId, year);
+        const signal = observed.signal;
+        // The source is not there at that year: nothing about this study can
+        // be evaluated, and nothing later can undo that.
+        if (signal === null) break;
+        // STOP IF THE STUDY WOULD HAVE CLOSED AT OR BEFORE THIS YEAR. A firing
+        // after a closure is one the settle would refuse, so reporting it
+        // would be the push claiming something the record will never carry.
+        if (stored.openedClass !== null && signal.classification !== stored.openedClass) break;
+        const { moves, grounds } = this.missionMovesAt(
+          galaxy,
+          civId,
+          stored,
+          inputs.missions,
+          year,
+        );
+        if (grounds && stored.status === "open") break;
+
+        const cone = lightConeFor(galaxy, civId, targetId, year);
+        const lift = confidenceLiftAt(inputs.projectState, year);
+        const source = toWireSource(
+          lift > 0
+            ? {
+                ...observed,
+                signal: { ...signal, confidence: Math.min(0.95, signal.confidence + lift) },
+              }
+            : { ...observed, signal },
+        );
+        const assembled = buildStudySnapshot(
+          galaxy,
+          cone,
+          source,
+          stored,
+          year,
+          inputs.projectState,
+          moves,
+          null,
+          null,
+        );
+
+        for (const [kind, armedYear] of [...remaining]) {
+          if (year <= armedYear + YEAR_EPS) continue;
+          // BYTE FOR BYTE THE ARMING REFUSAL'S IDIOM (onArmTripwire): one
+          // predicate serving both halves of the contract, exactly as
+          // studies.ts's own comment intends.
+          const holds = tripwireHolds(kind, armedYear, {
+            openQuestions: assembled.snapshot.openQuestions,
+            hypotheses: assembled.snapshot.hypotheses,
+            signal: source.signal,
+            distanceLy: cone.distanceLy,
+          });
+          if (!holds) continue;
+          firings.push({ starId: stored.starId, kind, armedYear, firedYear: year });
+          remaining.delete(kind);
+        }
+      }
+    }
+    return firings;
+  }
+
+  /** A5: `findFirings` reshaped for the settle — per star, per kind, the year
+   *  the condition became true. `buildStudySnapshot` folds it in before its
+   *  own now-year evaluation. */
+  private firedAtMap(
+    civId: string,
+    inputs: WatchInputs,
+    toYear: number,
+  ): ReadonlyMap<string, ReadonlyMap<TripwireKind, number>> {
+    const out = new Map<string, Map<TripwireKind, number>>();
+    for (const firing of this.findFirings(civId, inputs, toYear)) {
+      const forStar = out.get(firing.starId) ?? new Map<TripwireKind, number>();
+      forStar.set(firing.kind, firing.firedYear);
+      out.set(firing.starId, forStar);
+    }
+    return out;
+  }
+
+  /** A watch is a SINGLETON PER SEAT by construction — one id, so
+   *  `pushEvents`' id-idempotency makes a reschedule a replace and the queue
+   *  can never accumulate watches. */
+  private buildWatchEvent(token: string, atYear: number): ScheduledEvent {
+    return { id: `watch/${token}`, atYear, kind: "watch", note: "watch", token };
+  }
+
+  /**
+   * The first year at which any armed, unfired tripwire could change, or the
+   * backstop. Bounded by the backstop on both ends: a change point beyond a
+   * real day is not worth waiting for when a wake a day costs so little.
+   */
+  private nextWatchYear(civId: string, inputs: WatchInputs | null, nowYear: number): number {
+    const backstop = nowYear + WATCH_BACKSTOP_YEARS;
+    if (inputs === null) return backstop;
+    const galaxy = this.requireGalaxy();
+    let soonest: number | null = null;
+    for (const stored of Object.values(inputs.studies)) {
+      if (isClosed(stored.status)) continue;
+      if (!stored.tripwires.some((t) => t.firedYear === null)) continue;
+      const targetCiv = civAtStar(galaxy, stored.starId);
+      if (targetCiv === undefined) continue;
+      const first = this.studyChangePoints(
+        stored,
+        targetCiv,
+        civDistanceLy(galaxy, civId, targetCiv.seed.id),
+        inputs.missions,
+        inputs.projectState,
+        nowYear,
+        backstop,
+      )[0];
+      if (first !== undefined && (soonest === null || first < soonest)) soonest = first;
+    }
+    return soonest ?? backstop;
+  }
+
+  /**
+   * Queue this seat's watch, on every sky send. The horizon pass's mould
+   * exactly, including its self-healing property: a wiped queue costs a push
+   * at most, because the next connect recreates the entry.
+   *
+   * THE COST GATE IS THE FIRST LINE. A player who never enables notifications
+   * has no `push:` key and pays nothing at all on any sky send. Returns
+   * whether this seat holds a subscription, which is what `sky` carries.
+   */
+  private async scheduleWatch(token: string, civId: string, nowYear: number): Promise<boolean> {
+    const state = await this.loadPushState(token);
+    if (state === null) return false;
+    const realMs = Date.now();
+    if (realMs - state.seenRealMs > SEEN_WRITE_GAP_MS) {
+      await this.savePushState(token, { ...state, seenRealMs: realMs });
+    }
+    const inputs = await this.readWatchInputs(token, nowYear);
+    await this.pushEvents([
+      this.buildWatchEvent(token, this.nextWatchYear(civId, inputs, nowYear)),
+    ]);
+    return state.subs.length > 0;
+  }
+
+  /**
+   * What a watch would do, decided and returned WITHOUT doing any of it. The
+   * dev route reports this and sends nothing; `runWatch` acts on it. Sharing
+   * one evaluator is what keeps the test instrument honest.
+   */
+  private async evaluateWatch(token: string, nowYear: number): Promise<WatchVerdict> {
+    const state = await this.loadPushState(token);
+    if (state === null || state.subs.length === 0) {
+      // Push is off for this seat and the watch stops existing.
+      return { reason: "not subscribed", firings: [], rearmYear: null, state: null };
+    }
+    const run = await this.ctx.storage.get<RunRecord>(`run:${token}`);
+    if (run === undefined) {
+      return { reason: "not placed", firings: [], rearmYear: null, state };
+    }
+
+    // AN IN-SESSION FIRING DOES NOT PUSH. The settle runs inside the same sky
+    // send that would have provoked it and flips the badge in front of them; a
+    // banner over the top is the notification telling you about the thing you
+    // are looking at. The permission was asked for absence, too.
+    const live = [...this.conns.values()].some((c) => c.token === token && c.civId !== null);
+    const inputs = await this.readWatchInputs(token, nowYear);
+    const rearmYear = this.nextWatchYear(run.civId, inputs, nowYear);
+    if (live) return { reason: "connection live", firings: [], rearmYear, state };
+
+    // ONE PUSH PER ABSENCE, and the biggest saving in the design: after the
+    // first push this object stops waking for this seat entirely until the
+    // player comes back.
+    if (state.notifiedRealMs > state.seenRealMs) {
+      return { reason: "pushed this absence", firings: [], rearmYear: null, state };
+    }
+    // The watch's own liveness bound: an absent player's watch must not re-arm
+    // forever. The next connect restarts it.
+    if (Date.now() > state.seenRealMs + WATCH_MAX_REAL_MS) {
+      return { reason: "absent too long", firings: [], rearmYear: null, state };
+    }
+
+    const found = inputs === null ? [] : this.findFirings(run.civId, inputs, nowYear);
+    const fresh = found.filter((f) => !state.notified.includes(firingKey(f)));
+    if (fresh.length === 0) {
+      return {
+        reason: found.length === 0 ? "no firing" : "already notified",
+        firings: found,
+        rearmYear,
+        state,
+      };
+    }
+    return { reason: "send", firings: fresh, rearmYear, state };
+  }
+
+  /**
+   * The due watch. Returns the event to re-arm with, or null when the watch
+   * stops existing for this absence.
+   *
+   * It RETURNS the re-arm rather than queueing it, and the caller pushes it
+   * onto its own in-memory copy of the queue — the sentinel re-arm's precedent
+   * at the bottom of `onAlarm`, and for the same reason: the two writes to
+   * "events" in one alarm turn must not race.
+   */
+  private async runWatch(token: string, nowYear: number): Promise<ScheduledEvent | null> {
+    const verdict = await this.evaluateWatch(token, nowYear);
+    const rearm =
+      verdict.rearmYear === null ? null : this.buildWatchEvent(token, verdict.rearmYear);
+    if (verdict.reason !== "send" || verdict.state === null) return rearm;
+
+    const delivered = await deliverWatch(this.env, verdict.state.subs);
+    const realMs = Date.now();
+    const next =
+      delivered.sent > 0
+        ? withNotified(
+            { ...verdict.state, subs: delivered.subs },
+            verdict.firings.map(firingKey),
+            realMs,
+          )
+        : { ...verdict.state, subs: delivered.subs };
+    await this.savePushState(token, next);
+    console.log(
+      `[cohort ${this.name}] watch pushed to ${delivered.sent} device(s) for ${verdict.firings.length} firing(s)`,
+    );
+    // Nothing was recorded when nothing was delivered, so a total failure
+    // re-arms and the next change point is the retry. A delivered push does
+    // not re-arm: one push per absence.
+    return delivered.sent > 0 ? null : rearm;
+  }
+
   /**
    * startProject: commission a project against the civ's free compute. No
    * derivation here beyond calling projects.ts functions: validate, mutate
@@ -3255,6 +3838,12 @@ export class Cohort extends Server<CohortEnv> {
     // the one arrival that exists before any thread does.
     await this.scheduleThreadHorizon(token, civId, nowYear);
 
+    // A5, THE WATCH, beside the horizon pass and self-healing the same way:
+    // every sky send recreates this seat's one watch entry, so a wiped queue
+    // costs a push at most. The cost gate is inside — a seat with no `push:`
+    // key returns before reading anything else.
+    const pushSubscribed = await this.scheduleWatch(token, civId, nowYear);
+
     const budget: ComputeBudget = {
       free: freeComputeAt(projectState, nowYear),
       ratePerYear: ratePerYearAt(projectState, nowYear),
@@ -3342,6 +3931,7 @@ export class Cohort extends Server<CohortEnv> {
       voyages,
       survey,
       ledger,
+      pushSubscribed,
     });
 
     // AFTER the send, always. Generation is considered only once the message
@@ -3476,6 +4066,26 @@ export class Cohort extends Server<CohortEnv> {
     // existed. Every one of them has the same shape of reason as grounding:
     // it must be written, because re-deriving it later would either repeat
     // it forever or lose it entirely.
+    // A5, THE CATCH-UP WALK, and it is the tripwire bullet rather than scope
+    // creep: a condition that held while nobody was looking has fired, and an
+    // order that only fires if you are present at the instant it holds is
+    // exactly the neglect "close the tab for a week" rejects. Two of the three
+    // conditions are not monotone, so before this a condition that came and
+    // went across an absence was simply never recorded.
+    //
+    // It is also what makes the push honest. The SAME `findFirings` answers
+    // both the phone and this record, so the year on `firedYear` is the year
+    // the condition held, and a player who opens the game after a buzz cannot
+    // find a board with nothing on it.
+    //
+    // Costs nothing for a study with nothing armed, which is nearly all of
+    // them: the walk skips them before it derives anything.
+    const firedAt = this.firedAtMap(
+      civId,
+      { studies: studyState.studies, missions: missionState.missions, projectState },
+      nowYear,
+    );
+
     let studyWrites: Record<string, StoredStudy> | null = null;
     const noteWrite = (settled: StoredStudy): void => {
       studyWrites = { ...(studyWrites ?? studyState.studies), [settled.starId]: settled };
@@ -3572,6 +4182,7 @@ export class Cohort extends Server<CohortEnv> {
           missionMoves,
           settled.status === "grounded" ? grounding : null,
           overtaking,
+          firedAt.get(stored.starId) ?? null,
         );
 
         // One write per study, merged from every transition this send found:
@@ -3964,12 +4575,33 @@ export class Cohort extends Server<CohortEnv> {
     }[],
   ): Promise<void> {
     if (inputs.length === 0) return;
+    await this.pushEvents(inputs.map((input) => this.buildWakeEvent(input)));
+  }
+
+  /**
+   * The queue write itself, shared by the wake batch above and A5's watch:
+   * one read, one put, one arm, idempotent by id.
+   *
+   * THE TRIM EXEMPTION IS A5'S. Bounding the queue drops the farthest-future
+   * entry first, which is almost always right and is the wrong guarantee for
+   * the one event that runs while nobody is watching. A watch is near-term by
+   * construction and would almost always survive; "almost always" is not a
+   * liveness story, so every `kind === "watch"` entry is kept unconditionally
+   * and the trim evicts from the rest. There is at most one watch per seat, so
+   * the exemption cannot itself unbound the queue.
+   */
+  private async pushEvents(events: readonly ScheduledEvent[]): Promise<void> {
+    if (events.length === 0) return;
     const pending = (await this.ctx.storage.get<ScheduledEvent[]>("events")) ?? [];
-    const events = inputs.map((input) => this.buildWakeEvent(input));
     const ids = new Set(events.map((e) => e.id));
     let queue = [...pending.filter((e) => !ids.has(e.id)), ...events];
     if (queue.length > MAX_PENDING_EVENTS) {
-      queue = queue.sort((a, b) => a.atYear - b.atYear).slice(0, MAX_PENDING_EVENTS);
+      const watches = queue.filter((e) => e.kind === "watch");
+      const rest = queue
+        .filter((e) => e.kind !== "watch")
+        .sort((a, b) => a.atYear - b.atYear)
+        .slice(0, Math.max(0, MAX_PENDING_EVENTS - watches.length));
+      queue = [...watches, ...rest];
     }
     await this.ctx.storage.put("events", queue);
     await this.armAlarm(queue);
@@ -4140,6 +4772,12 @@ export class Cohort extends Server<CohortEnv> {
     if (request.method === "POST" && action === "event") return this.devScheduleEvent(request);
     if (request.method === "GET" && action === "events") return this.devEvents();
     if (request.method === "POST" && action === "skip") return this.devSkip(request);
+    // A5's three. `/dev/watch` is the slice's test instrument: it runs the
+    // whole watch evaluation and reports what it found and whether it WOULD
+    // push, without sending anything and without writing anything.
+    if (request.method === "GET" && action === "push") return this.devPush(url);
+    if (request.method === "POST" && action === "watch") return this.devWatch(request);
+    if (request.method === "GET" && action === "vapid") return this.devVapid(url);
     return json({ error: "not found" }, 404);
   }
 
@@ -4171,6 +4809,17 @@ export class Cohort extends Server<CohortEnv> {
       console.log(
         `[cohort ${this.name}] event fired at year ${nowYear.toFixed(3)}: ${event.kind}: ${event.note}`,
       );
+
+      // A5: the watch, above the wake branch. It derives, decides and may
+      // send, and the only key it writes is `push:${token}`. Its re-arm is
+      // appended to THIS turn's in-memory `rest` for the same reason the
+      // sentinel's is, at the bottom of this loop: the two writes to "events"
+      // in one alarm turn must not race.
+      if (event.kind === "watch" && event.token !== undefined) {
+        const next = await this.runWatch(event.token, nowYear);
+        if (next !== null) rest.push(next);
+        continue;
+      }
 
       if (event.kind !== "wake" || event.token === undefined) continue;
       const token = event.token;
@@ -4355,6 +5004,70 @@ export class Cohort extends Server<CohortEnv> {
     return json({ scheduled: event, nowYear });
   }
 
+  /**
+   * A5: one seat's push record. HOSTS, NEVER ENDPOINTS — a push endpoint is a
+   * bearer capability (anyone holding it can buzz that phone), and a dev route
+   * that printed one would be a way to lift it out of storage.
+   */
+  private async devPush(url: URL): Promise<Response> {
+    const token = url.searchParams.get("token");
+    if (token === null) return json({ error: "token query param required" }, 400);
+    const state = await this.loadPushState(token);
+    const pending = (await this.ctx.storage.get<ScheduledEvent[]>("events")) ?? [];
+    const watch = pending.find((e) => e.id === `watch/${token}`) ?? null;
+    return json({
+      nowYear: this.nowYear(),
+      configured: vapidPublicKey(this.env) !== null,
+      state:
+        state === null
+          ? null
+          : {
+              subs: state.subs.map((s) => ({
+                id: s.id,
+                host: new URL(s.endpoint).host,
+                keyId: s.keyId,
+                addedRealMs: s.addedRealMs,
+                failures: s.failures,
+              })),
+              notified: state.notified,
+              notifiedRealMs: state.notifiedRealMs,
+              seenRealMs: state.seenRealMs,
+            },
+      watchYear: watch?.atYear ?? null,
+    });
+  }
+
+  /** A5: run the watch evaluation NOW and report it. SENDS NOTHING and writes
+   *  nothing, which is what makes it safe to hit in a loop while reading the
+   *  same seat's `/dev/push`. */
+  private async devWatch(request: Request): Promise<Response> {
+    const nowYear = this.nowYear();
+    if (nowYear === null) return json({ error: "not seeded: POST /dev/seed first" }, 404);
+    const body = await parseBody(request);
+    const token = stringField(body, "token");
+    if (token === undefined) return json({ error: "token (string) required" }, 400);
+    const verdict = await this.evaluateWatch(token, nowYear);
+    return json({
+      nowYear,
+      wouldPush: verdict.reason === "send",
+      reason: verdict.reason,
+      firings: verdict.firings,
+      rearmYear: verdict.rearmYear,
+      subs: verdict.state?.subs.length ?? 0,
+    });
+  }
+
+  /** A5: the exact Authorization header the Worker would send to one
+   *  audience. Local-only, and it hands out nothing about anybody: the JWT is
+   *  a claim about this deployment. */
+  private async devVapid(url: URL): Promise<Response> {
+    const audience = url.searchParams.get("aud");
+    if (audience === null) return json({ error: "aud query param required" }, 400);
+    const authorization = await vapidAuthorization(this.env, audience);
+    if (authorization === null) return json({ error: "no VAPID keypair configured" }, 404);
+    return json({ audience, authorization, publicKey: vapidPublicKey(this.env) });
+  }
+
   private async devEvents(): Promise<Response> {
     const pending = (await this.ctx.storage.get<ScheduledEvent[]>("events")) ?? [];
     const log = (await this.ctx.storage.get<FiredEvent[]>("eventLog")) ?? [];
@@ -4454,6 +5167,11 @@ export class Cohort extends Server<CohortEnv> {
       // record of what its parent concluded about it belongs to that parent.
       `orders:${token}`,
       `ledger:${token}`,
+      // A5: the subscriptions go with the run. A shared device whose seat was
+      // reset must not keep buzzing for a civilization that is not its
+      // player's any more, and the local half (the browser's own
+      // `subscription.unsubscribe()`) is startover.ts's.
+      `push:${token}`,
     ]);
 
     // A4: the STORED roster, and the voyage record is deliberately LEFT ALONE.

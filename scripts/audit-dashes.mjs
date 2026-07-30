@@ -182,6 +182,12 @@ const sources = [
   ...tsFiles(join(root, "server/src")),
   // The social card is drawn from this file's own tagline literal.
   join(root, "scripts/build-og.mjs"),
+  // A5: the service worker's two notification lines are the only prose a
+  // player ever reads outside the app, and they are authored here rather than
+  // sent, because the push carries no payload. It joins the LITERAL scanner
+  // and not the whole-file group below: the file is commented like the rest of
+  // the sources.
+  join(root, "client/public/sw.js"),
 ];
 
 let scanned = 0;

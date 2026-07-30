@@ -1308,3 +1308,71 @@ band, and a thread that opens itself.
 EvidenceEntry.id off the array index first), a line of chrome for
 the vanished cloister's closed study, retunes as diffs to
 BEHAVIOR_RULES only, and the successor problem (cohort seeding).
+
+## §17 Web push (A5, as built)
+
+The second half of the tripwire bullet: in-app shipped with A2.3, and
+now the phone. A player arms a tripwire, closes the tab for a week,
+and their device says when a watch trips. At five real minutes per
+game year a week away is two thousand years of galaxy, so the push is
+the async spine's basic need answered: absence becomes fiction
+instead of neglect.
+
+**Payload-free, structurally.** The POST body is empty; the service
+worker (client/public/sw.js, no fetch handler, no caching) shows one
+fixed line, "A watch tripped. One of the conditions you left standing
+now holds. The board has the rest." The server stores no subscriber
+key material (no p256dh, no auth), so no code path could put a fact
+on a push service's wire even if a later change tried. The content
+waits behind the tap, in the game, through the cone, as always.
+
+**The watch.** A tripwire's condition can change only at a dated
+arrival: a grown emission epoch reaching the observer, a bought
+question answering, a probe report landing. scheduleWatch computes
+each seat's next change point and puts one singleton, trim-exempt
+watch event on the existing alarm queue (backstop one real day);
+runWatch re-derives, decides, sends, and writes only push:<token>.
+Alarms stay wake-ups, never truth: the saveStudyState writer set is
+byte-identical to before the slice. One push per absence; the alarm
+chain stops after a push and the next connect restarts it. A seat
+with no subscription pays nothing on any sky send.
+
+**The catch-up walk.** Two of the three tripwire kinds are not
+monotone; a condition that held and stopped holding across an
+absence was previously never recorded. findFirings walks a study's
+change points oldest-first and finds the first year each armed kind
+held; it has exactly two callers, the watch (which only counts) and
+the sky settle (which records), so the push and the board cannot
+disagree. firedYear now carries the year the condition held rather
+than the year somebody looked: a behavior change to a shipped A2.3
+surface, and the bullet's own intent.
+
+**Consent and the cliff.** The ask is spent at the first successful
+arming, once per seat, on the account sheet's mould; never on load,
+never where it cannot be granted. The hub row is the settings
+surface and speaks for this device only. On iOS, push needs the app
+on the Home Screen, and the inert row says exactly that. One denial
+is permanent, so every never-ask branch is load-bearing.
+
+**Crypto with zero dependencies.** VAPID ES256 on crypto.subtle: the
+private key is a JWK in a Workers secret, signatures come out raw
+P1363 which is exactly what JWS wants (no DER anywhere in the
+slice), JWTs are cached per audience, and a boot assertion rebuilds
+the public key from the JWK and disables push on mismatch. Rotation
+is destructive by nature; keyId cleanup plus the boot re-sync heal
+it. Client-supplied endpoints pass an https-plus-allowlist SSRF gate
+before the Worker will fetch them.
+
+**Verified without a push service**: HOLOS_PUSH_DRY_RUN plus
+/dev/push, /dev/watch, /dev/vapid drive the whole path headlessly,
+including the load-bearing consistency check (the recorded firedYear
+equals the change point the watch reported). The one leg this
+environment cannot verify is a bodyless push delivering on real iOS
+hardware; docs/playtest.md carries that checklist.
+
+**Deferred, seams named**: pushes for a first hail and for probe
+reports (the change-point machinery generalizes), re-notify on long
+absence, a notification inbox (never), email (no), per-tripwire
+preferences, offline caching. Standing orders are structurally
+blocked from push: an order has not fired until the settle fires it,
+and no alarm may fire one.

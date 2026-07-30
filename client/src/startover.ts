@@ -13,6 +13,7 @@
 
 import { clearPendingBecome } from "./ceremony";
 import { clearStoredToken, cohortUrl, readStoredToken } from "./net";
+import { unsubscribeLocally } from "./push";
 
 /**
  * Erase this browser's run and reload into a fresh inheritance ceremony.
@@ -35,6 +36,12 @@ export async function startOver(): Promise<void> {
       throw new Error(`forget refused: ${response.status}`);
     }
   }
+
+  // A5: the seat is gone, so this device's watch goes with it. The server
+  // half is /dev/forget, which deletes `push:${token}` along with the rest;
+  // this is the browser half, and without it a phone would keep a live
+  // subscription pointed at a civilization that is no longer anybody's.
+  await unsubscribeLocally();
 
   clearStoredToken();
   clearPendingBecome();

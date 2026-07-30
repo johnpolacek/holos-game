@@ -1132,6 +1132,16 @@ export interface ContactWire {
  */
 export const MAX_ACCOUNT_KEY_ON_WIRE = 64;
 
+/**
+ * A5: the bound on a push endpoint the parse layer will accept. Push services
+ * mint long opaque URLs (FCM's run to about two hundred characters), so this
+ * is generous by a wide margin and exists only so a hostile client cannot
+ * spend a kilobyte of storage per message. The VOCABULARY of a legal endpoint
+ * — https, a default port, an allowlisted host — belongs to push.ts's
+ * `validatePushEndpoint`, which mirrors this bound as its own second gate.
+ */
+export const MAX_PUSH_ENDPOINT_CHARS = 1024;
+
 // client → server (UNTRUSTED — every field guarded on parse)
 export type CohortClientMessage =
   /**
@@ -1230,7 +1240,19 @@ export type CohortClientMessage =
   // it is bookkeeping (the declineProposal precedent), and a starId naming
   // no thread simply produces a null detail, which is also the answer for a
   // starId naming nothing at all — so it cannot be used as an oracle.
-  | { type: "openThread"; starId: string | null };
+  | { type: "openThread"; starId: string | null }
+  // ── A5 ──
+  // WEB PUSH, and the shape is the whole no-leak argument. The endpoint is a
+  // bare string: the parse layer checks SHAPE (a string, bounded) and the
+  // handler owns the vocabulary (https, an allowlisted host) and the error
+  // code, the `launchMission.kind` precedent again.
+  //
+  // There is no key material on either message and there is deliberately no
+  // field for any. The server does not encrypt push payloads and must not be
+  // able to: it holds no `p256dh` and no `auth`, so there is no code path that
+  // could put a fact on a push service's wire even if a later change tried.
+  | { type: "pushSubscribe"; endpoint: string }
+  | { type: "pushUnsubscribe"; endpoint: string };
 
 // server → client
 export type CohortServerMessage =
@@ -1252,7 +1274,18 @@ export type CohortServerMessage =
       clock: ClockWire; catalog: readonly Star[]; menus: HypothesisMenus;
       missionCatalog: MissionCatalog;
       // ── A4 ──
-      voyageCatalog: VoyageCatalog }
+      voyageCatalog: VoyageCatalog;
+      // ── A5 ──
+      /**
+       * The VAPID application server key this deployment subscribes with, or
+       * null when no keypair is configured (the dev default: the client never
+       * asks, the hub row never renders).
+       *
+       * It sits on `welcome` beside the catalogs because it is a CONSTANT OF
+       * THE DEPLOYMENT, identical for every player, and therefore incapable
+       * of carrying anything about anyone.
+       */
+      push: { publicKey: string } | null }
   /**
    * A2.6: THE ONE MESSAGE THAT CARRIES A KEY, and the greppable form of that
    * claim is that `accountKey` appears in exactly one arm of this union.
@@ -1285,7 +1318,20 @@ export type CohortServerMessage =
       survey: readonly SurveyRow[];
       // The Ledger: what became of those foundings, and what the standing
       // orders have done. Bounded by the same voyage cap the list above is.
-      ledger: LedgerWire }
+      ledger: LedgerWire;
+      // ── A5 ──
+      /**
+       * Whether the server currently holds at least one push subscription for
+       * this seat, on any device. A fact about the reader's own account and
+       * about nothing else.
+       *
+       * It is deliberately NOT per-device: the server does not know which
+       * browser is asking, and matching endpoints on the wire would mean the
+       * client telling the server which one it is on every sky. The client
+       * combines this with its own `pushManager.getSubscription()` for the
+       * device-local half.
+       */
+      pushSubscribed: boolean }
   | { type: "sourceNamed"; starId: string; name: string }
   /** A re-anchored clock, pushed when the server moves the anchor under a
    *  live connection (today only the dev time-skip; a future ratio retune
@@ -1364,7 +1410,14 @@ export type CohortErrorCode =
   // something already true would be the order reading the past). It says
   // nothing about the sky: the arming names no star, so the refusal cannot
   // answer a question about one.
-  | "order-unavailable";
+  | "order-unavailable"
+  // ── A5 ──
+  // The endpoint this device offered is one the server will not fetch: a
+  // scheme, a port or a host that is not a push service. It says nothing
+  // about the sky and nothing about anyone else — the client handed the
+  // string over and is being told its own string was refused — and it exists
+  // so the hub row can flip back instead of claiming a watch nobody holds.
+  | "push-unavailable";
 
 /** Parse-time bound on the untrusted `launchMission.charter` array (a parse
  *  concern); the 2–3 count rule and one-per-group rule are handler concerns
@@ -1841,6 +1894,30 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
     (msg["starId"] === null || typeof msg["starId"] === "string")
   ) {
     return { type: "openThread", starId: msg["starId"] };
+  }
+
+  // A5: no error code on a malformed push message, the `voiceSeen` /
+  // `declineProposal` precedent. It is bookkeeping — dropping it means this
+  // device's notifications stay as they were until the next boot re-sync —
+  // and the client's global error handler releases in-flight purchase flags
+  // on ANY "error" message, so a code here would cancel a real in-progress
+  // buy for a subscription that missed. A REJECTED endpoint is a different
+  // matter and does answer (`push-unavailable`), because the row has to stop
+  // pretending; that decision belongs to the handler.
+  if (
+    msg["type"] === "pushSubscribe" &&
+    typeof msg["endpoint"] === "string" &&
+    msg["endpoint"].length <= MAX_PUSH_ENDPOINT_CHARS
+  ) {
+    return { type: "pushSubscribe", endpoint: msg["endpoint"] };
+  }
+
+  if (
+    msg["type"] === "pushUnsubscribe" &&
+    typeof msg["endpoint"] === "string" &&
+    msg["endpoint"].length <= MAX_PUSH_ENDPOINT_CHARS
+  ) {
+    return { type: "pushUnsubscribe", endpoint: msg["endpoint"] };
   }
 
   return null;

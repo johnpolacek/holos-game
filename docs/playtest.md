@@ -111,6 +111,97 @@ curl -X POST http://localhost:8787/parties/cohort/genesis/dev/forget \
 To reset everything instead, stop `wrangler dev`, delete `.wrangler/`
 (the local Durable Object storage) and `.playtest/`, and start again.
 
+## Testing push without a push service
+
+A5 sends a payload-free notification when a tripwire you left standing
+comes true while you are away. Almost all of it can be exercised on a
+laptop with no phone and no push service at all.
+
+Put a throwaway keypair (docs/deploy.md § Web push has the generator)
+plus these two lines in `.dev.vars`, and restart `wrangler dev`:
+
+```
+HOLOS_PUSH_DRY_RUN = "on"
+HOLOS_DEV_ENDPOINTS = "on"
+```
+
+Dry run logs the request (host, TTL, Topic, the head of the JWT) and
+answers a synthetic 201 without opening a socket. A bare status instead
+of `on` answers that status, so `HOLOS_PUSH_DRY_RUN = "410"` is how you
+watch a dead subscription get deleted.
+
+Three routes, on the same `/parties/cohort/<room>/dev/<action>` shape as
+everything else:
+
+```sh
+# What this seat has subscribed, what it has been told about, and the
+# year its watch is queued for. Hosts, never endpoints: an endpoint is a
+# bearer capability.
+curl 'http://localhost:8787/parties/cohort/genesis/dev/push?token=…'
+
+# Run the whole watch evaluation NOW and report it. SENDS NOTHING and
+# writes nothing, so it is safe to hit in a loop.
+curl -X POST http://localhost:8787/parties/cohort/genesis/dev/watch \
+  -H 'content-type: application/json' -d '{"token":"…"}'
+
+# The exact Authorization header the Worker would send to one audience.
+curl 'http://localhost:8787/parties/cohort/genesis/dev/vapid?aud=https://fcm.googleapis.com'
+```
+
+`/dev/watch` answers `wouldPush` plus a `reason`, and the reason is the
+whole diagnostic vocabulary: `not subscribed`, `connection live` (a tab
+is open on that seat, so the board is already saying it), `pushed this
+absence` (one push per absence, by design), `absent too long`, `no
+firing`, `already notified`, or `send`.
+
+The loop that proves the feature: arm a tripwire in the browser and
+accept the sheet, `POST /dev/skip` past a change point, close the tab,
+then `POST /dev/watch`. It reports the firing and the year it happened
+in. Reconnect, and the study board shows that tripwire TRIPPED with the
+**same year** on it — not the year you reconnected. The push and the
+record are produced by the same function, and that is the property worth
+checking if anything about this ever looks wrong.
+
+To check the signature the push services will check, verify a minted JWT
+against the public key:
+
+```sh
+node -e '
+const { webcrypto: c } = require("node:crypto");
+const [pub, auth] = process.argv.slice(1);
+(async () => {
+  const jwt = auth.match(/t=([^,]+)/)[1];
+  const [h, p, s] = jwt.split(".");
+  const b = (t) => Buffer.from(t, "base64url");
+  const key = await c.subtle.importKey("raw", b(pub), { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+  const ok = await c.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, key, b(s), Buffer.from(h + "." + p));
+  console.log({ ok, header: JSON.parse(b(h)), claims: JSON.parse(b(p)), sigBytes: b(s).length });
+})();
+' "$PUBLIC_KEY" "$AUTHORIZATION"
+```
+
+Expect `ok: true`, `sigBytes: 64` (raw P1363, never DER), an `aud` equal
+to the origin you asked for, an `exp` no more than twenty-four hours
+out, and a `sub` that parses as a URI.
+
+### On real hardware, before you trust it
+
+The one leg that cannot be driven from a laptop, and it is the leg the
+design rests on: a bodyless push has to actually reach a device.
+
+1. **iPhone.** Add the site to the Home Screen (iOS 16.4 or newer; Web
+   Push does not exist in the Safari tab, which is why the hub row says
+   so instead of shrugging). Open it from the Home Screen, arm a
+   tripwire, accept the sheet, background the app, skip the clock past a
+   change point and confirm the banner arrives.
+2. **Android Chrome and desktop Firefox.** The same run. Between the
+   three you have exercised all three push services, and therefore all
+   three `aud` values the JWT is minted for.
+
+If a payload-free push is ever rejected or silently dropped by one of
+them, that is the finding that would force encrypted payloads (RFC
+8291), which the design deliberately does not build.
+
 ## What the bots actually do
 
 One action per tick, on a seeded fifteen to forty second jitter, chosen
