@@ -1376,3 +1376,64 @@ absence, a notification inbox (never), email (no), per-tripwire
 preferences, offline caching. Standing orders are structurally
 blocked from push: an order has not fired until the settle fires it,
 and no alarm may fire one.
+
+## §18 Seeding and the frontier (A5, as built)
+
+The last Phase A slice: the galaxy-generation retune act3-design.md's
+"silence, kept" section handed to whoever owned it, the outward join,
+and the held stars. Three parts, all server-side, all derived; the
+wire, the client and civseed.ts are untouched by construction.
+
+**The posture mix.** generateGalaxy draws a target posture per seeded
+civilization (BRIGHT_SHARE per age band: young one in four, peer one
+in eight, elder one in twelve) and redraws the catalog chain until a
+character fits, eight attempts before taking what it is given. The
+mix chooses which civilizations exist, never what a civilization is:
+no dark Beacons, no bright Cloisters, the chain's own distribution
+conditioned on posture. Measured across three hundred cohorts with
+grown behavior applied, the loud fraction falls from about half to
+one in five at steady state, and the sign of aging flips: the fades
+now outweigh the pulses once the wakings are done, so the sky gets
+quieter as it ages, which is what pillar one always claimed. The
+opening sky stays deliberately hotter (about a third loud at year
+zero, settling within four real hours): young worlds mid-adolescence
+and dark peers' flares still in flight are the two transients the
+design blessed. The cost is named: bright archetypes fall from three
+per cohort to about one, and BRIGHT_SHARE.young is the lever if
+playtest finds the sky characterless rather than quiet.
+
+**The frontier.** pickPlayerHome keeps its contract (innermost
+eligible star, null when full) and its floor grows: two light-years
+of required separation per seated player, capped at just over half
+the neighborhood radius, colonies counted as occupancy but not as
+seats. The first joiner lands exactly where they always did; the
+sixth lands with ten-plus light-years of quiet and reads their
+nearest neighbor at about seventy real minutes one way instead of
+twenty-seven. Within a cohort the frontier buys hours, not years;
+the "years of real time" insulation in the topology note is a
+cohort-to-cohort claim, and cohorts still do not touch.
+
+**Reserved sky.** Six outer-shell stars per cohort, chosen by a
+derived predicate keyed on the cohort's own seed (reservedStarIds:
+definition plus exactly four call sites, AI seeding, placement, the
+survey board, voyage launch; the greppable contract). Never stored,
+never sent, and silent by design: the survey simply offers the
+next-nearest star, and a voyage aimed at a reserved star answers the
+same bad-message a typo gets, because a refusal a player can
+distinguish from a mistake is a leak about content that does not
+exist yet. Existing cohorts get their reserved set the moment this
+ships, derived from what is already on disk; an incumbent civ on a
+newly reserved star (about one in five cohorts) is left where it is.
+The honest limit, recorded so nobody ships against it: the stars are
+held, the protection is Phase B's. Inside a 25 ly sphere nothing is
+beyond practical reach; Phase B owes either geometry (an outer band
+beyond the seeded radius) or a rule on the civilization (arrivals
+before ascension refused), and should decide before B1.
+
+**Flagged, not fixed**: the industrial emission band sits wholly at
+or above LEAKAGE_FLOOR, so a young world's whole adolescence reads
+loud (a rise you could watch would need the band widened downward,
+a content change to the class a player reads); and the shepherd's
+bright default posture contradicts its own charter (a one-word flip
+worth half a point of loudness, but a change to what the archetype
+is). Both belong to later slices.
