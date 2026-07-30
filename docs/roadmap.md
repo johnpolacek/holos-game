@@ -505,11 +505,16 @@ A3's was all of it.)
 
 ### A5 — A living galaxy
 
-- [ ] **Tripwires + notifications** — the engagement pressure valve
-      (act3-design.md § Sleep and tripwires; sleep itself demoted to
-      fiction and AI content, working decision 2026-07 — a player taking
-      no actions is already the quiet state); in-app first, web push
-      after.
+- [x] **Tripwires + notifications** *(completed 2026-07)* — the
+      engagement pressure valve (act3-design.md § Sleep and tripwires;
+      sleep itself demoted to fiction and AI content, working decision
+      2026-07 — a player taking no actions is already the quiet state).
+      In-app shipped with A2.3; web push shipped: payload-free VAPID
+      pushes off the alarm queue's predictive watch, the catch-up walk
+      (a condition that held while nobody looked now fires, dated at
+      the year it held), and the one-fixed-line service worker. As-built
+      record: systems-a.md §17. Real-iOS delivery check remains on the
+      playtest runbook.
 - [x] **AI civ behavior (grown)** *(shipped 2026-07)*: the archetype
       spectrum acting over time — cadence shapes per archetype, reactive
       kindles/flinches/skips/hastens, the young-civ waking, and the
