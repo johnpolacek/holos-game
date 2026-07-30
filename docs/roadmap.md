@@ -197,11 +197,11 @@ drift and the conversation brake, and standing orders; systems-a.md
 §15 is the as-built record. **A5 is now the sole unbuilt Phase A
 stage**, and the fun gate remains A2's open exit condition.
 
-**A5's grown-behavior bullet shipped (2026-07)** — every AI
-civilization's light now moves on its archetype's own cadence and
-reacts to what its cone shows it, derived at read time and stored
-nowhere; systems-a.md §16 is the as-built record. A5 still owes
-cohort seeding + frontier and web push.
+**A5 is complete (2026-07)** — grown behavior (systems-a.md §16), web
+push for tripwires (§17), and the seeding retune + frontier + reserved
+sky (§18) all shipped. **Every Phase A build item is now done**; the
+open exit condition for the phase is A2's fun gate (two phones, one
+evening), which is a playtest, not a build.
 
 **→ Previously next (now shipped in code): AV — the voice.** Decided
 2026-07: the shipped game has the machinery but no narrator — the
@@ -521,9 +521,15 @@ A3's was all of it.)
       congress's unprompted opener — derived at read time as a pure
       function of the seeds, the act log and the voyage record, stored
       nowhere, hidden by light-lag. As-built record: systems-a.md §16.
-- [ ] **Cohort seeding + frontier (thin)**: new players seed outward;
-      regions reserved for future Phase B incubators (protected
-      incubation, act3-design.md § Topology).
+- [x] **Cohort seeding + frontier (thin)** *(shipped 2026-07)*: the
+      posture mix (one seeded civ in five loud, the checked constraint
+      enforced; the sky now ages quieter), new players seed outward (the
+      separation floor grows per seat; joiner one unchanged), and six
+      derived reserved stars per cohort held for Phase B incubators —
+      never stored, never sent, refusals indistinguishable from typos.
+      The stars are held; the protection itself is Phase B's (geometry
+      or an arrivals-before-ascension rule, decide before B1). As-built
+      record: systems-a.md §18.
 
 **Phase A ships** as the v1 galaxy: inherit a mind, read the sky, meet
 someone, launch a child, step away under tripwires. The whole loop of the

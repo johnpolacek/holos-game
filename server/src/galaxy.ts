@@ -11,14 +11,24 @@
 // ~0.004 stars/ly^3 (~0.12 pc^-3) and a class mix dominated by M dwarfs,
 // which also matches the cradle catalog's skew.
 
-import { generateCivSeed, type CivId, type CivSeed } from "./civseed";
+import {
+  generateCivSeed,
+  type AgeBand,
+  type CivId,
+  type CivSeed,
+  type GenerateCivParams,
+} from "./civseed";
 // Type-only: the dated dial record a derived colony carries. dials.ts imports
 // nothing, so this pulls no runtime behind it.
 import type { DialEpoch } from "./dials";
 // Type-only, so nothing of contact.ts's runtime is pulled in behind the
 // galaxy record (contact.ts imports this module in turn; the cycle is erased).
 import type { ContactAct } from "./contact";
-import type { Rng } from "./rng";
+// Type-only, so nothing of minds.ts's catalog is pulled in behind a posture.
+import type { Posture } from "./minds";
+// `createRng` at run time: the reserved set below is keyed on the cohort's own
+// seed key, and a derived truth may not reach for an unseeded die.
+import { createRng, type Rng } from "./rng";
 
 export type StarId = string;
 
@@ -190,15 +200,85 @@ export interface Galaxy {
   readonly acts: readonly ContactAct[];
 }
 
+// ---------------------------------------------------------------------------
+// Reserved sky (a5-seeding-note §3)
+// ---------------------------------------------------------------------------
+
+/**
+ * Stars held out of this cohort for Phase B's incubator worlds (act3-design.md
+ * § Topology, Protected incubation). Held from SEEDING, PLACEMENT and VOYAGE
+ * DESTINATIONS, and from nothing else: to every read path a reserved star is
+ * ordinary empty sky, because a region a player can see is fenced is a leak
+ * about content that does not exist yet.
+ *
+ * DERIVED, LIKE EVERY OTHER TRUTH IN THIS GAME. A pure function of the stored
+ * `seedKey` and the stored star catalog, computed at read time and written
+ * nowhere. No field on `Star`, no key in storage, no byte on the wire, no
+ * migration, and no second copy of the answer free to disagree with the first.
+ * Existing cohorts get their reserved set the moment this ships, derived from
+ * what is already on disk.
+ *
+ * What it does NOT yet buy is the protection: a reserved star inside a 25 ly
+ * sphere is a century by seedship, not "beyond practical reach". The stars are
+ * held; the guarantee is Phase B's to build on top of them.
+ */
+export const RESERVED_STAR_COUNT = 6;
+
+/** Reservations live in the outer shell: the incubation promise is about
+ *  distance, so the carve-out starts where distance starts to mean something. */
+export const RESERVE_MIN_RADIUS_FRACTION = 0.7;
+
+/** Memoized on the CATALOG'S IDENTITY. `galaxy.stars` is the same array object
+ *  across a derived fold, so the sort below runs once per Durable Object
+ *  lifetime rather than once per guard. */
+const RESERVED_CACHE = new WeakMap<readonly Star[], ReadonlySet<StarId>>();
+
+/**
+ * Which stars this cohort is holding. Keyed on `seedKey` and not on star id
+ * alone: otherwise `st-0183` would be reserved in every cohort in the game,
+ * which is a cross-cohort tell that survives any amount of care on the wire.
+ *
+ * SCATTERED, NOT CONTIGUOUS. A fenced volume is precisely the visible shape the
+ * brief forbids, and Phase B needs a star per incubating world rather than a
+ * region. Six stars drawn from the outer shell read as ordinary sparse sky from
+ * every direction; the "region" that is reserved is the shell, and which six of
+ * its stars are held is unguessable without the key.
+ */
+export function reservedStarIds(galaxy: Galaxy): ReadonlySet<StarId> {
+  const cached = RESERVED_CACHE.get(galaxy.stars);
+  if (cached !== undefined) return cached;
+  const origin: Vec3Ly = { x: 0, y: 0, z: 0 };
+  const inner = RESERVE_MIN_RADIUS_FRACTION * galaxy.config.radiusLy;
+  const ids: ReadonlySet<StarId> = new Set(
+    galaxy.stars
+      .filter((s) => distanceLy(s.position, origin) >= inner)
+      .map((s) => ({ star: s, key: createRng(`${galaxy.seedKey}/reserve/${s.id}`).next() }))
+      .sort((a, b) => a.key - b.key || a.star.id.localeCompare(b.star.id))
+      .slice(0, RESERVED_STAR_COUNT)
+      .map((x) => x.star.id),
+  );
+  RESERVED_CACHE.set(galaxy.stars, ids);
+  return ids;
+}
+
 /** Minimum separation between civilization home stars, in light-years. */
 const MIN_CIV_SEPARATION_LY = 3;
 
-function pickHomeStars(rng: Rng, stars: readonly Star[], count: number): Star[] {
+function pickHomeStars(
+  rng: Rng,
+  stars: readonly Star[],
+  count: number,
+  reserved: ReadonlySet<StarId>,
+): Star[] {
   const homes: Star[] = [];
   let attempts = 0;
   while (homes.length < count && attempts < count * 200) {
     attempts++;
     const candidate = rng.pick(stars);
+    // A reserved star hosts nobody, so the draw simply spends an attempt on it
+    // and moves on; the shell is thin enough that the seeding distribution does
+    // not notice (about a fifth of a collision per cohort, measured).
+    if (reserved.has(candidate.id)) continue;
     if (homes.some((h) => h.id === candidate.id)) continue;
     const tooClose = homes.some(
       (h) => distanceLy(h.position, candidate.position) < MIN_CIV_SEPARATION_LY,
@@ -214,11 +294,57 @@ function pickHomeStars(rng: Rng, stars: readonly Star[], count: number): Star[] 
 }
 
 /** The galaxy's age mix for seeded AI civs (vision.md: seed the whole spectrum). */
-function drawAgeBand(rng: Rng): "young" | "peer" | "elder" {
+function drawAgeBand(rng: Rng): AgeBand {
   const roll = rng.next();
   if (roll < 0.2) return "elder";
   if (roll < 0.45) return "young";
   return "peer";
+}
+
+/**
+ * The galaxy's posture mix, per age band: P(bright). The sibling of
+ * `drawAgeBand`, and the one knob that sets how much of the sky reads loud
+ * (act3-design.md § The constraint that can be checked).
+ *
+ * The elder number is the expensive one: a bright elder shines from year zero
+ * for the life of the cohort, where a bright young world is loudness that
+ * ARRIVES during play, hours in, when it wakes. So the ancients are held to one
+ * in twelve and the young are the mix's spending money.
+ */
+const BRIGHT_SHARE: Readonly<Record<AgeBand, number>> = {
+  young: 0.25,
+  peer: 0.12,
+  elder: 0.08,
+};
+
+/** How many characters the chain may offer before the mix gives up and takes
+ *  what it is given. Eight leaves under half a percent of civs off-target. */
+const POSTURE_DRAW_ATTEMPTS = 8;
+
+function drawPosture(rng: Rng, band: AgeBand): Posture {
+  return rng.next() < BRIGHT_SHARE[band] ? "bright" : "dark";
+}
+
+/**
+ * Draw until the catalog chain produces a character whose posture is the one
+ * the galaxy wants. Each attempt is its own fork, so attempt k is a pure
+ * function of (cohort, civ index, k) and the parent stream is untouched.
+ *
+ * THE MIX CHOOSES WHICH CIVILIZATIONS EXIST, NEVER WHAT A CIVILIZATION IS.
+ * `civseed.ts` is not edited and `GenerateCivParams` gains no field: handing
+ * the generator a target posture would produce dark Beacons and bright
+ * Cloisters, contradicting the archetype's own charter and every downstream
+ * reader that assumes character and posture agree (`charterPosture`,
+ * `maskTierAt`, behavior.ts's wakings). Redrawing instead yields the chain's
+ * own distribution conditioned on posture. A Beacon still shines; there are
+ * simply fewer Beacons.
+ */
+function drawSeedWithPosture(rng: Rng, params: GenerateCivParams, want: Posture): CivSeed {
+  let seed = generateCivSeed(rng.fork("posture/0"), params);
+  for (let a = 1; a < POSTURE_DRAW_ATTEMPTS && seed.posture !== want; a++) {
+    seed = generateCivSeed(rng.fork(`posture/${a}`), params);
+  }
+  return seed;
 }
 
 /**
@@ -234,19 +360,26 @@ export function generateGalaxy(
   nowYear: number,
 ): Galaxy {
   const stars = generateStarField(rng.fork("stars"), config);
-  const homes = pickHomeStars(rng.fork("placement"), stars, config.aiCivCount);
+  // The reserved set needs the key and the catalog, both of which exist by
+  // now; the roster it will eventually sit beside is empty and irrelevant to
+  // it. The same `stars` array goes into the galaxy below, so this warms the
+  // memo the rest of the object's lifetime reads.
+  const homes = pickHomeStars(
+    rng.fork("placement"),
+    stars,
+    config.aiCivCount,
+    reservedStarIds({ seedKey, config, stars, civs: [], acts: [] }),
+  );
 
   const civs: PlacedCiv[] = [];
   for (let i = 0; i < config.aiCivCount; i++) {
     const home = homes[i];
     if (home === undefined) throw new Error("home star count mismatch");
     const civRng = rng.fork(`civ/ai-${i}`);
+    const ageBand = drawAgeBand(civRng);
+    const want = drawPosture(civRng, ageBand);
     civs.push({
-      seed: generateCivSeed(civRng, {
-        id: `civ-ai-${i}`,
-        ageBand: drawAgeBand(civRng),
-        nowYear,
-      }),
+      seed: drawSeedWithPosture(civRng, { id: `civ-ai-${i}`, ageBand, nowYear }, want),
       starId: home.id,
       controller: "ai",
     });
@@ -254,37 +387,76 @@ export function generateGalaxy(
   return { seedKey, config, stars, civs, acts: [] };
 }
 
+/** THE FRONTIER (act3-design.md § Topology: "new players and cohorts seed
+ *  outward"). Every player already seated pushes the next joiner's minimum
+ *  separation out by this much, so a cohort fills from the inside out and a
+ *  late joiner's light-lag insulates them from established play. */
+const FRONTIER_STEP_LY = 2;
+
+/** Where the frontier stops growing, as a fraction of the neighborhood radius.
+ *  Without it the eleventh joiner asks for a separation the sphere cannot
+ *  supply and placement falls off the rim. */
+const FRONTIER_CAP_FRACTION = 0.55;
+
 /**
  * The star a real player's civilization would be placed at, were one to
- * inherit right now — nearest the cohort center among stars that are not
- * an existing civ's home and keep `MIN_CIV_SEPARATION_LY` from every one.
- * Placement itself (creating the PlacedCiv) is a later slice's job; this
- * is the helper it calls. Returns null if the neighborhood is full.
+ * inherit right now — the innermost star that is not an existing civ's home,
+ * is not reserved, and clears the frontier floor. Placement itself (creating
+ * the PlacedCiv) is the caller's job; this is the helper it calls. Returns
+ * null if the neighborhood is full.
+ *
+ * THE FLOOR IS THE EXISTING RULE, GROWN. `MIN_CIV_SEPARATION_LY` was always
+ * the separation a placement had to clear; the frontier raises it by a step per
+ * seat and changes nothing else. At `seated === 0` the floor is the old
+ * constant, the band is every eligible star, and the pick is the innermost one,
+ * so the first player lands exactly where they always did.
  */
 export function pickPlayerHome(galaxy: Galaxy): Star | null {
   const origin: Vec3Ly = { x: 0, y: 0, z: 0 };
-  const homeStars = galaxy.civs.map((c) => starById(galaxy.stars, c.starId));
+  const reserved = reservedStarIds(galaxy);
+  const homes = galaxy.civs.map((c) => starById(galaxy.stars, c.starId));
+  const homeIds = new Set(homes.map((h) => h.id));
 
-  const eligible = galaxy.stars.filter((star) => {
-    if (homeStars.some((h) => h.id === star.id)) return false;
-    return homeStars.every(
-      (h) => distanceLy(h.position, star.position) >= MIN_CIV_SEPARATION_LY,
-    );
-  });
+  // ISOLATION IS MEASURED AGAINST EVERY CIVILIZATION, seeded elder and seat and
+  // somebody's founding alike. That is why colonies need no special handling:
+  // they are in the derived roster, so they are already in the floor.
+  const eligible = galaxy.stars
+    .filter((s) => !homeIds.has(s.id) && !reserved.has(s.id))
+    .map((star) => ({
+      star,
+      isolation: homes.reduce(
+        (min, h) => Math.min(min, distanceLy(h.position, star.position)),
+        Infinity,
+      ),
+      fromOrigin: distanceLy(star.position, origin),
+    }))
+    .filter((c) => c.isolation >= MIN_CIV_SEPARATION_LY);
+  if (eligible.length === 0) return null;
 
-  let best: Star | null = null;
-  let bestDistance = Infinity;
-  for (const star of eligible) {
-    const d = distanceLy(star.position, origin);
-    if (
-      d < bestDistance ||
-      (d === bestDistance && best !== null && star.id < best.id)
-    ) {
-      best = star;
-      bestDistance = d;
-    }
-  }
-  return best;
+  // How far out this joiner has to sit. Counted over SEATS, not civilizations —
+  // a colony is not a new player, and it already pushes the frontier out by
+  // being in `homes` above. `forget` drops a seat, so the frontier tracks
+  // occupancy rather than history and a playtester who resets gets their seat
+  // back rather than a place beyond it.
+  const seated = galaxy.civs.filter((c) => c.controller === "player").length;
+  const floor = Math.min(
+    MIN_CIV_SEPARATION_LY + FRONTIER_STEP_LY * seated,
+    FRONTIER_CAP_FRACTION * galaxy.config.radiusLy,
+  );
+
+  // Innermost star that clears the floor: outward, but no further out than the
+  // frontier requires. The frontier is a floor and not a target, so a joiner
+  // keeps the sky populated around them instead of being exiled to the rim,
+  // which is what a plain farthest-first rule would do. Ties by star id, the
+  // file's idiom (buildSurvey's sort). The fallback fires only for a cohort so
+  // full that even the capped floor is unavailable, and it degrades to the
+  // most isolated seat left rather than to null.
+  const band = eligible.filter((c) => c.isolation >= floor);
+  const ranked =
+    band.length > 0
+      ? band.sort((a, b) => a.fromOrigin - b.fromOrigin || a.star.id.localeCompare(b.star.id))
+      : eligible.sort((a, b) => b.isolation - a.isolation || a.star.id.localeCompare(b.star.id));
+  return ranked[0]?.star ?? null;
 }
 
 export function civById(galaxy: Galaxy, id: CivId): PlacedCiv {

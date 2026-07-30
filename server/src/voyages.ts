@@ -66,6 +66,7 @@ import {
 import {
   civAtStar,
   distanceLy,
+  reservedStarIds,
   starById,
   type Galaxy,
   type PlacedCiv,
@@ -1198,8 +1199,13 @@ export function buildSurvey(
   const home = galaxy.civs.find((c) => c.seed.id === observerId);
   if (home === undefined) return [];
   const homeStar = starById(galaxy.stars, home.starId);
+  // NEVER OFFERED, RATHER THAN OFFERED AND REFUSED. A reserved star (galaxy.ts)
+  // is not a marker and not a disabled row: it is simply not a candidate, and
+  // the next-nearest fills the slot, exactly as the thirteenth-nearest is not
+  // listed either.
+  const reserved = reservedStarIds(galaxy);
   const rows = galaxy.stars
-    .filter((s) => s.id !== homeStar.id)
+    .filter((s) => s.id !== homeStar.id && !reserved.has(s.id))
     .map((s) => ({ star: s, d: distanceLy(homeStar.position, s.position) }))
     .sort((a, b) => a.d - b.d || a.star.id.localeCompare(b.star.id))
     .slice(0, SURVEY_ROWS);

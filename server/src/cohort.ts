@@ -98,6 +98,7 @@ import {
   distanceLy,
   generateGalaxy,
   pickPlayerHome,
+  reservedStarIds,
   starById,
   type Galaxy,
   type GalaxyConfig,
@@ -2100,9 +2101,16 @@ export class Cohort extends Server<CohortEnv> {
       return;
     }
 
-    // (3) The star. Unknown and home answer the SAME code, deliberately.
+    // (3) The star. Unknown, home and RESERVED all answer the SAME code,
+    // deliberately: a refusal has to be indistinguishable from a typo, or the
+    // error itself tells a crafted message where the held sky is. There is no
+    // `star-reserved` code and there must never be one.
     const target = galaxy.stars.find((s) => s.id === starId);
-    if (target === undefined || target.id === homeStar.id) {
+    if (
+      target === undefined ||
+      target.id === homeStar.id ||
+      reservedStarIds(galaxy).has(target.id)
+    ) {
       this.sendMsg(conn, { type: "error", code: "bad-message", message: "no star there" });
       return;
     }
