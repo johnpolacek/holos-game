@@ -2,6 +2,8 @@
 
 - [Pass 1 — the server banks](#pass-1--voicets-mindsts) (`voice.ts`, `minds.ts`)
 - [Pass 2 — the client chrome](#pass-2--the-client-chrome)
+- [Pass 3 — the server catalogs](#pass-3--the-server-catalogs)
+- [Closing state](#closing-state)
 
 ---
 
@@ -404,3 +406,166 @@ The gate's `FIRST_PERSON_SINGULAR` rule enforces §4's "every archetype speaks
 as we". This button is not the mind speaking: it is the **player**
 acknowledging they saved their key, and it is the one surface in the game
 where the player has a voice. Correct as written.
+
+---
+
+## Pass 3 — the server catalogs
+
+`cradles.ts`, `lineages.ts`, `dials.ts`, `civseed.ts`, `signalparts.ts`,
+`questions.ts`, `missions.ts`, `projects.ts`, `studies.ts`, `tend.ts`,
+`contest.ts`, `proposals.ts`, `report.ts`, `contact.ts`, `names.ts`. About
+8,900 lines, 413 player-facing strings.
+
+This completes the sweep. Every file named in `/prose-audit`'s three passes has
+now been read.
+
+**The catalogs are the cleanest prose in the repo.** The findings are two
+authored-voice calls and one gap in what CI was watching.
+
+| | Count |
+|---|---|
+| Applied | 1 |
+| Proposed, not applied | 2 |
+| Recorded | 3 |
+
+### Applied
+
+#### A5 — `npm run audit:catalog`: §6 now runs over the catalogs
+
+§6 states an obligation in prose: "A pre-merge grep of the string banks and all
+doc-quoted interface prose against these must return zero hits outside the
+allowlist." That grep was a human promise. Three audits already touch §6 and
+none of them covered the catalogs:
+
+| Audit | What it actually does |
+|---|---|
+| `audit:banned` | Checks §6 and `bannedterms.ts` are **in sync**. Never reads a bank; a perfectly synced rule table proves nothing about the prose it governs. |
+| `audit:voice` | Runs the whole gate (which compiles §6) over every bank string in **`voice.ts`, and `voice.ts` only** — its own header says why. |
+| `audit:names` | Runs a hand-maintained **subset** of §6 over the name pools. |
+
+So 413 player-facing strings across nine catalogs, `minds.ts` included, met §6
+nowhere in CI. `audit:dashes` was the only automated check that reached them,
+and it tests one character.
+
+The new script imports the compiled `bannedterms.js` the same way `audit:voice`
+imports the compiled gate, so it cannot drift from the §6 that ships, and it
+scrapes sources rather than importing them for the same reason `audit:voice`
+does: `cohort.ts` is the only module that may pull the catalog chain into a
+process.
+
+**They are clean today: 413 strings, 78 rules, zero hits.** That is the only
+honest time to add an audit, and it is also the point. Verified against a
+planted coinage (`GSV` into a dial gloss) to confirm it fails, then restored.
+
+**Rule:** §6. Wired into `package.json` and CI after `build`.
+
+### Proposed, not applied
+
+#### P10 — Half the cradle fingerprints run a three-item list
+
+21 of 41. The shape is consistent enough to read as the bank's default cadence
+rather than a series of choices:
+
+- "steady light, a survivable sky, time to develop without constant catastrophe"
+- "deep time, little energy, a civilization that grows slow, patient, thrifty with light"
+- "built low, braced, and wind-wise"
+- "abundant metal, scarce water and air, a savage gravity well"
+- "sheltering from flares in caves, deep water, or shadow"
+
+Some are true enumerations, where three environmental facts are what there is to
+say. Others reach the third item for rhythm.
+
+**This one is visible in play**, which is what separates it from the arrival
+lines (K2). Fingerprints reach the player through `civseed.ts`'s chronicle
+lines, and the ceremony is a **carousel** of candidate CivCards: a player scrolls
+several worlds in a row before choosing, reading one fingerprint after another
+on the same surface. A cadence shared by half the bank is legible there in a way
+a once-per-run line never is.
+
+There is a structural pressure behind it worth naming: R-21 gives 36 words for
+one or two sentences, and a comma-triple is the most compact way to pack three
+environmental facts into that budget. So this is not carelessness, it is the
+bound doing what bounds do.
+
+**Not applied:** 21 authored strings, and the fix is per-string judgment about
+which third item earns its place.
+
+**Rule:** R-21 (indirectly). **Pattern:** 10.
+
+#### P11 — "Rare, and important." editorializes on the world's voice
+
+`cradles.ts`, the sunlit ocean world:
+
+> "A warm world-ocean under a familiar yellow sun, continents absent: an
+> aquatic civilization with a clear view of the stars. **Rare, and important.**"
+
+§4's non-archetype register 1 is the world's own voice: "No wit that implies
+intention; the planet is not a character with jokes." *Rare* is a fact about the
+galaxy. *Important* is a value judgment, and not one the world could hold: it is
+the designer telling the player this cradle matters, in a register that has no
+one to say it.
+
+**Proposed:** cut to "Rare." or drop the sentence. The preceding clause already
+earns the point.
+
+**Not applied:** authored voice, and it may be a deliberate nudge.
+
+**Rule:** §4 (world's voice). **Pattern:** 1 (significance inflation), in the
+one form the override does not protect: this fails §1's own test, because with
+the emphasis deleted the sentence is not less grand, only less directive.
+
+### Recorded
+
+#### K8 — P1's tic is confined to the archetype banks
+
+The `, which ...` comment clause is **36** occurrences in `voice.ts` and **3**
+across the other 8,900 lines of server (2 in `lineages.ts`, 1 in `questions.ts`,
+all three load-bearing).
+
+This sharpens P1 rather than softening it. The tic is not a house habit that
+happens to show up in the banks; it lives exactly where the archetype voice is
+written, and nowhere else. That is precisely the surface R-6 governs.
+
+#### K9 — Four modules carry no authored prose at all
+
+`tend.ts`, `report.ts`, `proposals.ts` and `contact.ts` scrape to **zero**
+prose strings. Every sentence they put on a surface is composed through
+`voice.ts`'s builders.
+
+That is R-29's architecture working: a module that derives from state cannot
+hand a pre-formatted string to a surface, because it has no strings. Worth
+recording as the thing to preserve, not a gap.
+
+#### K10 — Two string families are correctly not surfaces
+
+`contest.ts`'s `MASK_RULES.why` fields are documented in the module as design
+notes that never reach a surface and never cross the wire. `signalparts.ts`'s
+lowercase strings ("no such dial", "that move is not open") are
+`unavailable()` failure reasons; no client path renders them.
+
+Both were checked and excluded. `audit:catalog` omits `contest.ts` for this
+reason, on the `audit-dashes` `NOT_A_SURFACE` precedent.
+
+---
+
+## Closing state
+
+Every file in `/prose-audit`'s scope has been read: ~23,000 lines, roughly 1,100
+player-facing strings.
+
+| Pass | Applied | Proposed | Recorded |
+|---|---|---|---|
+| 1 — server banks | 3 | 3 | 4 |
+| 2 — client chrome | 1 | 4 | 3 |
+| 3 — server catalogs | 1 | 2 | 3 |
+
+Six audits green: `dashes`, `banned`, `voice`, `names`, `parity`, `catalog`.
+
+**The one theme across all three passes.** Every finding that mattered was a
+*distribution*, not a string: a clause shape spread across ten archetypes, a
+list shape spread across half a bank, a rule that had drifted out of a comment,
+a surface no register row described, an obligation no script enforced. None of
+them is visible one line at a time, which is why the mechanical audits could not
+see any of them and why the gate is the wrong instrument for most. The prompt
+and the audit script are the two places this kind of finding can actually be
+made to stick.

@@ -64,11 +64,20 @@ npm run build         # vite build (client) + tsc emit (server)
 npm run audit:dashes  # R-8: no em dash on a player surface
 npm run audit:banned  # prose-style.md §6 <-> bannedterms.ts
 npm run audit:voice   # every shipped bank string through the style gate
+npm run audit:catalog # §6 over the catalogs audit:voice does not reach
 ```
 
 CI (`.github/workflows/ci.yml`) runs all of them on every PR and they must
-pass before merge. `audit:voice` imports the compiled gate, so it runs after
-`build`.
+pass before merge. `audit:voice` and `audit:catalog` import compiled output,
+so they run after `build`.
+
+The two §6 audits divide the banks between them and the split is worth
+knowing: `audit:voice` runs the *whole gate* over `voice.ts` and nothing else
+(its header says why), while `audit:catalog` runs the *§6 rule table* over the
+catalogs it cannot reach — `cradles`, `lineages`, `dials`, `civseed`, `minds`,
+`studies`, `missions`, `projects`, `questions`, `signalparts`. `audit:banned`
+is neither: it checks §6 and `bannedterms.ts` are in sync, and never reads a
+bank at all.
 
 Those audits are mechanical: they catch a dash, a coinage, a numeral in a
 remark. They cannot catch prose that is merely *flat* — the rule-of-three

@@ -77,6 +77,15 @@ jobs:
       - name: Audit the style gate against every shipped bank string
         run: npm run audit:voice
 
+      # prose-style.md §6, over the banks audit:voice does not reach. That one
+      # runs the whole gate but scrapes voice.ts alone; this runs the §6 rule
+      # table over the catalogs (cradles, lineages, dials, civseed, minds,
+      # studies, missions, projects, questions, signalparts), which met §6
+      # nowhere in CI before. Imports the COMPILED bannedterms, so it runs
+      # after `build` for the same reason audit:voice does.
+      - name: Audit the catalogs against §6
+        run: npm run audit:catalog
+
       # Deploy validation, run on every PR and push to main. `--dry-run`
       # bundles the Worker and validates wrangler.jsonc + every binding
       # WITHOUT contacting Cloudflare, so it needs no account secrets. It
