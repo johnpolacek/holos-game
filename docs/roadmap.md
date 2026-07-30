@@ -190,8 +190,11 @@ unticked bullet in A3 and A4 was checked against the tree:
   building over time, cohort seeding and the frontier, and push
   notifications.
 
-So the genuinely-next *build* is A5 or A4's travel half, not A3 — but
-neither starts until the fun gate is run.
+**A4's travel half shipped (2026-07)** — seedships, relativistic
+ships, the forecast, full charters, derived landfall, the Ledger with
+drift and the conversation brake, and standing orders; systems-a.md
+§15 is the as-built record. **A5 is now the sole unbuilt Phase A
+stage**, and the fun gate remains A2's open exit condition.
 
 **→ Previously next (now shipped in code): AV — the voice.** Decided
 2026-07: the shipped game has the machinery but no narrator — the
@@ -433,7 +436,7 @@ shipped so the plan stops listing built work as future work.
       hairline ring whose radius is the years since the broadcast, drawn
       forever, growing a light-year a year)*.
 
-### A4 — Missions & expansion ◐ *the probe half shipped; the travel half open*
+### A4 — Missions & expansion ✅ *shipped: the probe half with A2.2, the travel half 2026-07*
 
 Every launch is a mission from here on: a work-list node with a charter, a
 clock, and an outcome ([missions-design.md](./missions-design.md) —
@@ -458,32 +461,40 @@ A3's was all of it.)
       slots resolved against truth at arrival; silence-at-deadline as
       the subtraction of two schedules. The Assay's *closing* of a study
       — the grounded exit — moved up to A2 (see § A2).
-- [ ] **Standing orders (thin)**: one or two armable order-classes
-      (*on warm movement, launch sentinel*), priced at fire time. Not
-      shipped — the work list's `standing` state is a Sentinel on cadence,
-      not an armed order awaiting a trigger.
-- [ ] **Seedships**: launches with real flight clocks; the **forecast
-      survey** — information age at landfall (light-age + transit years)
-      and an honest arrival spread per target class; landfall reports
-      resolve against truth when the flight clock fires
-      (act3-design.md § The forecast).
-- [ ] **Relativistic ships (thin)**: coherent colony founding on real
-      flight clocks — the second v1 travel method (bold-scope decision,
-      2026-07); onboard-fuel and beam-pushed variants, the beam battery
-      bright by design; the seat stays home.
+- [x] **Standing orders (thin)** *(shipped 2026-07)*: one class — on
+      warm movement inside twenty light-years, launch the sentinel —
+      armed on the sky with a charter as the consent's content, fired
+      only from sky assembly, priced at fire time, fizzling with a
+      report when the pool is short (systems-a.md §15).
+- [x] **Seedships** *(shipped 2026-07)*: real flight clocks at 0.1c,
+      the forecast survey (information age (1+F)d, the arrival spread a
+      prior over public facts, a visible source forcing WIDEST), and
+      landfall as a derived fold — the child civilization is never
+      written, only derived, invisible to every observer until founding
+      plus distance (systems-a.md §15).
+- [x] **Relativistic ships (thin)** *(shipped 2026-07)*: the torch at
+      0.5c behind an eight-year departure flare and the beam-pushed sail
+      at 0.8c behind the launch-beam project, its battery burning bright
+      for up to sixty years — launching loud as the price that cannot be
+      paid down later; the seat stays home; dilation is narration
+      (systems-a.md §15).
 - [x] **The mission clock (thin)** *(shipped with A2.2)*: every launch
       compiles its expected light events — arrival, earliest
       confirmation, first report — into visible countdowns derived from
       three stored stamps plus constants; silence at a deadline reads as
       itself (act3-design.md § Missions, *The mission clock*).
-- [ ] **Charters**: the launch-time value function (dial sheet + directives
-      + contingencies) — the same `CivSeed` shape, written by the player;
-      the recursion made literal. A probe's 2–3 clauses (shipped) are the
-      thin end of this; a seedship's charter is the full shape.
-- [ ] **The Ledger**: lineage view, staleness chips, drift bands, and
-      drift (magnitude-only in v1) with the conversation brake — thread
-      states derived from the signal records A2 already keeps
-      (act3-design.md § Drift).
+- [x] **Charters** *(shipped 2026-07)*: the launch-time value function —
+      five dial positions snapped inside the parent's own bands with
+      per-dial pins, four clause groups, one name; the child's archetype
+      resolves from the sheet through the same seam that places players,
+      and the composer is the inheritance ceremony's dial furniture with
+      the player on the writing side of the card (systems-a.md §15).
+- [x] **The Ledger** *(shipped 2026-07)*: the lineage view with
+      staleness chips and drift bands as words over dated observations
+      (a disagreement tally against the charter as written, never a
+      number), independence latched one-way, and the conversation brake:
+      one round trip of slowed walk per completed exchange, capped at
+      half, dead past two-thirds drift (systems-a.md §15).
 
 ### A5 — A living galaxy
 
