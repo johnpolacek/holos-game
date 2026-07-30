@@ -3311,7 +3311,14 @@ export class StudyBoard {
     this.pendingSignalText = els.input.value;
     this.composerDraft = "";
     this.composerCaret = null;
-    this.socket.send({ type: "sendSignal", starId, text });
+    // A2.6 RETIRED FREEFORM. The wire now carries a tone and a list of
+    // SELECTORS, and the server materializes every part from the sender's own
+    // state; there is no `text` field and no way to add one. This call site is
+    // the server slice's minimum keep-it-compiling seam and sends a CARRIER (a
+    // beam with nothing on it, which is a legal and ordinary signal). The
+    // A2.6 composer — source chips, tone chips, the receive-rendering preview
+    // — lands with the client slice and replaces this whole panel.
+    this.socket.send({ type: "sendSignal", starId, tone: "plain", parts: [] });
     // The confirming sky carries the act; until it does the box is empty and
     // the pill is inert. No optimistic signal is ever drawn: the thread shows
     // what the server recorded and nothing else.
