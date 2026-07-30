@@ -97,7 +97,7 @@ import {
 // itself is read through. dials.ts imports nothing and carries no truth.
 import { DIAL_AXES, dialSheetAt, type DialAxisId } from "./dials";
 import { civById, civDistanceLy, starById, type Galaxy } from "./galaxy";
-import { emissionAt, lightConeFor, peekTruth, visibleSky } from "./knowledge";
+import { emissionAt, lightConeFor, peekTruth, visibleSky, MADE_HEAT_FLOOR } from "./knowledge";
 import type { ArchetypeId } from "./minds";
 import {
   MAX_SIGNALS_ON_WIRE,
@@ -480,6 +480,61 @@ function firstBrightYear(history: readonly EmissionEpoch[]): number | null {
   }
   return null;
 }
+
+/**
+ * A5: the first year the player's own world was ever read as RUNNING HOT —
+ * the first upward crossing of MADE_HEAT_FLOOR at or after cohort year 0. The
+ * congress's unprompted opener hangs off this and nothing else.
+ *
+ * It is a different question from `firstBrightYear`, and the difference is the
+ * character of who is asking. A lantern comes looking for something LOUD, so
+ * it reads a level. A congress is the natural interlocutor for a world that
+ * has just begun to run hot, so it reads a CROSSING: the year a neighborhood
+ * would first have had to classify the player as made heat rather than as a
+ * biosphere with weather. The at-or-after-year-0 clause keeps a seeded civ's
+ * own authored industrial rise, which is millennia deep, from counting as
+ * something that just happened.
+ *
+ * It reads the player's emission history, which is the same clipped structure
+ * every other predicate in this table reads. BEHAVIOR NEVER TOUCHES A PLAYER'S
+ * HISTORY (a5-synthesis.md R5), so `heldDark`, `brightAfter`, `firstBrightYear`
+ * and this are all provably unmoved by A5's fold.
+ */
+function firstWarmYear(history: readonly EmissionEpoch[]): number | null {
+  let previous = 0;
+  for (const epoch of history) {
+    const crossed = previous < MADE_HEAT_FLOOR && epoch.level >= MADE_HEAT_FLOOR;
+    previous = epoch.level;
+    if (crossed && epoch.fromYear >= 0) return epoch.fromYear;
+  }
+  return null;
+}
+
+/**
+ * A5: WHO OPENS UNPROMPTED, AND ON WHAT. Keyed on ARCHETYPE rather than on
+ * counterpart class, which is both more legible and the point of the change —
+ * it lets the engine sit out while the congress speaks, and the two of them
+ * share a class.
+ *
+ * Six archetypes never open unprompted, and `null` says so in the table rather
+ * than by omission, so a new archetype cannot acquire an opener by accident.
+ * MAX_UNPROMPTED_PER_PAIR is preserved BY CONSTRUCTION exactly as before: at
+ * most one candidate is ever built per pair, whichever row matched.
+ */
+type UnpromptedTrigger = "first-bright" | "first-warm";
+
+const UNPROMPTED_OPENER: Readonly<Record<ArchetypeId, UnpromptedTrigger | null>> = {
+  beacon: "first-bright",
+  tide: "first-bright",
+  herald: "first-bright",
+  congress: "first-warm",
+  engine: null,
+  monument: null,
+  cloister: null,
+  sowing: null,
+  shepherd: null,
+  phoenix: null,
+};
 
 /**
  * The congress cannot call it. Deterministic and legible rather than random:
@@ -1024,10 +1079,14 @@ export function deriveAiSignals(
   const inbound = actsBetween(g.acts, playerId, aiId);
 
   const candidates: Candidate[] = [];
-  if (cls === "lantern" && MAX_UNPROMPTED_PER_PAIR > 0) {
-    const bright = firstBrightYear(player.seed.emissionHistory);
-    if (bright !== null) {
-      candidates.push({ kind: "hail", evalYear: bright, inReplyTo: null, act: null, tie: 0 });
+  const opener = UNPROMPTED_OPENER[ai.seed.archetype];
+  if (opener !== null && MAX_UNPROMPTED_PER_PAIR > 0) {
+    const year =
+      opener === "first-bright"
+        ? firstBrightYear(player.seed.emissionHistory)
+        : firstWarmYear(player.seed.emissionHistory);
+    if (year !== null) {
+      candidates.push({ kind: "hail", evalYear: year, inReplyTo: null, act: null, tie: 0 });
     }
   }
   for (const act of inbound) {
