@@ -21,14 +21,22 @@
 // the panel: cyan is the present tense and your own works, and everything
 // this surface shows is remote and old, so it is all amber/ink.
 //
-// Two exceptions, and they prove the rule — both are present-tense and
-// yours. The Tend chip out on the sky is chrome, not panel, and what it
-// opens is the list of YOUR work. The HOME end of the briefing's starmap is
-// your own star, charted so the source's distance reads as geometry; the
-// deeper rule (cyan = you / amber = other) wins there, because an amber
-// HOME would say "someone else". Both take the same cyan as the HOME mote
-// (model.ts's COLOR_HOME), for the same reason. Nothing else rendered into
-// the sheet may follow them.
+// Three exceptions, and they prove the rule — every one of them is
+// present-tense and yours. The Tend chip out on the sky is chrome, not panel,
+// and what it opens is the list of YOUR work. The HOME end of the briefing's
+// starmap is your own star, charted so the source's distance reads as
+// geometry; the deeper rule (cyan = you / amber = other) wins there, because
+// an amber HOME would say "someone else".
+//
+// A4 adds the third and it is the same argument one act on: THE CHARTER
+// COMPOSER is the one surface in this panel that is being WRITTEN rather than
+// read. The notch under the thumb and the bloom that closes the commit are
+// the player's own act happening now, on the inheritance card's own
+// furniture, where cyan has always meant exactly that (ceremony.ts's dial
+// marker, BECOME's bloom). The PARENT'S position behind the notch stays gold:
+// it is a record and not a live control. Everything else the sheet renders —
+// including every line of the forecast, which is a guess about a place nobody
+// has been — stays amber and ink. Nothing else may follow them.
 
 import type {
   StudySnapshot,
@@ -83,12 +91,38 @@ import type {
   SignalTone,
   VerdictPart,
   VerdictStance,
+  // ── A4: the launch side ──
+  // Every one of these is a TYPE. The catalogs themselves ride the wire
+  // (`welcome.voyageCatalog`), so no ship table and no clause table ships in
+  // this bundle — the MissionCatalog precedent, one act on.
+  DialAxisId,
+  DialSheet,
+  PriorBand,
+  SurveyRow,
+  VoyageCatalog,
+  VoyageClauseDef,
+  VoyageClauseGroupId,
+  VoyageClauseId,
+  VoyageKind,
+  VoyageKindDef,
+  VoyageSnapshot,
+  VoyageWorkState,
+  WidthChip,
+  WorldClass,
 } from "@holos/protocol";
 // The dial vocabulary: the ONE runtime value the protocol module exports for
 // rendering (protocol.ts's own comment says so). The composer needs it to
 // name which dial a `culture{dial}` selector points at, and dials.ts imports
 // nothing and carries no truth.
 import { DIAL_AXES } from "@holos/protocol";
+// A4: the founding's one piece of free text goes through the same guard the
+// ceremony's does, so a name the server will refuse is refused here first.
+import { MAX_NAME_LEN, validateName } from "@holos/protocol";
+// A4: BECOME'S OWN DIAL BAND, rendered in reverse. The charter composer draws
+// its five rows with the ceremony's function rather than a copy of it — the
+// card you inherit and the card you write are the same furniture, and a second
+// implementation would let the two drift apart.
+import { renderDialBand } from "./ceremony";
 import type { CohortSocket } from "./net";
 import { startOver } from "./startover";
 import { QUESTION_METHOD } from "./questionmethod";
@@ -144,6 +178,93 @@ const TRIPWIRE_STATE_LABEL: Record<"available" | "armed" | "tripped", string> = 
   armed: "ARMED",
   tripped: "TRIPPED",
 };
+
+// ── A4: the launch side, as chrome ───────────────────────────────────────
+//
+// Every string below is the client's own (the TRIPWIRE_LABEL precedent): the
+// wire carries the state id, the class id and the band word, and never a
+// rendering of any of them. Nothing here is derived from a number the server
+// did not send.
+
+/**
+ * A voyage's true state, in the work list. The Tend row's own `state` is
+ * NARROWED to WorkState by tend.ts (four terminal words collapse to
+ * "returned") so the chip table stayed total while this surface was unbuilt;
+ * the real word rides the VoyageSnapshot, and this is the table that reads it.
+ * `beyond-horizon` is the one that gets its own wording rather than the
+ * mission's: what a founding falls out of is amendment, not sight.
+ */
+const VOYAGE_STATE_LABEL: Record<VoyageWorkState, string> = {
+  "in-flight": "IN FLIGHT",
+  "beyond-horizon": "BEYOND AMENDMENT",
+  "awaiting-light": "AWAITING LIGHT",
+  founded: "FOUNDED",
+  unrooted: "UNROOTED",
+  silent: "SILENT",
+  dark: "DARK",
+};
+
+/** The four charter groups, each said as the question it answers. The wire
+ *  carries the group id and the clause prose; the question above them is the
+ *  client's own framing of what is being decided. */
+const VOYAGE_GROUP_LABEL: Record<VoyageClauseGroupId, string> = {
+  founding: "WHAT THEY DO WITH THE WORLD",
+  posture: "WHETHER THEY CAN BE SEEN",
+  "signal-plan": "WHETHER THEY WRITE HOME",
+  "on-hail": "WHAT THEY SAY IF HAILED",
+};
+
+/**
+ * The two groups a charter is not a charter without — voyages.ts's
+ * REQUIRED_VOYAGE_GROUPS, spelled as chrome. The wire deliberately carries no
+ * such list (it carries the counts and nothing else), so this is the
+ * BROADCAST_WINDOW_YEARS arrangement exactly: a retune there retunes this, and
+ * being wrong costs one refused tap and nothing else, because
+ * `validateVoyageCharter` re-checks server-side regardless.
+ */
+const REQUIRED_VOYAGE_GROUPS: readonly VoyageClauseGroupId[] = ["founding", "posture"];
+
+/** The three destination classes, in the order the survey sends them. */
+const WORLD_CLASS_LABEL: Record<WorldClass, string> = {
+  barren: "BARREN",
+  marginal: "MARGINAL",
+  living: "LIVING",
+};
+
+/** A prior as a word, because that is how it arrives: bands and never
+ *  percentages, so nothing on this surface can dress a guess as a reading. */
+const PRIOR_BAND_LABEL: Record<PriorBand, string> = {
+  unlikely: "UNLIKELY",
+  possible: "POSSIBLE",
+  likely: "LIKELY",
+};
+
+/** How far a band's bar runs. Three steps for three words: the bar is a
+ *  rendering of the ORDINAL the wire sent, and there is no fourth position it
+ *  could take that would mean anything. */
+const PRIOR_BAND_FILL: Record<PriorBand, number> = {
+  unlikely: 1 / 3,
+  possible: 2 / 3,
+  likely: 1,
+};
+
+/** How tight the forecast is. The wire's own three words. */
+const WIDTH_CHIP_LABEL: Record<WidthChip, string> = {
+  NARROW: "NARROW",
+  WIDE: "WIDE",
+  WIDEST: "WIDEST",
+};
+
+/**
+ * A4: how long a press must survive to send an Endeavor. The choice
+ * ceremony's HOLD_MS, sized to a sheet rather than the sky: the gesture is
+ * the same promise (an irreversible act is made by HOLDING, not by tapping),
+ * and it is shorter here only because there is no beam to walk out while it
+ * runs. A seedship is an Investment and commits on a tap.
+ */
+const VOYAGE_HOLD_MS = 1600;
+/** The commit beat, reused wholesale from BECOME (style.css's holos-bloom). */
+const VOYAGE_COMMIT_MS = 1100;
 
 /**
  * A2.5: how a thread's state reads, on the hub row and again in the thread's
@@ -511,6 +632,10 @@ export class StudyBoard {
   /** The launch sheet's vocabulary (kinds + charter clauses), from `welcome`
    *  like `menus`. Null omits the sheet's catalog rows rather than guessing. */
   private readonly missionCatalog: MissionCatalog | null;
+  /** A4: the founding sheet's vocabulary (ship kinds, charter clauses, the
+   *  dial-notch count, the cap and the occupied-risk line), from `welcome`
+   *  like `missionCatalog`. Null omits the sheet rather than guessing. */
+  private readonly voyageCatalog: VoyageCatalog | null;
   /** The public star catalog by id, from `welcome` like `menus` — the
    *  briefing starmap's geometry. A DetectedSource carries no position (the
    *  ObservedCiv boundary), but its STAR is public sky. */
@@ -556,6 +681,13 @@ export class StudyBoard {
     | "tend"
     | "mission"
     | "launch"
+    // ── A4 ──
+    // THE SURVEY (the nearest stars and what a ship would find), and the
+    // founding sheet aimed at one of them. Two views rather than a fold,
+    // for the thread view's reason: the sheet is read top to bottom and the
+    // charter needs the whole column.
+    | "survey"
+    | "voyage"
     | "startover"
     | "report"
     // A2.5: one thread, in full. Its own view rather than a fold inside the
@@ -596,6 +728,61 @@ export class StudyBoard {
   private launchStarId: string | null = null;
   private launchKind: MissionKind | null = null;
   private launchCharter = new Set<CharterClauseId>();
+
+  // ── A4: the launch side ──────────────────────────────────────────────
+  // The latest sky's foundings and forecast, handed over by the App just
+  // before every update() (setSelf's precedent — they are sky data the
+  // renderers only ever read back).
+  private voyages: readonly VoyageSnapshot[] = [];
+  private voyagesById = new Map<string, VoyageSnapshot>();
+  private survey: readonly SurveyRow[] = [];
+
+  // The founding sheet's in-progress charter, cleared each time
+  // openVoyageLaunch opens fresh (the launch sheet's own rule: a half-written
+  // charter never survives a close/reopen). It lives on the panel rather than
+  // in the DOM because a `sky` rebuilds the body underneath it.
+  private voyageStarId: string | null = null;
+  private voyageKind: VoyageKind | null = null;
+  private voyageClauses = new Set<VoyageClauseId>();
+  /** One entry per axis, seeded from the PARENT'S OWN position the first time
+   *  the sheet renders: a charter written without touching a dial is the
+   *  charter that says "carry on as we are". */
+  private voyageDials = new Map<DialAxisId, { position: number; pinned: boolean }>();
+  private voyageName = "";
+  /** Where BACK goes: the survey row it was opened from, or the hub (the
+   *  source card's affordance closes the card and leaves nothing behind). */
+  private voyageReturn: "survey" | "hub" = "hub";
+
+  // A launchVoyage in flight, on the launchMission trio's exact shape: the
+  // star plus the voyage ids already on the wire at send time, so the
+  // confirming sky can pick out the ONE new founding it carries and hand
+  // straight to its row in the work list.
+  private pendingVoyageStarId: string | null = null;
+  private pendingVoyagePriorIds: ReadonlySet<string> = new Set();
+  /** The founding the confirming sky carried, waiting on the commit beat to
+   *  finish before the handoff (see maybeHandoffVoyage). */
+  private launchedVoyageId: string | null = null;
+  /** False only while a hold's bloom is still playing. A tap commits with no
+   *  bloom at all, so it is true for the whole of an Investment's flight. */
+  private voyageBloomDone = true;
+  /** The live press. Wall clock (performance.now) and a rAF, never a timer:
+   *  a dropped frame costs fidelity and must never cost correctness on the
+   *  one gesture that commits (contactceremony.ts's rule). */
+  private voyageHold: {
+    readonly fill: HTMLDivElement;
+    readonly start: number;
+    raf: number;
+  } | null = null;
+  /** Recomputes the commit control's label and enablement in place, so the 1s
+   *  ticker can keep an accruing budget honest without re-rendering a sheet
+   *  that holds a live text field and a live press. */
+  private voyageCommitRefresh: (() => void) | null = null;
+  /** The commit control's row, so the bloom has somewhere to mount. */
+  private voyageVerbRow: HTMLDivElement | null = null;
+  /** A one-shot: the next renderTend scrolls this voyage's row into view and
+   *  clears it (highlightQuestionId's mold). Set by a launch's handoff and by
+   *  a report entry's `voyage` route. */
+  private highlightVoyageId: string | null = null;
 
   // The star a `begin the watch` is in flight for. The confirming `sky`
   // carries the new study and hands straight to the focused board — without
@@ -778,11 +965,13 @@ export class StudyBoard {
     socket: CohortSocket,
     menus: HypothesisMenus | null,
     missionCatalog: MissionCatalog | null,
+    voyageCatalog: VoyageCatalog | null,
     catalog: readonly Star[],
   ) {
     this.socket = socket;
     this.menus = menus;
     this.missionCatalog = missionCatalog;
+    this.voyageCatalog = voyageCatalog;
     this.starsById = new Map(catalog.map((s) => [s.id, s] as const));
 
     this.root = document.createElement("div");
@@ -865,6 +1054,15 @@ export class StudyBoard {
    *  calls this just before update(), so no render ever sees a stale HOME. */
   setSelf(self: SelfView): void {
     this.self = self;
+  }
+
+  /** A4: this player's own foundings and the forecast over the nearest
+   *  stars, from every `sky`. Handed over just before update() (setSelf's
+   *  contract) so the pending-release pass below already sees them. */
+  setVoyages(voyages: readonly VoyageSnapshot[], survey: readonly SurveyRow[]): void {
+    this.voyages = voyages;
+    this.voyagesById = new Map(voyages.map((v) => [v.id, v] as const));
+    this.survey = survey;
   }
 
   update(
@@ -1001,6 +1199,26 @@ export class StudyBoard {
       }
     }
 
+    // A4: a launchVoyage in flight. This sky either carries exactly one new
+    // founding for the star (by id difference against the pre-send snapshot)
+    // — hand to its row in the work list, once the commit beat has finished
+    // playing — or it does not, in which case nothing landed yet (or the
+    // server refused, and handleServerError released the trio before this
+    // ran). The handoff waits on the bloom rather than cutting it off: a hold
+    // that ends in a jump cut reads as a glitch, not a commitment.
+    if (this.pendingVoyageStarId !== null) {
+      const starId = this.pendingVoyageStarId;
+      const priorIds = this.pendingVoyagePriorIds;
+      const created = this.voyages.find((v) => v.starId === starId && !priorIds.has(v.id));
+      if (created !== undefined) {
+        this.pendingVoyageStarId = null;
+        this.pendingVoyagePriorIds = new Set();
+        this.launchedVoyageId = created.id;
+        this.maybeHandoffVoyage();
+        return;
+      }
+    }
+
     if (this.view === "focused" && this.focusedStarId !== null) {
       if (this.studiesByStarId.has(this.focusedStarId)) {
         this.renderFocused(this.focusedStarId);
@@ -1036,6 +1254,17 @@ export class StudyBoard {
       }
     } else if (this.view === "launch") {
       this.renderLaunch();
+    } else if (this.view === "survey") {
+      this.renderSurvey();
+    } else if (this.view === "voyage") {
+      // A4: the founding sheet is NEVER re-rendered by a sky, for the thread
+      // view's exact reason and one more — it holds a live name field, five
+      // dials mid-drag and, on an Endeavor, a live press. Rebuilding the body
+      // under any of those is the one thing this panel must not do. Only the
+      // commit control refreshes (affordability accrues while you write), and
+      // a charter written across a landing prerequisite simply reads it on the
+      // next open.
+      this.refreshVoyageCommit();
     } else if (this.view === "thread") {
       this.renderThread();
     } else if (this.view === "startover") {
@@ -1223,6 +1452,44 @@ export class StudyBoard {
     this.startTicking();
   }
 
+  // ── A4: the survey and the founding sheet ────────────────────────────
+
+  /** THE SURVEY: the nearest stars, as a place to aim from. Read-only — a
+   *  row is a door to the founding sheet and nothing on it is a verb. */
+  openSurvey(): void {
+    this.view = "survey";
+    this.focusedStarId = null;
+    this.renderSurvey();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
+  /**
+   * Opens the founding sheet aimed at `starId`, from a survey row or from
+   * the source card's own affordance. Always starts clean — a half-written
+   * charter never survives a close/reopen (openLaunch's rule), and the dials
+   * come back up on the parent's own positions.
+   */
+  openVoyageLaunch(starId: string, from: "survey" | "hub" = "hub"): void {
+    this.cancelVoyageHold();
+    this.view = "voyage";
+    this.voyageStarId = starId;
+    this.voyageReturn = from;
+    this.voyageKind = null;
+    this.voyageClauses = new Set();
+    this.voyageDials = new Map();
+    this.voyageName = "";
+    this.pendingVoyageStarId = null;
+    this.pendingVoyagePriorIds = new Set();
+    this.launchedVoyageId = null;
+    this.voyageBloomDone = true;
+    this.renderVoyageLaunch();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
   /** AV3: a proposal's `question` route — focuses the study and scrolls its
    *  matching OPEN QUESTIONS row into view. Guards on the study still being
    *  in this session's sky (the AV3 design's "target fades mid-session"
@@ -1251,6 +1518,9 @@ export class StudyBoard {
     this.openFlag = false;
     this.root.classList.remove("open");
     this.stopTicking();
+    // A4: a press that loses its surface is a press that ended. The sheet
+    // going away is a release, and a release is silent.
+    this.cancelVoyageHold();
     // A2.6: the composer is an overlay on the SHEET, so it has to be taken
     // down with the sheet. The thread itself stays open server-side until the
     // next sky notices the view moved on (update()).
@@ -1268,6 +1538,7 @@ export class StudyBoard {
 
   destroy(): void {
     this.stopTicking();
+    this.cancelVoyageHold();
     this.clearFloorNotice();
     this.closeComposer();
     this.closeAccountSheet();
@@ -1292,6 +1563,10 @@ export class StudyBoard {
         this.renderFocused(this.focusedStarId);
       } else if (this.view === "tend") this.renderTend();
       else if (this.view === "mission") this.renderMissionDetail();
+      // A4: the survey and the founding sheet state DURATIONS (a crossing
+      // takes what it takes), so nothing on either counts down. What does
+      // move is the budget, and the commit control is where that shows.
+      else if (this.view === "voyage") this.refreshVoyageCommit();
       // A2.5: the thread view is NEVER re-rendered by the tick. It holds a
       // live text input, and rebuilding the body under a thumb mid-sentence
       // is the one thing this panel must not do. Only the clocks move.
@@ -1536,6 +1811,21 @@ export class StudyBoard {
         },
       ),
     );
+    // A4: THE SURVEY. It sits beside "explore the sky" because it is the
+    // other way of reading the neighborhood — that one lists what is
+    // shining, this one lists where a ship could go, which is a different
+    // set of stars and a different question. Hidden until a sky has carried
+    // one: a row pointing at an empty list is noise (the Tend chip's rule).
+    if (this.survey.length > 0) {
+      this.body.append(
+        this.buildHubRow(
+          "The survey",
+          "The nearest stars, and what a ship would find there.",
+          true,
+          () => this.openSurvey(),
+        ),
+      );
+    }
 
     this.body.append(this.hairline());
 
@@ -2808,6 +3098,19 @@ export class StudyBoard {
     // A2.3: "study-unavailable" (a stale callStudy) and "tripwire-unavailable"
     // both render exactly like every error code above always has — releasing
     // whatever was in flight, no toast, no special-cased text.
+    // A4: a refused founding releases exactly the way a refused mission does
+    // — the charter STAYS WRITTEN, so a refusal costs the hold and nothing
+    // else. `voyage-unavailable`, `project-required` and `insufficient-compute`
+    // all land here, and the control simply reads why on the next fill.
+    let releasedVoyage = false;
+    if (this.pendingVoyageStarId !== null) {
+      this.pendingVoyageStarId = null;
+      this.pendingVoyagePriorIds = new Set();
+      this.launchedVoyageId = null;
+      this.voyageBloomDone = true;
+      this.cancelVoyageHold();
+      releasedVoyage = true;
+    }
     let releasedCall = false;
     if (this.pendingCallStarId !== null) {
       this.pendingCallStarId = null;
@@ -2856,6 +3159,7 @@ export class StudyBoard {
     }
     if (releasedProject && this.view === "project") this.renderProjectDetail();
     if (releasedLaunch && this.view === "launch") this.renderLaunch();
+    if (releasedVoyage && this.view === "voyage") this.renderVoyageLaunch();
     if (releasedSignal && this.view === "thread") this.renderThread();
   }
 
@@ -3347,8 +3651,23 @@ export class StudyBoard {
 
     this.body.append(this.hairline());
 
+    // A4: a one-shot scroll to one founding's row — the launch's own handoff
+    // and a report entry's `voyage` route both land here (highlightQuestionId's
+    // mold: taken on the render that uses it, so the 1s ticker never
+    // re-scrolls the sheet under the player's thumb).
+    const wanted = this.highlightVoyageId;
+    this.highlightVoyageId = null;
+    let wantedEl: HTMLElement | null = null;
+
     for (const row of this.tend) {
-      this.body.append(this.buildTendRow(row));
+      const el = this.buildTendRow(row);
+      if (wanted !== null && row.id === `voyage/${wanted}`) wantedEl = el;
+      this.body.append(el);
+    }
+
+    if (wantedEl !== null) {
+      const target = wantedEl;
+      requestAnimationFrame(() => target.scrollIntoView({ block: "center" }));
     }
   }
 
@@ -3359,7 +3678,21 @@ export class StudyBoard {
   private buildTendRow(row: TendRow): HTMLElement {
     const isMission = row.kind === "mission";
     const isProject = row.kind === "project";
-    const clickable = isMission || isProject || row.starId !== null;
+    // A4: a founding's own snapshot, for the state chip and the one report it
+    // will ever produce. The row's `state` is tend.ts's NARROWED WorkState
+    // (four terminal words collapse to "returned" there); the true word is
+    // here, and this is the surface tend.ts's comment says would read it.
+    const voyage =
+      row.kind === "voyage" && row.id.startsWith("voyage/")
+        ? this.voyagesById.get(row.id.slice("voyage/".length))
+        : undefined;
+    // A founding is aimed at a STAR, and most of them are empty sky: there is
+    // no source card to inspect at the far end of one, so the row is a door
+    // only where the sky actually shows something there.
+    const clickable =
+      row.kind === "voyage"
+        ? row.starId !== null && this.sourcesByStarId.has(row.starId)
+        : isMission || isProject || row.starId !== null;
 
     let el: HTMLButtonElement | HTMLDivElement;
     if (clickable) {
@@ -3406,7 +3739,8 @@ export class StudyBoard {
       row.state === "silent"
         ? "tend-badge tend-row-state tend-row-state--silent"
         : "tend-badge tend-row-state";
-    state.textContent = WORK_STATE_LABEL[row.state];
+    state.textContent =
+      voyage !== undefined ? VOYAGE_STATE_LABEL[voyage.state] : WORK_STATE_LABEL[row.state];
     meta.append(chip, state);
 
     top.append(main, meta);
@@ -3421,6 +3755,24 @@ export class StudyBoard {
       const countdown = formatCountdown(row.nextYear);
       next.textContent = countdown !== null ? `${row.nextLabel} IN ${countdown}` : row.nextLabel;
       el.append(next);
+    }
+
+    // A4: the landfall word, where it has arrived. A voyage produces EXACTLY
+    // ONE report in its whole life, and this row is where it is read: there
+    // is nowhere else for it to go, and a row that had news and did not say
+    // it would be the work list lying by omission.
+    if (voyage !== undefined && voyage.report !== null) {
+      const report = voyage.report;
+      const headline = document.createElement("div");
+      headline.className = "tend-report-headline holos-caps";
+      headline.textContent = report.headline;
+      const detail = document.createElement("div");
+      detail.className = "study-archive-text";
+      detail.textContent = report.detail;
+      const age = document.createElement("div");
+      age.className = "study-archive-age holos-caps";
+      age.textContent = `AS OF ${formatArchiveAge(report.lightAgeYears)} Y AGO`;
+      el.append(headline, detail, age);
     }
 
     return el;
@@ -3580,7 +3932,10 @@ export class StudyBoard {
    *  route can go anywhere, a plain <div> for `kind: "none"` (the same
    *  clickable/inert split buildTendRow makes). */
   private buildReportRow(entry: ReportEntry): HTMLElement {
-    const clickable = entry.route.kind !== "none";
+    // A4: a `ledger` route has nowhere to land until THE LEDGER ships, so it
+    // renders inert rather than as a tap that goes nowhere — the `kind:
+    // "none"` treatment, for the same reason.
+    const clickable = entry.route.kind !== "none" && entry.route.kind !== "ledger";
 
     let el: HTMLButtonElement | HTMLDivElement;
     if (clickable) {
@@ -3636,6 +3991,12 @@ export class StudyBoard {
       case "project":
         this.focusProject(route.projectId, "report");
         break;
+      // A4: a founding, by id and never by star — the work list, scrolled to
+      // its row, which is where its one report is read.
+      case "voyage":
+        this.focusVoyageRow(route.voyageId);
+        break;
+      case "ledger":
       case "none":
         break;
     }
@@ -5596,6 +5957,895 @@ export class StudyBoard {
       hintEl.textContent = hint;
       this.body.append(hintEl);
     }
+  }
+
+  // ── Render: THE SURVEY and the founding sheet (A4) ───────────────────
+  //
+  // The launch sheet's discipline, one act later, and the register is the
+  // same: amber and ink, never cyan, because everything the forecast says is
+  // a guess about somewhere nobody has been. Three rules this whole block
+  // obeys, and they are why it is longer than the mission sheet:
+  //
+  //  • NOTHING HERE CLAIMS WHAT THE WIRE DID NOT SEND. The priors arrive as
+  //    WORDS and are rendered as words with a three-step bar behind them; the
+  //    clocks are the SurveyRow's own durations where there is a row, and the
+  //    catalog's own arithmetic where there is not; the occupancy line is the
+  //    server's sentence, verbatim.
+  //  • THE FORECAST IS A PRIOR, NEVER TRUTH. There is no field on this wire
+  //    that says what is actually at the far end, and there is nothing here
+  //    that could render one if there were.
+  //  • BECOME, IN REVERSE. The charter is written on the same dial furniture
+  //    the inheritance card is read on (ceremony.ts's renderDialBand), with
+  //    the parent's band as the track and the parent's own position as a
+  //    ghost behind the child's. The player is on the writing side of the
+  //    card this time, and the surface says so by being the same card.
+
+  /** Everything the sheet needs about where it is aimed. `row` is the survey
+   *  entry when the star is on it (priors, chips, the per-kind clocks) and
+   *  null for a source further out than the survey reaches — in which case
+   *  the forecast panel renders what it has and states nothing else. */
+  private voyageTargetFor(starId: string): {
+    readonly starId: string;
+    readonly designation: string;
+    readonly distanceLy: number;
+    readonly spectralClass: Star["spectralClass"] | null;
+    readonly row: SurveyRow | null;
+  } | null {
+    const row = this.survey.find((r) => r.starId === starId) ?? null;
+    if (row !== null) {
+      return {
+        starId,
+        designation: row.designation,
+        distanceLy: row.distanceLy,
+        spectralClass: row.spectralClass,
+        row,
+      };
+    }
+    const source = this.sourcesByStarId.get(starId);
+    if (source === undefined) return null;
+    return {
+      starId,
+      designation: source.designation,
+      distanceLy: source.distanceLy,
+      spectralClass: this.starsById.get(starId)?.spectralClass ?? null,
+      row: null,
+    };
+  }
+
+  /** What one ship kind would cost this target in TIME. The survey's own
+   *  durations where it sent them; otherwise the same arithmetic on the
+   *  catalog's frozen rate and a distance already on the wire. */
+  private voyageClocksFor(
+    target: { readonly distanceLy: number; readonly row: SurveyRow | null },
+    k: VoyageKindDef,
+  ): { readonly flightYears: number; readonly firstWordYears: number; readonly infoAgeYears: number } {
+    const sent = target.row?.clocks.find((c) => c.kind === k.kind);
+    if (sent !== undefined) {
+      return {
+        flightYears: sent.flightYears,
+        firstWordYears: sent.firstWordYears,
+        infoAgeYears: sent.infoAgeYears,
+      };
+    }
+    const d = target.distanceLy;
+    const f = k.flightYearsPerLy;
+    return { flightYears: f * d, firstWordYears: (f + 1) * d, infoAgeYears: (1 + f) * d };
+  }
+
+  /** The project a ship kind waits on, when it has not landed yet. Null when
+   *  the kind needs none or the emitter is already standing. */
+  private voyageProjectBlock(k: VoyageKindDef): { readonly label: string | null } | null {
+    if (k.requiresProject === null) return null;
+    const project = this.projects.find((p) => p.id === k.requiresProject);
+    if (project !== undefined && project.status === "standing") return null;
+    return { label: project?.label ?? null };
+  }
+
+  /** How long the sender's own departure light burns — voyages.ts's
+   *  `departureLightFor`, on the catalog numbers the wire already carries.
+   *  Null for a seedship, which leaves on chemistry and is never seen
+   *  leaving. */
+  private departureYearsFor(k: VoyageKindDef, distanceLy: number): number | null {
+    if (k.departureLevel === null) return null;
+    const raw =
+      k.departureYears ??
+      (k.departureYearsPerLy === null ? 0 : k.departureYearsPerLy * distanceLy);
+    return k.departureYearsCap === null ? raw : Math.min(k.departureYearsCap, raw);
+  }
+
+  /** One axis of the charter in progress, seeded on first read from the
+   *  PARENT'S OWN position: a charter nobody touched says "carry on as we
+   *  are", which is a real instruction and not an empty form. */
+  private voyageDialFor(axis: DialAxisId): { position: number; pinned: boolean } {
+    const held = this.voyageDials.get(axis);
+    if (held !== undefined) return held;
+    const parent = this.self?.seed.dials[axis];
+    const seeded = { position: parent?.position ?? 0, pinned: false };
+    this.voyageDials.set(axis, seeded);
+    return seeded;
+  }
+
+  private renderSurvey(): void {
+    this.body.innerHTML = "";
+    this.liveClocks = [];
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => this.openHub());
+    this.body.append(back);
+
+    const header = document.createElement("div");
+    header.className = "study-board-header holos-caps";
+    header.textContent = "THE SURVEY";
+    this.body.append(header);
+
+    const subtitle = document.createElement("div");
+    subtitle.className = "study-picker-subtitle";
+    subtitle.textContent =
+      "The nearest stars, and what we would expect a ship to find. Every line of it is a guess from here.";
+    this.body.append(subtitle);
+
+    if (this.survey.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "study-board-empty";
+      empty.textContent = "Nothing charted yet.";
+      this.body.append(empty);
+      return;
+    }
+
+    this.body.append(this.hairline());
+
+    for (const row of this.survey) {
+      this.body.append(this.buildSurveyRow(row));
+    }
+  }
+
+  /** One star on the survey: what it is, how far, how tight the forecast is,
+   *  and what each ship would cost it in staleness. A tap opens the founding
+   *  sheet aimed there. */
+  private buildSurveyRow(row: SurveyRow): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "tend-row";
+    btn.addEventListener("click", () => this.openVoyageLaunch(row.starId, "survey"));
+
+    const top = document.createElement("div");
+    top.className = "tend-row-top";
+
+    const main = document.createElement("div");
+    main.className = "tend-row-main";
+    const name = document.createElement("div");
+    name.className = "tend-row-label holos-serif";
+    const localName = this.localNames.get(row.starId);
+    name.textContent =
+      localName !== undefined && localName.length > 0 ? localName : row.designation;
+    const sub = document.createElement("div");
+    sub.className = "holos-caps";
+    sub.textContent = `${row.distanceLy.toFixed(1)} LY · CLASS ${row.spectralClass}`;
+    main.append(name, sub);
+
+    const meta = document.createElement("div");
+    meta.className = "tend-row-meta";
+    const chip = document.createElement("div");
+    chip.className = "tend-badge tend-chip";
+    chip.textContent = WIDTH_CHIP_LABEL[row.widthChip];
+    meta.append(chip);
+
+    top.append(main, meta);
+    btn.append(top);
+
+    // The occupied line, only where the sky already shows something there.
+    // `lightAgeYears` is the age of THAT reading and nothing else, so it is
+    // stated with it or not at all.
+    if (row.occupied) {
+      const occupied = document.createElement("div");
+      occupied.className = "voyage-occupied holos-caps";
+      occupied.textContent =
+        row.lightAgeYears === null
+          ? "SOMETHING IS ALREADY THERE"
+          : `SOMETHING IS ALREADY THERE · AS OF ${row.lightAgeYears.toFixed(1)} Y AGO`;
+      btn.append(occupied);
+    }
+
+    // The per-kind info age: how old the news is at the moment a ship
+    // arrives. This is the survey's whole argument — the distance is not the
+    // cost, the staleness is.
+    for (const clock of row.clocks) {
+      const kindDef = this.voyageCatalog?.kinds.find((k) => k.kind === clock.kind);
+      if (kindDef === undefined) continue;
+      const line = document.createElement("div");
+      line.className = "voyage-survey-clock holos-caps study-tabular";
+      line.textContent = `${kindDef.label} · NEWS ${formatGameYears(clock.infoAgeYears)} OLD AT LANDFALL`;
+      btn.append(line);
+    }
+
+    return btn;
+  }
+
+  private renderVoyageLaunch(): void {
+    const starId = this.voyageStarId;
+    const target = starId === null ? null : this.voyageTargetFor(starId);
+    this.body.innerHTML = "";
+    this.liveClocks = [];
+    this.voyageCommitRefresh = null;
+    this.voyageVerbRow = null;
+
+    // The star fell off the survey and is not a source either — there is
+    // nothing to aim at, so fall back rather than render about nothing
+    // (renderLaunch's precedent).
+    if (starId === null || target === null) {
+      this.view = "hub";
+      this.voyageStarId = null;
+      this.renderHub();
+      return;
+    }
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => {
+      if (this.voyageReturn === "survey") this.openSurvey();
+      else this.openHub();
+    });
+    this.body.append(back);
+
+    const header = document.createElement("div");
+    header.className = "study-focus-header";
+    const localName = this.localNames.get(starId);
+    const hasLocalName = localName !== undefined && localName.length > 0;
+    if (hasLocalName) {
+      const desig = document.createElement("div");
+      desig.className = "study-focus-designation holos-caps";
+      desig.textContent = target.designation;
+      header.append(desig);
+    }
+    const nameEl = document.createElement("div");
+    nameEl.className = "study-focus-name holos-serif";
+    nameEl.textContent = hasLocalName ? (localName as string) : target.designation;
+    header.append(nameEl);
+    this.body.append(header);
+
+    const meta = document.createElement("div");
+    meta.className = "holos-caps";
+    meta.textContent =
+      target.spectralClass === null
+        ? `${target.distanceLy.toFixed(1)} LY`
+        : `${target.distanceLy.toFixed(1)} LY · CLASS ${target.spectralClass}`;
+    this.body.append(meta);
+
+    this.body.append(this.hairline());
+
+    // ── Step one: the ship ──
+    const kindHeader = document.createElement("div");
+    kindHeader.className = "study-section-header holos-caps";
+    kindHeader.textContent = "CHOOSE A SHIP";
+    this.body.append(kindHeader);
+
+    const catalog = this.voyageCatalog;
+    if (catalog === null) {
+      const hint = document.createElement("div");
+      hint.className = "study-picker-subtitle";
+      hint.textContent = "Nothing is available to send from here.";
+      this.body.append(hint);
+      return;
+    }
+
+    for (const k of catalog.kinds) {
+      this.body.append(this.buildVoyageKindRow(k, target));
+    }
+
+    this.body.append(this.hairline());
+
+    // ── Step two: the forecast ──
+    this.body.append(this.buildVoyageForecast(target));
+
+    this.body.append(this.hairline());
+
+    // ── Step three: the charter ──
+    const charterHeader = document.createElement("div");
+    charterHeader.className = "study-section-header holos-caps";
+    charterHeader.textContent = "WRITE THE CHARTER";
+    this.body.append(charterHeader);
+
+    const charterNote = document.createElement("div");
+    charterNote.className = "study-picker-subtitle";
+    charterNote.textContent =
+      "What the founders carry. They will be reading it centuries after we could have advised them.";
+    this.body.append(charterNote);
+
+    this.body.append(this.buildVoyageDials(catalog));
+
+    for (const group of this.voyageGroupOrder(catalog)) {
+      const groupHeader = document.createElement("div");
+      groupHeader.className = "voyage-group-header holos-caps";
+      // A ship that has not been told what to do about an occupied world, or
+      // whether to be heard when it gets there, has not been chartered — so
+      // those two say so on their own headers rather than only in a refusal.
+      groupHeader.textContent = REQUIRED_VOYAGE_GROUPS.includes(group)
+        ? `${VOYAGE_GROUP_LABEL[group]} · REQUIRED`
+        : VOYAGE_GROUP_LABEL[group];
+      this.body.append(groupHeader);
+      for (const clause of catalog.clauses) {
+        if (clause.group !== group) continue;
+        this.body.append(this.buildVoyageClauseRow(clause));
+      }
+    }
+
+    this.body.append(this.buildVoyageNameField());
+
+    this.body.append(this.hairline());
+
+    // ── The commit ──
+    const verbRow = document.createElement("div");
+    verbRow.className = "study-verb-row voyage-verb-row";
+    this.voyageVerbRow = verbRow;
+    this.body.append(verbRow);
+    const hintEl = document.createElement("div");
+    hintEl.className = "study-brief-meta holos-caps";
+    this.body.append(hintEl);
+    this.voyageCommitRefresh = (): void => this.fillVoyageCommit(verbRow, hintEl, catalog);
+    this.voyageCommitRefresh();
+  }
+
+  /** The clause groups in the order the catalog sends them, deduplicated —
+   *  the server's order is the reading order, and the client never sorts it. */
+  private voyageGroupOrder(catalog: VoyageCatalog): readonly VoyageClauseGroupId[] {
+    const seen: VoyageClauseGroupId[] = [];
+    for (const clause of catalog.clauses) {
+      if (!seen.includes(clause.group)) seen.push(clause.group);
+    }
+    return seen;
+  }
+
+  /**
+   * One ship, with both of its clocks. The mission sheet's buildKindRow
+   * anatomy plus what a founding adds: the prerequisite a sail waits on, and
+   * the DEPARTURE LIGHT — the price in visibility, stated plainly, because it
+   * is the one cost of this act that is paid by being seen rather than by
+   * spending anything.
+   */
+  private buildVoyageKindRow(
+    k: VoyageKindDef,
+    target: { readonly distanceLy: number; readonly row: SurveyRow | null },
+  ): HTMLButtonElement {
+    const blocked = this.voyageProjectBlock(k);
+    const selected = this.voyageKind === k.kind;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = blocked !== null
+      ? "study-project-row study-project-row--disabled"
+      : selected
+        ? "study-project-row tend-launch-kind-row--selected"
+        : "study-project-row";
+    if (blocked !== null) {
+      btn.disabled = true;
+    } else {
+      btn.addEventListener("click", () => {
+        this.voyageKind = k.kind;
+        this.renderVoyageLaunch();
+      });
+    }
+
+    const label = document.createElement("div");
+    label.className = "study-project-label holos-serif";
+    label.textContent = k.label;
+    const line = document.createElement("div");
+    line.className = "study-project-line";
+    line.textContent = k.line;
+    const cost = document.createElement("div");
+    cost.className = "study-project-meta holos-caps";
+    cost.textContent = `${k.costCompute} COMPUTE · ${k.costClass}`;
+    btn.append(label, line, cost);
+
+    // Both clocks, always — the comparison between the three ships is the
+    // whole of this step, and a row that only priced the one you had already
+    // chosen would be no comparison at all.
+    const clocks = this.voyageClocksFor(target, k);
+    const landfall = document.createElement("div");
+    landfall.className = "voyage-clock holos-caps study-tabular";
+    landfall.textContent = `LANDFALL IN ${formatClockPair(clocks.flightYears)}`;
+    const firstWord = document.createElement("div");
+    firstWord.className = "voyage-clock holos-caps study-tabular";
+    firstWord.textContent = `FIRST WORD IN ${formatClockPair(clocks.firstWordYears)}`;
+    btn.append(landfall, firstWord);
+
+    const departure = this.departureYearsFor(k, target.distanceLy);
+    if (departure !== null) {
+      const seen = document.createElement("div");
+      seen.className = "voyage-clock voyage-clock--loud holos-caps study-tabular";
+      seen.textContent = `SEEN LEAVING FOR ${formatGameYears(departure)}`;
+      btn.append(seen);
+    }
+
+    if (blocked !== null) {
+      const needs = document.createElement("div");
+      needs.className = "voyage-clock voyage-clock--loud holos-caps";
+      needs.textContent =
+        blocked.label === null
+          ? "NEEDS A PROJECT THAT HAS NOT LANDED"
+          : `NEEDS ${blocked.label}`;
+      btn.append(needs);
+    }
+
+    return btn;
+  }
+
+  /**
+   * The forecast panel: how old the news is when the ship arrives, the
+   * arrival spread as three bands, how tight that spread is, and whether the
+   * sky already shows something at the far end. Every one of them is a prior
+   * over PUBLIC facts (the spectral class), and the panel says so.
+   */
+  private buildVoyageForecast(target: {
+    readonly distanceLy: number;
+    readonly row: SurveyRow | null;
+  }): HTMLDivElement {
+    const wrap = document.createElement("div");
+    wrap.className = "voyage-forecast";
+
+    const header = document.createElement("div");
+    header.className = "study-section-header holos-caps";
+    header.textContent = "WHAT WE EXPECT TO FIND";
+    wrap.append(header);
+
+    const kindDef =
+      this.voyageKind === null
+        ? undefined
+        : this.voyageCatalog?.kinds.find((k) => k.kind === this.voyageKind);
+    if (kindDef !== undefined) {
+      const clocks = this.voyageClocksFor(target, kindDef);
+      const age = document.createElement("div");
+      age.className = "voyage-clock holos-caps study-tabular";
+      age.textContent = `EVERYTHING WE KNOW WILL BE ${formatGameYears(clocks.infoAgeYears)} OLD AT LANDFALL`;
+      wrap.append(age);
+    }
+
+    const row = target.row;
+    if (row === null) {
+      // Off the survey: the distance and the clocks are honest arithmetic on
+      // public numbers, and the spread is not, so there is no spread here.
+      // An empty panel is the correct rendering of an unsent forecast.
+      const none = document.createElement("div");
+      none.className = "study-picker-subtitle";
+      none.textContent = "This star is outside the survey. Nothing has been read about the world itself.";
+      wrap.append(none);
+      return wrap;
+    }
+
+    for (const prior of row.priors) {
+      const bar = document.createElement("div");
+      bar.className = "voyage-prior";
+
+      const name = document.createElement("div");
+      name.className = "voyage-prior-name holos-caps";
+      name.textContent = WORLD_CLASS_LABEL[prior.worldClass];
+
+      const track = document.createElement("div");
+      track.className = "voyage-prior-track";
+      const fill = document.createElement("div");
+      fill.className = "voyage-prior-fill";
+      fill.style.width = `${(PRIOR_BAND_FILL[prior.band] * 100).toFixed(0)}%`;
+      track.append(fill);
+
+      const band = document.createElement("div");
+      band.className = "voyage-prior-band holos-caps";
+      band.textContent = PRIOR_BAND_LABEL[prior.band];
+
+      bar.append(name, track, band);
+      wrap.append(bar);
+    }
+
+    const spread = document.createElement("div");
+    spread.className = "voyage-spread";
+    const spreadLabel = document.createElement("span");
+    spreadLabel.className = "holos-caps";
+    spreadLabel.textContent = "HOW TIGHT THIS IS";
+    const spreadChip = document.createElement("span");
+    spreadChip.className = "tend-badge tend-chip";
+    spreadChip.textContent = WIDTH_CHIP_LABEL[row.widthChip];
+    spread.append(spreadLabel, spreadChip);
+    wrap.append(spread);
+
+    if (row.occupied) {
+      const occupied = document.createElement("div");
+      occupied.className = "voyage-occupied holos-caps";
+      occupied.textContent =
+        row.lightAgeYears === null
+          ? "SOMETHING IS ALREADY THERE"
+          : `SOMETHING IS ALREADY THERE · AS OF ${row.lightAgeYears.toFixed(1)} Y AGO`;
+      wrap.append(occupied);
+    }
+
+    // The occupied-risk line is the server's sentence and it is STATIC on
+    // purpose: a line that varied with what is actually inbound would leak
+    // every other player's plans through a panel that costs nothing to open.
+    // So it is stated for every row, not only the occupied ones.
+    const risk = document.createElement("div");
+    risk.className = "voyage-risk";
+    risk.textContent = this.voyageCatalog?.occupiedRiskLine ?? "";
+    wrap.append(risk);
+
+    return wrap;
+  }
+
+  /**
+   * The five dials, on the inheritance card's own furniture: the parent's
+   * band is the track, the parent's position is the ghost behind the child's,
+   * and a notch is one of the catalog's steps. A PIN fixes where the founders
+   * start and narrows how far their descendants may reconsider; a loose dial
+   * leaves them the whole of the range this civilization itself stands in.
+   *
+   * Nothing here re-renders. The band moves its own marker and the pin
+   * repaints its own button, so a thumb on a dial never has the sheet rebuilt
+   * under it.
+   */
+  private buildVoyageDials(catalog: VoyageCatalog): HTMLDivElement {
+    const wrap = document.createElement("div");
+    wrap.className = "dial-sheet voyage-dials";
+
+    const parent: DialSheet | undefined = this.self?.seed.dials;
+    for (const axis of DIAL_AXES) {
+      const held = this.voyageDialFor(axis.id);
+      const band = parent?.[axis.id];
+      const item = document.createElement("div");
+      item.className = "voyage-dial-item";
+
+      item.append(
+        renderDialBand(
+          axis,
+          { position: held.position, min: band?.min ?? -1, max: band?.max ?? 1 },
+          {
+            ghostPosition: band?.position ?? held.position,
+            steps: catalog.dialSteps,
+            // `held` IS the stored object (voyageDialFor hands the map's own
+            // entry back), so moving a dial is one assignment and there is
+            // never a second copy of a charter to disagree with.
+            onChange: (position) => {
+              held.position = position;
+            },
+          },
+        ),
+      );
+
+      const pin = document.createElement("button");
+      pin.type = "button";
+      const paintPin = (): void => {
+        pin.className = held.pinned ? "voyage-pin voyage-pin--on holos-caps" : "voyage-pin holos-caps";
+        pin.textContent = held.pinned ? "PINNED" : "PIN";
+        pin.setAttribute("aria-pressed", held.pinned ? "true" : "false");
+      };
+      pin.addEventListener("click", () => {
+        held.pinned = !held.pinned;
+        paintPin();
+      });
+      paintPin();
+      item.append(pin);
+      wrap.append(item);
+    }
+
+    const hint = document.createElement("p");
+    hint.className = "dial-hint";
+    hint.textContent = "Drag a dial to aim it. Pin one to hold it there.";
+    wrap.append(hint);
+
+    return wrap;
+  }
+
+  /** One charter clause. The mission sheet's clause row exactly, on the
+   *  founding's own vocabulary. */
+  private buildVoyageClauseRow(c: VoyageClauseDef): HTMLButtonElement {
+    const selected = this.voyageClauses.has(c.id);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = selected
+      ? "tend-launch-clause-row tend-launch-clause-row--selected"
+      : "tend-launch-clause-row";
+    btn.addEventListener("click", () => this.toggleVoyageClause(c));
+
+    const label = document.createElement("span");
+    label.className = "study-hyp-label holos-caps";
+    label.textContent = c.label;
+    const line = document.createElement("span");
+    line.className = "study-hyp-gloss";
+    line.textContent = c.line;
+    btn.append(label, line);
+    return btn;
+  }
+
+  /** Tap toggles; at most one clause per group (client-side enforcement —
+   *  voyages.ts's validateVoyageCharter re-checks server-side regardless). */
+  private toggleVoyageClause(c: VoyageClauseDef): void {
+    const catalog = this.voyageCatalog;
+    if (catalog === null) return;
+    const next = new Set(this.voyageClauses);
+    if (next.has(c.id)) {
+      next.delete(c.id);
+    } else {
+      for (const other of [...next]) {
+        const def = catalog.clauses.find((cc) => cc.id === other);
+        if (def !== undefined && def.group === c.group) next.delete(other);
+      }
+      next.add(c.id);
+    }
+    this.voyageClauses = next;
+    this.renderVoyageLaunch();
+  }
+
+  /** The colony's name — the ONE piece of free text a founding carries, on
+   *  the ceremony's own field. Typing never re-renders the sheet (the field
+   *  would lose the caret); it updates the commit control in place, which is
+   *  the only thing the name decides. */
+  private buildVoyageNameField(): HTMLDivElement {
+    const field = document.createElement("div");
+    field.className = "name-field voyage-name-field";
+
+    const caption = document.createElement("div");
+    caption.className = "holos-caps";
+    caption.textContent = "What they will call themselves";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.maxLength = MAX_NAME_LEN * 2; // raw typing; validateName trims/collapses
+    input.autocomplete = "off";
+    input.spellcheck = false;
+    input.value = this.voyageName;
+
+    const hint = document.createElement("div");
+    hint.className = "name-hint";
+
+    input.addEventListener("input", () => {
+      this.voyageName = input.value;
+      const typed = input.value.trim();
+      if (typed.length > 0 && validateName(input.value) === null) {
+        hint.textContent = `Name must be 1 to ${MAX_NAME_LEN} characters.`;
+        hint.classList.add("visible");
+      } else {
+        hint.textContent = "";
+        hint.classList.remove("visible");
+      }
+      this.refreshVoyageCommit();
+    });
+
+    field.append(caption, input, hint);
+    return field;
+  }
+
+  /**
+   * The commit control, rebuilt in place. A SEEDSHIP IS AN INVESTMENT AND
+   * COMMITS ON A TAP; a torch and a sail are Endeavors and commit on a HOLD,
+   * the choice ceremony's rule sized to a sheet — an act nobody can recall,
+   * amend past the horizon or take back is made by holding, not by tapping.
+   * The cost is named on the control either way: nothing here spends without
+   * saying the number first.
+   */
+  private fillVoyageCommit(
+    verbRow: HTMLDivElement,
+    hintEl: HTMLDivElement,
+    catalog: VoyageCatalog,
+  ): void {
+    verbRow.innerHTML = "";
+    hintEl.textContent = "";
+
+    const starId = this.voyageStarId;
+    const kindDef =
+      this.voyageKind === null
+        ? undefined
+        : catalog.kinds.find((k) => k.kind === this.voyageKind);
+    const count = this.voyageClauses.size;
+    const groups = new Set<VoyageClauseGroupId>();
+    for (const id of this.voyageClauses) {
+      const def = catalog.clauses.find((c) => c.id === id);
+      if (def !== undefined) groups.add(def.group);
+    }
+    const requiredMet = REQUIRED_VOYAGE_GROUPS.every((g) => groups.has(g));
+    const validCount = count >= catalog.minClauses && count <= catalog.maxClauses;
+    const named = validateName(this.voyageName) !== null;
+    const free = this.currentFreeCompute();
+    const blocked = kindDef === undefined ? null : this.voyageProjectBlock(kindDef);
+    const affordable = kindDef !== undefined && free >= kindDef.costCompute;
+    const pending = this.pendingVoyageStarId !== null && this.pendingVoyageStarId === starId;
+    // ENDEAVOR MEANS CEREMONY (economy-design.md): an Investment commits on a
+    // tap, and everything above it is held.
+    const holds =
+      kindDef !== undefined && (kindDef.costClass === "endeavor" || kindDef.costClass === "epochal");
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+
+    if (pending) {
+      btn.className = "study-verb-btn study-verb-btn--primary";
+      btn.disabled = true;
+      btn.textContent = "LAUNCHING…";
+      verbRow.append(btn);
+      return;
+    }
+    if (kindDef === undefined) {
+      btn.className = "study-verb-btn study-verb-btn--primary";
+      btn.disabled = true;
+      btn.textContent = "LAUNCH";
+      hintEl.textContent = "CHOOSE A SHIP";
+      verbRow.append(btn);
+      return;
+    }
+    if (blocked !== null || !requiredMet || !validCount || !named || !affordable) {
+      btn.className = "study-verb-btn study-verb-btn--primary";
+      btn.disabled = true;
+      btn.textContent = `LAUNCH · ${kindDef.costCompute} COMPUTE`;
+      hintEl.textContent =
+        blocked !== null
+          ? "THAT SHIP CANNOT LEAVE YET"
+          : !requiredMet
+            ? "ANSWER BOTH REQUIRED QUESTIONS"
+            : !validCount
+              ? `PICK ${catalog.minClauses} TO ${catalog.maxClauses} CLAUSES`
+              : !named
+                ? "NAME THEM"
+                : `${Math.ceil(kindDef.costCompute - free)} SHORT`;
+      verbRow.append(btn);
+      return;
+    }
+
+    if (!holds) {
+      btn.className = "study-verb-btn study-verb-btn--primary";
+      btn.textContent = `LAUNCH · ${kindDef.costCompute} COMPUTE`;
+      btn.addEventListener("click", () => this.commitVoyage(false));
+      verbRow.append(btn);
+      return;
+    }
+
+    // THE HOLD. The fill is the press itself, drawn inside the pill; there is
+    // no click handler on this button and there deliberately cannot be one.
+    btn.className = "study-verb-btn study-verb-btn--primary voyage-hold";
+    const fill = document.createElement("div");
+    fill.className = "voyage-hold-fill";
+    const label = document.createElement("span");
+    label.className = "voyage-hold-label";
+    label.textContent = `HOLD TO LAUNCH · ${kindDef.costCompute} COMPUTE`;
+    btn.append(fill, label);
+    btn.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      btn.setPointerCapture(e.pointerId);
+      this.beginVoyageHold(fill);
+    });
+    btn.addEventListener("pointerup", () => this.cancelVoyageHold());
+    btn.addEventListener("pointercancel", () => this.cancelVoyageHold());
+    // Desktop's thumb: a held Space or Enter presses, and the keyup decides
+    // by the same rule a lifted finger does (contactceremony.ts's pairing).
+    btn.addEventListener("keydown", (e) => {
+      if (e.key !== " " && e.key !== "Enter") return;
+      e.preventDefault();
+      if (e.repeat) return;
+      this.beginVoyageHold(fill);
+    });
+    btn.addEventListener("keyup", (e) => {
+      if (e.key !== " " && e.key !== "Enter") return;
+      e.preventDefault();
+      this.cancelVoyageHold();
+    });
+    verbRow.append(btn);
+  }
+
+  /** The 1s ticker's founding-sheet branch, and the name field's own
+   *  listener: recompute the control without touching the rest of the sheet.
+   *  Never while a press is live or a commit is in flight — rebuilding the
+   *  button then would take the gesture out from under the thumb. */
+  private refreshVoyageCommit(): void {
+    if (this.view !== "voyage") return;
+    // A live press, or a commit whose bloom is still playing in this very
+    // row: either one is a gesture in progress, and rebuilding the control
+    // under it would take it away mid-act.
+    if (this.voyageHold !== null || this.pendingVoyageStarId !== null) return;
+    this.voyageCommitRefresh?.();
+  }
+
+  private beginVoyageHold(fill: HTMLDivElement): void {
+    if (this.voyageHold !== null || this.pendingVoyageStarId !== null) return;
+    const hold = { fill, start: performance.now(), raf: 0 };
+    this.voyageHold = hold;
+    const step = (): void => {
+      if (this.voyageHold !== hold) return;
+      const t = clamp01((performance.now() - hold.start) / VOYAGE_HOLD_MS);
+      fill.style.width = `${(t * 100).toFixed(2)}%`;
+      if (t >= 1) {
+        this.completeVoyageHold();
+        return;
+      }
+      hold.raf = requestAnimationFrame(step);
+    };
+    hold.raf = requestAnimationFrame(step);
+  }
+
+  /** An early release. The fill drains where it stands and says nothing —
+   *  a cancel is silent, and the control stays exactly as armed as it was. */
+  private cancelVoyageHold(): void {
+    const hold = this.voyageHold;
+    if (hold === null) return;
+    cancelAnimationFrame(hold.raf);
+    this.voyageHold = null;
+    hold.fill.style.width = "0%";
+  }
+
+  /**
+   * THE ONLY PLACE A HOLD BECOMES AN ACT. Reached from one caller — the frame
+   * loop above, and only once a live press started by `beginVoyageHold` has
+   * run the full VOYAGE_HOLD_MS of wall clock. There is no argument, no
+   * public method and no timer that lands here.
+   */
+  private completeVoyageHold(): void {
+    const hold = this.voyageHold;
+    if (hold === null) return;
+    cancelAnimationFrame(hold.raf);
+    this.voyageHold = null;
+    hold.fill.style.width = "100%";
+    this.commitVoyage(true);
+  }
+
+  /**
+   * Sends the founding. The charter goes out exactly as it was written: the
+   * clauses by id, the five dials with their positions and pins, and the one
+   * name. Nothing is optimistically drawn — the confirming sky carries the
+   * voyage, and the work list is where it lands.
+   */
+  private commitVoyage(withBloom: boolean): void {
+    const starId = this.voyageStarId;
+    const kind = this.voyageKind;
+    if (starId === null || kind === null) return;
+    if (this.pendingVoyageStarId !== null) return;
+    const name = validateName(this.voyageName);
+    if (name === null) return; // guarded by the disabled control; defensive only
+
+    this.pendingVoyageStarId = starId;
+    this.pendingVoyagePriorIds = new Set(this.voyages.map((v) => v.id));
+    this.voyageBloomDone = !withBloom;
+    this.socket.send({
+      type: "launchVoyage",
+      starId,
+      kind,
+      charter: [...this.voyageClauses],
+      dials: DIAL_AXES.map((axis) => {
+        const dial = this.voyageDialFor(axis.id);
+        return { axis: axis.id, position: dial.position, pinned: dial.pinned };
+      }),
+      name,
+    });
+    this.voyageCommitRefresh?.();
+
+    if (withBloom) {
+      // The commit beat, reused wholesale from BECOME. The handoff to the
+      // work list waits on it (maybeHandoffVoyage): a hold that ends in a
+      // jump cut reads as a glitch rather than as a thing having happened.
+      const bloom = document.createElement("div");
+      bloom.className = "voyage-bloom";
+      this.voyageVerbRow?.append(bloom);
+      window.setTimeout(() => {
+        this.voyageBloomDone = true;
+        this.maybeHandoffVoyage();
+      }, VOYAGE_COMMIT_MS);
+    }
+  }
+
+  /** The launch's landing: the work list, scrolled to the row the founding
+   *  now has. Fires when BOTH the confirming sky and the commit beat are
+   *  done, in whichever order they finish. */
+  private maybeHandoffVoyage(): void {
+    const id = this.launchedVoyageId;
+    if (id === null || !this.voyageBloomDone) return;
+    this.launchedVoyageId = null;
+    this.voyageStarId = null;
+    this.highlightVoyageId = id;
+    this.openTend();
+  }
+
+  /** A report entry's `voyage` route, and the launch handoff: the work list,
+   *  scrolled to that founding's row. A voyage is keyed by id and never by
+   *  star, for the mission route's reason — the undertaking outlives what it
+   *  was aimed at. */
+  private focusVoyageRow(voyageId: string): void {
+    this.highlightVoyageId = voyageId;
+    this.openTend();
   }
 
   // ── A2.3: the CALL IT confirm, and tripwires ─────────────────────────

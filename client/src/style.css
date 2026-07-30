@@ -180,6 +180,18 @@ body {
 .proposal-decline,
 .source-card-study-affordance,
 .source-card-mission-affordance,
+/* A4: the founding verb, and the launch side's own short chrome — a clock
+   line, a prior's class and band, the pin, a clause group's question and the
+   press that commits. Every one of them a label a thumb reads as a shape. */
+.source-card-voyage-affordance,
+.voyage-clock,
+.voyage-survey-clock,
+.voyage-occupied,
+.voyage-prior-name,
+.voyage-prior-band,
+.voyage-pin,
+.voyage-group-header,
+.voyage-hold-label,
 /* A2.4: the contact verb, the hub's one voice row, and the ceremony's own
    chrome — the press affordance, the word that refuses, the coherence chip
    and a year stamped out on the sky. Every one of them short and enclosed. */
@@ -264,6 +276,9 @@ body {
    sheet's line — both running prose, sentences like the rest of this list. */
 .study-account-ceremony-line,
 .reclaim-line,
+/* A4: the survey's one qualitative line about arriving second, straight from
+   the server. A sentence, like the rest of this list. */
+.voyage-risk,
 /* The playtest reset's page: what starting over costs, and the refusal. */
 .study-startover-note {
   text-wrap: pretty;
@@ -2298,6 +2313,176 @@ body {
   color: var(--holos-amber);
 }
 
+/* ── A4: THE SURVEY and the founding sheet ───────────────────────────────
+ * The launch sheet's own family, one act on, and it borrows nearly all of
+ * it: survey rows are .tend-row, ship rows are .study-project-row, clause
+ * rows are .tend-launch-clause-row, and the dials are the ceremony's own
+ * .dial-* band. What is new below is only what a founding adds — a clock
+ * line, a prior's three-step bar, the departure light's warning, the pin,
+ * and the press that commits an Endeavor.
+ *
+ * Amber and ink, never --holos-cyan: everything the forecast says is a guess
+ * about somewhere nobody has been, which is the observatory's own rule and
+ * not a new one. */
+
+/* A clock or an age, under the row it belongs to. Tabular so three ships'
+   numbers line up and the comparison can be read down the column. */
+.voyage-clock {
+  color: var(--holos-ink-faint);
+}
+
+/* The two lines that are a price rather than a schedule: the departure light
+   a torch or a sail pays in, and the project a sail waits on. Amber, because
+   they are the reason to choose differently. */
+.voyage-clock--loud {
+  color: var(--holos-amber);
+}
+
+/* The survey row's per-kind staleness lines. */
+.voyage-survey-clock {
+  color: var(--holos-ink-faint);
+}
+
+/* Something is already at the far end. Not an error — a founding aimed at an
+   occupied world is a legal act with a known outcome — so it takes the amber
+   of a thing worth reading twice rather than the refusal red. */
+.voyage-occupied {
+  color: var(--holos-amber);
+}
+
+/* The forecast panel. */
+.voyage-forecast {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* One class of destination, its bar, and the band as a word. The bar is a
+   rendering of the ORDINAL the wire sent (three words, three steps) and
+   never of a percentage: the survey sends bands precisely so no surface can
+   dress a guess as a measurement. */
+.voyage-prior {
+  display: grid;
+  grid-template-columns: 5.4rem 1fr 5rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.voyage-prior-name {
+  color: var(--holos-ink-dim);
+}
+
+.voyage-prior-track {
+  position: relative;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: rgba(239, 233, 219, 0.14);
+  overflow: hidden;
+}
+
+.voyage-prior-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--holos-gold-dim);
+}
+
+.voyage-prior-band {
+  color: var(--holos-ink-faint);
+  text-align: right;
+}
+
+/* How tight the spread is: a label and the wire's own chip. */
+.voyage-spread {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+/* The occupied-risk line — the server's sentence, stated on every row
+   because a line that varied with what is inbound would leak. */
+.voyage-risk {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  padding: 0.2rem 0 0.1rem;
+}
+
+/* One charter dial: the ceremony's band, plus the pin that decides how far
+   the colony's descendants may reconsider it. */
+.voyage-dial-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.voyage-pin {
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  color: var(--holos-ink-faint);
+  font-family: var(--holos-font-body);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.voyage-pin--on {
+  color: var(--holos-amber);
+  border-color: var(--holos-amber);
+}
+
+/* The clause groups' sub-headers: quieter than a section header, because
+   what they head is a pair of choices inside one, not a new part of the
+   sheet. */
+.voyage-group-header {
+  color: var(--holos-gold);
+  padding: 0.7rem 0 0.1rem;
+}
+
+.voyage-name-field {
+  padding: 0.8rem 0 0.2rem;
+}
+
+/* THE HOLD. The pill is the launch sheet's own primary verb; what is new is
+   the fill sweeping through it, which IS the press — it is drawn from the
+   wall clock by the frame loop, so a dropped frame costs fidelity and never
+   correctness. */
+.voyage-verb-row {
+  position: relative;
+}
+
+.voyage-hold {
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.voyage-hold-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: rgba(240, 172, 102, 0.28);
+  pointer-events: none;
+}
+
+.voyage-hold-label {
+  position: relative;
+}
+
+/* The commit beat, reused wholesale from BECOME (holos-bloom, below). */
+.voyage-bloom {
+  position: absolute;
+  inset: -1rem;
+  pointer-events: none;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 50%, var(--holos-cyan-dim), transparent 62%);
+  animation: holos-bloom 1100ms ease forwards;
+}
+
 /* ── The report (AV2) ────────────────────────────────────────────────────
  * The observatory's annal — frozen record sentences, never re-rendered.
  * Rows reuse .tend-row for spacing/border (buildTendRow's skeleton minus
@@ -2952,6 +3137,33 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* A4: the founding row. Amber like the study and probe rows, not cyan — the
+   cyan exception on this card belongs to the beam alone (a beam is your voice
+   leaving now; a ship is a century of somebody else's sky). The in-flight
+   variant is a state rather than a verb, so it drops the pointer. */
+.source-card-voyage-row {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.15rem;
+}
+
+.source-card-voyage-affordance {
+  background: none;
+  border: none;
+  padding: 0.3rem 0.6rem;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--holos-text-xs);
+  color: var(--holos-amber);
+  cursor: pointer;
+}
+
+.source-card-voyage-affordance--active {
+  color: var(--holos-ink-faint);
+  cursor: default;
+}
+
 /* A2.6: the mutual quiet's rail. Above the three verbs, because it is a state
    of the relationship rather than something to do about it — and gold rather
    than cyan, because the second line is a reading of THEIR light. Hidden
@@ -3209,6 +3421,26 @@ body {
   background: var(--holos-cyan);
   box-shadow: 0 0 8px var(--holos-cyan-dim);
   transform: translate(-50%, -50%);
+}
+
+/* A4: the parent's own position, behind the child's on a charter dial. Gold
+   rather than cyan and unlit: it is a record of where this civilization
+   already stands, not the live notch the thumb is moving. Painted before the
+   marker in the DOM, so the two coincide invisibly until you move one. */
+.dial-marker--ghost {
+  background: var(--holos-gold-dim);
+  box-shadow: none;
+  width: 0.4rem;
+  height: 0.4rem;
+}
+
+/* A4: an editable track takes the thumb, so it says so — a taller hit area
+   and no text selection fighting the drag. */
+.dial-track--editable {
+  height: 0.55rem;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ── Civ name / charter ──────────────────────────────────────────────── */

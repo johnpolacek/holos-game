@@ -27,6 +27,11 @@ import type {
   Proposal,
   ContactWire,
   AccordRail,
+  // ── A4 ──
+  SurveyRow,
+  VoyageCatalog,
+  VoyageSnapshot,
+  VoyageWorkState,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { StudyBoard } from "./studyboard";
@@ -38,7 +43,12 @@ import {
   type SignInMount,
 } from "./ceremony";
 import { Model } from "./model";
-import { SourceCard, type ContactCardState, type MissionCardState } from "./sourcecard";
+import {
+  SourceCard,
+  type ContactCardState,
+  type MissionCardState,
+  type VoyageCardState,
+} from "./sourcecard";
 import { setClockAnchor } from "./clock";
 import { VoiceBeat } from "./voicebeat";
 import { ContactCeremony } from "./contactceremony";
@@ -53,6 +63,14 @@ function isLiveMissionState(state: WorkState): boolean {
     state === "awaiting-light" ||
     state === "standing"
   );
+}
+
+/** A4: voyage states that mean a founding is still under way — everything
+ *  short of the four terminal words (founded, unrooted, silent, dark). The
+ *  source card's row reads this, and the server's own cap agrees with it:
+ *  one live founding per star at a time. */
+function isLiveVoyageState(state: VoyageWorkState): boolean {
+  return state === "in-flight" || state === "beyond-horizon" || state === "awaiting-light";
 }
 
 type ScreenCleanup = () => void;
@@ -70,6 +88,8 @@ export class App {
   private menus: HypothesisMenus | null = null;
   // The launch sheet's vocabulary, retained from `welcome` like `menus`.
   private missionCatalog: MissionCatalog | null = null;
+  // A4: the founding sheet's vocabulary, retained the same way.
+  private voyageCatalog: VoyageCatalog | null = null;
   private model: Model | null = null;
   private sourceCard: SourceCard | null = null;
   private studyBoard: StudyBoard | null = null;
@@ -88,6 +108,11 @@ export class App {
   // never appended, never re-sorted client-side (the server's ranked order
   // is load-bearing, per the AV3 design).
   private proposals: readonly Proposal[] = [];
+  // A4: this player's own foundings and the forecast over the nearest stars,
+  // wholesale-replaced on every `sky` like everything else above. THE LEDGER
+  // rides the same message and is not read here: its surfaces are C2's.
+  private voyages: readonly VoyageSnapshot[] = [];
+  private survey: readonly SurveyRow[] = [];
 
   // A2.4: the contact block from the latest `sky` — both stances (pushed,
   // never preflighted, so the ceremony can render the mind's objection with
@@ -162,6 +187,7 @@ export class App {
         this.catalog = message.catalog;
         this.menus = message.menus;
         this.missionCatalog = message.missionCatalog;
+        this.voyageCatalog = message.voyageCatalog;
         setClockAnchor(message.clock);
         // A2.6: any welcome at all means the hello it answered was accepted
         // — a fresh anonymous seat, a resumed one, or a successful sign-in —
@@ -187,6 +213,8 @@ export class App {
         this.probeFlightYearsPerLy = message.probeFlightYearsPerLy;
         this.proposals = message.proposals;
         this.contact = message.contact;
+        this.voyages = message.voyages;
+        this.survey = message.survey;
         this.showSky(message.self, message.sources);
         break;
       case "sourceNamed":
@@ -349,6 +377,15 @@ export class App {
     return { arrivesYear: act.arrivesYear };
   }
 
+  /** A4: the founding row's state for `starId` — whether one of this
+   *  player's own ships is still crossing to it. Straight off the sky's own
+   *  voyage list; nothing local ever fills this in. */
+  private findVoyageState(starId: string): VoyageCardState {
+    return this.voyages.some((v) => v.starId === starId && isLiveVoyageState(v.state))
+      ? "live"
+      : "none";
+  }
+
   /** A2.6: the mutual quiet standing with this source, for the card's rail.
    *  Straight off the thread summary the sky already carries — the card
    *  renders it and derives nothing (findContactState's contract). Null when
@@ -444,6 +481,7 @@ export class App {
       this.model.setContact(this.contact);
       this.contactCeremony?.setSky(sources);
       this.studyBoard?.setSelf(self);
+      this.studyBoard?.setVoyages(this.voyages, this.survey);
       this.sourceCard?.setLocalNames(this.localNames);
       const openId = this.sourceCard?.currentStarId() ?? null;
       if (openId !== null) {
@@ -453,6 +491,7 @@ export class App {
           this.sourceCard?.setStudyStatus(this.findStudy(openId)?.status ?? null);
           this.sourceCard?.setMissionState(this.findMissionState(openId));
           this.sourceCard?.setContactState(this.findContactState(openId));
+          this.sourceCard?.setVoyageState(this.findVoyageState(openId));
           this.sourceCard?.setAccord(this.findAccord(openId));
         }
         // else: the Model's setSky above already fired onSelectSource(null)
@@ -486,6 +525,7 @@ export class App {
         this.socket,
         this.menus,
         this.missionCatalog,
+        this.voyageCatalog,
         this.catalog,
       );
       const contactCeremony = new ContactCeremony(this.root, model, this.socket);
@@ -520,6 +560,7 @@ export class App {
           sourceCard.setStudyStatus(this.findStudy(source.starId)?.status ?? null);
           sourceCard.setMissionState(this.findMissionState(source.starId));
           sourceCard.setContactState(this.findContactState(source.starId));
+          sourceCard.setVoyageState(this.findVoyageState(source.starId));
           sourceCard.setAccord(this.findAccord(source.starId));
           sourceCard.setExplainer(this.takeSourceCardVoice());
         }
@@ -533,6 +574,7 @@ export class App {
         sourceCard.setStudyStatus(this.findStudy(starId)?.status ?? null);
         sourceCard.setMissionState(this.findMissionState(starId));
         sourceCard.setContactState(this.findContactState(starId));
+        sourceCard.setVoyageState(this.findVoyageState(starId));
         sourceCard.setAccord(this.findAccord(starId));
         sourceCard.setExplainer(this.takeSourceCardVoice());
       });
@@ -586,6 +628,15 @@ export class App {
           studyBoard.openLaunch(starId);
         }
       });
+      // A4: SEND A SHIP. The card covers the sources; THE SURVEY covers the
+      // empty stars, and both open the same sheet. The card closes behind it
+      // (the DISPATCH row's own beat) — a founding is written on a full
+      // column, not over the top of the thing it is aimed at.
+      sourceCard.onVoyageAction((starId) => {
+        sourceCard.close();
+        model.clearSelection();
+        studyBoard.openVoyageLaunch(starId);
+      });
       // AV1: the mind's first line, at the end of the one-shot pull-back.
       // AV2: the report's session-open rides this same beat — it only
       // fires once the arrival beat has had its turn (see playArrival's
@@ -609,6 +660,7 @@ export class App {
       model.setSky(self, sources);
       model.setContact(this.contact);
       studyBoard.setSelf(self);
+      studyBoard.setVoyages(this.voyages, this.survey);
       studyBoard.update(
         this.studies,
         this.sources,
