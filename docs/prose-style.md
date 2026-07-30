@@ -85,6 +85,8 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | Proposal reason | `voice.ts` reason builders | Observatory deadpan; present tense | 0 |
 | Proposal accept verb | `voice.ts` PROPOSAL_VERBS | Observatory deadpan (chrome) | 0 |
 | Proposal block header | `studyboard.ts` chrome | Observatory deadpan | 0 |
+| Question method | `questionmethod.ts` QUESTION_METHOD | Observatory deadpan; what the instrument does, never what it found | 0 |
+| Accord rail | `accord.ts` | Observatory deadpan (chrome); a pinned stem plus an interpolated fact | 0 |
 | Proposal stance (AV4) | `voicegen.ts` counsel seam when `HOLOS_COUNSEL_GEN=on`; otherwise `null` | Archetype voice, free-standing, fact-free | 2 |
 | Docs narration | `docs/*.md` prose | Essayist, analytical | 1 |
 | In-doc quoted interface prose | walkthrough scene quotes | The quoted archetype's own voice | 3 |

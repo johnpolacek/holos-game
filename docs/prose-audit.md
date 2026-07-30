@@ -1,4 +1,11 @@
-# Prose audit — `voice.ts`, `minds.ts`
+# Prose audit
+
+- [Pass 1 — the server banks](#pass-1--voicets-mindsts) (`voice.ts`, `minds.ts`)
+- [Pass 2 — the client chrome](#pass-2--the-client-chrome)
+
+---
+
+## Pass 1 — `voice.ts`, `minds.ts`
 
 First run of `/prose-audit`, scoped to the two files that carry the most
 authored voice: `server/src/voice.ts` (arrival lines, frame lines, report
@@ -233,3 +240,167 @@ because `stylegate.ts` and the CI audits already close them.
 The AI-vocabulary sweep (*crucial*, *landscape*, *tapestry*, *showcase*,
 *testament*, *serves as*, *boasts*, *at its core*, and the rest) returned exactly
 one hit across both files: A2's "in order to".
+
+---
+
+## Pass 2 — the client chrome
+
+`model.ts`, `sourcecard.ts`, `studyboard.ts`, `ceremony.ts`,
+`contactceremony.ts`, `cosmos.ts`, `system.ts`, `accord.ts`, `startover.ts`,
+`questionmethod.ts`, `voicebeat.ts`, `clock.ts`, `app.ts`, plus
+`client/index.html` and the social-card copy in `scripts/build-og.mjs`. About
+14,000 lines of client, roughly 310 candidate player-facing strings after
+filtering out selectors, class names and identifiers.
+
+**The chrome is in better shape than the banks.** The AI-vocabulary sweep
+returned **zero** hits across the entire client, against one in the server
+banks. The ALL-CAPS chrome is compliant with R-24 everywhere it is a set
+phrase. The §8 pinned labels are byte-exact. There is no wit on a wit-0
+surface anywhere I could find, which is the failure this pass was most likely
+to turn up and did not.
+
+What it did turn up is mostly **spec coverage** rather than prose: two shipped
+surfaces that no §2 row describes and no length rule bounds.
+
+| | Count |
+|---|---|
+| Applied | 1 |
+| Proposed, not applied | 4 |
+| Considered and kept | 3 |
+
+### Applied
+
+#### A4 — `§2`'s register map is missing two shipped surfaces
+
+`accord.ts` and `questionmethod.ts` both render player-facing prose and
+neither has a row in the register map. `questionmethod.ts` cites "prose-style
+§2's studyboard row" in its own header, but that row covers "work-list rows /
+states" and these are 55-word explanatory paragraphs; `accord.ts` calls itself
+"the compliance rail's chrome" in its header and appears in §2 not at all.
+
+Added both rows, transcribing the register each file already declares for
+itself. §7's sync obligation decides the direction: the code is canonical and
+the doc mirrors it, so this is the doc catching up rather than a new decision.
+
+**Rule:** §2, §7.
+
+### Proposed, not applied
+
+#### P4 — The accord rail exceeds R-24, and R-24 has no composition clause
+
+R-24 bounds chrome at six words. The rail's longest state renders as:
+
+> `THEIR LIGHT SINCE: BELOW THE FLOOR · AS OF 240 Y AGO`
+
+Eleven words. Its shortest failing sibling, `THEIR LIGHT SINCE: NONE HAS
+REACHED US YET`, is eight.
+
+The rail is not really a set phrase, though. It is a pinned stem plus an
+interpolated fact, which is the same construction R-32 already carves out for
+record sentences: "the bound governs the framing clause". R-24 has no
+equivalent sentence, so as written it is violated by shipped code.
+
+**Proposed amendment to R-24**, following R-32's existing precedent rather
+than inventing a mechanism: *the bound governs the set phrase. A composed
+chrome line (a pinned stem plus an interpolated `Fact`, as in the accord rail)
+is bounded on its stem; the fact is bounded at its own source.*
+
+**Not applied because** amending a rule in the style guide is the author's
+call, not the audit's. The alternative is shortening the rail, which I would
+not recommend: every word in it is load-bearing and `AS OF n Y AGO` is §8
+pinned.
+
+**Rule:** R-24.
+
+#### P5 — The question-method paragraphs have no length rule
+
+Six paragraphs, 52 to 62 words, three sentences each, remarkably consistent —
+clearly written to a spec, but not to one the guide records. The nearest rule
+is R-19 (gloss: 1 to 2 sentences, 18 to 42 words), which they overflow by
+design: `questionmethod.ts`'s header documents a deliberate three-move
+structure (what the archive already holds, what the compute buys, why the
+price is what it is).
+
+**Proposed:** a new bound, R-39, matching the shipped consistency rather than
+constraining it: *Question method: 3 sentences, 45 to 65 words; observatory
+deadpan, wit 0; no numerals (the costs and clocks beside it are effective and
+a literal would be falsifiable by a landed project).*
+
+The numeral prohibition is not new; `questionmethod.ts` already states and
+observes it. Writing it down is what makes it survive the next author.
+
+**Rule:** none exists, which is the finding.
+
+#### P6 — The social card and the meta description ship three different taglines
+
+| Where | Text |
+|---|---|
+| `index.html` meta description | "A hard science fiction civilization game where you raise a world to superintelligence and then guide its immortal future **out into** a galaxy built from real physics." |
+| `index.html` og: and twitter:description | "Raise a world to superintelligence, then **guide its immortal future across** a galaxy built from real physics." |
+| `build-og.mjs`, rendered into the image | "Raise a world to superintelligence, then **reach across** a galaxy built from real physics" |
+
+The second and third appear **together**, in the same social-card preview: the
+image says one tagline and the description under it says another. Pattern 12
+(elegant variation) on the one string where variation has no upside.
+
+There is a real constraint behind the divergence: the image tagline renders
+into a fixed 940px box, and the description version is 105 characters against
+the image's 84. So the short form exists for a reason. But "reach across a
+galaxy" and "guide its immortal future across a galaxy" do not promise the
+same game, and "immortal future" is the more distinctive of the two: deep time
+is what Act 3 actually is.
+
+**Not applied because** the tagline is marketing voice and the image is a
+checked-in binary that would need regenerating (`npm run og`). Recommend
+picking one short form that fits 940px and using it in all three places.
+
+**Rule:** none; §8's spirit (a load-bearing phrase does not get restyled).
+
+#### P7 — A negative triple in the watch explainer
+
+`studyboard.ts`, the longest string on the board:
+
+> "**Nothing to open, nothing to hold, and no limit on how many stand at
+> once.** The light arrives whether or not you attend to it, so watching
+> spends only patience. Compute buys questions, the inference that separates
+> one reading from another, and no question has been put to this source."
+
+Patterns 9 and 10 together: three negations in parallel, reaching for
+comprehensiveness. All three make the same point (watching costs you nothing),
+so the third is padding the cadence rather than adding a claim.
+
+**Not applied:** authored voice, and the surface is teaching a real mechanic
+where over-explaining is the safer failure.
+
+**Rule:** R-4 (one wit beat), loosely. **Pattern:** 9, 10.
+
+### Considered and kept
+
+#### K5 — The parallel section captions
+
+"Everything your instruments have found. **Tap one to look closer.**" /
+"Sources your instruments have found. **Tap one to read the brief.**" / "What
+the observatory can build. **Tap one to read what it grants.**"
+
+And the sibling family: "What the light brought while you were away", "What
+the observatory can build", "What your civilization can begin now".
+
+Parallel captions across sibling sections are good interface writing: the
+shared shape is what tells a player these are the same kind of thing. This is
+the one place a template is a feature.
+
+#### K6 — `1–24` in the ceremony's name hint is a legal en dash
+
+`Name must be 1–${MAX_NAME_LEN} characters.` uses U+2013 on a player surface.
+Not an R-8 violation: the rule bans an en dash "standing in for" an em dash,
+and `stylegate.ts`'s own note allows that "the en dash is legal typography
+between a range of numbers". This is a numeric range. `audit:dashes` reads
+U+2014 only, so it would not have caught it either way; checked by hand and
+cleared.
+
+#### K7 — `I HAVE WRITTEN IT DOWN` is first-person singular, correctly
+
+The gate's `FIRST_PERSON_SINGULAR` rule enforces §4's "every archetype speaks
+as we". This button is not the mind speaking: it is the **player**
+acknowledging they saved their key, and it is the one surface in the game
+where the player has a voice. Correct as written.
