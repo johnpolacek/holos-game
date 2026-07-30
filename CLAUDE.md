@@ -65,6 +65,7 @@ npm run audit:dashes  # R-8: no em dash on a player surface
 npm run audit:banned  # prose-style.md §6 <-> bannedterms.ts
 npm run audit:voice   # every shipped bank string through the style gate
 npm run audit:catalog # §6 over the catalogs audit:voice does not reach
+npm run audit:facts   # R-1: catalog prose vs the fields it restates
 ```
 
 CI (`.github/workflows/ci.yml`) runs all of them on every PR and they must
@@ -80,6 +81,16 @@ is covered without anyone remembering to list it. Adding a module that carries
 `why`-style design notes rather than prose means adding it to that set, with
 the reason. `audit:banned` is neither of these: it checks §6 and
 `bannedterms.ts` are in sync, and never reads a bank at all.
+
+`audit:facts` guards a different failure. A project's `effectLine` and a ship
+class's `line` are plain strings authored beside the structured fields they
+describe ("Raises the compute income by 6 a year" next to
+`addRatePerYear: 6`), so each is a hand-maintained echo that R-29's
+`Fact` scheme never reaches. Retune the field, leave the sentence, and the
+receipt the player reads is false with nothing to catch it — least of all when
+the number is spelled out ("twenty light-years" over `WARM_RADIUS_LY`). It
+knows only the couplings written into it, so **when catalog prose starts
+restating a new field, add the check there too**; its header says as much.
 
 Those audits are mechanical: they catch a dash, a coinage, a numeral in a
 remark. They cannot catch prose that is merely *flat* — the rule-of-three

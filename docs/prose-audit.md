@@ -3,6 +3,7 @@
 - [Pass 1 — the server banks](#pass-1--voicets-mindsts) (`voice.ts`, `minds.ts`)
 - [Pass 2 — the client chrome](#pass-2--the-client-chrome)
 - [Pass 3 — the server catalogs](#pass-3--the-server-catalogs)
+- [Pass 4 — A4 and A5](#pass-4--a4-and-a5)
 - [Closing state](#closing-state)
 
 ---
@@ -618,3 +619,159 @@ R-29 exists to prevent: it is a fact that can drift from the constant it
 describes, and nothing would catch it if the radius were ever retuned. Worth a
 look when that slice gets its pass; it may well be pinned correctly somewhere I
 did not read.
+
+---
+
+## Pass 4 — A4 and A5
+
+`voyages.ts`, `orders.ts`, `lineage.ts`, `worlds.ts`, the additions to
+`voice.ts`, `civseed.ts`, `dials.ts`, `studies.ts`, `tend.ts` and `report.ts`,
+and on the client the `studyboard.ts` additions and `push.ts`. 107 new
+player-facing strings.
+
+The A4/A5 prose is strong. "A beam home is a line drawn between two systems,
+and anyone can follow a line at both ends" is the charter clause bank at its
+best, and the ship classes, the landfall headlines and the Ledger's drift bands
+all hold their registers. The humanizer's vocabulary tells are absent again.
+
+The findings are two rules that did not exist and one bug class that nothing
+was checking.
+
+| | Count |
+|---|---|
+| Applied | 4 |
+| Recorded | 2 |
+
+### Applied
+
+#### A6 — `npm run audit:facts`: catalog prose that restates a number
+
+**This is the real find of the pass.** R-29 puts every fact in voice prose
+behind a `Fact` so it cannot drift from the number the game runs on. The
+catalogs are outside that scheme: a project's `effectLine` and a ship class's
+`line` are plain strings authored beside the fields they describe, and they
+ship to the client already formatted. Every one is a hand-maintained echo.
+
+Nothing was checking them. Retune the effect, leave the sentence, and the
+receipt the player reads is false — no type error, no failing audit, and no
+stray digit for R-29 to catch, because R-29 governs `voice.ts` and these are
+catalogs. **Spelling the number out hides it completely:**
+
+| Prose says | The field says |
+|---|---|
+| `orders.ts`: "inside **twenty** light-years" | `WARM_RADIUS_LY = 20` |
+| `voyages.ts`: "**Half** of lightspeed" | `TORCH_FLIGHT_YEARS_PER_LY = 2` |
+| `voyages.ts`: "**Four fifths** of lightspeed" | `SAIL_FLIGHT_YEARS_PER_LY = 1.25` |
+| `voyages.ts`: "The flare lasts **eight** years" | `departureYears: 8` |
+| `projects.ts`: "**five** points higher" | `addConfidence: 0.05` |
+| `projects.ts`: "an **eighth** of lightspeed" | `cruiseFractionOfC: 0.125` |
+| `projects.ts` ×4: "by **N** a year" | `addRatePerYear` |
+| `projects.ts` ×4: "**N**% sooner / less" | `percent` |
+
+`orders.ts` states the principle itself, one field above the one that breaks
+it: the sentinel's cost is read from the mission catalog rather than restated,
+because "an order that could drift out of step with what it dispatches would be
+a receipt for something else". The audit applies that sentence to the rest of
+the catalog.
+
+**22 couplings across 13 projects and 3 ship classes; all agree today.** Also
+checks the question chrome a project's prose recites against its `questionIds`,
+with the case split that matters: a *subset* must be named (the player has no
+other way to know which two questions got cheaper), the *whole set* must not
+be (`sky-vault` says "Every question on every study", which is both better
+prose and drift-proof).
+
+Controlled five ways before shipping: a retuned income rate, a retuned order
+radius against a spelled word, a question added to an effect, a retuned sail
+fraction, and a retuned flare. All five fail loudly; the catalog restores
+clean.
+
+**Its limit is stated in its own header.** It knows only the couplings written
+into it. A new effect kind whose prose restates a new field is not covered
+until someone adds it, and nothing will announce that. Treat the check list as
+the spec for what catalog prose may restate.
+
+*(The first draft of this audit reported six failures against a correct
+catalog: one regex spanning `id` to `effect` walked across the record boundary
+and paired one project's prose with the next one's numbers. It now splits into
+records first. An audit that cannot be trusted when it fails is worth less than
+none.)*
+
+**Rule:** R-1, R-29. Wired into `package.json` and CI.
+
+#### A7 — R-24a, the caps sub-line
+
+A sweep found five shipped ALL-CAPS strings over R-24's six-word bound, and not
+one of them is a label:
+
+| | |
+|---|---|
+| 10w | `NEITHER OF US SHINES AT THE OTHER. ONE OFFER, EVER` |
+| 9w | `THE HONEST EXIT, WHILE THERE IS BUDGET FOR ONE` |
+| 8w | `THEIR LIGHT SINCE: NONE HAS REACHED US YET` |
+| 8w | `THEY WILL NOT KNOW UNTIL IT REACHES THEM` |
+| 7w | `NEEDS A PROJECT THAT HAS NOT LANDED` |
+
+ALL-CAPS does two jobs and R-24 only described one. A **label** names a thing a
+thumb presses; that is the six-word set phrase. A **sub-line** is a whole
+sentence in caps *under* a label, saying what the move would mean. It is
+microcopy wearing chrome's typography, so R-24a gives it microcopy's bound of
+12 words. All five conform.
+
+The accord rail is the third case and gets its own clause: a **composed** line
+is bounded on its stem, the fact bounded at its own source, which is R-32's
+existing carve-out restated. That closes pass 2's P4.
+
+§7 decides the direction: five independent authoring decisions across three
+slices all landed on the same shape, so the code is telling us the rule was
+under-specified. The rule moved to the prose, not the other way.
+
+#### A8 — R-39 and R-40, the two missing bounds
+
+R-39 (question method: 3 sentences, 45–65 words, no numerals) closes pass 2's
+P5. R-40 (section caption: 1–2 sentences, ≤ 22 words) is new here: the
+`study-picker-subtitle` class holds twelve shipped strings and **A4/A5 stretched
+it from twelve words to twenty-one with no rule in the way**. The bound is set
+from what shipped; all twelve conform.
+
+R-40 also says the thing pass 2 recorded as K5: sibling captions on one board
+share a shape *on purpose*, so R-6's no-homogeneity rule does not reach them.
+
+One string is knowingly left outside: A5's push-consent explainer
+(`study-watch-line`, 25 words) is asking permission rather than labelling a
+section, and it is the only member of its class.
+
+#### A9 — Five new §2 rows
+
+Section caption, caps sub-line, ship class / charter clause, standing order,
+and the Ledger drift band. Same transcription-of-shipped-register move as A4,
+and it means every surface A4 and A5 added now has a register on record.
+
+### Recorded
+
+#### K11 — The charter clause triples are diegetic
+
+"Bank the heat, bury the works, and put nothing above the rock that a telescope
+could resolve" is a three-item list, and so is "One order, one firing, and a
+fresh hand to arm it again". Both are instruction sets: the enumeration is the
+content, not a reach for comprehensiveness. Same call as K3.
+
+Likewise "Not a refusal, not an acknowledgment: nothing" (pattern 11) — the
+negation *is* the clause's meaning, and it is the best line in the answer-nothing
+charter.
+
+#### K12 — British spellings, all in comments
+
+`neighbour`, `centre`, `defence`, `honour`, `recognise` appear in nine files
+against an overwhelmingly American codebase (`catalog`, `color`, `center`,
+`neighbor`, `behavior`). Every instance is in a comment or a `why` design note.
+**Zero reach a player surface**, so this is house-style noise rather than a
+prose defect, and not worth a commit on its own. Worth knowing if a `why` field
+is ever promoted to a surface.
+
+#### The seedship's century, not checked
+
+`voyages.ts` says a seedship "arrives in a century", which is a crossing time
+for a typical neighborhood hop rather than a constant restated. `audit:facts`
+deliberately does not pin it: inventing a coupling the catalog does not claim
+would make the audit lie about what it guarantees.

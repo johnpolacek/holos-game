@@ -86,6 +86,14 @@ jobs:
       - name: Audit the catalogs against §6
         run: npm run audit:catalog
 
+      # prose-style.md R-1/R-29, over the catalogs R-29 does not reach. A
+      # project's effectLine and a standing order's line are plain strings
+      # authored beside the structured fields they describe, so each is a
+      # hand-maintained echo of a number the game actually runs on. Needs no
+      # build: it reads sources.
+      - name: Audit restated facts (R-1)
+        run: npm run audit:facts
+
       # Deploy validation, run on every PR and push to main. `--dry-run`
       # bundles the Worker and validates wrangler.jsonc + every binding
       # WITHOUT contacting Cloudflare, so it needs no account secrets. It

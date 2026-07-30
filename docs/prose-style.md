@@ -87,6 +87,11 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | Proposal block header | `studyboard.ts` chrome | Observatory deadpan | 0 |
 | Question method | `questionmethod.ts` QUESTION_METHOD | Observatory deadpan; what the instrument does, never what it found | 0 |
 | Accord rail | `accord.ts` | Observatory deadpan (chrome); a pinned stem plus an interpolated fact | 0 |
+| Section caption | `studyboard.ts` `study-picker-subtitle` | Observatory deadpan; what a section is and where it stops | 0 |
+| Caps sub-line | `studyboard.ts` accord and voyage sub-labels | Observatory deadpan; microcopy in chrome's typography (R-24a) | 0 |
+| Ship class / charter clause | `voyages.ts` | The mind stating what it is committing to; plain, consequential | 1 |
+| Standing order | `orders.ts` | The mind's instruction to itself, in absence | 1 |
+| Ledger drift band | `voice.ts` LEDGER_BAND_LINES | Observatory deadpan; a graded reading, never a verdict | 0 |
 | Proposal stance (AV4) | `voicegen.ts` counsel seam when `HOLOS_COUNSEL_GEN=on`; otherwise `null` | Archetype voice, free-standing, fact-free | 2 |
 | Docs narration | `docs/*.md` prose | Essayist, analytical | 1 |
 | In-doc quoted interface prose | walkthrough scene quotes | The quoted archetype's own voice | 3 |
@@ -366,7 +371,46 @@ Named mechanics of the register. Apply **at most one** per short string.
 - **R-22** Lineage fingerprint: 1 sentence, ≤ 26 words.
 - **R-23** Chronicle line: ≤ 30 words.
 - **R-24** Chrome: ≤ 6 words; ALL-CAPS set phrases per §8.
-- **R-25** Microcopy: ≤ 12 words; sentence case.
+
+  **R-24a The caps sub-line.** ALL-CAPS is used for two different things and
+  R-24 only ever described one of them. A **label** names a thing a thumb can
+  press or a state it can recognise, and it is the set phrase R-24 bounds at
+  six words. A **sub-line** is a whole sentence set in caps *underneath* a
+  label, explaining what taking that move would mean: `THEY WILL NOT KNOW
+  UNTIL IT REACHES THEM` under an accord's accept, `NEEDS A PROJECT THAT HAS
+  NOT LANDED` under a voyage that cannot leave. It is microcopy wearing
+  chrome's typography, so it takes **microcopy's bound: ≤ 12 words** (R-25),
+  in caps, wit 0.
+
+  A **composed** chrome line is the third case and is bounded on its stem
+  alone: the accord rail is a pinned phrase plus an interpolated `Fact`
+  (`THEIR LIGHT SINCE: BELOW THE FLOOR · AS OF n Y AGO`), and the fact is
+  bounded at its own source. This is R-32's carve-out for record sentences,
+  which says the same thing about a passed-through passage.
+
+  Written down 2026-07 after a sweep found five shipped strings over R-24 and
+  every one of them a sub-line or a composed line rather than a label. §7
+  decides which way that correction runs: the code banks are canonical, so the
+  rule moves to the prose.
+- **R-25** Microcopy: ≤ 12 words; sentence case (caps in the R-24a case).
+- **R-39 Question method:** 3 sentences, 45–65 words; observatory deadpan,
+  wit 0; **no numerals**. The costs and clocks printed beside it are
+  *effective* (project discounts and haste apply), so a literal in the prose
+  could be made false by a landed project. `questionmethod.ts` already states
+  and observes this; the rule writes it down so it survives the next author.
+- **R-40 Section caption:** 1–2 sentences, ≤ 22 words; observatory deadpan,
+  wit 0. The explainer under a board heading (`study-picker-subtitle`): what
+  this section is, and where its limits are. Sibling captions on one board
+  **share a shape on purpose** — the parallel is what tells a player they are
+  the same kind of thing — so R-6's no-homogeneity rule does not reach here.
+  Bound set 2026-07 from the twelve shipped captions, whose longest is 21
+  words; A4 and A5 stretched the class from twelve words to twenty-one with no
+  rule in the way, which is why it has one now.
+
+  One string sits outside it and is left there knowingly: A5's push-consent
+  explainer (`study-watch-line`, 25 words) is asking permission rather than
+  labelling a section, and a consent line is allowed the sentence it needs.
+  It is the only member of its class; if a second appears, they get a row.
 - **R-26** Arrival line: 1–3 sentences, ≤ 34 words, and **no numerals** —
   an arrival line states no fact from state, which also makes it trivially
   safe for runtime generation (nothing to pin).
