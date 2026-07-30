@@ -127,6 +127,7 @@ import {
   SIGNAL_VOICE,
   TONE_CLAUSE,
   type SignalBeat,
+  type VoicePool,
 } from "./voice";
 
 // ---------------------------------------------------------------------------
@@ -492,6 +493,52 @@ function deliberationFor(
 // ---------------------------------------------------------------------------
 
 /**
+ * THE NO-IMMEDIATE-REPEAT DRAW.
+ *
+ * WHY IT EXISTS. A2.6's flagged top risk is that the rendered lines are dull,
+ * and the shape of dullness on this stage is REPETITION: an evening of the fun
+ * gate is roughly seven signals a side, so a pool handing back the sentence it
+ * handed back last time is the failure a reader actually notices. Deepening
+ * the banks lowers the odds; it does not remove the case, because an
+ * independent draw over a pool of five collides one time in five.
+ *
+ * WHAT IT DOES. The index for ordinal N is the seeded draw for N, stepped one
+ * forward whenever it lands on the index this same walk produced for N-1. The
+ * walk is recomputed from ordinal zero on every call, so the comparison is
+ * against the EFFECTIVE previous index rather than the raw one, and two
+ * neighbouring signals cannot land on the same line of a pool with more than
+ * one entry in it. Cheap: the walk is bounded by MAX_SIGNALS_PER_THREAD.
+ *
+ * WHY IT IS BYTE-STABLE FOREVER, which is the property traffic.ts's header
+ * calls load-bearing. It is a PURE FUNCTION of (key, ordinal, poolSize): no
+ * stored state, no clock, no dependence on what was actually delivered or on
+ * when anybody read it. Nothing upstream can change the walk for an ordinal
+ * that already exists, because appending a signal only adds ordinals at the
+ * end and never renumbers one. So a reply that has already been read composes
+ * to the same bytes on every later derivation, and a derived thread still
+ * needs no snapshot. (A change to the pool's SIZE is a different walk, which
+ * is the honest statement of what expanding a bank does: it is a prose
+ * revision, and it is why the banks are expanded once and then left alone.)
+ *
+ * Applied INDEPENDENTLY to the voice clause, the tone clause and the accord
+ * clause, on three separate seed keys, so a repeat in one half of a body does
+ * not drag the other half along with it.
+ */
+function drawIndex(key: string, ordinal: number, poolSize: number): number {
+  let index = -1;
+  for (let n = 0; n <= ordinal; n++) {
+    const raw = Math.floor(createRng(`${key}/${n}`).next() * poolSize);
+    index = poolSize > 1 && raw === index ? (raw + 1) % poolSize : raw;
+  }
+  return index;
+}
+
+/** One line from a non-empty pool. Total by the tuple's own shape. */
+function drawFrom(pool: VoicePool, key: string, ordinal: number): string {
+  return pool[drawIndex(key, ordinal, pool.length)] ?? pool[0];
+}
+
+/**
  * THE ONE COMPOSER, USED BY BOTH PATHS.
  *
  *   body = (ACCORD_CLAUSE[move] ?? TONE_CLAUSE[tone]) + " " + voice clause
@@ -521,22 +568,19 @@ export function composeSignalBody(
   ordinal: number,
 ): string {
   const move = accordMoveOf(parts);
-  const opening = move === null ? TONE_CLAUSE[tone] : ACCORD_CLAUSE[move];
+  const opening =
+    move === null
+      ? drawFrom(TONE_CLAUSE[tone], `tone/${threadId}`, ordinal)
+      : drawFrom(ACCORD_CLAUSE[move], `accord/${threadId}`, ordinal);
   const card = SIGNAL_VOICE[archetype];
-  let clause: string | null;
-  if (beat === "open") clause = card.open;
-  else if (beat === "withdraw") clause = card.withdraw;
-  else clause = null;
   // `follow` is the fallback as well as the ordinary case: six archetypes
-  // have no `withdraw` cell, and a body that went bare on those would be a
+  // have no `withdraw` pool, and a body that went bare on those would be a
   // tell about which archetypes can leave.
-  if (clause === null) {
-    clause =
-      card.follow.length === 0
-        ? null
-        : createRng(`signal/${threadId}/${ordinal}`).pick(card.follow);
-  }
-  if (clause === null) return opening;
+  const pool =
+    beat === "open" ? card.open : beat === "withdraw" ? (card.withdraw ?? card.follow) : card.follow;
+  // The seed key is unchanged from A2.5 (`signal/thread/ordinal`), so the pick
+  // moves only because the pools got deeper.
+  const clause = drawFrom(pool, `signal/${threadId}`, ordinal);
   const verdict = gateFactFree(`${opening} ${clause}`, LIMITS.signal);
   return verdict.ok ? verdict.line : opening;
 }

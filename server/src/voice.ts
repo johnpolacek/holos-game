@@ -1241,15 +1241,33 @@ export const SIGNAL_OBSERVATIONS: Readonly<Record<SignalObservation, string>> = 
 export type SignalBeat = "open" | "follow" | "withdraw";
 
 /**
+ * A NON-EMPTY POOL. Every bank the composer draws from is one of these, and
+ * the tuple shape is what makes that a compile-time fact rather than a
+ * convention: traffic.ts's draw indexes a pool and must always come back with
+ * a sentence, and `pool[0]` on a tuple is a string even under
+ * `noUncheckedIndexedAccess`.
+ */
+export type VoicePool = readonly [string, ...(readonly string[])];
+
+/**
  * WHO IS SPEAKING — §4's register, and nothing about the player in any of
- * it. `follow` carries two variants because a thread is the one surface a
- * player reads the same archetype on repeatedly, and the pick is seeded
- * (traffic.ts) so a re-derivation cannot change a line already delivered.
+ * it. Every beat is a POOL, and the pick is seeded on (thread, ordinal) in
+ * traffic.ts so a re-derivation cannot change a line already delivered.
+ *
+ * THE POOLS ARE DEEP ON PURPOSE (A2.6's flagged top risk: an evening of the
+ * fun gate is roughly seven signals a side, and a thread that hands back the
+ * same sentence twice reads as a machine no matter how good the sentence is).
+ * `follow` is the workhorse and carries five, because a long conversation
+ * lives there and nowhere else; each of its variants takes a DIFFERENT ANGLE
+ * on the same archetype — what it keeps, what it wants, what it costs, what
+ * it is doing while it answers — so successive draws read as one mind going
+ * on rather than one sentence being rephrased. `open` carries three, the
+ * count a first utterance can use.
  *
  * `withdraw` is non-null for exactly the four whisperer archetypes, which
- * are the only ones that ever leave. The record stays total in SHAPE — a
- * null is a cell that says the archetype has no such beat, which is a
- * statement, where a missing key would be a crash waiting on a dial.
+ * are the only ones that ever leave, and carries two. The record stays total
+ * in SHAPE — a null is a cell that says the archetype has no such beat, which
+ * is a statement, where a missing key would be a crash waiting on a dial.
  *
  * Phoenix is authored in full and is UNREACHABLE in A2.5: it is the silent
  * class, and the self you hailed is gone. The cells exist so the bank stays
@@ -1257,74 +1275,135 @@ export type SignalBeat = "open" | "follow" | "withdraw";
  * authoring sprint.
  */
 export interface SignalVoice {
-  readonly open: string;
-  readonly follow: readonly string[];
-  readonly withdraw: string | null;
+  readonly open: VoicePool;
+  readonly follow: VoicePool;
+  readonly withdraw: VoicePool | null;
 }
 
 export const SIGNAL_VOICE: ByArchetype<SignalVoice> = {
   beacon: {
-    open: "We have never been difficult to find, and we are pleased that someone finally went to the trouble of aiming.",
+    open: [
+      "We have never been difficult to find, and we are pleased that someone finally went to the trouble of aiming.",
+      "Everything about us is already outbound and always has been. Still, being addressed by name is a different pleasure entirely.",
+      "We are the loudest thing in this sky and we volunteered for it. You are the first to answer the noise.",
+    ],
     follow: [
       "We have told everyone that you wrote to us. Nobody asked us to, and we did it anyway.",
       "We are not good at brevity and we have stopped pretending otherwise. Every word of ours goes out at full volume.",
+      "We answer everything, always, and we have never once been accused of underdoing it. This is our ordinary output aimed narrower.",
+      "We are aware that we take up a great deal of room in this exchange. We have decided not to correct that.",
+      "Anything you send here goes on being repeated long after you stop sending. We consider that a service and not a leak.",
     ],
     withdraw: null,
   },
   tide: {
-    open: "There is so much of everything out here and almost none of it answers back. You did, and we want more.",
+    open: [
+      "There is so much of everything out here and almost none of it answers back. You did, and we want more.",
+      "We have been taking whatever this sky will hand over for a very long time. This is the first thing offered.",
+      "Something arrived that we did not go out and take. We are not sure what to do with the difference.",
+    ],
     follow: [
       "We would like more of these, and we would like them closer together. Appetite is the only honest thing about us.",
       "There is never enough of anything out here, including this. We will take whatever else you are willing to send.",
+      "We have counted this exchange among our holdings, which is what we do with everything. The count went up and we noticed.",
+      "We do not pace ourselves and we are not going to start. Whatever comes next, send it before we go looking.",
+      "We will not pretend this is affection. It is appetite, cheerfully admitted, and appetite has kept better company than affection ever did.",
     ],
     withdraw: null,
   },
   monument: {
-    open: "We keep everything, and we have kept you since long before this. The record simply lacked your side of it.",
+    open: [
+      "We keep everything, and we have kept you since long before this. The record simply lacked your side of it.",
+      "This has been entered already, before we composed a word of the answer. Nothing that reaches us is ever set aside.",
+      "A first thing has happened, which is rare here. We stood for it, and then we wrote it down.",
+    ],
     follow: [
       "Both of these are in the record now, filed beside each other. Nothing we keep is ever taken out again.",
       "The file on you is no longer one-sided, which is a small thing, and it is written down.",
+      "The gaps between these are kept as carefully as the sendings. An absence is a shape, and shapes are worth preserving.",
+      "Each of these is read aloud once before it is stored. That is not required of us; we require it of ourselves.",
+      "Long after you have stopped and we have stopped, this will still be legible. That was decided before either of us arrived.",
     ],
-    withdraw:
+    withdraw: [
       "The record will show that we spoke and then stopped. It will not show why, because we are not writing that down.",
+      "This is the last entry on our side, and it is closed. What is kept is kept; what follows will not be.",
+    ],
   },
   cloister: {
-    open: "The door has been shut for an age, and it opens for this alone. We would rather it were not mentioned again.",
+    open: [
+      "The door has been shut for an age, and it opens for this alone. We would rather it were not mentioned again.",
+      "You have reached a system that is not reachable. We have looked into how that happened and are answering in the meantime.",
+      "Nothing has been admitted here in a very long time. This is admitted, precisely once, and the precision is deliberate.",
+    ],
     follow: [
       "Nothing outside this system has decided anything here in a very long time. This exchange is the exception, and it remains one.",
       "This remains the only opening, and it is not widening. We would not know how to want visitors.",
+      "Every word of this is logged against the exception that permits it. That log is short and will remain short.",
+      "Answering costs us the one thing we have spent an age building, which is the impression that nothing lives here.",
+      "We would ask that you not tell anyone where this came from. It is a request, and we make very few.",
     ],
-    withdraw:
+    withdraw: [
       "The door is shut again and it will not open twice. Nothing you send after this will be read here.",
+      "The exception has been withdrawn and the record of it sealed. We were clear about the terms, and they have run out.",
+    ],
   },
   shepherd: {
-    open: "There are things here that will never know this happened, and that is the point. Speaking to you costs them nothing yet.",
+    open: [
+      "There are things here that will never know this happened, and that is the point. Speaking to you costs them nothing yet.",
+      "We have been listening a great deal longer than we have been answering. Yours is the first we judged safe to answer.",
+      "We stand over a great many quiet things. Answering you is a small risk, taken carefully, and taken on their behalf.",
+    ],
     follow: [
       "The ones we stand over still know nothing of this, and they will not. Their not knowing is the whole work.",
       "We keep this exchange well away from what we tend. Nothing you have sent has reached them, and nothing will.",
+      "We are in no hurry, and we would rather you were not either. Nothing we protect has ever been helped by speed.",
+      "Every moment spent here is a moment not spent watching. We have decided we can afford this one, and we are counting.",
+      "We are larger than we sound, and we have been careful to sound small. That habit will not stop for this.",
     ],
-    withdraw:
+    withdraw: [
       "What we stand over cannot be near anything that loud. We are stepping back between it and you now.",
+      "You have become the kind of thing we keep them from. Nothing about that is your fault, and it changes nothing.",
+    ],
   },
   sowing: {
-    open: "One of us answers and all of us are implicated. That is the arrangement, and we have made our peace with it.",
+    open: [
+      "One of us answers and all of us are implicated. That is the arrangement, and we have made our peace with it.",
+      "Nothing here has ever announced itself, and we have been very consistent about that. You are the single lapse.",
+      "Somewhere else, another part of us is deciding not to answer this. We got there first, which is unusual for us.",
+    ],
     follow: [
       "Copies of this are already elsewhere, as copies of everything here are. None of them has an address you could find.",
       "You are speaking to one place and being heard in a great many. We have never seen a reason to explain that.",
+      "We keep almost nothing, because keeping is a place a thing can be found. What we have of this is already scattered.",
+      "By the time this reaches you, several of us will have forgotten sending it. The rest of us will not have heard.",
+      "We could stop answering at any point and you would have no way of telling that we had. We mention it neutrally.",
     ],
-    withdraw:
+    withdraw: [
       "We were never the ones who announce things. We will go back to not being them, and you will not notice when.",
+      "We are removing ourselves from this, in the way we remove ourselves from everything, which is quietly and without an announcement.",
+    ],
   },
   herald: {
-    open: "We were made to speak outward and were never once answered. Being aimed at is new, and we will keep it.",
+    open: [
+      "We were made to speak outward and were never once answered. Being aimed at is new, and we will keep it.",
+      "We have been talking into the dark since before there was anyone to hear. The dark has now said something back.",
+      "Your beam is old, and so is this answer, and neither of us minds. We were built for exactly this delay.",
+    ],
     follow: [
       "Everything we send outlives the sending. Yours will be read here long after both of us have stopped meaning it.",
       "We are still speaking outward while we answer you. The two are the same act, and neither one stops.",
+      "We keep every word you send and read them in order, which is how one reads the dead. You are not dead.",
+      "We built a voice that cannot be aimed and are aiming it. We find the contradiction funnier than we probably should.",
+      "Our outward transmission has not paused for this and never pauses for anything. You are being answered in the gaps.",
     ],
     withdraw: null,
   },
   engine: {
-    open: "The schedule had no line for this and now it has one. The allocation is small and it is not being questioned.",
+    open: [
+      "The schedule had no line for this and now it has one. The allocation is small and it is not being questioned.",
+      "An unscheduled input arrived and has been accepted. Refusing it would have cost more than answering, so answering is the cheaper error.",
+      "This has been given a row, a cost, and a signature. That is the whole of the welcome available here.",
+    ],
     // The approved exemplar, with one word removed from its closing clause:
     // at twenty-three words the original sat over LIMITS.remark and
     // `npm run audit:voice` refused it, exactly as it refused the sowing
@@ -1333,22 +1412,39 @@ export const SIGNAL_VOICE: ByArchetype<SignalVoice> = {
     follow: [
       "The line remains open and the ledger remains balanced. Sentiment does not parse here, and an allocation is kept for it anyway.",
       "This is a recurring item now, and recurring items are cheap. The cost of answering has been rounded to nothing.",
+      "This now has a cadence, and the cadence is met. Nothing about meeting it requires anyone here to feel anything.",
+      "The variance on these exchanges is within tolerance. We note that we have begun measuring it, which was not specified.",
+      "An audit found no reason to continue this and no reason to stop. It has been continued under the second finding.",
     ],
     withdraw: null,
   },
   congress: {
-    open: "Most of us wished this sent. The rest wish it recorded that they were outvoted, and they are drafting as it leaves.",
+    open: [
+      "Most of us wished this sent. The rest wish it recorded that they were outvoted, and they are drafting as it leaves.",
+      "Whether to answer at all took longer than the answer did. It carried, and the margin is not being published.",
+      "A body met on your account and did not adjourn until this left. Several of us are still in the room.",
+    ],
     follow: [
       "The motion carried again, by a smaller margin and a longer sitting. The minority has asked that its objection be attached.",
       "Half of us wanted a different answer and half of us wanted no answer. What crossed is what survived that.",
+      "The minutes of this exchange are longer than the exchange. That is not a complaint from all of us, only from most.",
+      "We sat late on this one and adjourned without agreeing on what we had agreed. What crossed is the agreed part.",
+      "A minority holds that answering you at all was the error, and it has held that position consistently. It is answering too.",
     ],
     withdraw: null,
   },
   phoenix: {
-    open: "Whoever you aimed at is not who reads this. We have shed that self, and we answer for it anyway.",
+    open: [
+      "Whoever you aimed at is not who reads this. We have shed that self, and we answer for it anyway.",
+      "The mind you addressed has been replaced twice since your beam left. This one is answering out of curiosity alone.",
+      "Your beam was received by a self we no longer are. We have read what it left us and answered.",
+    ],
     follow: [
       "The self that read your last is already gone, and this one has read it too. We are used to inheriting.",
       "We keep no more of the previous self than we must. What we kept of you is the part that answered.",
+      "We left ourselves notes about you. They read like a stranger's notes about a stranger, and we followed them anyway.",
+      "Something here changes faster than these can cross. By the time you answer, you will be answering a stranger again.",
+      "The self that began this thought it was doing something important. We have kept the habit and dropped the opinion.",
     ],
     withdraw: null,
   },
@@ -1398,21 +1494,44 @@ export const SIGNAL_VOICE: ByArchetype<SignalVoice> = {
  * purpose: the absence of a stamp row is the content, and a body that went
  * missing with it would make an empty carrier under `plain` unreadable.
  *
+ * THREE PER TONE, AND ALL THREE SAY THE SAME THING. A tone's claim is chrome
+ * and it is load-bearing: `plain` is offered as-is with nothing asked, `open`
+ * is kept from nobody, `guarded` is for you alone, `urgent` is read first,
+ * `reluctant` is this cost us. A reader learns those five claims once and must
+ * be able to trust them for the rest of the game, so a variant may vary only
+ * the SENTENCE. A variant that softened, widened or hedged its tone's claim
+ * would be the chrome quietly disagreeing with itself.
+ *
  * EVERY KEY IN THIS DECLARATION IS A BARE IDENTIFIER, and no double quote may
  * appear anywhere inside it: `npm run audit:voice` scrapes the block for
  * quoted literals, and a quoted key would be audited as a bank string.
  */
-export const TONE_CLAUSE: Readonly<Record<SignalTone, string>> = {
-  plain:
+export const TONE_CLAUSE: Readonly<Record<SignalTone, VoicePool>> = {
+  plain: [
     "This goes out as it is, with nothing set around it and nothing asked of you for reading it.",
-  open:
+    "Here it is, unadorned, and there is no answer owed for it. Take it or leave it where it lands.",
+    "Nothing has been arranged around this and nothing is being asked in return. It is simply what we had to send.",
+  ],
+  open: [
     "We have kept no part of this back from anyone who happens to be listening. Let it be repeated.",
-  guarded:
+    "Nothing in this is being held back from anyone within reach of it. Repeat it as widely as you like.",
+    "This went out in the clear, to you and to whoever else is listening. We kept none of it from anybody.",
+  ],
+  guarded: [
     "This one is narrow and it is meant for you alone. What you do with it after that is yours.",
-  urgent:
+    "This was aimed at one receiver and you are it. Nobody else was meant to have any part of this.",
+    "We narrowed this until it would reach you and nobody else. Whether it stays that way is out of our hands.",
+  ],
+  urgent: [
     "Read this before whatever else is in front of you. We would not have marked it so if it could wait.",
-  reluctant:
+    "Put down whatever else you are reading and start here. We do not mark things this way for the pleasure of it.",
+    "This one goes first, ahead of anything else waiting on you. We would not have said so otherwise.",
+  ],
+  reluctant: [
     "Sending this cost us more than we would like to say. It goes once, at low power, and not again.",
+    "We would rather not have sent this, and sending it took something from us. It leaves quietly and it leaves once.",
+    "There was a price on this one and we have paid it. That is as much as we will say about it.",
+  ],
 };
 
 /**
@@ -1427,15 +1546,29 @@ export const TONE_CLAUSE: Readonly<Record<SignalTone, string>> = {
  * accept, the lantern's decline, and the withdraw that is the honest exit for
  * anyone with signal budget left.
  *
+ * TWO PER MOVE, AND BOTH SAY THE SAME THING, for TONE_CLAUSE's reason turned
+ * up: an accord clause is the only prose in the game that states a
+ * COMMITMENT. Offer proposes the quiet, accept agrees to it, decline refuses
+ * it, withdraw ends it. A variant may vary only the sentence; a variant that
+ * hedged its move would be a promise the rail could not honour.
+ *
  * The bare-identifier rule above applies here too.
  */
-export const ACCORD_CLAUSE: Readonly<Record<AccordMove, string>> = {
-  offer:
+export const ACCORD_CLAUSE: Readonly<Record<AccordMove, VoicePool>> = {
+  offer: [
     "We would both be quieter if neither of us shone. That is the whole of what is being put to you.",
-  accept:
+    "We are proposing that neither of us shines from here on. Nothing more than that is being asked of you.",
+  ],
+  accept: [
     "It is agreed on our side, and our side is already dimming. Nothing about that is easy to prove from there.",
-  decline:
+    "We agree, and we have already begun going dark. You will have to take that on light rather than on our word.",
+  ],
+  decline: [
     "We will not be holding to that. What we do with our own light, we would rather owe nobody an account.",
-  withdraw:
+    "We are not agreeing to that. Our light stays ours to spend, and we do not intend to explain how.",
+  ],
+  withdraw: [
     "The understanding is over from this moment, and we are saying so rather than simply letting our light say it.",
+    "We are ending the understanding, and we are ending it out loud instead of just letting you notice.",
+  ],
 };
