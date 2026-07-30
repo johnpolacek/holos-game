@@ -69,7 +69,7 @@ export function parseServerMessage(raw: string): ServerMessage | null {
 // Type-only imports → erased from the client bundle (no truth code ships).
 import type { CivSeed } from "./civseed";
 import type { ObservedCiv, ObservedSignal, SignalClass } from "./knowledge";
-import type { Star, Vec3Ly } from "./galaxy";
+import type { SpectralClass, Star, Vec3Ly } from "./galaxy";
 import type { CostClass } from "./projects";
 import type { QuestionId } from "./questions";
 import type {
@@ -96,6 +96,19 @@ import type { PhysicsStamp } from "./traffic";
 // this module is the one the CLIENT imports. Types are erased at build, so
 // the grammar's shapes reach a phone and not one byte of its truth code.
 import type { AccordState, SignalPart, SignalTone } from "./signalparts";
+// A4: the voyage vocabulary. TYPE-ONLY, and it has to be — voyages.ts reaches
+// the knowledge layer and the world draw, and this module is the one the
+// CLIENT imports. The catalogs themselves ride the wire inside `VoyageCatalog`
+// (the MissionCatalog precedent), so no truth code follows the types onto a
+// phone.
+import type {
+  VoyageClauseDef,
+  VoyageClauseId,
+  VoyageKind,
+  VoyageKindDef,
+  VoyageWorkState,
+} from "./voyages";
+import type { PriorBand, WidthChip, WorldClass } from "./worlds";
 
 // Re-exports the client needs to render. Types are erased; DIAL_AXES is the
 // ONE runtime value the client genuinely needs (in-world dial pole labels),
@@ -154,6 +167,17 @@ export type {
   VerdictPart,
   VerdictStance,
 } from "./signalparts";
+// A4: the launch surface's own vocabulary, re-exported the way the mission
+// catalog's is. Types only; the catalog VALUES arrive on `welcome`.
+export type {
+  VoyageClauseDef,
+  VoyageClauseGroupId,
+  VoyageClauseId,
+  VoyageKind,
+  VoyageKindDef,
+  VoyageWorkState,
+} from "./voyages";
+export type { PriorBand, WidthChip, WorldClass, YieldBand } from "./worlds";
 
 /** Clock anchor; the client computes nowYear locally (no time polling). */
 export interface ClockWire {
@@ -528,6 +552,119 @@ export interface MissionCatalog {
   readonly maxClauses: number; // 3
 }
 
+// ── A4: voyages, the forecast survey, and the derived landfall ─────────────
+// The mission wire's discipline, one act later. A VoyageSnapshot is PROSE AND
+// DATES ONLY: no emission level, no ladder, no ascension flag, no cradle id,
+// no `ownerToken`. The one truth-derived member is `report`, and it has
+// exactly one producer (voyages.ts's `voyageOutcome`, which reads through a
+// LightCone or a StarCone and can produce nothing above either).
+//
+// THE CHILD IS NOT ON THIS WIRE AT ALL. A founded colony reaches its parent
+// exactly as any other civilization does: as a DetectedSource, once its light
+// has crossed the distance. There is no field here that says a colony exists,
+// which is why a `found-dark` founding is unknowable rather than merely
+// unstated.
+
+export interface VoyageClauseWire {
+  readonly id: VoyageClauseId;
+  readonly label: string;
+  readonly line: string;
+}
+
+/**
+ * The landfall report, as received. STRUCTURAL INVARIANT (voyages.ts's
+ * `voyageOutcome`, its one producer): `arrivedYear === aboutYear + distanceLy`
+ * and it is built only once `nowYear` has reached `arrivedYear`, so `aboutYear`
+ * is never newer than the sky the telescope already shows.
+ */
+export interface VoyageReport {
+  readonly id: string; // `${voyageId}/landfall`
+  readonly aboutYear: number; // the landfall year
+  readonly arrivedYear: number; // = aboutYear + distanceLy
+  readonly lightAgeYears: number; // nowYear − aboutYear
+  readonly headline: string; // ≤6 words, ALL-CAPS set phrase
+  readonly detail: string; // one or two plain sentences
+}
+
+export interface VoyageSnapshot {
+  readonly id: string;
+  readonly kind: VoyageKind;
+  readonly label: string;
+  /** The colony's name, as its founders were told to call it. The one piece
+   *  of player-authored text in the record, `validateName`-clean. */
+  readonly childName: string;
+  readonly starId: string;
+  readonly costClass: CostClass;
+  readonly costCompute: number;
+  readonly launchedYear: number;
+  readonly distanceLy: number;
+  readonly horizonYear: number; // launchedYear + (F − 1)d
+  readonly landfallYear: number; // launchedYear + F·d
+  readonly firstWordYear: number; // launchedYear + (F + 1)d
+  /** The year the promised word did not come — non-null iff `state` is
+   *  "silent". A `send-no-word` charter never has one: nothing was promised. */
+  readonly missedWordYear: number | null;
+  readonly charter: readonly VoyageClauseWire[];
+  readonly state: VoyageWorkState;
+  readonly report: VoyageReport | null;
+}
+
+/** One class's share of the arrival spread, as a WORD. Bands and never
+ *  percentages: the forecast is a guess about a place nobody has been, and a
+ *  percentage would dress it as a measurement. */
+export interface SurveyPriorWire {
+  readonly worldClass: WorldClass;
+  readonly band: PriorBand;
+}
+
+/** What each ship kind would cost this row in TIME. Durations, not absolute
+ *  years, so the client adds its own `nowYear` and a stale row cannot show a
+ *  landfall in the past. */
+export interface SurveyClock {
+  readonly kind: VoyageKind;
+  readonly flightYears: number;
+  readonly firstWordYears: number;
+  /** (1 + F)·d — how old the news is at the moment the ship arrives. */
+  readonly infoAgeYears: number;
+}
+
+/**
+ * One star on the forecast survey. EVERY FIELD IS PUBLIC OR A PRIOR: the
+ * designation, distance and spectral class already ride the star catalog the
+ * client is welcomed with; the priors are conditioned on the spectral class
+ * alone; and `occupied` is `visibleSky` membership, which is the same test
+ * that produced this player's own `sources`. Nothing here consults a live
+ * voyage, this player's or anyone else's.
+ */
+export interface SurveyRow {
+  readonly starId: string;
+  readonly designation: string;
+  readonly distanceLy: number;
+  readonly spectralClass: SpectralClass;
+  readonly priors: readonly SurveyPriorWire[];
+  readonly widthChip: WidthChip;
+  readonly occupied: boolean;
+  /** The age of the light this reading rests on, when there is a source
+   *  there. Null when the sky shows nothing: an empty star has no light age,
+   *  and a zero would be a claim. */
+  readonly lightAgeYears: number | null;
+  readonly clocks: readonly SurveyClock[];
+}
+
+/** Sent once on welcome beside `missionCatalog`: the launch sheet's
+ *  vocabulary, so no voyage catalog ships in the client bundle. */
+export interface VoyageCatalog {
+  readonly kinds: readonly VoyageKindDef[];
+  readonly clauses: readonly VoyageClauseDef[];
+  readonly minClauses: number; // 2
+  readonly maxClauses: number; // 4
+  readonly dialSteps: number; // 9
+  readonly maxPerToken: number; // 8
+  /** The static occupied-risk line. Static on purpose: a line that varied
+   *  with what is actually inbound would leak every other player's plans. */
+  readonly occupiedRiskLine: string;
+}
+
 // ── AV1: the voice ─────────────────────────────────────────────
 // One-time lines the mind speaks, resolved server-side (the archetypeName
 // precedent — keeps voice.ts/minds.ts off the client). Nothing here concerns
@@ -565,6 +702,10 @@ export type ReportRoute =
   | { readonly kind: "mission"; readonly missionId: string }
   | { readonly kind: "source"; readonly starId: string }
   | { readonly kind: "project"; readonly projectId: string }
+  // A4: a voyage, by id and never by star, for the same reason a mission is —
+  // the undertaking outlives what it was aimed at, and a route keyed on the
+  // star would stop resolving the moment the source faded.
+  | { readonly kind: "voyage"; readonly voyageId: string }
   | { readonly kind: "none" };
 
 /**
@@ -899,6 +1040,20 @@ export type CohortClientMessage =
   // renders, their beam still lands, and nothing is notified. Deniability is
   // the whole design (conduct.md's "any player can go dark to a sender").
   | { type: "muteThread"; starId: string; muted: boolean }
+  // ── A4 ──
+  // THE FOUNDING. `kind` and every `charter` entry are bare strings and every
+  // `dials` element is a bare `unknown`: the parse layer checks SHAPE (array
+  // bounds, finite numbers, flat objects) and voyages.ts owns the VOCABULARY
+  // and the error codes, which is the `launchMission.kind` precedent one more
+  // time. `name` is the ONE piece of free text a voyage carries, and it goes
+  // through `validateName` in the handler exactly as `become` and `nameSource`
+  // do.
+  //
+  // An illegal star answers `bad-message`, never a code of its own: unknown
+  // star, the player's own home star, and a star that could not be reached
+  // must be indistinguishable from outside (A2.4's oracle rule, unchanged).
+  | { type: "launchVoyage"; starId: string; kind: string;
+      charter: readonly string[]; dials: readonly unknown[]; name: string }
   // Which thread is on screen is per-CONNECTION UI state. Null closes it.
   // There is no DO key behind this and there is deliberately no error code:
   // it is bookkeeping (the declineProposal precedent), and a starId naming
@@ -924,7 +1079,9 @@ export type CohortServerMessage =
   | { type: "welcome"; token: string | null; account: boolean;
       phase: "choosing" | "placed";
       clock: ClockWire; catalog: readonly Star[]; menus: HypothesisMenus;
-      missionCatalog: MissionCatalog }
+      missionCatalog: MissionCatalog;
+      // ── A4 ──
+      voyageCatalog: VoyageCatalog }
   /**
    * A2.6: THE ONE MESSAGE THAT CARRIES A KEY, and the greppable form of that
    * claim is that `accountKey` appears in exactly one arm of this union.
@@ -948,7 +1105,13 @@ export type CohortServerMessage =
       // ── AV3 ──
       proposals: readonly Proposal[];
       // ── A2.4 ──
-      contact: ContactWire }
+      contact: ContactWire;
+      // ── A4 ──
+      // This player's own foundings, and the forecast over the twelve nearest
+      // stars. Both are bounded (MAX_VOYAGES_PER_TOKEN, SURVEY_ROWS) and both
+      // are deterministically ordered.
+      voyages: readonly VoyageSnapshot[];
+      survey: readonly SurveyRow[] }
   | { type: "sourceNamed"; starId: string; name: string }
   /** A re-anchored clock, pushed when the server moves the anchor under a
    *  live connection (today only the dev time-skip; a future ratio retune
@@ -1011,12 +1174,27 @@ export type CohortErrorCode =
   | "bad-account" // malformed OR unknown, deliberately one code for both
   | "already-claimed" // this seat already has an account; ask it for the key
   | "not-signed-in" // a key was asked for by a connection that holds none
-  | "too-many-attempts"; // the rate limit, and the only thing it ever says
+  | "too-many-attempts" // the rate limit, and the only thing it ever says
+  // ── A4 ──
+  // A2.4's oracle discipline is UNCHANGED and covers the star: unknown star,
+  // the player's own home, and a star naming nothing all answer `bad-message`.
+  // The three below are decidable from the sender's own bytes and their own
+  // state, so none of them can be made to answer a question about the sky.
+  // `bad-charter` is REUSED for the clause table and the dial sheet alike.
+  | "unknown-voyage-kind" // no such ship kind
+  | "voyage-unavailable" // a live voyage already aims there, or the cap is spent
+  | "project-required"; // the ship needs a project that has not landed
 
 /** Parse-time bound on the untrusted `launchMission.charter` array (a parse
  *  concern); the 2–3 count rule and one-per-group rule are handler concerns
  *  answered with `bad-charter`. */
 export const MAX_CHARTER_CLAUSES_ON_WIRE = 8;
+
+/** A4: parse-time bound on the untrusted `launchVoyage.dials` array. The real
+ *  rule — exactly one entry per axis, inside the parent's own band — is
+ *  voyages.ts's, answered with `bad-charter`; this only stops an unbounded
+ *  array from being walked at all. */
+export const MAX_DIALS_ON_WIRE = 5;
 
 // ── A2.6: the parse-layer bounds on a composed signal ──────────────────────
 //
@@ -1170,6 +1348,39 @@ function isFlatSelectorArray(parts: readonly unknown[]): boolean {
   return true;
 }
 
+/**
+ * A4: the shape half of the charter-dial guard, `isFlatSelectorArray`'s twin
+ * one rule looser. Every element must be a plain object whose values are bare
+ * scalars — string (bounded in code points), FINITE NUMBER (integral or not),
+ * boolean or null. No arrays, no objects, no prototype tricks.
+ *
+ * The one deliberate difference is the number rule, and it is not a relaxation
+ * of the discipline: a selector's every number is an ordinal, so a float there
+ * is a probe or a bug, while a dial position is a fraction of a range and a
+ * charter that could not carry one would be no charter at all. Finiteness is
+ * still checked, which is the property that actually matters — an infinity or
+ * a NaN reaching the snap arithmetic would poison every date derived from it.
+ */
+function isFlatDialArray(dials: readonly unknown[]): boolean {
+  if (JSON.stringify(dials).length > MAX_PARTS_BYTES) return false;
+  for (const dial of dials) {
+    if (typeof dial !== "object" || dial === null || Array.isArray(dial)) return false;
+    for (const value of Object.values(dial as Record<string, unknown>)) {
+      if (value === null || typeof value === "boolean") continue;
+      if (typeof value === "string") {
+        if ([...value].length > MAX_PART_STRING_CPS) return false;
+        continue;
+      }
+      if (typeof value === "number") {
+        if (!Number.isFinite(value)) return false;
+        continue;
+      }
+      return false;
+    }
+  }
+  return true;
+}
+
 /** Untrusted client→server parse. Mirror parseClientMessage's exact style:
  *  JSON.parse in try/catch, object/null checks, per-field typeof guards,
  *  return null on any mismatch. Do NOT validate name length here (the handler
@@ -1267,6 +1478,49 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
       }
       if (ok) {
         return { type: "launchMission", starId: msg["starId"], kind: msg["kind"], charter };
+      }
+    }
+  }
+
+  // A4. SHAPE ONLY, the `launchMission` arm one act on: a bounded array of
+  // bare clause strings, a bounded array of FLAT dial objects, and a bare
+  // name. The dial objects admit floats where `isFlatSelectorArray` refuses
+  // them — a dial position IS a fraction, and rejecting one here would refuse
+  // every legal charter — so they get their own guard rather than a widened
+  // one, and flatness stays load-bearing in both.
+  if (
+    msg["type"] === "launchVoyage" &&
+    typeof msg["starId"] === "string" &&
+    typeof msg["kind"] === "string" &&
+    typeof msg["name"] === "string"
+  ) {
+    const rawCharter: unknown = msg["charter"];
+    const rawDials: unknown = msg["dials"];
+    if (
+      Array.isArray(rawCharter) &&
+      rawCharter.length <= MAX_CHARTER_CLAUSES_ON_WIRE &&
+      Array.isArray(rawDials) &&
+      rawDials.length <= MAX_DIALS_ON_WIRE &&
+      isFlatDialArray(rawDials)
+    ) {
+      const charter: string[] = [];
+      let ok = true;
+      for (const clause of rawCharter as readonly unknown[]) {
+        if (typeof clause !== "string") {
+          ok = false;
+          break;
+        }
+        charter.push(clause);
+      }
+      if (ok) {
+        return {
+          type: "launchVoyage",
+          starId: msg["starId"],
+          kind: msg["kind"],
+          charter,
+          dials: rawDials as readonly unknown[],
+          name: msg["name"],
+        };
       }
     }
   }
@@ -1402,6 +1656,8 @@ function isReportRoute(v: unknown): v is ReportRoute {
       return typeof (v as { starId?: unknown }).starId === "string";
     case "mission":
       return typeof (v as { missionId?: unknown }).missionId === "string";
+    case "voyage":
+      return typeof (v as { voyageId?: unknown }).voyageId === "string";
     case "project":
       return typeof (v as { projectId?: unknown }).projectId === "string";
     case "none":

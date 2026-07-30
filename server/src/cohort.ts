@@ -11,6 +11,29 @@
 // those land per-slice from A1 on), gated to local development hosts so
 // every commit stays shippable to production.
 //
+// THE DERIVED-ROSTER RULE (A4, a4-synthesis.md R1), beside the presence rule
+// because it is the same kind of claim about what may be written down:
+//
+//   A COLONY IS NEVER PERSISTED. `galaxy:civs` holds the seeded civilizations
+//   and the players who inherited, and nothing else, ever. A founded child is
+//   a pure function of (the stored galaxy, the voyage record, the year) —
+//   voyages.ts's `galaxyWithLandfalls` is its only producer, `requireGalaxy()`
+//   is the only way anything in this object reaches it, and
+//   `saveGalaxyCivs()` throws if a `civ-v-` id ever reaches storage. Wipe the
+//   wake queue, restart the object, re-derive from disk: every colony is still
+//   there, on the same star, with the same history, because nothing about it
+//   was ever a stored fact.
+//
+// Its greppable form:
+//
+//   grep -rn "storedGalaxy\|requireStoredGalaxy" server/src/cohort.ts
+//
+// must show the field, its accessor, and EXACTLY FOUR write sites — the civs
+// splice in `onBecome`, the broadcast residue in `onCommitContact`, the
+// departure light in `onLaunchVoyage`, and the reset in `devForget` — plus the
+// seed paths that write a freshly generated galaxy. Every other reference to
+// the roster in this file is `requireGalaxy()`.
+//
 // HTTP surface, under /parties/cohort/:name . Every route below is gated to
 // local development (a local hostname, or HOLOS_DEV_ENDPOINTS=on in
 // `.dev.vars` — see devEndpointsOpen) EXCEPT /dev/forget, which ships to
@@ -51,6 +74,7 @@ import {
   actsFrom,
   appendAct,
   applyBroadcast,
+  applyEpisode,
   broadcastInFlight,
   buildContactWire,
   hasHailed,
@@ -64,7 +88,7 @@ import {
 } from "./contact";
 // A2.5. Every symbol here is READ-SIDE: `buildThreads` feeds the sky and
 // `deriveAiSignals` feeds the wake queue, and neither appears inside a
-// handler that mutates `this.galaxy` (traffic.ts's derivation rule).
+// handler that mutates `this.storedGalaxy` (traffic.ts's derivation rule).
 import { buildThreads, deriveAiSignals, threadRefRowsFor } from "./traffic";
 // A2.6: the composed-signal grammar. `materializeParts` is the ONE place a
 // selector becomes a part, and its only caller is `onSendSignal`.
@@ -152,6 +176,34 @@ import {
   type BoughtQuestion,
 } from "./questions";
 import { buildTendList } from "./tend";
+// A4. `galaxyWithLandfalls` does not appear here by name and must not: this
+// object reaches the derived roster through `foldLandfalls`, which produces
+// the same civs AND the per-voyage outcomes the snapshot needs, in one pass.
+import {
+  buildSurvey,
+  departureLightFor,
+  foldLandfalls,
+  migrateVoyageState,
+  newVoyageState,
+  toVoyageSnapshot,
+  validateCharterDials,
+  validateVoyageCharter,
+  voyageFirstWordYear,
+  voyageKindById,
+  voyageLandfallYear,
+  CHARTER_DIAL_STEPS,
+  CHILD_ID_PREFIX,
+  MAX_VOYAGES_PER_TOKEN,
+  MAX_VOYAGE_CLAUSES,
+  MIN_VOYAGE_CLAUSES,
+  OCCUPIED_RISK_LINE,
+  VOYAGE_CLAUSES,
+  VOYAGE_KINDS,
+  type LandfallOutcome,
+  type StoredVoyage,
+  type VoyageCharter,
+  type VoyageState,
+} from "./voyages";
 import {
   buildReportPayload,
   deriveReportEntries,
@@ -187,7 +239,10 @@ import {
   type SelfView,
   isVoiceKey,
   type ContactWire,
+  type SurveyRow,
   type VoiceKey,
+  type VoyageCatalog,
+  type VoyageSnapshot,
 } from "./protocol";
 // AV4: the generated voice. Imported ONLY here — the client never imports
 // cohort.ts, so not one byte of the SDK reaches a phone. With both flags off
@@ -465,7 +520,42 @@ function remarkFamilyOf(state: ReportState, entryId: string): RemarkFamily | nul
 
 export class Cohort extends Server<CohortEnv> {
   private clock: ClockState | null = null;
-  private galaxy: Galaxy | null = null;
+  /**
+   * THE STORED ROSTER — what is on disk, and the ONLY thing that may ever go
+   * back to disk. It holds the star field, the seeded civilizations, every
+   * player who has inherited, and the contact log. It holds NO COLONY: a
+   * founded child is derived from the voyage record on every read
+   * (`derivedFold` below) and `saveGalaxyCivs` refuses to persist one.
+   *
+   * Read paths do not touch this field. They call `requireGalaxy()`, which
+   * returns the DERIVED roster. `requireStoredGalaxy()` exists for the write
+   * sites and for nothing else, and there are exactly four of them: `onBecome`
+   * (the civs splice), `onCommitContact` (the broadcast residue),
+   * `onLaunchVoyage` (the departure light), and `devForget` (the reset).
+   */
+  private storedGalaxy: Galaxy | null = null;
+  /**
+   * A4: the cohort-wide voyage record (`galaxy:voyages`, the `galaxy:acts`
+   * precedent). Not per token, because a founded civilization is EVERYONE'S
+   * FACT — the roster every observer reads is folded from this one list.
+   */
+  private voyageState: VoyageState = newVoyageState();
+  /**
+   * The derived-roster memo. Its key is synthesis R2's: the stored galaxy's
+   * identity, the voyage list's identity, the act log's identity, and the
+   * COUNT OF VOYAGES THAT HAVE LANDED BY NOW. The last term is what makes a
+   * clock-dependent derivation memoizable at all: within a year the fold's
+   * output cannot change, and the moment a ship arrives the count moves and
+   * the memo is discarded.
+   */
+  private derivedMemo: {
+    readonly stored: Galaxy;
+    readonly voyages: readonly StoredVoyage[];
+    readonly acts: readonly ContactAct[];
+    readonly landed: number;
+    readonly galaxy: Galaxy;
+    readonly outcomes: ReadonlyMap<string, LandfallOutcome>;
+  } | null = null;
   // In-memory only, rebuilt by each connection's `hello`. This relies on
   // partyserver's default `hibernate: false`: a DO restart closes live
   // sockets, the client reconnects and re-hellos, and the map self-heals.
@@ -519,10 +609,14 @@ export class Cohort extends Server<CohortEnv> {
     // shape changed, so a cohort seeded before this stage loads with an
     // empty log and behaves exactly as it did.
     const acts = await this.ctx.storage.get<ContactAct[]>("galaxy:acts");
-    this.galaxy =
+    this.storedGalaxy =
       meta !== undefined && stars !== undefined && civs !== undefined
         ? { seedKey: meta.seedKey, config: meta.config, stars, civs, acts: acts ?? [] }
         : null;
+    // A4: an absent key IS the migration, `galaxy:acts`' own story — a cohort
+    // seeded before voyages loads with no voyages and folds to itself.
+    this.voyageState = await this.loadVoyageState();
+    this.derivedMemo = null;
   }
 
   // ── Act 3 WebSocket surface (A1) ──────────────────────────────────────
@@ -570,6 +664,9 @@ export class Cohort extends Server<CohortEnv> {
         return;
       case "launchMission":
         await this.onLaunchMission(conn, msg.starId, msg.kind, msg.charter);
+        return;
+      case "launchVoyage":
+        await this.onLaunchVoyage(conn, msg.starId, msg.kind, msg.charter, msg.dials, msg.name);
         return;
       case "callStudy":
         await this.onCallStudy(conn, msg.starId);
@@ -742,6 +839,7 @@ export class Cohort extends Server<CohortEnv> {
         catalog: galaxy.stars,
         menus: hypothesisMenus(),
         missionCatalog: this.missionCatalog(),
+        voyageCatalog: this.voyageCatalog(),
       });
       await this.sendVoice(conn, token, run.civId);
       await this.sendReport(conn, token, run.civId, { advance: true });
@@ -765,6 +863,7 @@ export class Cohort extends Server<CohortEnv> {
       catalog: galaxy.stars,
       menus: hypothesisMenus(),
       missionCatalog: this.missionCatalog(),
+        voyageCatalog: this.voyageCatalog(),
     });
     const offerYear = await this.getOfferYear(token);
     this.sendMsg(conn, { type: "offer", candidates: this.makeCandidates(token, offerYear) });
@@ -930,11 +1029,18 @@ export class Cohort extends Server<CohortEnv> {
     // concurrent become on another connection may have placed a civ in the
     // meantime — a stale capture here would lose that civ (and could hand
     // out its star) when we spread `civs` below.
+    //
+    // A4: TWO ROSTERS, DELIBERATELY. Placement is a READ of the derived one —
+    // a colony occupies its star as completely as any seeded civilization
+    // does, and `pickPlayerHome` over the stored roster would drop a joining
+    // player onto somebody's founding. The splice is a WRITE against the
+    // stored one, which by construction holds no colony to lose.
     const galaxy = this.requireGalaxy();
+    const stored = this.requireStoredGalaxy();
     const civId = `civ-p-${token.slice(0, 12)}`;
     // Same-token race (two tabs committing at once): if this token's civ
     // landed while we awaited above, treat this as the idempotent path.
-    const already = galaxy.civs.find((c) => c.seed.id === civId);
+    const already = stored.civs.find((c) => c.seed.id === civId);
     if (already !== undefined) {
       state.civId = civId;
       await this.sendVoice(conn, token, civId);
@@ -949,8 +1055,8 @@ export class Cohort extends Server<CohortEnv> {
     }
     const placedSeed: CivSeed = { ...chosen.seed, id: civId, name: clean };
     const placed: PlacedCiv = { seed: placedSeed, starId: star.id, controller: "player" };
-    this.galaxy = { ...galaxy, civs: [...galaxy.civs, placed] };
-    await this.ctx.storage.put("galaxy:civs", this.galaxy.civs);
+    this.storedGalaxy = { ...stored, civs: [...stored.civs, placed] };
+    await this.saveGalaxyCivs(this.storedGalaxy.civs);
 
     const run: RunRecord = { token, civId, starId: star.id, localNames: {} };
     await this.ctx.storage.put(`run:${token}`, run);
@@ -1596,6 +1702,270 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
+   * launchVoyage: send a founding. THE OTHER IRREVERSIBLE ACT, and it opens
+   * exactly the way the two contact verbs do — by resolving a LIVE socket from
+   * `this.conns`. That is the presence rule, and a founding is squarely inside
+   * it: nothing here can be undone, amended past the horizon, or recalled.
+   *
+   * IT IS ALSO THE ONLY APPEND TO THE VOYAGE RECORD IN THE WHOLE SERVER.
+   * Alarms are wake-ups and never truth, the proposal route has no voyage arm
+   * and gains none, tripwires fire beliefs, and no AI civilization has a path
+   * here at any stage. Greppable as `saveVoyageState`: the definition, this
+   * handler, and the two seed paths, which write the EMPTY state so a re-seed
+   * cannot inherit foundings aimed at stars that no longer exist.
+   *
+   * THE ORDER OF THE VALIDATION TABLE IS LOAD-BEARING, and it is A2.4's order.
+   * Everything decidable from the SENDER'S OWN BYTES runs first (the ship kind,
+   * the clause table, the dial sheet against their own ranges, the name),
+   * because such a verdict cannot be a question about anybody else. The STAR
+   * test comes next and answers `bad-message` for every way of naming one that
+   * cannot be launched at — unknown id, the player's own home — so the error
+   * can never be used as an oracle. Then the caps, then the price.
+   *
+   * ANY CATALOG STAR BUT HOME. A source is a legal target: aiming a founding
+   * at somebody is allowed, it simply does not root, and the ship arrives to
+   * find the world taken. The survey says so in advance, in words.
+   */
+  private async onLaunchVoyage(
+    conn: Connection,
+    starId: string,
+    kind: string,
+    charter: readonly string[],
+    dials: readonly unknown[],
+    name: string,
+  ): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    // (1) The sender's own bytes: the ship kind and the charter's vocabulary.
+    const kindDef = voyageKindById(kind);
+    if (kindDef === undefined) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "unknown-voyage-kind",
+        message: "no such ship",
+      });
+      return;
+    }
+    const clauses = validateVoyageCharter(charter);
+    if (clauses === null) {
+      this.sendMsg(conn, { type: "error", code: "bad-charter", message: "invalid charter" });
+      return;
+    }
+    const childName = validateName(name);
+    if (childName === null) {
+      this.sendMsg(conn, { type: "error", code: "bad-name", message: "name is invalid" });
+      return;
+    }
+
+    const civId = state.civId;
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    // Captured AFTER the last synchronous check and BEFORE the first await
+    // (onBecome's rule). Reads go through the derived roster; the one write
+    // below goes through the stored one.
+    const galaxy = this.requireGalaxy();
+    const selfCiv = civById(galaxy, civId);
+    const homeStar = starById(galaxy.stars, selfCiv.starId);
+
+    // (2) The dial sheet, against the parent's OWN ranges. Still the sender's
+    // own bytes measured against the sender's own state, so it stays above the
+    // star test.
+    const composed = validateCharterDials(selfCiv.seed.dials, dials);
+    if (composed === null) {
+      this.sendMsg(conn, { type: "error", code: "bad-charter", message: "invalid charter" });
+      return;
+    }
+
+    // (3) The star. Unknown and home answer the SAME code, deliberately.
+    const target = galaxy.stars.find((s) => s.id === starId);
+    if (target === undefined || target.id === homeStar.id) {
+      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no star there" });
+      return;
+    }
+    const distance = distanceLy(homeStar.position, target.position);
+
+    // (4) The prerequisite. A sail is pushed from home, so the emitter has to
+    // exist before the ship can leave; there is no partial credit for a
+    // project still building.
+    const projectState = await this.loadProjectState(state.token, civId, nowYear);
+    if (kindDef.requiresProject !== null) {
+      const required = projectById(kindDef.requiresProject);
+      const started = projectState.started.find((p) => p.id === kindDef.requiresProject);
+      if (required === undefined || started === undefined || !hasLanded(required, started, nowYear)) {
+        this.sendMsg(conn, {
+          type: "error",
+          code: "project-required",
+          message: "that ship needs a project that has not landed",
+        });
+        return;
+      }
+    }
+
+    // (5) The caps. ONE LIVE VOYAGE PER (SEAT, STAR) and eight per seat ever.
+    // There is NO cohort-wide reservation and there will not be one: two
+    // players may aim at the same star, and the second to arrive finds it
+    // occupied. Locking it would replace a physical race with a bookkeeping
+    // one, and the physical race is the interesting version.
+    const voyageState = this.voyageState;
+    const mine = voyageState.voyages.filter((v) => v.ownerToken === state.token);
+    const liveOnStar = mine.some(
+      (v) => v.starId === starId && nowYear < voyageFirstWordYear(v) - YEAR_EPS,
+    );
+    if (liveOnStar || mine.length >= MAX_VOYAGES_PER_TOKEN) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "voyage-unavailable",
+        message: "a founding is already under way there",
+      });
+      return;
+    }
+
+    // (6) The price.
+    const free = freeComputeAt(projectState, nowYear);
+    if (free < kindDef.costCompute) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "insufficient-compute",
+        message: "not enough free compute",
+      });
+      return;
+    }
+
+    // --- the writes -------------------------------------------------------
+    const voyageCharter: VoyageCharter = {
+      childName,
+      sheet: composed.sheet,
+      pinned: composed.pinned,
+      clauses,
+    };
+    const voyage: StoredVoyage = {
+      id: `v-${voyageState.nextOrdinal}`,
+      ownerCivId: civId,
+      ownerToken: state.token,
+      kind: kindDef.kind,
+      starId,
+      launchedYear: nowYear,
+      // FROZEN, both of them: every date this voyage will ever have derives
+      // from these two numbers, and no later project may speed a ship already
+      // gone. `probe-haste` deliberately does not reach here at all.
+      distanceLy: distance,
+      flightYearsPerLy: kindDef.flightYearsPerLy,
+      lineageId: selfCiv.seed.lineageId,
+      charter: voyageCharter,
+    };
+    await this.saveVoyageState({
+      version: 1,
+      voyages: [...voyageState.voyages, voyage],
+      nextOrdinal: voyageState.nextOrdinal + 1,
+    });
+
+    await this.saveProjectState(state.token, commitCompute(projectState, kindDef.costCompute, nowYear));
+
+    // THE DEPARTURE LIGHT — a real truth write, by a live socket, on
+    // `applyBroadcast`'s exact terms and through the same code
+    // (`applyEpisode`). A seedship leaves on chemistry and writes nothing;
+    // a torch flares for eight years at 0.45, a sail's battery pushes for
+    // min(60, 2d) years at 0.80, and both of them are in the neighborhood's
+    // echo forever after. The write goes to the STORED roster.
+    const light = departureLightFor(kindDef, distance);
+    if (light !== null) {
+      const stored = this.requireStoredGalaxy();
+      const storedSelf = civById(stored, civId);
+      const updatedSelf: PlacedCiv = {
+        ...storedSelf,
+        seed: {
+          ...storedSelf.seed,
+          emissionHistory: applyEpisode(
+            storedSelf.seed.emissionHistory,
+            nowYear,
+            light.years,
+            light.level,
+          ),
+        },
+      };
+      const civs = stored.civs.map((c) => (c.seed.id === civId ? updatedSelf : c));
+      this.storedGalaxy = { ...stored, civs };
+      await this.saveGalaxyCivs(civs);
+    }
+
+    await this.scheduleVoyageWakes(voyage, light !== null);
+
+    // This seat sees its own departure immediately. Every OTHER placed
+    // connection gets a fresh sky on the same terms a commit gives them one: a
+    // torch or a sail has just changed what their sky will read, and a
+    // seedship has changed nothing yet, but the fan-out is UNCONDITIONAL so
+    // the set of sockets a launch touches says nothing about which ship left.
+    await this.sendSkyToSeat(state);
+    for (const other of this.conns.values()) {
+      if (other.token === state.token) continue;
+      if (other.civId === null) continue;
+      await this.sendSky(other.conn, other.token, other.civId);
+    }
+  }
+
+  /**
+   * The wakes a founding wants. ALL WAKE-UPS, NEVER TRUTH (onAlarm's
+   * contract): every one of these arrivals happens whether or not anything is
+   * queued for it, because the landfall is derived from the record and the
+   * clock. Wipe the queue and the colony still founds, still lights up, and
+   * still reaches every telescope at its own distance.
+   *
+   *   the owner, at landfall            the decision is made, out there
+   *   the owner, at first word          the report and the first light, together
+   *   every placed player, at landfall + their own distance to the CHILD'S star
+   *   every placed player, at launch + their own distance to HOME (torch/sail)
+   *
+   * The third is the one that matters for other people: a colony entering
+   * their sky is a membership change in their field, and they should not have
+   * to guess when.
+   */
+  private async scheduleVoyageWakes(
+    voyage: StoredVoyage,
+    hasDepartureLight: boolean,
+  ): Promise<void> {
+    const galaxy = this.requireGalaxy();
+    const childStar = starById(galaxy.stars, voyage.starId);
+    const landfallYear = voyageLandfallYear(voyage);
+    const wakes: { token: string; atYear: number; key: string }[] = [
+      {
+        token: voyage.ownerToken,
+        atYear: landfallYear + WAKE_SLOP_YEARS,
+        key: `v/${voyage.id}/landfall`,
+      },
+      {
+        token: voyage.ownerToken,
+        atYear: voyageFirstWordYear(voyage) + WAKE_SLOP_YEARS,
+        key: `v/${voyage.id}/word`,
+      },
+    ];
+    for (const civ of galaxy.civs) {
+      if (civ.controller !== "player") continue;
+      const token = await this.ctx.storage.get<string>(`civToken:${civ.seed.id}`);
+      if (token === undefined) continue; // never placed through a live socket
+      const star = starById(galaxy.stars, civ.starId);
+      wakes.push({
+        token,
+        atYear: landfallYear + distanceLy(childStar.position, star.position) + WAKE_SLOP_YEARS,
+        key: `v/${voyage.id}/light/${civ.seed.id}`,
+      });
+      if (!hasDepartureLight || civ.seed.id === voyage.ownerCivId) continue;
+      const home = starById(
+        galaxy.stars,
+        civById(galaxy, voyage.ownerCivId).starId,
+      );
+      wakes.push({
+        token,
+        atYear:
+          voyage.launchedYear + distanceLy(home.position, star.position) + WAKE_SLOP_YEARS,
+        key: `v/${voyage.id}/departure/${civ.seed.id}`,
+      });
+    }
+    await this.pushWakeEvents(wakes);
+  }
+
+  /**
    * A2.4: the token that owns a civ, so an arrival wake can find whom to
    * push. Idempotent, and written from every placement path — which
    * back-fills every returning pre-A2.4 run on its next hello. Used for
@@ -1658,8 +2028,14 @@ export class Cohort extends Server<CohortEnv> {
     // Captured AFTER the last await, as onBecome's comment requires: no
     // storage read yields between here and the splice below, so a
     // concurrent commit on another connection cannot be lost.
+    //
+    // A4: the visibility and target checks below read the DERIVED roster,
+    // because a colony is hailable on exactly the terms anything else is —
+    // it is in the sky, or it is not. The residue write goes to the stored
+    // one.
     const galaxy = this.requireGalaxy();
-    const selfCiv = civById(galaxy, civId);
+    const stored = this.requireStoredGalaxy();
+    const selfCiv = civById(stored, civId);
 
     let toCivId: string | null = null;
     if (kind === "hail") {
@@ -1721,7 +2097,7 @@ export class Cohort extends Server<CohortEnv> {
     // broadcast gets two writes, the act and the residue.
     const charged = Math.min(resistance.coherenceCost, selfCiv.seed.stocks.coherence);
     const act: ContactAct = {
-      id: `act-${galaxy.acts.length}`,
+      id: `act-${stored.acts.length}`,
       kind,
       fromCivId: civId,
       toCivId,
@@ -1745,12 +2121,15 @@ export class Cohort extends Server<CohortEnv> {
         },
       },
     };
-    const civs = galaxy.civs.map((c) => (c.seed.id === civId ? updatedSelf : c));
-    this.galaxy = appendAct({ ...galaxy, civs }, act);
-    await this.ctx.storage.put("galaxy:civs", this.galaxy.civs);
-    await this.ctx.storage.put("galaxy:acts", this.galaxy.acts);
+    const civs = stored.civs.map((c) => (c.seed.id === civId ? updatedSelf : c));
+    this.storedGalaxy = appendAct({ ...stored, civs }, act);
+    await this.saveGalaxyCivs(this.storedGalaxy.civs);
+    await this.ctx.storage.put("galaxy:acts", this.storedGalaxy.acts);
 
-    await this.scheduleContactWakes(this.galaxy, act);
+    // The wake pass reads the DERIVED roster: a hail aimed at a colony has to
+    // resolve the colony to know how far away it is, and a broadcast's shell
+    // sweeps over children exactly as it does over anything else.
+    await this.scheduleContactWakes(this.requireGalaxy(), act);
 
     // This SEAT sees the debit and its own echo immediately, on every device
     // it is live on (the client re-derives every stamp from this sky, so the
@@ -1943,10 +2322,14 @@ export class Cohort extends Server<CohortEnv> {
       tone,
       parts: materialized.parts,
     };
-    this.galaxy = appendAct(galaxy, act);
-    await this.ctx.storage.put("galaxy:acts", this.galaxy.acts);
+    // A4: appended to the STORED log, not the derived roster — the two share
+    // an `acts` array by identity, and writing the derived one back would
+    // persist a colony through the side door. Nothing else about this handler
+    // changes: a colony is a counterpart like any other.
+    this.storedGalaxy = appendAct(this.requireStoredGalaxy(), act);
+    await this.ctx.storage.put("galaxy:acts", this.storedGalaxy.acts);
 
-    await this.scheduleContactWakes(this.galaxy, act);
+    await this.scheduleContactWakes(this.requireGalaxy(), act);
 
     // This seat sees its own echo immediately, on every device it is live on.
     // Every OTHER placed connection gets a fresh sky too, on the same terms a
@@ -2491,6 +2874,7 @@ export class Cohort extends Server<CohortEnv> {
     return {
       studies: assembled.studies,
       missions: assembled.missions,
+      voyages: assembled.voyages,
       projects: assembled.projects,
       sources: assembled.sources,
       localNames: assembled.localNames,
@@ -2539,7 +2923,7 @@ export class Cohort extends Server<CohortEnv> {
    * devSeed with no request body.
    */
   private async ensureSeeded(): Promise<void> {
-    if (this.galaxy !== null) return;
+    if (this.storedGalaxy !== null) return;
     const seedKey = `cohort-${this.name}`;
     const config: GalaxyConfig = {
       radiusLy: Math.min(30, DEFAULT_GALAXY_CONFIG.radiusLy),
@@ -2548,14 +2932,18 @@ export class Cohort extends Server<CohortEnv> {
     const clock = newClock(Date.now());
     const galaxy = generateGalaxy(createRng(seedKey), seedKey, config, 0);
     this.clock = clock;
-    this.galaxy = galaxy;
+    this.storedGalaxy = galaxy;
+    this.derivedMemo = null;
     await this.ctx.storage.put("clock", clock);
     await this.ctx.storage.put("galaxy:meta", { seedKey, config } satisfies GalaxyMeta);
     await this.ctx.storage.put("galaxy:stars", galaxy.stars);
-    await this.ctx.storage.put("galaxy:civs", galaxy.civs);
+    await this.saveGalaxyCivs(galaxy.civs);
     // A2.4: written explicitly at seed time so a re-seed cannot inherit the
     // previous galaxy's contact log. `onStart` still tolerates its absence.
     await this.ctx.storage.put("galaxy:acts", galaxy.acts);
+    // A4, the same reason one act later: a re-seed must not inherit the
+    // previous galaxy's foundings, whose stars no longer mean anything.
+    await this.saveVoyageState(newVoyageState());
     await this.ctx.storage.put("events", []);
     await this.ctx.storage.put("eventLog", []);
   }
@@ -2589,6 +2977,8 @@ export class Cohort extends Server<CohortEnv> {
       localNames,
       studies,
       missions,
+      voyages,
+      survey,
       projects,
       projectState,
       designations,
@@ -2619,6 +3009,7 @@ export class Cohort extends Server<CohortEnv> {
       projectState,
       studies,
       missions,
+      voyages,
       localNames,
       designations,
     });
@@ -2668,6 +3059,7 @@ export class Cohort extends Server<CohortEnv> {
     await this.materializeReport(token, civId, nowYear, {
       studies,
       missions,
+      voyages,
       projects,
       sources,
       localNames,
@@ -2689,6 +3081,8 @@ export class Cohort extends Server<CohortEnv> {
       probeFlightYearsPerLy,
       proposals: counsel.proposals,
       contact,
+      voyages,
+      survey,
     });
 
     // AFTER the send, always. Generation is considered only once the message
@@ -2756,12 +3150,19 @@ export class Cohort extends Server<CohortEnv> {
     readonly localNames: Readonly<Record<string, string>>;
     readonly studies: readonly StudySnapshot[];
     readonly missions: readonly MissionSnapshot[];
+    readonly voyages: readonly VoyageSnapshot[];
+    readonly survey: readonly SurveyRow[];
     readonly projects: readonly ProjectSnapshot[];
     readonly projectState: ProjectState;
     readonly designations: Readonly<Record<string, string>>;
     readonly contact: ContactWire;
   }> {
-    const galaxy = this.requireGalaxy();
+    // A4: ONE fold per assembly, and it carries both halves — the roster every
+    // read below sees, and the per-voyage outcomes the snapshots need. Taking
+    // them separately would fold twice and could, across a landfall year
+    // boundary, fold two different rosters into one sky.
+    const fold = this.derivedFold();
+    const galaxy = fold.galaxy;
     const selfCiv = civById(galaxy, civId);
     const star = starById(galaxy.stars, selfCiv.starId);
     const self: SelfView = {
@@ -2968,9 +3369,29 @@ export class Cohort extends Server<CohortEnv> {
       };
     });
 
+    // A4: this seat's own foundings, in launch order. `toVoyageSnapshot` is
+    // the only producer, it reads truth through the two cones and nothing
+    // else, and it drops `ownerToken` on the way out.
+    const voyages: VoyageSnapshot[] = this.voyageState.voyages
+      .filter((v) => v.ownerToken === token)
+      .map((v) => toVoyageSnapshot(galaxy, civId, v, fold.outcomes.get(v.id), nowYear))
+      .sort((a, b) => a.id.localeCompare(b.id));
+
+    // The forecast survey. `occupiedStarIds` and the light ages come from the
+    // sources ALREADY on this wire, which is the whole no-leak argument: the
+    // survey's occupancy flag is `visibleSky` membership and nothing else, and
+    // it consults no voyage, this player's or anyone else's.
+    const survey = buildSurvey(
+      galaxy,
+      civId,
+      new Set(sources.map((s) => s.starId)),
+      new Map(sources.map((s) => [s.starId, s.lightAgeYears])),
+    );
+
     const relevantStarIds = new Set<string>([
       ...studies.map((s) => s.starId),
       ...missions.map((m) => m.starId),
+      ...voyages.map((v) => v.starId),
       // AV3: first-watch/widen proposals name a currently-visible source
       // that has no study yet — report.ts never needed this (it only ever
       // names a study's or mission's star), but proposals.ts's nameFor
@@ -3011,6 +3432,8 @@ export class Cohort extends Server<CohortEnv> {
       localNames,
       studies,
       missions,
+      voyages,
+      survey,
       projects,
       projectState,
       designations,
@@ -3088,6 +3511,21 @@ export class Cohort extends Server<CohortEnv> {
     };
   }
 
+  /** A4: the launch sheet's vocabulary, sent once on welcome beside the
+   *  mission catalog and for the same reason — no voyage catalog ships in the
+   *  client bundle. Wording and constants only; nothing about any star. */
+  private voyageCatalog(): VoyageCatalog {
+    return {
+      kinds: VOYAGE_KINDS,
+      clauses: VOYAGE_CLAUSES,
+      minClauses: MIN_VOYAGE_CLAUSES,
+      maxClauses: MAX_VOYAGE_CLAUSES,
+      dialSteps: CHARTER_DIAL_STEPS,
+      maxPerToken: MAX_VOYAGES_PER_TOKEN,
+      occupiedRiskLine: OCCUPIED_RISK_LINE,
+    };
+  }
+
   /** Builds a wake ScheduledEvent — hygiene: `wake/${token}/${key}` so a
    *  re-push for the same purchase/launch is idempotent (same id). Pure;
    *  callers own persistence. */
@@ -3152,9 +3590,111 @@ export class Cohort extends Server<CohortEnv> {
     await this.armAlarm(queue);
   }
 
+  /**
+   * THE STORED ROSTER, for the four write sites only. Every read path calls
+   * `requireGalaxy()` instead. The split is synthesis R1's choke point: a
+   * writer that reaches for this cannot accidentally persist a colony, because
+   * this field never holds one, and `saveGalaxyCivs` asserts it.
+   */
+  private requireStoredGalaxy(): Galaxy {
+    if (this.storedGalaxy === null) throw new Error("cohort not seeded");
+    return this.storedGalaxy;
+  }
+
+  /**
+   * The stored roster PLUS every colony that has rooted by now, memoized.
+   *
+   * THE SIGNATURE TAKES NO YEAR, AND THAT IS A DECISION. The alternative was
+   * `requireGalaxy(nowYear)` with every call site updated, and it was rejected
+   * on both of the grounds that matter here. First, a good half of the call
+   * sites (`admit`, `sendVoice`, `makeCandidates`, `loadProjectState`, the dev
+   * routes) have no year in hand and would have had to derive one anyway —
+   * from this same clock, a few microseconds apart, which is two answers to a
+   * question that has one. Second, threading a year would let one turn hold
+   * two different rosters, and the whole point of the derivation is that every
+   * observer sees the same one. So the year comes from the clock, exactly as
+   * every other derived read in this object gets it, and the memo key pins the
+   * only observable consequence a year has: the count of ships that have
+   * landed. Sub-year jitter between two calls in one turn is invisible by
+   * construction.
+   *
+   * Requires the clock, which is sound: the clock and the galaxy are written
+   * together at every seed path, so a cohort that has one has the other.
+   */
+  private derivedFold(): {
+    readonly galaxy: Galaxy;
+    readonly outcomes: ReadonlyMap<string, LandfallOutcome>;
+  } {
+    const stored = this.requireStoredGalaxy();
+    const voyages = this.voyageState.voyages;
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    const landed = voyages.filter((v) => voyageLandfallYear(v) <= nowYear + YEAR_EPS).length;
+    const memo = this.derivedMemo;
+    if (
+      memo !== null &&
+      memo.stored === stored &&
+      memo.voyages === voyages &&
+      memo.acts === stored.acts &&
+      memo.landed === landed
+    ) {
+      return memo;
+    }
+    const fold = foldLandfalls(stored, voyages, nowYear);
+    const galaxy = fold.civs === stored.civs ? stored : { ...stored, civs: fold.civs };
+    this.derivedMemo = {
+      stored,
+      voyages,
+      acts: stored.acts,
+      landed,
+      galaxy,
+      outcomes: fold.outcomes,
+    };
+    return this.derivedMemo;
+  }
+
+  /**
+   * THE ROSTER EVERY READ PATH SEES: stored civilizations plus derived
+   * colonies. `pickPlayerHome` reads it (or a joining player would be placed
+   * on an occupied star), `visibleSky` reads it, the ceremony reads it, the
+   * dev routes read it.
+   */
   private requireGalaxy(): Galaxy {
-    if (this.galaxy === null) throw new Error("cohort not seeded");
-    return this.galaxy;
+    return this.derivedFold().galaxy;
+  }
+
+  /**
+   * PERSIST THE ROSTER, AND THE ASSERTION THAT MAKES SYNTHESIS R1 REAL: no
+   * civilization whose id carries CHILD_ID_PREFIX may ever reach storage. A
+   * colony exists because a voyage record says a ship arrived; writing one
+   * down would make it exist twice, and the two copies would disagree the
+   * first time the fold changed. Failing loudly is the point — this is not a
+   * recoverable condition, it is a proof that the split above was broken.
+   *
+   * Every write of `galaxy:civs` in this object goes through here.
+   */
+  private async saveGalaxyCivs(civs: readonly PlacedCiv[]): Promise<void> {
+    for (const civ of civs) {
+      if (civ.seed.id.startsWith(CHILD_ID_PREFIX)) {
+        throw new Error(`refusing to persist a derived colony: ${civ.seed.id}`);
+      }
+    }
+    await this.ctx.storage.put("galaxy:civs", civs);
+  }
+
+  /** A4: a cohort seeded before this stage has no voyage record, which is the
+   *  whole migration — an absent key loads as the empty state and every
+   *  existing cohort behaves exactly as it did. */
+  private async loadVoyageState(): Promise<VoyageState> {
+    const stored = await this.ctx.storage.get<VoyageState>("galaxy:voyages");
+    return stored === undefined ? newVoyageState() : migrateVoyageState(stored);
+  }
+
+  /** The ONE writer of the voyage record. `onLaunchVoyage` is its only caller
+   *  (the presence rule: a founding is an irreversible act and requires a live
+   *  socket), and re-pointing the field is what invalidates the derived memo. */
+  private async saveVoyageState(state: VoyageState): Promise<void> {
+    this.voyageState = state;
+    await this.ctx.storage.put("galaxy:voyages", state);
   }
 
   private requireClock(): ClockState {
@@ -3288,17 +3828,20 @@ export class Cohort extends Server<CohortEnv> {
     const clock = newClock(Date.now());
     const galaxy = generateGalaxy(createRng(seedKey), seedKey, config, 0);
     this.clock = clock;
-    this.galaxy = galaxy;
+    this.storedGalaxy = galaxy;
+    this.derivedMemo = null;
     await this.ctx.storage.put("clock", clock);
     await this.ctx.storage.put("galaxy:meta", {
       seedKey,
       config,
     } satisfies GalaxyMeta);
     await this.ctx.storage.put("galaxy:stars", galaxy.stars);
-    await this.ctx.storage.put("galaxy:civs", galaxy.civs);
+    await this.saveGalaxyCivs(galaxy.civs);
     // A2.4: written explicitly at seed time so a re-seed cannot inherit the
     // previous galaxy's contact log. `onStart` still tolerates its absence.
     await this.ctx.storage.put("galaxy:acts", galaxy.acts);
+    // A4: same reason, one act later.
+    await this.saveVoyageState(newVoyageState());
     await this.ctx.storage.put("events", []);
     await this.ctx.storage.put("eventLog", []);
     await this.ctx.storage.deleteAlarm();
@@ -3332,24 +3875,29 @@ export class Cohort extends Server<CohortEnv> {
     }));
   }
 
+  // The three dev read routes all serve the DERIVED roster (A4). A colony is
+  // as real as anything else in the sky, and a truth endpoint that showed only
+  // what was on disk would be a second, quieter answer to "what is out there".
   private devState(): Response {
     const nowYear = this.nowYear();
-    if (this.galaxy === null || nowYear === null) {
+    if (this.storedGalaxy === null || nowYear === null) {
       return json({ error: "not seeded: POST /dev/seed first" }, 404);
     }
+    const galaxy = this.requireGalaxy();
     return json({
       nowYear,
       clock: this.clock,
-      seedKey: this.galaxy.seedKey,
-      config: this.galaxy.config,
-      starCount: this.galaxy.stars.length,
-      civs: this.civOverview(this.galaxy, nowYear),
+      seedKey: galaxy.seedKey,
+      config: galaxy.config,
+      starCount: galaxy.stars.length,
+      voyages: this.voyageState.voyages.length,
+      civs: this.civOverview(galaxy, nowYear),
     });
   }
 
   private devObserve(url: URL): Response {
     const nowYear = this.nowYear();
-    if (this.galaxy === null || nowYear === null) {
+    if (this.storedGalaxy === null || nowYear === null) {
       return json({ error: "not seeded: POST /dev/seed first" }, 404);
     }
     const observer = url.searchParams.get("observer");
@@ -3358,7 +3906,7 @@ export class Cohort extends Server<CohortEnv> {
       return json({ error: "observer and target query params required" }, 400);
     }
     try {
-      return json({ nowYear, view: observeCiv(this.galaxy, observer, target, nowYear) });
+      return json({ nowYear, view: observeCiv(this.requireGalaxy(), observer, target, nowYear) });
     } catch (err) {
       return json({ error: String(err) }, 404);
     }
@@ -3366,13 +3914,13 @@ export class Cohort extends Server<CohortEnv> {
 
   private devSky(url: URL): Response {
     const nowYear = this.nowYear();
-    if (this.galaxy === null || nowYear === null) {
+    if (this.storedGalaxy === null || nowYear === null) {
       return json({ error: "not seeded: POST /dev/seed first" }, 404);
     }
     const observer = url.searchParams.get("observer");
     if (observer === null) return json({ error: "observer query param required" }, 400);
     try {
-      return json({ nowYear, sky: observeSky(this.galaxy, observer, nowYear) });
+      return json({ nowYear, sky: observeSky(this.requireGalaxy(), observer, nowYear) });
     } catch (err) {
       return json({ error: String(err) }, 404);
     }
@@ -3496,13 +4044,18 @@ export class Cohort extends Server<CohortEnv> {
       `proposals:${token}`,
     ]);
 
+    // A4: the STORED roster, and the voyage record is deliberately LEFT ALONE.
+    // A colony this run founded is everyone's fact and outlives the run that
+    // sent it — the whole point of a cohort-wide voyage record — so a forget
+    // takes the parent out of the sky and leaves the children standing, with
+    // a chronicle that still names the star they came from.
     const civId = run?.civId ?? `civ-p-${token.slice(0, 12)}`;
-    const galaxy = this.requireGalaxy();
-    const civs = galaxy.civs.filter((c) => c.seed.id !== civId);
-    const removed = civs.length !== galaxy.civs.length;
+    const stored = this.requireStoredGalaxy();
+    const civs = stored.civs.filter((c) => c.seed.id !== civId);
+    const removed = civs.length !== stored.civs.length;
     if (removed) {
-      this.galaxy = { ...galaxy, civs };
-      await this.ctx.storage.put("galaxy:civs", civs);
+      this.storedGalaxy = { ...stored, civs };
+      await this.saveGalaxyCivs(civs);
     }
 
     // A wake belongs to the run that armed it; a forgotten run has none.

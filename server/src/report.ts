@@ -31,6 +31,11 @@
 
 import type { ArchetypeId } from "./minds";
 import { missionProseName, SILENCE_GRACE_YEARS } from "./missions";
+// A4: the ship's name in prose. A VALUE import, and it is the only one this
+// module takes from voyages.ts — `voyageProseName` is a three-way string
+// switch that touches no galaxy, no cone and no seed, so the structural
+// guarantee in this file's header (no truth read, ever) is untouched.
+import { voyageProseName } from "./voyages";
 import type {
   DetectedSource,
   Hypothesis,
@@ -41,6 +46,7 @@ import type {
   ReportPayload,
   ReportRoute,
   StudySnapshot,
+  VoyageSnapshot,
 } from "./protocol";
 import { questionById } from "./questions";
 import {
@@ -58,6 +64,8 @@ import {
   recordStudyGrounded,
   recordStudyOvertaken,
   recordStudyRegressed,
+  recordVoyageLandfall,
+  recordVoyageLaunched,
   recordTripwireTripped,
   render,
   reportHeader,
@@ -85,7 +93,10 @@ export type ReportKind =
   | "question-regressed"
   | "study-called"
   | "study-overtaken"
-  | "tripwire-tripped";
+  | "tripwire-tripped"
+  // ── A4 ──
+  | "voyage-launched"
+  | "voyage-landfall";
 
 export type ReportFamily = "settled" | "refused" | "sent" | "spoken" | "unspoken" | "record";
 
@@ -147,6 +158,9 @@ export function newReportState(nowYear: number): ReportState {
 export interface DeriveReportEntriesInput {
   readonly studies: readonly StudySnapshot[];
   readonly missions: readonly MissionSnapshot[];
+  /** A4. Optional so every caller that predates voyages keeps compiling and
+   *  keeps deriving exactly the entries it derived before. */
+  readonly voyages?: readonly VoyageSnapshot[];
   readonly projects: readonly ProjectSnapshot[];
   /** For distanceLy (every remote entry's light age at its own year — R-33)
    *  and as a designation fallback. A study/source pairing not found here
@@ -567,7 +581,73 @@ function projectEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
 }
 
 /**
- * All nine kinds' candidates for this sky send, unfiltered against what is
+ * A4: the two things a voyage ever puts in the annal — it left, and the one
+ * word came home. Everything AFTER the landfall belongs to the Ledger, which
+ * is a relationship rather than an undertaking and keeps its own entries.
+ *
+ * `voyage-landfall` materializes from the SNAPSHOT'S REPORT and from nothing
+ * else, so the light-cone gate that produced it (voyages.ts's `voyageOutcome`,
+ * through a LightCone or a StarCone) is the only gate this module needs — and
+ * it keeps this file's structural guarantee intact: still no Galaxy, still no
+ * cone, still no truth read anywhere in it.
+ *
+ * A `send-no-word` charter produces NO ENTRY AT ALL, ever. Its snapshot has no
+ * report, so there is no candidate here, and the annal simply never mentions
+ * the landfall. That silence is the record being honest: nothing came.
+ */
+function voyageEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
+  const { localNames, designations, ascensionYear, nowYear, sinceYear } = input;
+  const out: StoredReportEntry[] = [];
+  for (const v of input.voyages ?? []) {
+    const sourceName = nameFor(v.starId, localNames, designations);
+    const shipName = voyageProseName(v.kind);
+
+    if (inWindow(v.launchedYear, sinceYear, nowYear)) {
+      const firstWordYears = v.firstWordYear - v.launchedYear;
+      const record = recordVoyageLaunched(
+        shipName,
+        v.childName,
+        sourceName,
+        v.distanceLy,
+        firstWordYears,
+      );
+      out.push({
+        id: `v/${v.id}/launched`,
+        kind: "voyage-launched",
+        family: "sent",
+        stampYear: v.launchedYear,
+        stamp: render(epochStamp(v.launchedYear, ascensionYear)),
+        record: render(record),
+        pinned: pinnedTokens(record),
+        route: { kind: "voyage", voyageId: v.id },
+      });
+    }
+
+    const report = v.report;
+    if (report !== null && inWindow(report.arrivedYear, sinceYear, nowYear)) {
+      const record = recordVoyageLandfall(
+        v.childName,
+        sourceName,
+        report.headline,
+        v.distanceLy,
+      );
+      out.push({
+        id: `v/${v.id}/landfall`,
+        kind: "voyage-landfall",
+        family: "spoken",
+        stampYear: report.arrivedYear,
+        stamp: render(epochStamp(report.arrivedYear, ascensionYear)),
+        record: render(record),
+        pinned: pinnedTokens(record),
+        route: { kind: "voyage", voyageId: v.id },
+      });
+    }
+  }
+  return out;
+}
+
+/**
+ * Every kind's candidates for this sky send, unfiltered against what is
  * already stored (that is `mergeReportEntries`'s job — this function is
  * stateless and returns the same candidates every time it is given the same
  * snapshots, `nowYear`, and `sinceYear`).
@@ -578,6 +658,7 @@ export function deriveReportEntries(
   return [
     ...questionEntries(input),
     ...missionEntries(input),
+    ...voyageEntries(input),
     ...skyArrivalEntries(input),
     ...studyGroundedEntries(input),
     ...studyExitEntries(input),

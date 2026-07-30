@@ -20,13 +20,18 @@
 import type { CivId, CivSeed, EmissionEpoch } from "./civseed";
 import { lightDelayYears } from "./clock";
 import { beamCrossing, BEAM_RECEIVED_LEVEL } from "./contact";
-import { civById, civDistanceLy, starById, type Galaxy } from "./galaxy";
+import { civById, civDistanceLy, distanceLy, starById, type Galaxy } from "./galaxy";
 // A2.5: the derived half of the beam branch. Imported for its FUNCTION
 // REFERENCE only, resolved at call time — traffic.ts imports `lightConeFor`
 // and `peekTruth` from here in turn, and neither module reads the other at
 // module-initialization time (contact.ts's header states the same cycle for
 // the same reason).
 import { aiBeamCrossing } from "./traffic";
+// A4: the destination-world draw. Truth, and therefore gated here — a caller
+// reaches it through `peekWorld` and a StarCone or not at all. worlds.ts
+// imports nothing from this module, so there is no cycle to reason about.
+import { destinationWorldAt, type DestinationWorld } from "./worlds";
+import type { StarId } from "./galaxy";
 
 // ---------------------------------------------------------------------------
 // Truth (server-side only)
@@ -114,6 +119,71 @@ export function peekTruth(galaxy: Galaxy, cone: LightCone, year: number): CivTru
 }
 
 // ---------------------------------------------------------------------------
+// The star cone (A4) — the same gate, aimed at a PLACE rather than a civ
+// ---------------------------------------------------------------------------
+//
+// A voyage asks a question `LightCone` cannot carry: not "what is that
+// civilization doing" but "what is at that star". The target may hold nobody,
+// so there is no `targetId` to mint a cone against, and the answer
+// (`DestinationWorld`) is truth even though nothing about it is alive.
+//
+// It is the SAME capability discipline, one noun over. The only constructor is
+// `starConeFor`, which derives `asOfYear` from the clock and the real distance
+// between the observer's own home star and the target star; there is no
+// constructor that takes an arbitrary ceiling. So at a launch sheet — where
+// every year the player might ask about is in the future — `peekWorld` returns
+// null BY CONSTRUCTION, and "the forecast is a prior, never truth" is a
+// property of the types rather than a rule somebody remembered to follow.
+
+/**
+ * Permission to read one STAR's truth, bounded by causality. Server-side only;
+ * it never crosses the wire and has no wire-facing analogue.
+ */
+export interface StarCone {
+  readonly observerId: CivId;
+  readonly starId: StarId;
+  readonly distanceLy: number;
+  /** nowYear − distanceLy. The newest star-year this observer may hold ANY
+   *  claim about. */
+  readonly asOfYear: number;
+}
+
+/** Mint a star cone for (observer, star) at the clock's nowYear. Throws on an
+ *  unknown civ or star, as `civById` / `starById` already do. */
+export function starConeFor(
+  galaxy: Galaxy,
+  observerId: CivId,
+  starId: StarId,
+  nowYear: number,
+): StarCone {
+  const home = starById(galaxy.stars, civById(galaxy, observerId).starId);
+  const target = starById(galaxy.stars, starId);
+  const distance = home.id === target.id ? 0 : distanceLy(home.position, target.position);
+  return {
+    observerId,
+    starId,
+    distanceLy: distance,
+    asOfYear: nowYear - lightDelayYears(distance),
+  };
+}
+
+/**
+ * `peekTruth` for a place. Returns null — never a guess, never a clamped
+ * value — when `year` is above the cone. The world itself is time-invariant
+ * (worlds.ts draws it from the star id alone); what the cone gates is WHEN a
+ * claim about it may be held, which is exactly the year a ship could have
+ * been there and the light of its being there could have come home.
+ */
+export function peekWorld(
+  galaxy: Galaxy,
+  cone: StarCone,
+  year: number,
+): DestinationWorld | null {
+  if (year > cone.asOfYear + LIGHT_CONE_EPS) return null;
+  return destinationWorldAt(galaxy, cone.starId);
+}
+
+// ---------------------------------------------------------------------------
 // Occupancy — the one truth summary questions and reports both read
 // ---------------------------------------------------------------------------
 
@@ -197,8 +267,16 @@ export interface ObservedCiv {
   readonly signal: ObservedSignal | null;
 }
 
-/** Emission below this is indistinguishable from empty sky in A0. */
-const DETECTION_FLOOR = 0.015;
+/**
+ * Emission below this is indistinguishable from empty sky in A0.
+ *
+ * Exported since A4: a colony chartered `found-dark` emits BELOW it on
+ * purpose (voyages.ts's FOUND_DARK_LEVEL), which makes it the first emitter in
+ * the game that is in `galaxy.civs` and in nobody's sky. The floor is the one
+ * number that claim depends on, so the module that depends on it reads the
+ * constant rather than a copy of its value.
+ */
+export const DETECTION_FLOOR = 0.015;
 
 /**
  * Emission at or above this reads as machines, pre-ascension — classify's

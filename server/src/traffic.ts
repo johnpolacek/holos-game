@@ -56,7 +56,7 @@
 // `threadRefRowsFor` go through), and cohort.ts's READ-SIDE paths only
 // (`buildThreads` through `assembleSkyState`, and `scheduleThreadWakes`,
 // which schedules a wake and mutates nothing). It must never appear inside a
-// handler that mutates `this.galaxy`.
+// handler that mutates `this.storedGalaxy`.
 //
 // A2.6 NOTE, because it looks like an exception and is not:
 // `onSendSignal` — which does append an act — calls `threadRefRowsFor`, and
@@ -84,7 +84,7 @@
 // at CALL time, and neither module reads the other at module-initialization
 // time.
 
-import type { CivId, EmissionEpoch } from "./civseed";
+import type { CivId, CivSeed, EmissionEpoch } from "./civseed";
 import { lightDelayYears } from "./clock";
 import {
   BEAM_DWELL_YEARS,
@@ -353,6 +353,17 @@ const COUNTERPART_CLASS: Readonly<Record<ArchetypeId, CounterpartClass>> = {
 
 export function counterpartClass(a: ArchetypeId): CounterpartClass {
   return COUNTERPART_CLASS[a];
+}
+
+/**
+ * A4: the first year this civilization could have transmitted anything —
+ * the start of its emission record, or its ascension if it somehow has none.
+ * For a seeded civ this sits millennia in the past and constrains nothing;
+ * for a founded colony it is the landfall year, and it is the whole of the
+ * causality fix at `deriveAiSignals`' push site.
+ */
+function existsFromYear(seed: CivSeed): number {
+  return seed.emissionHistory[0]?.fromYear ?? seed.ascensionYear;
 }
 
 // ---------------------------------------------------------------------------
@@ -943,7 +954,14 @@ export function deriveAiSignals(
   // NOT a branch in the signal path (`onSendSignal` names no controller
   // anywhere); a bound on what the derivation is FOR.
   if (civById(g, playerId).controller !== "player") return [];
-  const cls = counterpartClass(ai.seed.archetype);
+  // A4: a colony chartered `answer-nothing` is silent by INSTRUCTION rather
+  // than by character, so the override sits here and not in the class table —
+  // its archetype is whatever its dials say, and it keeps that archetype's
+  // voice for every other purpose. The flag is derived-only and set by exactly
+  // one producer (voyages.ts's `childCivFor`); every stored civ in the game
+  // leaves it absent.
+  const cls: CounterpartClass =
+    ai.answersNothing === true ? "silent" : counterpartClass(ai.seed.archetype);
   if (cls === "silent") return [];
 
   const player = civById(g, playerId);
@@ -1085,6 +1103,16 @@ export function deriveAiSignals(
       ? recessRng.range(RECESS_MIN_YEARS, RECESS_MAX_YEARS)
       : 0;
     const sentYear = evalYear + d + deliberationFor(cls, threadId, ordinal) + recess;
+    // A4, THE EXISTENCE FLOOR. Nothing may transmit from before it existed.
+    // It was unreachable while every counterpart was seeded at cohort creation
+    // with a biosphere epoch millennia deep; a FOUNDED COLONY breaks that — its
+    // history begins at its landfall year, and a lantern child's unprompted
+    // opener is evaluated at the year the PLAYER first went bright, which can
+    // be centuries before the ship even left. The candidate is dropped whole
+    // (not clamped forward), because a hail that could not have been sent is
+    // not a late hail, and `replyIndex` is deliberately not advanced: a reply
+    // nobody sent is not this thread's first.
+    if (sentYear < existsFromYear(ai.seed) - BEAM_EPS) continue;
     out.push({
       id: `ai/${aiId}/${playerId}/${ordinal}`,
       fromCivId: aiId,

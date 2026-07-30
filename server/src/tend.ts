@@ -21,9 +21,9 @@
 
 import { hasLanded, landedYear, projectById, type CostClass, type ProjectState } from "./projects";
 import { SENTINEL_CADENCE_YEARS, type WorkState } from "./missions";
-import type { MissionSnapshot, StudySnapshot } from "./protocol";
+import type { MissionSnapshot, StudySnapshot, VoyageSnapshot } from "./protocol";
 
-export type TendKind = "study" | "project" | "question" | "mission";
+export type TendKind = "study" | "project" | "question" | "mission" | "voyage";
 
 /**
  * One undertaking. `nextYear` is the ONE date the row is waiting on; the
@@ -131,6 +131,77 @@ function missionSpan(m: MissionSnapshot): RowSpan {
   }
 }
 
+/**
+ * A4: the same span question for a voyage, and the same answer wherever the
+ * two clocks agree.
+ *
+ * `state` IS NARROWED, NOT WIDENED. `VoyageWorkState` carries four terminal
+ * words a mission has no use for (founded, unrooted, dark, and its own kind of
+ * silence), and TendRow.state is `WorkState` — the union the client's chip
+ * table is total over. Widening it here would have made the Tend impossible to
+ * render until the client caught up, so a closed voyage reads `returned`: the
+ * row is finished, which is the one thing a work-list chip is for. The real
+ * word is on the VoyageSnapshot, where the voyage's own surface reads it, and
+ * the chips grow their own vocabulary when that surface ships.
+ */
+function voyageSpan(v: VoyageSnapshot): RowSpan {
+  switch (v.state) {
+    case "in-flight":
+    case "beyond-horizon":
+      // Launch → landfall, with the amendment horizon marked inside it. The
+      // horizon is the whole drama of a fast ship: a sail loses it in under
+      // two years, and the track is where that is visible.
+      return {
+        nextYear: v.landfallYear,
+        nextLabel: "LANDFALL",
+        fromYear: v.launchedYear,
+        markYear: v.horizonYear,
+      };
+    case "awaiting-light":
+      // The ships are down, one way or another; what is still crossing is the
+      // word about it.
+      return {
+        nextYear: v.firstWordYear,
+        nextLabel: "FIRST WORD",
+        fromYear: v.launchedYear,
+        markYear: v.horizonYear,
+      };
+    case "silent":
+      // A word was promised and did not come. The span ends at the year the
+      // schedule broke, and the client draws the break.
+      return {
+        nextYear: null,
+        nextLabel: null,
+        fromYear: v.launchedYear,
+        markYear: v.missedWordYear,
+      };
+    case "founded":
+    case "unrooted":
+    case "dark":
+      // Closed, and `dark` closes with NO DATE ANYWHERE: the charter said to
+      // send no word, so there is nothing late, nothing missing, and nothing
+      // the row could honestly point at.
+      return { nextYear: null, nextLabel: null, fromYear: null, markYear: null };
+  }
+}
+
+/** The chip a voyage's state reads as, in the vocabulary the client already
+ *  renders (see `voyageSpan`'s note on why it is narrowed rather than
+ *  widened). */
+function voyageWorkChip(state: VoyageSnapshot["state"]): WorkState {
+  switch (state) {
+    case "in-flight":
+    case "beyond-horizon":
+    case "awaiting-light":
+    case "silent":
+      return state;
+    case "founded":
+    case "unrooted":
+    case "dark":
+      return "returned";
+  }
+}
+
 const STUDY_PREFIX = "study/";
 
 /**
@@ -193,10 +264,14 @@ export function buildTendList(input: {
   readonly projectState: ProjectState;
   readonly studies: readonly StudySnapshot[];
   readonly missions: readonly MissionSnapshot[];
+  /** A4. Defaulted so every caller that predates voyages keeps compiling and
+   *  keeps meaning exactly what it meant. */
+  readonly voyages?: readonly VoyageSnapshot[];
   readonly localNames: Readonly<Record<string, string>>;
   readonly designations: Readonly<Record<string, string>>;
 }): readonly TendRow[] {
   const { projectState, studies, missions, localNames, designations } = input;
+  const voyages = input.voyages ?? [];
   const openStudyStarIds = new Set(
     studies.filter((s) => s.status === "open").map((s) => s.starId),
   );
@@ -263,6 +338,29 @@ export function buildTendList(input: {
       markYear,
       parentId: parentFor(m.starId),
       starId: m.starId,
+    });
+  }
+
+  // A4 voyage rows: every voyage is a row, whatever its state, the mission
+  // rule exactly. `parentId` is NULL AND ALWAYS WILL BE: a study is a vigil
+  // over a source, and a founding is not evidence about one. Hanging a colony
+  // under a study of the star it was sent to would say the two are the same
+  // undertaking, and the whole of A4 is that they are not.
+  for (const v of voyages) {
+    const { nextYear, nextLabel, fromYear, markYear } = voyageSpan(v);
+    rows.push({
+      id: `voyage/${v.id}`,
+      kind: "voyage",
+      label: v.label,
+      sub: `to ${nameFor(v.starId, localNames, designations)}`,
+      costClass: v.costClass,
+      state: voyageWorkChip(v.state),
+      nextYear,
+      nextLabel,
+      fromYear,
+      markYear,
+      parentId: null,
+      starId: v.starId,
     });
   }
 

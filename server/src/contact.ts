@@ -40,7 +40,7 @@
 // and cohort.ts's READ-SIDE paths only (`buildThreads` through
 // `assembleSkyState`, and `scheduleThreadWakes`, which schedules a wake and
 // mutates nothing). It must never appear inside a handler that mutates
-// `this.galaxy`. traffic.ts's header carries the full argument.
+// `this.storedGalaxy`. traffic.ts's header carries the full argument.
 //
 // NO RNG, NO CLOCK, NO STORAGE. Every function here is pure and total; the
 // resistance a mind puts up is a function of its own dial sheet, so the
@@ -352,18 +352,46 @@ export function applyBroadcast(
   history: readonly EmissionEpoch[],
   sentYear: number,
 ): readonly EmissionEpoch[] {
-  const endYear = sentYear + BROADCAST_SHOUT_YEARS;
+  return applyEpisode(history, sentYear, BROADCAST_SHOUT_YEARS, BROADCAST_LEVEL);
+}
+
+/**
+ * A4: the general form, extracted from `applyBroadcast` with its behavior
+ * byte-identical (that function is now a call to this one with the shout's two
+ * constants). A BOUNDED EPISODE OF LIGHT in a civilization's own emission
+ * history: `years` at `level` from `fromYear`, and then the history it already
+ * had resumes at whatever it was going to be.
+ *
+ * The safety property above is unchanged and is the whole reason this can be a
+ * plain write, so it is restated in its general form: EVERY YEAR THIS FUNCTION
+ * TOUCHES IS AT OR AFTER `fromYear`, and every caller passes the clock's now at
+ * commit while every observer's `asOfYear` is at most now. So no write here can
+ * change light that has already been served to anybody.
+ *
+ * A4's second caller is a relativistic ship's DEPARTURE LIGHT: a torch burns
+ * eight years at 0.45, a sail's battery pushes for min(60, 2d) years at 0.80,
+ * and both of them are the sender being the loudest thing in the neighborhood
+ * for a while, in the echo forever. Same physics as a shout, different
+ * occasion, one piece of code.
+ */
+export function applyEpisode(
+  history: readonly EmissionEpoch[],
+  fromYear: number,
+  years: number,
+  level: number,
+): readonly EmissionEpoch[] {
+  const endYear = fromYear + years;
   // Read off the ORIGINAL history, before anything is dropped: this is where
-  // the civilization's own story resumes once the shout is over.
+  // the civilization's own story resumes once the episode is over.
   const tail = emissionAt(history, endYear);
-  const kept = history.filter((e) => !(e.fromYear > sentYear && e.fromYear < endYear));
-  const shout: EmissionEpoch = {
-    fromYear: sentYear,
-    // A civ already brighter than the shout does not dim itself to make it.
-    level: Math.max(BROADCAST_LEVEL, emissionAt(history, sentYear)),
+  const kept = history.filter((e) => !(e.fromYear > fromYear && e.fromYear < endYear));
+  const episode: EmissionEpoch = {
+    fromYear,
+    // A civ already brighter than the episode does not dim itself to make it.
+    level: Math.max(level, emissionAt(history, fromYear)),
   };
   const resume: EmissionEpoch = { fromYear: endYear, level: tail };
-  return [...kept, shout, resume].sort((a, b) => a.fromYear - b.fromYear);
+  return [...kept, episode, resume].sort((a, b) => a.fromYear - b.fromYear);
 }
 
 // ---------------------------------------------------------------------------

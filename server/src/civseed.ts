@@ -130,24 +130,37 @@ function drawDialSheet(rng: Rng, cradle: Cradle, lineage: Lineage): DialSheet {
 }
 
 /**
+ * The open-canvas branch of `resolveArchetype`, lifted out unchanged (A4) so a
+ * sheet a PLAYER wrote can be resolved the same way one the generator drew is:
+ * whichever archetype region the sheet actually lands nearest, by the same
+ * `dialDistance`, with the same "beacon" seed for the degenerate empty-catalog
+ * case. Dice-free — it takes no Rng, which is why the extraction is safe: the
+ * branch it came from never used one.
+ *
+ * A4's voyage charter is its one new caller (a colony's character is whatever
+ * the five dials its founders were given actually say).
+ */
+export function nearestArchetype(sheet: DialSheet): ArchetypeId {
+  let best: ArchetypeId = "beacon";
+  let bestDist = Infinity;
+  for (const region of ARCHETYPES) {
+    const d = dialDistance(sheet, region.dialSignature);
+    if (d < bestDist) {
+      bestDist = d;
+      best = region.id;
+    }
+  }
+  return best;
+}
+
+/**
  * Resolve the archetype: the species' primary, with a real chance that
  * this particular history took its documented drift — or, for the open
  * canvas (S6), whichever region the drawn sheet actually lands nearest.
  */
 function resolveArchetype(rng: Rng, lineage: Lineage, sheet: DialSheet): ArchetypeId {
   const row = speciesMindFor(lineage.id);
-  if (row.primary === null) {
-    let best: ArchetypeId = "beacon";
-    let bestDist = Infinity;
-    for (const region of ARCHETYPES) {
-      const d = dialDistance(sheet, region.dialSignature);
-      if (d < bestDist) {
-        bestDist = d;
-        best = region.id;
-      }
-    }
-    return best;
-  }
+  if (row.primary === null) return nearestArchetype(sheet);
   const drift = row.driftsTo.length > 0 && rng.chance(0.3);
   return drift ? rng.pick(row.driftsTo) : row.primary;
 }
@@ -208,8 +221,11 @@ function drawLadders(rng: Rng, params: GenerateCivParams, archetype: ArchetypeId
       : { energy: rng.int(1, 2), integration: rng.int(1, 2) };
 }
 
-/** v1 placeholder units; only the relative shape matters yet. */
-function drawStocks(ladders: LadderStages): ResourceStocks {
+/** v1 placeholder units; only the relative shape matters yet. Exported since
+ *  A4: a rooted colony's opening stocks are this same function of its ladders,
+ *  scaled by the world's yield band, so a child and a seeded civ are stocked by
+ *  one piece of arithmetic rather than two that can drift apart. */
+export function drawStocks(ladders: LadderStages): ResourceStocks {
   return {
     energy: 100 * (1 + ladders.energy),
     matter: Math.max(50, 400 - 80 * ladders.energy),

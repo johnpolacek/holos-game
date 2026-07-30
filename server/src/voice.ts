@@ -569,6 +569,43 @@ export function recordProbeSilent(
 }
 
 /**
+ * A4: a founding departed. NAME, DISTANCE, SCHEDULE ONLY, on
+ * `recordProbeLaunched`'s exact terms and for the same reason — nothing new is
+ * known about the destination at launch, and a sentence that hinted otherwise
+ * would leak the truth side through the record. The colony's name is the one
+ * player-authored token, pinned through `F.source` so it is byte-exact and
+ * cannot be rewritten downstream.
+ */
+export function recordVoyageLaunched(
+  shipName: string,
+  childName: string,
+  sourceName: string,
+  distanceLy: number,
+  firstWordYears: number,
+): PinnedLine {
+  return line`${F.label(shipName)} left for ${F.source(sourceName)}, ${F.years(distanceLy)} away, carrying the charter of ${F.source(childName)}. Nothing about it can reach us for ${F.years(firstWordYears)}.`;
+}
+
+/**
+ * A4: the one word a voyage ever sends. `headline` is an ALL-CAPS set phrase
+ * from voyages.ts (R-24 chrome), quoted verbatim after the colon — the colon
+ * is the reveal (R-8), and quoting is what lets chrome sit inside prose
+ * without being restyled into it.
+ *
+ * The light age is the DISTANCE, not a difference of years (R-33): the word
+ * left the moment the landfall was decided and took exactly the crossing to
+ * come home.
+ */
+export function recordVoyageLandfall(
+  childName: string,
+  sourceName: string,
+  headline: string,
+  distanceLy: number,
+): PinnedLine {
+  return line`The word from ${F.source(sourceName)} came home: ${F.label(headline)}. What ${F.source(childName)} is now, it has been for ${F.years(distanceLy)}.`;
+}
+
+/**
  * New light from a watched source landed. `annotation` is an ALREADY
  * AUTHORED sentence from studies.ts, passed through as a Fact so it is
  * byte-exact and AV4 cannot rewrite it. R-32's word bound governs the

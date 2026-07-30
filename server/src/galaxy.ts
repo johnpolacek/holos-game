@@ -112,6 +112,19 @@ export interface PlacedCiv {
   readonly seed: CivSeed;
   readonly starId: StarId;
   readonly controller: "player" | "ai";
+  /**
+   * A4, optional and DERIVED-ONLY: this civilization answers nothing, ever.
+   * Set on exactly one kind of civ — a colony whose founding charter carried
+   * the `answer-nothing` clause (voyages.ts) — and read at exactly one place,
+   * traffic.ts's class resolution, where it forces `counterpartClass` to
+   * "silent" without inventing an eleventh archetype nobody wrote a voice for.
+   *
+   * IT IS NEVER PERSISTED, because the civs that carry it are never persisted:
+   * children are produced by `galaxyWithLandfalls` on every read and
+   * `saveGalaxyCivs` refuses to write one (cohort.ts's assertion). An absent
+   * field means "answers in character", which is every stored civ in the game.
+   */
+  readonly answersNothing?: boolean;
 }
 
 export interface GalaxyConfig extends StarFieldConfig {
