@@ -58,6 +58,7 @@ import {
   clampDial,
   DIAL_AXES,
   type DialAxisId,
+  type DialEpoch,
   type DialLean,
   type DialSetting,
   type DialSheet,
@@ -79,6 +80,11 @@ import {
   type StarCone,
 } from "./knowledge";
 import { archetypeById, environmentLean, type ArchetypeId, type Posture } from "./minds";
+// A4 S2, and the ONE runtime edge between these two modules (synthesis R3's
+// blessed call-time pattern, knowledge.ts and traffic.ts's precedent): the
+// brake is spent here and counted there. lineage.ts's edge back is type-only,
+// so nothing about a launch record is imported at run time in that direction.
+import { brakeFactorFor, lineageExchangesFor } from "./lineage";
 import { lineageById } from "./lineages";
 import type { CostClass, ProjectId } from "./projects";
 import {
@@ -440,6 +446,36 @@ export function charterPosture(charter: VoyageCharter): Posture {
   return charterHas(charter, "found-dark") ? "dark" : "bright";
 }
 
+/**
+ * THE CHARTER AS ONE SENTENCE, for the Ledger row that has to say what this
+ * colony was sent out to be. Derived at wire time from the clause catalog and
+ * the sheet, and NEVER STORED (synthesis R3): the charter is already on the
+ * launch record, and a stored rendering of it would be a second copy free to
+ * disagree with the first.
+ *
+ * The clause labels are chrome that reads as a sentence already ("Root
+ * wherever it lands"), so they are strung together as written rather than
+ * paraphrased; the sheet contributes the one thing the clauses cannot say,
+ * which is which way the founders were pointed. A charter that named no pole
+ * at all — every dial sat dead centre — says so by omission rather than by
+ * claiming a lean it does not have.
+ */
+export function charterLineFor(charter: VoyageCharter): string {
+  const clauses = charter.clauses
+    .map((id) => voyageClauseById(id)?.label)
+    .filter((label): label is string => label !== undefined);
+  let strongest: { readonly pole: string; readonly magnitude: number } | null = null;
+  for (const axis of DIAL_AXES) {
+    const dial = charter.sheet[axis.id];
+    const magnitude = Math.abs(dial.position);
+    if (magnitude <= 0) continue;
+    if (strongest !== null && magnitude <= strongest.magnitude) continue;
+    strongest = { pole: dial.position < 0 ? axis.left.inWorld : axis.right.inWorld, magnitude };
+  }
+  const lean = strongest === null ? "" : ` It was sent leaning ${strongest.pole}.`;
+  return `${clauses.map((label) => `${label}.`).join(" ")}${lean}`;
+}
+
 // ---------------------------------------------------------------------------
 // The launch record (a4-voyages-note §3)
 // ---------------------------------------------------------------------------
@@ -554,27 +590,27 @@ export function cradleLean(cradleId: number): DialLean {
  * the ranges the charter inherited, with pinned axes held exactly where they
  * were put.
  *
- * S1 SHIPS THE UNBRAKED WALK. `brakedYears` is `year − foundingYear`, full
- * stop. S2 replaces that one term with `lineageExchangesFor`'s fold (one round
- * trip of credit per completed exchange, BRAKE_FACTOR by drift band, never
- * more than BRAKE_CEILING of the elapsed time), and NOTHING ELSE IN THIS
- * FUNCTION MOVES. That is deliberate and it is the byte-stability story: an
- * exchange completing at year E can only change epochs dated after E, and
- * every observer's already-served light is older than E, so the swap changes
- * emission for post-exchange epochs and for nothing that has already been
- * seen.
+ * THE BRAKE IS THE ONE TERM (S2). `brakedYearsFor` below is where a
+ * conversation is spent: elapsed time, minus one round trip of credit per
+ * completed exchange, never more than BRAKE_CEILING of the elapsed time. It
+ * is the ONLY thing about this function that S2 moved, which is deliberate
+ * and is the byte-stability story: an exchange completing at year E can only
+ * change the walk after E, every observer's already-served light left before
+ * E, and so the brake changes emission for post-exchange epochs and for
+ * nothing that has already been seen.
  *
  * Called from exactly three places (synthesis R2's grep rule): here, the
- * FOUNDING AUTHOR below (`foundingEmissionHistory` samples the walk at epoch
- * boundaries and `childCivFor` takes its opening sheet from it — one author,
- * two lines), and — after S2 — signalparts.ts's `materializeCulture` child
- * branch, because a child's stated culture must name its WALKED pole rather
- * than its charter pole or drift is unreadable.
+ * FOUNDING AUTHOR below (`foundingEmissionHistory` and `foundingWalkedDials`
+ * sample the walk at the same epoch boundaries and `childCivFor` takes its
+ * opening sheet from it — one author, three lines), and nowhere else. The
+ * third seat the note reserved for `materializeCulture`'s child branch is
+ * filled by the SAMPLED RECORD instead (galaxy.ts's `PlacedCiv.walkedDials`),
+ * because the module that needs a child's walked pole is the one deriving its
+ * replies, and handing it a dated record rather than a live recomputation
+ * keeps traffic.ts free of any edge into this module.
  */
 export function childDialsAt(g: Galaxy, v: StoredVoyage, year: number): DialSheet {
-  const foundingYear = voyageLandfallYear(v);
-  const brakedYears = Math.max(0, year - foundingYear);
-  const w = 1 - Math.pow(2, -brakedYears / DRIFT_HALFLIFE_YEARS);
+  const w = 1 - Math.pow(2, -brakedYearsFor(g, v, year) / DRIFT_HALFLIFE_YEARS);
   const lean = cradleLean(destinationCradleIdFor(g, v));
   const out = {} as Record<DialAxisId, DialSetting>;
   for (const axis of DIAL_AXES) {
@@ -595,6 +631,63 @@ export function childDialsAt(g: Galaxy, v: StoredVoyage, year: number): DialShee
     };
   }
   return out;
+}
+
+/**
+ * HOW MUCH TIME THE COLONY HAS ACTUALLY HAD TO DRIFT, which is elapsed time
+ * minus what the conversation bought back.
+ *
+ * Each completed exchange (lineage.ts's fold) credits ONE ROUND TRIP —
+ * `2 × d` — scaled by how far the walk has already gone, and never more than
+ * the span since the last one. Four properties fall out of that arithmetic and
+ * all four are the design:
+ *
+ *   THE CEILING IS THE LIGHT. One exchange buys back one round trip, so
+ *   distance alone decides who can be held close. A colony eight light-years
+ *   out can be kept almost still by a devoted parent; a colony twenty-five out
+ *   cannot be, by anybody, ever.
+ *
+ *   DRIFTED CHILDREN ANSWER LESS LIKE YOU. `brakeFactorFor` decays with the
+ *   walk, and past the point where the colony has become its own thing it is
+ *   zero: talking to something that has stopped being yours does not make it
+ *   yours again.
+ *
+ *   IT IS BOUNDED. `BRAKE_CEILING` holds the floor at half the elapsed time,
+ *   so total devotion halves the clock and does not stop it.
+ *
+ *   IT IS LAGGED. `w` is computed from the time already accumulated, BEFORE
+ *   this exchange's credit, so the credit is priced on what the colony was
+ *   when the beam left rather than on what it is now. That is not an
+ *   approximation of a better rule; from here there is no other kind of
+ *   knowledge about it.
+ */
+function brakedYearsFor(g: Galaxy, v: StoredVoyage, year: number): number {
+  const foundingYear = voyageLandfallYear(v);
+  const elapsed = Math.max(0, year - foundingYear);
+  if (elapsed <= 0) return 0;
+  const exchanges = lineageExchangesFor(
+    g,
+    {
+      parentCivId: v.ownerCivId,
+      childCivId: childCivIdFor(v.id),
+      distanceLy: v.distanceLy,
+      foundingYear,
+      answers: !charterHas(v.charter, "answer-nothing"),
+    },
+    year,
+  );
+  let accumulated = 0;
+  let since = foundingYear;
+  for (const exchange of exchanges) {
+    const span = exchange - since;
+    if (span <= 0) continue;
+    accumulated += span;
+    const walk = 1 - Math.pow(2, -accumulated / DRIFT_HALFLIFE_YEARS);
+    accumulated -= Math.min(2 * v.distanceLy * brakeFactorFor(walk), span);
+    since = exchange;
+  }
+  accumulated += year - since;
+  return Math.max(accumulated, (1 - BRAKE_CEILING) * elapsed);
 }
 
 /** The band a pinned axis leaves behind: the charter's point, and a hand's
@@ -685,6 +778,29 @@ export function foundingEmissionHistory(
     });
   }
   return history;
+}
+
+/**
+ * THE SAME SAMPLED RECORD, IN DIALS. `foundingEmissionHistory` above asks the
+ * walk one question at each epoch boundary (is it bright?); this asks it for
+ * the whole sheet at the same years, and the two records cannot disagree
+ * about when the colony changed because they are readings of one walk taken at
+ * one set of years.
+ *
+ * It is what a child's own word about itself is composed from (traffic.ts's
+ * dial culture part): a colony asked what it believes states the pole it
+ * HOLDS, not the pole it was chartered with, and drift is only readable at all
+ * because of that. Derived, never persisted, and carried on the derived
+ * `PlacedCiv` beside `answersNothing`.
+ */
+export function foundingWalkedDials(g: Galaxy, v: StoredVoyage): readonly DialEpoch[] {
+  const landfallYear = voyageLandfallYear(v);
+  const out: DialEpoch[] = [];
+  for (let k = 0; k < EMISSION_EPOCH_COUNT; k++) {
+    const year = landfallYear + k * EMISSION_EPOCH_YEARS;
+    out.push({ fromYear: year, sheet: childDialsAt(g, v, year) });
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -784,6 +900,7 @@ export function childCivFor(
     starId: v.starId,
     controller: "ai",
     ...(charterHas(v.charter, "answer-nothing") ? { answersNothing: true } : {}),
+    walkedDials: foundingWalkedDials(base, v),
   };
 }
 

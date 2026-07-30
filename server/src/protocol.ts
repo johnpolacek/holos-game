@@ -109,6 +109,21 @@ import type {
   VoyageWorkState,
 } from "./voyages";
 import type { PriorBand, WidthChip, WorldClass } from "./worlds";
+// A4: the axis id a drift reading names. dials.ts is already re-exported
+// wholesale below; this is the import side of the same borrowing.
+import type { DialAxisId } from "./dials";
+// A4, the aftermath: the Ledger's vocabulary and the standing-order catalog's.
+// Type-only for the voyage half's exact reason — lineage.ts reads the knowledge
+// layer and orders.ts names the mission catalog, and this is the module the
+// CLIENT imports.
+import type {
+  DriftBand,
+  DriftVia,
+  LedgerRelation,
+  LedgerRowState,
+  LineageThreadState,
+} from "./lineage";
+import type { OrderClass, OrderOutcome } from "./orders";
 
 // Re-exports the client needs to render. Types are erased; DIAL_AXES is the
 // ONE runtime value the client genuinely needs (in-world dial pole labels),
@@ -178,6 +193,17 @@ export type {
   VoyageWorkState,
 } from "./voyages";
 export type { PriorBand, WidthChip, WorldClass, YieldBand } from "./worlds";
+// A4, the aftermath. The Ledger's own vocabulary (lineage.ts) and the
+// standing-order catalog's (orders.ts), types only, exactly as the mission
+// and voyage vocabularies above.
+export type {
+  DriftBand,
+  DriftVia,
+  LedgerRelation,
+  LedgerRowState,
+  LineageThreadState,
+} from "./lineage";
+export type { OrderClass, OrderClassDef, OrderOutcome } from "./orders";
 
 /** Clock anchor; the client computes nowYear locally (no time polling). */
 export interface ClockWire {
@@ -665,6 +691,137 @@ export interface VoyageCatalog {
   readonly occupiedRiskLine: string;
 }
 
+// ── A4: THE LEDGER ─────────────────────────────────────────────
+// What became of the foundings, and what a standing order did while nobody
+// was looking. Rides `sky` beside `voyages`, bounded by the same cap
+// (MAX_VOYAGES_PER_TOKEN rows, one row per voyage this token launched).
+//
+// THE NO-LEAK ASSERTIONS, restated on the shapes the way the voyage half's
+// are, because a field added here without reading them is how a leak ships:
+//
+//  - NO FIELD BELOW DERIVES FROM LIVE TRUTH. A row's `state` is parent-clock
+//    arithmetic (`launchedYear`, `foundingYear`, `confirmYear` are all
+//    computed from the launch record) plus `observeCiv`, which is the same
+//    gate every source on this wire already came through.
+//  - `readings` come only from CLIPPED `lightHistory` and from acts that have
+//    ARRIVED. A child below the detection floor produces no light reading at
+//    all, and a child that has said nothing produces no stated reading: the
+//    band reads `unread`, which is the honest answer and not a zero.
+//  - `band` is a pure function of the readings, so it can say nothing the
+//    readings do not already say.
+//  - `nextExchangeYear` IS YOUR OWN NEXT ARRIVAL AND NEVER A PREDICTED REPLY
+//    (ThreadSummary.nextEventYear's rule, cited rather than re-argued: a
+//    predicted reply is a claim about a decision that has not been made).
+//  - Rows exist ONLY for voyages this token launched. A row is never news
+//    about anybody else's founding.
+
+/**
+ * One dial axis the parent has actually read something about, and whether
+ * what it read agrees with what the charter said. MAGNITUDE ONLY: there is no
+ * "how far" here, because a disagreement is a fact and a distance would be a
+ * measurement nobody took.
+ */
+export interface DriftReading {
+  readonly axis: DialAxisId;
+  /** The dial's own question (dials.ts), so the row can be read without the
+   *  axis id meaning anything to the reader. */
+  readonly question: string;
+  /** The pole the charter wrote, in world words. */
+  readonly charterPole: string;
+  /** The pole the parent has actually read, in the same words. */
+  readonly readPole: string;
+  readonly agrees: boolean;
+  readonly via: DriftVia;
+  /** The target year this reading speaks to, and how old it is now. Every
+   *  reading carries ITS OWN pair: a light reading is `nowYear − distance`,
+   *  a stated one is the year the signal was sent. */
+  readonly asOfYear: number;
+  readonly lightAgeYears: number;
+}
+
+/**
+ * One founding, for as long as the record lasts. KEYED ON THE VOYAGE, never
+ * on a DetectedSource: missions survive their sources and so do children, and
+ * a row keyed on the star would stop resolving the moment the colony fell
+ * below the wire. Never deleted, never groomed.
+ */
+export interface LedgerRow {
+  readonly voyageId: string;
+  readonly relation: LedgerRelation;
+  /** The colony's name, as its founders were told to call it — the one piece
+   *  of player-authored text a row carries, `validateName`-clean. */
+  readonly childName: string;
+  readonly starId: string;
+  readonly designation: string;
+  readonly distanceLy: number;
+  readonly launchedYear: number;
+  readonly foundingYear: number; // launchedYear + F·d
+  readonly confirmYear: number; // foundingYear + d
+  readonly state: LedgerRowState;
+  /** The headline staleness chip, off the NEWEST reading. Null before
+   *  anything has come back: the client renders nothing, never a zero. */
+  readonly asOfYear: number | null;
+  readonly lightAgeYears: number | null;
+  readonly band: DriftBand;
+  /** Non-null once the band has ever been `independent`. LATCHED: a better
+   *  sample afterwards cannot take it back. */
+  readonly independentSinceYear: number | null;
+  /** The year the CURRENT band was first entered, for the annal's crossing
+   *  entry. Null while the band is `unread`. */
+  readonly bandSinceYear: number | null;
+  /** Non-null iff `state` is "dark": the year the grace on the first light
+   *  ran out. The annal's unspoken entry stamps here. */
+  readonly darkSinceYear: number | null;
+  readonly observedAxes: number; // 0..5
+  readonly disagreements: number;
+  /** At most one per axis (≤5), for the fork detail. */
+  readonly readings: readonly DriftReading[];
+  readonly thread: LineageThreadState;
+  readonly lastExchangeYear: number | null;
+  /** YOUR OWN next arrival, and nothing else. Null when nothing of yours is
+   *  in flight. */
+  readonly nextExchangeYear: number | null;
+  readonly muted: boolean;
+  /** The charter as one sentence, derived at wire time from the clause
+   *  catalog and the sheet. Not stored: it is the same charter it always was,
+   *  and storing a rendering of it would be a second copy to disagree with. */
+  readonly charterLine: string;
+  /** The band's own sentence (voice.ts's bank), so the client renders no
+   *  drift prose of its own. */
+  readonly bandLine: string;
+}
+
+/**
+ * One standing order, in every state it can be in. The catalog is the bound
+ * on what may be armed and the wire carries the whole of it, so a client can
+ * never name a class the server did not offer.
+ */
+export interface StandingOrderWire {
+  readonly orderClass: OrderClass;
+  readonly label: string;
+  readonly line: string;
+  readonly state: "available" | "armed" | "fired";
+  readonly armedYear: number | null;
+  readonly firedYear: number | null;
+  /** The source that met the condition, on EVERY outcome — a fire that could
+   *  not be paid for still found something, and the record says what. Null
+   *  only while the order has not fired. */
+  readonly firedStarId: string | null;
+  readonly outcome: OrderOutcome | null;
+  /** How old the light that set it off was AT THE MOMENT IT FIRED. Frozen
+   *  with the firing, never recomputed against a later `nowYear`: the order
+   *  acted on what it had, and what it had does not get older in the record. */
+  readonly evidenceAgeYears: number | null;
+  readonly charter: readonly CharterClauseId[];
+  readonly costCompute: number;
+  readonly radiusLy: number;
+}
+
+export interface LedgerWire {
+  readonly rows: readonly LedgerRow[];
+  readonly orders: readonly StandingOrderWire[];
+}
+
 // ── AV1: the voice ─────────────────────────────────────────────
 // One-time lines the mind speaks, resolved server-side (the archetypeName
 // precedent — keeps voice.ts/minds.ts off the client). Nothing here concerns
@@ -706,6 +863,10 @@ export type ReportRoute =
   // the undertaking outlives what it was aimed at, and a route keyed on the
   // star would stop resolving the moment the source faded.
   | { readonly kind: "voyage"; readonly voyageId: string }
+  // A4: a Ledger row, by the voyage that made it. Same key as the row itself,
+  // and for the same reason — a child is a relationship that outlives every
+  // source it was ever visible as.
+  | { readonly kind: "ledger"; readonly voyageId: string }
   | { readonly kind: "none" };
 
 /**
@@ -1054,6 +1215,16 @@ export type CohortClientMessage =
   // must be indistinguishable from outside (A2.4's oracle rule, unchanged).
   | { type: "launchVoyage"; starId: string; kind: string;
       charter: readonly string[]; dials: readonly unknown[]; name: string }
+  // A4: THE STANDING ORDER. `orderClass` is a bare string and `charter` a
+  // bounded array of bare `unknown`s — the parse layer checks SHAPE and
+  // orders.ts owns the vocabulary, the `launchMission.kind` precedent again.
+  //
+  // ARMING IS THE CONSENT AND THE CHARTER IS ITS CONTENT: the message carries
+  // the charter the fire will launch under, because a player who arms an
+  // order is authorizing a specific dispatch and not a blank one. It names no
+  // star, and could not: what the order will find has not happened yet.
+  | { type: "armOrder"; orderClass: string; charter: readonly unknown[] }
+  | { type: "disarmOrder"; orderClass: string }
   // Which thread is on screen is per-CONNECTION UI state. Null closes it.
   // There is no DO key behind this and there is deliberately no error code:
   // it is bookkeeping (the declineProposal precedent), and a starId naming
@@ -1111,7 +1282,10 @@ export type CohortServerMessage =
       // stars. Both are bounded (MAX_VOYAGES_PER_TOKEN, SURVEY_ROWS) and both
       // are deterministically ordered.
       voyages: readonly VoyageSnapshot[];
-      survey: readonly SurveyRow[] }
+      survey: readonly SurveyRow[];
+      // The Ledger: what became of those foundings, and what the standing
+      // orders have done. Bounded by the same voyage cap the list above is.
+      ledger: LedgerWire }
   | { type: "sourceNamed"; starId: string; name: string }
   /** A re-anchored clock, pushed when the server moves the anchor under a
    *  live connection (today only the dev time-skip; a future ratio retune
@@ -1183,7 +1357,14 @@ export type CohortErrorCode =
   // `bad-charter` is REUSED for the clause table and the dial sheet alike.
   | "unknown-voyage-kind" // no such ship kind
   | "voyage-unavailable" // a live voyage already aims there, or the cap is spent
-  | "project-required"; // the ship needs a project that has not landed
+  | "project-required" // the ship needs a project that has not landed
+  // The standing order's own refusal: no such class, already armed, or the
+  // condition ALREADY HOLDS at the moment of arming (tripwire-unavailable's
+  // exact contract — an order is for what happens next, and a fire on
+  // something already true would be the order reading the past). It says
+  // nothing about the sky: the arming names no star, so the refusal cannot
+  // answer a question about one.
+  | "order-unavailable";
 
 /** Parse-time bound on the untrusted `launchMission.charter` array (a parse
  *  concern); the 2–3 count rule and one-per-group rule are handler concerns
@@ -1523,6 +1704,28 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
         };
       }
     }
+  }
+
+  // A4, the standing order. SHAPE ONLY: a bare class string and a bounded
+  // array whose elements stay `unknown` all the way to the handler, where
+  // missions.ts's `validateCharter` owns the vocabulary and answers
+  // `bad-charter`. Nothing here names a star, so there is nothing here to
+  // guard against being used as an oracle.
+  if (
+    msg["type"] === "armOrder" &&
+    typeof msg["orderClass"] === "string" &&
+    Array.isArray(msg["charter"]) &&
+    (msg["charter"] as readonly unknown[]).length <= MAX_CHARTER_CLAUSES_ON_WIRE
+  ) {
+    return {
+      type: "armOrder",
+      orderClass: msg["orderClass"],
+      charter: msg["charter"] as readonly unknown[],
+    };
+  }
+
+  if (msg["type"] === "disarmOrder" && typeof msg["orderClass"] === "string") {
+    return { type: "disarmOrder", orderClass: msg["orderClass"] };
   }
 
   if (msg["type"] === "callStudy" && typeof msg["starId"] === "string") {

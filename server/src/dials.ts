@@ -141,6 +141,36 @@ export interface DialSetting {
 /** The full five-dial sheet — what the inheritance card reveals. */
 export type DialSheet = Readonly<Record<DialAxisId, DialSetting>>;
 
+/**
+ * A4: a DATED reading of a sheet, and the shape a walk is recorded in.
+ *
+ * `CivSeed.emissionHistory`'s twin, deliberately: a colony's light and a
+ * colony's dials are two readings of ONE sampled record, taken at the same
+ * years, so the year a child brightened and the year it started saying it had
+ * turned toward Voice can never disagree. A civilization that has not walked
+ * anywhere carries no history at all, and `dialSheetAt` falls back to the
+ * sheet it was seeded with.
+ */
+export interface DialEpoch {
+  readonly fromYear: number;
+  readonly sheet: DialSheet;
+}
+
+/** The newest sample at or before `year`, else `fallback`. Total, and
+ *  order-independent: the caller's history need not be sorted. */
+export function dialSheetAt(
+  history: readonly DialEpoch[],
+  fallback: DialSheet,
+  year: number,
+): DialSheet {
+  let best: DialEpoch | undefined;
+  for (const epoch of history) {
+    if (epoch.fromYear > year) continue;
+    if (best === undefined || epoch.fromYear > best.fromYear) best = epoch;
+  }
+  return best?.sheet ?? fallback;
+}
+
 export function clampDial(n: number): number {
   return Math.min(1, Math.max(-1, n));
 }

@@ -103,6 +103,12 @@ const signalVoice = quoted(block("export const SIGNAL_VOICE: ByArchetype<"));
 // each is audited exactly like every other fact-free bank, at remark size.
 const toneClauses = quoted(block("export const TONE_CLAUSE: Readonly<"));
 const accordClauses = quoted(block("export const ACCORD_CLAUSE: Readonly<"));
+// A4's drift bands. One sentence per band, shown on the Ledger row beside the
+// band word itself, and fact-free by construction — the sample the band was
+// computed from is its own line, built by the client from the row's fields, so
+// a band line that recited it would be the same claim twice in a voice that
+// cannot be checked. Checked at remark size like every other fact-free bank.
+const bandLines = quoted(block("export const LEDGER_BAND_LINES: Readonly<"));
 
 const arrivalCount = check("arrival line", arrivals, LIMITS.arrival);
 const remarkCount = check("report remark", remarks, LIMITS.remark);
@@ -112,6 +118,7 @@ const observationCount = check("signal observation", observations, LIMITS.remark
 const signalVoiceCount = check("signal voice", signalVoice, LIMITS.remark);
 const toneCount = check("tone clause", toneClauses, LIMITS.remark);
 const accordCount = check("accord clause", accordClauses, LIMITS.remark);
+const bandCount = check("ledger band line", bandLines, LIMITS.remark);
 
 // The composition is what actually ships, so prove it fits: every opening
 // against every voice clause would be the exhaustive test, but the bound is
@@ -159,6 +166,7 @@ console.log(`observations    ${observationCount}`);
 console.log(`signal voice    ${signalVoiceCount}`);
 console.log(`tone clauses    ${toneCount}`);
 console.log(`accord clauses  ${accordCount}`);
+console.log(`band lines      ${bandCount}`);
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} failure(s):`);

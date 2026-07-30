@@ -34,6 +34,28 @@
 // seed paths that write a freshly generated galaxy. Every other reference to
 // the roster in this file is `requireGalaxy()`.
 //
+// THE STANDING-ORDER INVARIANT (A4, a4-ledger-note.md §3.5), here beside the
+// presence rule because it is the presence rule's one deliberate exception and
+// has to be read against it:
+//
+//   A standing order may commit only acts the mind is already licensed to
+//   commit in absence: a reversible-in-consequence, Ambient-class dispatch
+//   that reveals nothing and asks nothing. It may never produce a ContactAct,
+//   never call applyBroadcast, never start an Investment-class or higher
+//   spend, never answer a first contact, and never write a dial. Arming is the
+//   consent, bounded three ways: one fire per arming (re-arming is a fresh,
+//   present act); the armable catalog is the bound, not a budget; and a fire
+//   that cannot be paid for never becomes a debt — it fizzles and says so.
+//
+// Its greppable form is the mission record's one writer:
+//
+//   grep -rn "saveMissionState" server/src
+//
+// must return EXACTLY THREE sites — the definition, `onLaunchMission` (a live
+// socket), and `settleStandingOrders`' caller inside `assembleSkyState`. A
+// fourth is either a second way to launch a mission or an order doing
+// something an order may not do.
+//
 // HTTP surface, under /parties/cohort/:name . Every route below is gated to
 // local development (a local hostname, or HOLOS_DEV_ENDPOINTS=on in
 // `.dev.vars` — see devEndpointsOpen) EXCEPT /dev/forget, which ships to
@@ -179,8 +201,35 @@ import { buildTendList } from "./tend";
 // A4. `galaxyWithLandfalls` does not appear here by name and must not: this
 // object reaches the derived roster through `foldLandfalls`, which produces
 // the same civs AND the per-voyage outcomes the snapshot needs, in one pass.
+// A4 S2, the aftermath. `buildLedger` is the only producer of a LedgerRow and
+// it reads truth through `observeCiv` alone; `settleStandingOrders` is the only
+// thing in the server that fires an order, and it is called from exactly one
+// place (assembleSkyState, after the sources and before the missions) so an
+// order can never fire from an alarm.
+import {
+  buildLedger,
+  migrateLedgerState,
+  newLedgerState,
+  type LedgerState,
+  type LedgerVoyageInput,
+} from "./lineage";
+import {
+  orderClassById,
+  newOrderState,
+  migrateOrderState,
+  settleStandingOrders,
+  toWireOrders,
+  warmMovementTarget,
+  ORDER_CLASSES,
+  type OrderCandidate,
+  type OrderState,
+  type StoredOrder,
+} from "./orders";
 import {
   buildSurvey,
+  charterLineFor,
+  charterPosture,
+  childCivIdFor,
   departureLightFor,
   foldLandfalls,
   migrateVoyageState,
@@ -239,6 +288,7 @@ import {
   type SelfView,
   isVoiceKey,
   type ContactWire,
+  type LedgerWire,
   type SurveyRow,
   type VoiceKey,
   type VoyageCatalog,
@@ -676,6 +726,12 @@ export class Cohort extends Server<CohortEnv> {
         return;
       case "disarmTripwire":
         await this.onDisarmTripwire(conn, msg.starId, msg.kind);
+        return;
+      case "armOrder":
+        await this.onArmOrder(conn, msg.orderClass, msg.charter);
+        return;
+      case "disarmOrder":
+        await this.onDisarmOrder(conn, msg.orderClass);
         return;
       case "voiceSeen":
         await this.onVoiceSeen(conn, msg.key);
@@ -1494,6 +1550,124 @@ export class Cohort extends Server<CohortEnv> {
       },
     };
     await this.saveStudyState(state.token, { version: 4, studies });
+    await this.sendSkyToSeat(state);
+  }
+
+  /**
+   * armOrder: leave one standing order on the SKY.
+   *
+   * ON THE SKY, NOT ON A STUDY, and that is the choice the whole shape rests
+   * on: a study can be closed, a source can fade below the wire, and an order
+   * hanging off either would quietly stop existing at the moment it was most
+   * needed. There is nothing here to reconcile with study closure because
+   * there is no study in it.
+   *
+   * ARMING IS THE CONSENT AND THE CHARTER IS ITS CONTENT. The message carries
+   * the charter the eventual dispatch will fly under, validated here against
+   * the mission catalog exactly as `onLaunchMission` validates one — a player
+   * arming this is authorizing a specific instrument with a specific
+   * contingency table, not signing a blank one.
+   *
+   * REFUSED WHEN THE CONDITION ALREADY HOLDS, `onArmTripwire`'s contract and
+   * its exact reason: an order is a statement about what happens NEXT, and
+   * one that fired on something already true would be reading the past back to
+   * the player as news. The refusal names no star and cannot: the arming names
+   * none either.
+   */
+  private async onArmOrder(
+    conn: Connection,
+    orderClass: string,
+    charter: readonly unknown[],
+  ): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    const def = orderClassById(orderClass);
+    if (def === undefined) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "order-unavailable",
+        message: "no such order",
+      });
+      return;
+    }
+    // The sender's own bytes first (onLaunchVoyage's order of validation):
+    // every clause has to be a string before the vocabulary is consulted.
+    const clauses: string[] = [];
+    for (const raw of charter) {
+      if (typeof raw !== "string") {
+        this.sendMsg(conn, { type: "error", code: "bad-charter", message: "invalid charter" });
+        return;
+      }
+      clauses.push(raw);
+    }
+    const resolved = validateCharter(def.missionKind, clauses);
+    if (resolved === null) {
+      this.sendMsg(conn, { type: "error", code: "bad-charter", message: "invalid charter" });
+      return;
+    }
+
+    const nowYear = gameYearAt(this.requireClock(), Date.now());
+    const galaxy = this.requireGalaxy();
+    const civId = state.civId;
+    // The already-holds check reads the same candidates a settle would, through
+    // the same predicate the firing uses — one condition, two call sites, no
+    // third bit of state to keep in step.
+    const held = warmMovementTarget(this.orderCandidates(galaxy, civId, nowYear), nowYear, def.radiusLy);
+    if (held !== null) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "order-unavailable",
+        message: "that has already happened",
+      });
+      return;
+    }
+
+    const stored = await this.loadOrderState(state.token);
+    const order: StoredOrder = {
+      orderClass: def.orderClass,
+      armedYear: nowYear,
+      charter: resolved,
+      firedYear: null,
+      firedStarId: null,
+      outcome: null,
+      evidenceAgeYears: null,
+    };
+    // RE-ARMING IS A FRESH ACT: the previous arming, fired or not, is replaced
+    // whole, so a spent order becomes a new one with a new year and a new
+    // charter rather than accumulating a history nobody can read.
+    await this.saveOrderState(state.token, {
+      version: 1,
+      orders: [...stored.orders.filter((o) => o.orderClass !== def.orderClass), order],
+    });
+    await this.sendSkyToSeat(state);
+  }
+
+  /** disarmOrder: take the order back. Idempotent — disarming a class that is
+   *  not armed is a no-op write and a fresh sky, never an error
+   *  (`onDisarmTripwire`'s contract). */
+  private async onDisarmOrder(conn: Connection, orderClass: string): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) {
+      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
+      return;
+    }
+    const def = orderClassById(orderClass);
+    if (def === undefined) {
+      this.sendMsg(conn, {
+        type: "error",
+        code: "order-unavailable",
+        message: "no such order",
+      });
+      return;
+    }
+    const stored = await this.loadOrderState(state.token);
+    await this.saveOrderState(state.token, {
+      version: 1,
+      orders: stored.orders.filter((o) => o.orderClass !== def.orderClass),
+    });
     await this.sendSkyToSeat(state);
   }
 
@@ -2594,6 +2768,64 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
+   * A4: what a standing order is allowed to look at — this player's OWN
+   * VISIBLE SKY, mapped one for one. `lightHistory` is the clipped history
+   * `observeCiv` already produced, so an order can fire only on light that has
+   * arrived, and `targetCivId` rides along because the dispatch has to be
+   * aimed at whoever was there when it left (`StoredMission.targetCivId`'s own
+   * rule). There is no other source of candidates and there is deliberately no
+   * parameter that could widen this.
+   */
+  private orderCandidatesFrom(
+    visible: ReturnType<typeof visibleSky>,
+  ): readonly OrderCandidate[] {
+    return visible.map((o) => ({
+      starId: o.starId,
+      targetCivId: o.targetId,
+      distanceLy: o.distanceLy,
+      lightHistory: o.signal.lightHistory,
+    }));
+  }
+
+  /** The same candidates for a caller that has not already walked the sky —
+   *  the arming handler, which needs the condition and nothing else. */
+  private orderCandidates(
+    galaxy: Galaxy,
+    civId: string,
+    nowYear: number,
+  ): readonly OrderCandidate[] {
+    return this.orderCandidatesFrom(visibleSky(galaxy, civId, nowYear));
+  }
+
+  /** A4: a run placed before this stage has armed nothing, which is the whole
+   *  migration (loadVoiceState's pure-read idiom — nothing to anchor, so a
+   *  missing record is simply the empty default). */
+  private async loadOrderState(token: string): Promise<OrderState> {
+    const stored = await this.ctx.storage.get<OrderState>(`orders:${token}`);
+    return stored === undefined ? newOrderState() : migrateOrderState(stored);
+  }
+
+  private async saveOrderState(token: string, state: OrderState): Promise<void> {
+    await this.ctx.storage.put(`orders:${token}`, state);
+  }
+
+  /**
+   * A4: THE LATCHES, and nothing else. Everything else on a Ledger row derives
+   * from the launch record and the light on every read; what is stored here is
+   * the year the parent first concluded something, which no derivation can
+   * recover because the conclusion is not in the light. Pure read, and the
+   * write below happens only on a transition.
+   */
+  private async loadLedgerState(token: string): Promise<LedgerState> {
+    const stored = await this.ctx.storage.get<LedgerState>(`ledger:${token}`);
+    return stored === undefined ? newLedgerState() : migrateLedgerState(stored);
+  }
+
+  private async saveLedgerState(token: string, state: LedgerState): Promise<void> {
+    await this.ctx.storage.put(`ledger:${token}`, state);
+  }
+
+  /**
    * AV1: a run placed before this stage has no stored voice record, which
    * means it has seen none of the one-time lines — accepted, deliberately:
    * all four fire once for a pre-AV1 run, same as a brand-new one. Pure
@@ -2875,6 +3107,7 @@ export class Cohort extends Server<CohortEnv> {
       studies: assembled.studies,
       missions: assembled.missions,
       voyages: assembled.voyages,
+      ledger: assembled.ledger,
       projects: assembled.projects,
       sources: assembled.sources,
       localNames: assembled.localNames,
@@ -2979,6 +3212,7 @@ export class Cohort extends Server<CohortEnv> {
       missions,
       voyages,
       survey,
+      ledger,
       projects,
       projectState,
       designations,
@@ -3060,6 +3294,7 @@ export class Cohort extends Server<CohortEnv> {
       studies,
       missions,
       voyages,
+      ledger,
       projects,
       sources,
       localNames,
@@ -3083,6 +3318,7 @@ export class Cohort extends Server<CohortEnv> {
       contact,
       voyages,
       survey,
+      ledger,
     });
 
     // AFTER the send, always. Generation is considered only once the message
@@ -3152,6 +3388,7 @@ export class Cohort extends Server<CohortEnv> {
     readonly missions: readonly MissionSnapshot[];
     readonly voyages: readonly VoyageSnapshot[];
     readonly survey: readonly SurveyRow[];
+    readonly ledger: LedgerWire;
     readonly projects: readonly ProjectSnapshot[];
     readonly projectState: ProjectState;
     readonly designations: Readonly<Record<string, string>>;
@@ -3175,7 +3412,13 @@ export class Cohort extends Server<CohortEnv> {
 
     const projectState = await this.loadProjectState(token, civId, nowYear);
     const confidenceLift = confidenceLiftAt(projectState, nowYear);
-    const sources: DetectedSource[] = visibleSky(galaxy, civId, nowYear).map((o) =>
+    // ONE WALK OF THE SKY, two readers: the wire sources below, and the
+    // standing order's candidates further down. The order reads the raw
+    // observation (it needs the target's id to aim a dispatch) and the wire
+    // reads the narrowed one, which is the boundary that has always been
+    // there — `toWireSource` drops `targetId` and this does not put it back.
+    const visible = visibleSky(galaxy, civId, nowYear);
+    const sources: DetectedSource[] = visible.map((o) =>
       toWireSource(
         confidenceLift > 0
           ? { ...o, signal: { ...o.signal, confidence: Math.min(0.95, o.signal.confidence + confidenceLift) } }
@@ -3328,7 +3571,120 @@ export class Cohort extends Server<CohortEnv> {
       await this.saveStudyState(token, { version: 4, studies: studyWrites });
     }
 
-    const missions: MissionSnapshot[] = missionState.missions
+    // ── A4: THE STANDING ORDERS, AND THE LEDGER ──────────────────────────
+    //
+    // SITED HERE ON PURPOSE: after the sources (an order may only fire on
+    // light this send has already accepted as arrived) and before the missions
+    // (a dispatch launched by an order is on this same sky, not the next one).
+    //
+    // THIS IS THE ONLY PLACE AN ORDER EVER FIRES. Not `onAlarm` — an alarm is
+    // a wake-up and never truth, and an order firing there would be a truth
+    // write performed by the queue. The cost of that choice is stated in the
+    // design and accepted: an order settles on the next sky assembly rather
+    // than the instant the condition held, so the record carries the light's
+    // age and lets the player do the arithmetic.
+    //
+    // `orderWrites` and `ledgerWrites` below are `studyWrites`' mould, one
+    // identity test each: the settle returns the SAME ARRAY when nothing fired
+    // and `buildLedger` the SAME STATE when nothing crossed, so the ordinary
+    // send — which is almost every send — costs no write at all.
+    const storedOrders = await this.loadOrderState(token);
+    let missionsNow = missionState;
+    let projectStateNow = projectState;
+    const orderMissionKinds = new Set(ORDER_CLASSES.map((c) => c.missionKind));
+    const liveOnStarIds = new Set<string>(
+      missionState.missions
+        .filter((m) => {
+          if (!orderMissionKinds.has(m.kind)) return false;
+          const cone = lightConeFor(galaxy, civId, m.targetCivId, nowYear);
+          const snapshot = toMissionSnapshot(galaxy, cone, m, nowYear);
+          return (
+            snapshot.state === "in-flight" ||
+            snapshot.state === "beyond-horizon" ||
+            snapshot.state === "awaiting-light" ||
+            snapshot.state === "standing"
+          );
+        })
+        .map((m) => m.starId),
+    );
+    const orderSettle = settleStandingOrders({
+      orders: storedOrders.orders,
+      candidates: this.orderCandidatesFrom(visible),
+      nowYear,
+      freeCompute: freeComputeAt(projectState, nowYear),
+      missionCount: missionState.missions.length,
+      liveOnStarIds,
+    });
+    const orderWrites = orderSettle.orders !== storedOrders.orders;
+    if (orderWrites) {
+      await this.saveOrderState(token, { version: 1, orders: orderSettle.orders });
+    }
+    for (const firing of orderSettle.firings) {
+      // A fizzle is a whole outcome: the arming is spent, the annal says so,
+      // and NOTHING is launched, queued or owed. Only a launch writes.
+      if (firing.outcome !== "launched") continue;
+      const mission: StoredMission = {
+        id: `m-${missionsNow.nextOrdinal}`,
+        kind: firing.missionKind,
+        starId: firing.starId,
+        targetCivId: firing.targetCivId,
+        launchedYear: nowYear,
+        distanceLy: firing.distanceLy,
+        // The order dispatches at whatever speed this seat's landed projects
+        // give it, exactly as a hand launch does. It gets no advantage for
+        // having been left standing.
+        flightYearsPerLy: effectiveFlightYearsPerLy(projectStateNow, nowYear),
+        charter: firing.charter,
+      };
+      missionsNow = {
+        version: 1,
+        missions: [...missionsNow.missions, mission],
+        nextOrdinal: missionsNow.nextOrdinal + 1,
+      };
+      await this.saveMissionState(token, missionsNow);
+      projectStateNow = commitCompute(projectStateNow, firing.costCompute, nowYear);
+      await this.saveProjectState(token, projectStateNow);
+      await this.pushWakeEvent({
+        token,
+        atYear: missionFirstWordYear(mission),
+        missionId: mission.id,
+        key: `m/${mission.id}/0`,
+      });
+    }
+
+    // This seat's own foundings, in launch order — the list both the Ledger
+    // and the voyage snapshots below are built from.
+    const myVoyages = this.voyageState.voyages.filter((v) => v.ownerToken === token);
+    const muted = new Set(run?.muted ?? []);
+    const ledgerVoyages: readonly LedgerVoyageInput[] = myVoyages.map((v) => ({
+      voyage: v,
+      childCivId: childCivIdFor(v.id),
+      designation: starById(galaxy.stars, v.starId).designation,
+      foundingYear: voyageLandfallYear(v),
+      confirmYear: voyageFirstWordYear(v),
+      charterPosture: charterPosture(v.charter),
+      charterLine: charterLineFor(v.charter),
+      // A MUTED CHILD KEEPS ITS ROW. The thread leaves the rack and nothing
+      // is notified; the relationship the Ledger is a record of does not stop
+      // existing because the parent stopped listening to it.
+      muted: muted.has(childCivIdFor(v.id)),
+    }));
+    const storedLedger = await this.loadLedgerState(token);
+    const built = buildLedger({
+      galaxy,
+      observerId: civId,
+      voyages: ledgerVoyages,
+      orders: toWireOrders(orderSettle.orders),
+      stored: storedLedger,
+      nowYear,
+    });
+    const ledgerWrites = built.state !== storedLedger;
+    if (ledgerWrites) {
+      await this.saveLedgerState(token, built.state);
+    }
+    const ledger = built.wire;
+
+    const missions: MissionSnapshot[] = missionsNow.missions
       .map((m) => {
         const cone = lightConeFor(galaxy, civId, m.targetCivId, nowYear);
         return toMissionSnapshot(galaxy, cone, m, nowYear);
@@ -3336,7 +3692,7 @@ export class Cohort extends Server<CohortEnv> {
       .sort((a, b) => a.id.localeCompare(b.id));
 
     const projects: ProjectSnapshot[] = PROJECTS.map((def) => {
-      const runningEntry = projectState.started.find((p) => p.id === def.id);
+      const runningEntry = projectStateNow.started.find((p) => p.id === def.id);
       const addRatePerYear = def.effect.kind === "compute-income" ? def.effect.addRatePerYear : 0;
       if (runningEntry === undefined) {
         return {
@@ -3372,8 +3728,7 @@ export class Cohort extends Server<CohortEnv> {
     // A4: this seat's own foundings, in launch order. `toVoyageSnapshot` is
     // the only producer, it reads truth through the two cones and nothing
     // else, and it drops `ownerToken` on the way out.
-    const voyages: VoyageSnapshot[] = this.voyageState.voyages
-      .filter((v) => v.ownerToken === token)
+    const voyages: VoyageSnapshot[] = myVoyages
       .map((v) => toVoyageSnapshot(galaxy, civId, v, fold.outcomes.get(v.id), nowYear))
       .sort((a, b) => a.id.localeCompare(b.id));
 
@@ -3392,6 +3747,12 @@ export class Cohort extends Server<CohortEnv> {
       ...studies.map((s) => s.starId),
       ...missions.map((m) => m.starId),
       ...voyages.map((v) => v.starId),
+      // A4: the star a standing order fired on. Every other id here belongs to
+      // something the player started; this one belongs to something that
+      // happened while they were away, and the annal still has to name it.
+      ...ledger.orders
+        .map((o) => o.firedStarId)
+        .filter((starId): starId is string => starId !== null),
       // AV3: first-watch/widen proposals name a currently-visible source
       // that has no study yet — report.ts never needed this (it only ever
       // names a study's or mission's star), but proposals.ts's nameFor
@@ -3434,8 +3795,9 @@ export class Cohort extends Server<CohortEnv> {
       missions,
       voyages,
       survey,
+      ledger,
       projects,
-      projectState,
+      projectState: projectStateNow,
       designations,
       contact,
     };
@@ -4042,6 +4404,11 @@ export class Cohort extends Server<CohortEnv> {
       `missions:${token}`,
       `projects:${token}`,
       `proposals:${token}`,
+      // A4: the armings and the latches go with the run. The VOYAGE record
+      // does not (see below) — a colony outlives the run that sent it, but the
+      // record of what its parent concluded about it belongs to that parent.
+      `orders:${token}`,
+      `ledger:${token}`,
     ]);
 
     // A4: the STORED roster, and the voyage record is deliberately LEFT ALONE.

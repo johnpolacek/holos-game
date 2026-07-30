@@ -17,7 +17,7 @@ import { createRng } from "./rng";
 // AV3: typed by protocol.ts's re-export, never by importing knowledge.ts
 // directly — the truth-side module stays off this file's import list, the
 // same discipline proposals.ts's Pin A enforces for itself.
-import type { CeremonyKind, SignalClass, TripwireKind } from "./protocol";
+import type { CeremonyKind, DriftBand, SignalClass, TripwireKind } from "./protocol";
 import type { ProposalKind } from "./proposals";
 // A2.6: the two closed sets the composed-signal banks are keyed over. Type
 // only, so this module still imports no truth and no catalog at runtime.
@@ -603,6 +603,122 @@ export function recordVoyageLandfall(
   distanceLy: number,
 ): PinnedLine {
   return line`The word from ${F.source(sourceName)} came home: ${F.label(headline)}. What ${F.source(childName)} is now, it has been for ${F.years(distanceLy)}.`;
+}
+
+// ---------------------------------------------------------------------------
+// A4: the Ledger and the standing orders
+// ---------------------------------------------------------------------------
+//
+// Register: the observatory's own deadpan for the records, the mind's flat
+// statement of physics for the band lines. Wit 0 throughout. NOTHING HERE
+// STATES A CAUSE — a colony that has stopped agreeing with its charter is not
+// disobedient, a colony that has said nothing is not necessarily dead, and a
+// sentence that leaned either way would be the record inventing the one thing
+// the distance forbids.
+
+/**
+ * The five drift bands, each as one sentence the Ledger shows beside the word
+ * itself. FACT-FREE by construction: the numbers behind a band (how many axes
+ * were read, how many disagreed) are shown as their own line by the client
+ * from the row's own fields, and a band line that recited them would be the
+ * same claim twice, once in a voice that cannot be checked.
+ *
+ * `unread` is quoted verbatim from the design note, because it is the sentence
+ * the whole layer is honest by: nothing has come back, and the record says
+ * exactly that rather than showing a zero.
+ */
+export const LEDGER_BAND_LINES: Readonly<Record<DriftBand, string>> = {
+  unread: "Nothing has come back that speaks to this.",
+  close: "What has come back still reads the way the charter was written.",
+  kindred:
+    "Most of what has come back still agrees with the charter, and some of it does not.",
+  estranged:
+    "More of what has come back disagrees with the charter than agrees with it.",
+  independent:
+    "What is out there answers to itself now. It was ours when it left, and the record of that stands.",
+};
+
+/** The band's own sentence, rendered. */
+export function bandLine(band: DriftBand): string {
+  return LEDGER_BAND_LINES[band];
+}
+
+/**
+ * A4: a standing order fired and an instrument is on its way. Names the
+ * evidence's own age and nothing about what is down there — the order caught a
+ * beginning, and what that beginning is remains the study's question.
+ */
+export function recordOrderFired(
+  orderName: string,
+  missionName: string,
+  sourceName: string,
+  evidenceAgeYears: number,
+): PinnedLine {
+  return line`${F.label(missionName)} left for ${F.source(sourceName)} on ${F.label(orderName)}, without waiting to be asked. What set it off is ${F.years(evidenceAgeYears)} old.`;
+}
+
+/**
+ * A4: the order fired and the pool was short. STATES THE PRICE AND CLOSES —
+ * the arming is spent, nothing is owed, and there is no queue behind this
+ * sentence. "A fire that cannot be paid for never becomes a debt."
+ */
+export function recordOrderUnaffordable(
+  orderName: string,
+  sourceName: string,
+  costCompute: number,
+): PinnedLine {
+  return line`Nothing left for ${F.source(sourceName)}: ${F.label(orderName)} came due and there was not ${F.compute(costCompute)} free to pay for it. Nothing is owed.`;
+}
+
+/**
+ * A4: the order fired and had nowhere to send anything — an instrument is
+ * already there, or the work list is full. Same closing contract as the line
+ * above: spent, and not carried.
+ */
+export function recordOrderBlocked(orderName: string, sourceName: string): PinnedLine {
+  return line`Nothing left for ${F.source(sourceName)}: ${F.label(orderName)} came due with nothing free to send. The arming is spent, and nothing is waiting behind it.`;
+}
+
+/**
+ * A4: the first light from a child arrived, and the Ledger has a row that says
+ * something at last. The light age is the DISTANCE (R-33): the colony has been
+ * whatever it is for exactly as long as the crossing takes.
+ */
+export function recordLineageLandfall(
+  childName: string,
+  sourceName: string,
+  distanceLy: number,
+): PinnedLine {
+  return line`The first light from ${F.source(childName)} reached us from ${F.source(sourceName)}, ${F.years(distanceLy)} after it was made. Everything the Ledger says about it from here is that old.`;
+}
+
+/**
+ * A4: a child crossed into a band it had never been in. `bandWord` is the
+ * band itself, quoted after the colon the way every other chrome token in this
+ * bank is; `bandLine` is the band's own already-authored sentence, passed
+ * through as a Fact so it is byte-exact here and on the row.
+ */
+export function recordLineageBand(
+  childName: string,
+  bandWord: string,
+  bandSentence: string,
+  lightAgeYears: number,
+): PinnedLine {
+  return line`What comes back from ${F.source(childName)} reads differently now: ${F.label(bandWord)}, on light ${F.years(lightAgeYears)} old. ${F.label(bandSentence)}`;
+}
+
+/**
+ * A4: the years a founding was given to be heard from ran out and nothing
+ * came. STATES NO CAUSE, on `recordProbeSilent`'s exact terms and for the same
+ * reason: what happened out there is not knowable from here, and the sentence
+ * exists to make that structural rather than coy.
+ */
+export function recordLineageDark(
+  childName: string,
+  sourceName: string,
+  distanceLy: number,
+): PinnedLine {
+  return line`Nothing has come from ${F.source(sourceName)}, where ${F.source(childName)} was to have been founded. The word would have been ${F.years(distanceLy)} old on arrival; there is no word.`;
 }
 
 /**
