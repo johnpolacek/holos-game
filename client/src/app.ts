@@ -28,6 +28,7 @@ import type {
   ContactWire,
   AccordRail,
   // ── A4 ──
+  LedgerWire,
   SurveyRow,
   VoyageCatalog,
   VoyageSnapshot,
@@ -110,9 +111,12 @@ export class App {
   private proposals: readonly Proposal[] = [];
   // A4: this player's own foundings and the forecast over the nearest stars,
   // wholesale-replaced on every `sky` like everything else above. THE LEDGER
-  // rides the same message and is not read here: its surfaces are C2's.
+  // rides the same message — what became of those foundings, and what the
+  // standing orders have done — and is forwarded the same way, straight to the
+  // board that renders it.
   private voyages: readonly VoyageSnapshot[] = [];
   private survey: readonly SurveyRow[] = [];
+  private ledger: LedgerWire = { rows: [], orders: [] };
 
   // A2.4: the contact block from the latest `sky` — both stances (pushed,
   // never preflighted, so the ceremony can render the mind's objection with
@@ -215,6 +219,7 @@ export class App {
         this.contact = message.contact;
         this.voyages = message.voyages;
         this.survey = message.survey;
+        this.ledger = message.ledger;
         this.showSky(message.self, message.sources);
         break;
       case "sourceNamed":
@@ -482,6 +487,7 @@ export class App {
       this.contactCeremony?.setSky(sources);
       this.studyBoard?.setSelf(self);
       this.studyBoard?.setVoyages(this.voyages, this.survey);
+      this.studyBoard?.setLedger(this.ledger);
       this.sourceCard?.setLocalNames(this.localNames);
       const openId = this.sourceCard?.currentStarId() ?? null;
       if (openId !== null) {
@@ -661,6 +667,7 @@ export class App {
       model.setContact(this.contact);
       studyBoard.setSelf(self);
       studyBoard.setVoyages(this.voyages, this.survey);
+      studyBoard.setLedger(this.ledger);
       studyBoard.update(
         this.studies,
         this.sources,

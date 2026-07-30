@@ -109,6 +109,19 @@ import type {
   VoyageWorkState,
   WidthChip,
   WorldClass,
+  // ── A4: the aftermath ──
+  // THE LEDGER's vocabulary and the standing-order catalog's, types only, on
+  // the launch side's exact terms: the wire carries the row, the band word and
+  // the class id, and every rendering of any of them is authored below.
+  DriftBand,
+  DriftReading,
+  DriftVia,
+  LedgerRow,
+  LedgerRowState,
+  LedgerWire,
+  LineageThreadState,
+  OrderOutcome,
+  StandingOrderWire,
 } from "@holos/protocol";
 // The dial vocabulary: the ONE runtime value the protocol module exports for
 // rendering (protocol.ts's own comment says so). The composer needs it to
@@ -265,6 +278,79 @@ const WIDTH_CHIP_LABEL: Record<WidthChip, string> = {
 const VOYAGE_HOLD_MS = 1600;
 /** The commit beat, reused wholesale from BECOME (style.css's holos-bloom). */
 const VOYAGE_COMMIT_MS = 1100;
+
+// ── A4: THE LEDGER and the standing order, as chrome ─────────────────────
+//
+// The launch side's rule one act on, and it matters more here than anywhere:
+// the wire sends a STATE ID, a BAND WORD and a THREAD WORD, and every string
+// below is the client's own rendering of one of them. Nothing here is derived
+// from a number the server did not send, and there is no line below that says
+// how far a child has drifted — the band is a word, and a distance would be a
+// measurement nobody took.
+//
+// NO CYAN ANYWHERE IN THE LEDGER. A child is not you: it was written by this
+// civilization and it has been out of reach since the year it was written, so
+// it is old light like everything else on this sheet (a4-ledger-note.md §5.3).
+// The one cyan exception this panel has — the charter composer, the act being
+// written now — does not extend to reading what became of it.
+
+/** Where a founding stands, in the parent's own frame. Four words, and none
+ *  of them claims anything about the far end that light has not carried:
+ *  DARK is a statement about a silence here, not about a death there. */
+const LEDGER_STATE_LABEL: Record<LedgerRowState, string> = {
+  outbound: "OUTBOUND",
+  "awaiting-light": "AWAITING LIGHT",
+  rooted: "ROOTED",
+  dark: "DARK",
+};
+
+/** The drift band, as a WORD. Never a percentage and never a bar: the band is
+ *  a tally over dated observations and the sample line beside it is the whole
+ *  of what can honestly be said about how much it rests on. */
+const DRIFT_BAND_LABEL: Record<DriftBand, string> = {
+  unread: "UNREAD",
+  close: "CLOSE",
+  kindred: "KINDRED",
+  estranged: "ESTRANGED",
+  independent: "INDEPENDENT",
+};
+
+/** Where the lineage conversation stands. One word, no meter, no count —
+ *  a thread is not a scoreboard (a4-ledger-note.md §1.3). */
+const LINEAGE_THREAD_LABEL: Record<LineageThreadState, string> = {
+  unopened: "UNOPENED",
+  alive: "ALIVE",
+  faded: "FADED",
+  silent: "SILENT",
+};
+
+/** Which channel a reading came down. Two very different claims: one is what
+ *  their sky looked like, the other is what they said about themselves. */
+const DRIFT_VIA_LABEL: Record<DriftVia, string> = {
+  light: "BY LIGHT",
+  stated: "IN THEIR OWN WORD",
+};
+
+/** Whether the charter's lean survived the reading. */
+const DRIFT_AGREE_LABEL: Record<"agrees" | "disagrees", string> = {
+  agrees: "AGREES",
+  disagrees: "DISAGREES",
+};
+
+const ORDER_STATE_LABEL: Record<StandingOrderWire["state"], string> = {
+  available: "NOT ARMED",
+  armed: "ARMED",
+  fired: "FIRED",
+};
+
+/** What a fire actually did. All three are records and none of them is a
+ *  failure to clean up: an order that could not be paid for is spent, and the
+ *  arming is spent with it. */
+const ORDER_OUTCOME_LABEL: Record<OrderOutcome, string> = {
+  launched: "LAUNCHED",
+  unaffordable: "COULD NOT BE PAID FOR",
+  blocked: "BLOCKED",
+};
 
 /**
  * A2.5: how a thread's state reads, on the hub row and again in the thread's
@@ -688,6 +774,13 @@ export class StudyBoard {
     // charter needs the whole column.
     | "survey"
     | "voyage"
+    // ── A4, the aftermath ──
+    // One founding's whole record (the fork detail, opened from THE LEDGER's
+    // hub section or from a report entry), and the sheet where a standing
+    // order is armed. Neither is a list: the Ledger itself is a hub section,
+    // because a child is a relationship and not an undertaking.
+    | "fork"
+    | "orders"
     | "startover"
     | "report"
     // A2.5: one thread, in full. Its own view rather than a fold inside the
@@ -783,6 +876,30 @@ export class StudyBoard {
    *  clears it (highlightQuestionId's mold). Set by a launch's handoff and by
    *  a report entry's `voyage` route. */
   private highlightVoyageId: string | null = null;
+
+  // ── A4: the aftermath ────────────────────────────────────────────────
+  // THE LEDGER as the latest sky sent it: what became of the foundings, and
+  // what the standing orders have done. Handed over just before every
+  // update() (setVoyages' contract) and only ever read back.
+  private ledger: LedgerWire = { rows: [], orders: [] };
+  private ledgerRowsById = new Map<string, LedgerRow>();
+
+  /** Which fork's record is on screen, and where BACK goes — the report can
+   *  open one directly (a `ledger` route), so its own back leg has to come
+   *  home there rather than to a hub the player never passed through
+   *  (projectReturn's precedent). */
+  private forkVoyageId: string | null = null;
+  private forkReturn: "hub" | "report" = "hub";
+
+  /** The arming sheet's in-progress charter — cleared each time openOrders
+   *  opens fresh (the launch sheet's rule: a half-written charter never
+   *  survives a close/reopen). ARMING IS THE CONSENT AND THE CHARTER IS ITS
+   *  CONTENT, so this is what the arm message carries. */
+  private orderCharter = new Set<CharterClauseId>();
+  /** An arm/disarm in flight, by class. Released by any sky at all (the
+   *  tripwire precedent: both writes are instant and a refusal comes back as
+   *  an `error`, which handleServerError has already caught). */
+  private pendingOrderClass: string | null = null;
 
   // The star a `begin the watch` is in flight for. The confirming `sky`
   // carries the new study and hands straight to the focused board — without
@@ -1065,6 +1182,14 @@ export class StudyBoard {
     this.survey = survey;
   }
 
+  /** A4: THE LEDGER, from every `sky` — what became of those foundings and
+   *  what the standing orders have done. Handed over just before update(),
+   *  exactly as setVoyages is, so the routing pass below already sees it. */
+  setLedger(ledger: LedgerWire): void {
+    this.ledger = ledger;
+    this.ledgerRowsById = new Map(ledger.rows.map((r) => [r.voyageId, r] as const));
+  }
+
   update(
     studies: readonly StudySnapshot[],
     sources: readonly DetectedSource[],
@@ -1182,6 +1307,11 @@ export class StudyBoard {
     // case handleServerError already cleared it) — no per-key bookkeeping.
     this.pendingTripwireKeys.clear();
 
+    // A4: an arm/disarm is the same shape of write, and releases the same
+    // way. The confirming sky carries the order's new state, which is the
+    // confirmation; there is no toast and nothing to reconcile.
+    this.pendingOrderClass = null;
+
     // A launchMission in flight: this sky either carries exactly one new
     // mission for the star (by id difference against the pre-send
     // snapshot) — hand straight to its detail view — or it does not, in
@@ -1265,6 +1395,20 @@ export class StudyBoard {
       // a charter written across a landing prerequisite simply reads it on the
       // next open.
       this.refreshVoyageCommit();
+    } else if (this.view === "fork") {
+      // A4: a Ledger row is NEVER deleted (the record outlives the colony and
+      // every source it was ever visible as), so a row that has gone missing
+      // means the sky itself has changed under this panel — fall back to the
+      // hub rather than render about nothing, the focused view's precedent.
+      if (this.forkVoyageId !== null && this.ledgerRowsById.has(this.forkVoyageId)) {
+        this.renderFork();
+      } else {
+        this.view = "hub";
+        this.forkVoyageId = null;
+        this.renderHub();
+      }
+    } else if (this.view === "orders") {
+      this.renderOrders();
     } else if (this.view === "thread") {
       this.renderThread();
     } else if (this.view === "startover") {
@@ -1567,6 +1711,13 @@ export class StudyBoard {
       // takes what it takes), so nothing on either counts down. What does
       // move is the budget, and the commit control is where that shows.
       else if (this.view === "voyage") this.refreshVoyageCommit();
+      // A4, the aftermath: a fork's record counts DOWN to a founding and a
+      // confirmation the light has not reached yet, so it re-renders like a
+      // mission's detail. The arming sheet deliberately does not: nothing on
+      // it moves (the order is priced AT FIRE TIME, so no budget line decides
+      // anything here), and a tick landing on a half-written charter would
+      // rebuild the picker under the thumb.
+      else if (this.view === "fork") this.renderFork();
       // A2.5: the thread view is NEVER re-rendered by the tick. It holds a
       // live text input, and rebuilding the body under a thumb mid-sentence
       // is the one thing this panel must not do. Only the clocks move.
@@ -1826,6 +1977,21 @@ export class StudyBoard {
         ),
       );
     }
+    // A4: THE STANDING ORDER. It belongs in START because it is something the
+    // civilization begins, even though what it begins is a rule rather than a
+    // work: arming is the consent, and consenting is done here, in the
+    // present, by a live hand. Hidden until a sky has carried the catalog —
+    // the survey row's rule, one row over.
+    if (this.ledger.orders.length > 0) {
+      this.body.append(
+        this.buildHubRow(
+          "Leave a standing order",
+          "What the mind may send while nobody is watching.",
+          true,
+          () => this.openOrders(),
+        ),
+      );
+    }
 
     this.body.append(this.hairline());
 
@@ -1854,6 +2020,27 @@ export class StudyBoard {
       this.body.append(this.buildMutedRow(starId));
     }
     this.body.append(this.hairline());
+
+    // A4: THE LEDGER. Its own section, under THE VOICE, and for the same
+    // reason that one exists: a child is not one more thing to start. It is a
+    // relationship, which is why it is a hub section and NOT a Tend row — the
+    // work list is for undertakings that end.
+    //
+    // Rendered only when there is a founding to name. NO UNREAD MARK, NO
+    // COUNT, NO FRESHNESS BAR anywhere in it (a4-ledger-note.md §7): the
+    // record is a thing you read when you want to, and a badge would make it
+    // a chore. One verb per row, and the row IS the verb.
+    if (this.ledger.rows.length > 0) {
+      const ledgerHeader = document.createElement("div");
+      ledgerHeader.className = "study-section-header holos-caps";
+      ledgerHeader.textContent = "THE LEDGER";
+      this.body.append(ledgerHeader);
+
+      for (const row of this.ledger.rows) {
+        this.body.append(this.buildLedgerRow(row));
+      }
+      this.body.append(this.hairline());
+    }
 
     if (this.studiesByStarId.size > 0) {
       this.body.append(
@@ -3121,6 +3308,17 @@ export class StudyBoard {
       this.pendingTripwireKeys.clear();
       releasedTripwire = true;
     }
+    // A4: an arm/disarm refused. `order-unavailable` (no such class, or the
+    // condition ALREADY HOLDS, which is a tripwire's exact contract — an order
+    // is for what happens next) and `bad-charter` both land here and both
+    // render the way every code above always has: release what was in flight,
+    // no toast, no special-cased text. THE CHARTER STAYS WRITTEN, so a refusal
+    // costs the tap and nothing else.
+    let releasedOrder = false;
+    if (this.pendingOrderClass !== null) {
+      this.pendingOrderClass = null;
+      releasedOrder = true;
+    }
     // A2.6: a refused signal releases like every code above — no toast, no
     // special-cased text — and THE COMPOSITION STAYS ASSEMBLED, so a refusal
     // costs the tap and nothing else. `bad-signal` and `part-unavailable`
@@ -3160,6 +3358,7 @@ export class StudyBoard {
     if (releasedProject && this.view === "project") this.renderProjectDetail();
     if (releasedLaunch && this.view === "launch") this.renderLaunch();
     if (releasedVoyage && this.view === "voyage") this.renderVoyageLaunch();
+    if (releasedOrder && this.view === "orders") this.renderOrders();
     if (releasedSignal && this.view === "thread") this.renderThread();
   }
 
@@ -3932,10 +4131,7 @@ export class StudyBoard {
    *  route can go anywhere, a plain <div> for `kind: "none"` (the same
    *  clickable/inert split buildTendRow makes). */
   private buildReportRow(entry: ReportEntry): HTMLElement {
-    // A4: a `ledger` route has nowhere to land until THE LEDGER ships, so it
-    // renders inert rather than as a tap that goes nowhere — the `kind:
-    // "none"` treatment, for the same reason.
-    const clickable = entry.route.kind !== "none" && entry.route.kind !== "ledger";
+    const clickable = entry.route.kind !== "none";
 
     let el: HTMLButtonElement | HTMLDivElement;
     if (clickable) {
@@ -3996,7 +4192,12 @@ export class StudyBoard {
       case "voyage":
         this.focusVoyageRow(route.voyageId);
         break;
+      // A4, the aftermath: a child, by the voyage that made it — the same key
+      // the row itself carries, and for the same reason. The record's back
+      // button comes home to the report rather than the hub.
       case "ledger":
+        this.focusFork(route.voyageId, "report");
+        break;
       case "none":
         break;
     }
@@ -6846,6 +7047,623 @@ export class StudyBoard {
   private focusVoyageRow(voyageId: string): void {
     this.highlightVoyageId = voyageId;
     this.openTend();
+  }
+
+  // ── Render: THE LEDGER and the standing order (A4, the aftermath) ────
+  //
+  // What became of the foundings. Four rules run through every line of this
+  // block, and they are the reason it renders so little:
+  //
+  //  • NO CYAN. A child is not you. It carries this civilization's charter
+  //    and this civilization's name for it, and it has been out of reach
+  //    since the year it was written; everything here is old light, so it is
+  //    amber and ink like the rest of the sheet.
+  //  • NOTHING CLAIMS WHAT THE WIRE DID NOT SEND. Bands render as WORDS with
+  //    the size of the sample beside them, never as a number or a bar. There
+  //    is no predicted reply anywhere — `nextExchangeYear` is the player's
+  //    OWN next arrival and is labelled as such — and no drift figure, because
+  //    a disagreement is a fact and a distance would be a measurement nobody
+  //    took.
+  //  • NO CHORE SURFACE. No unread mark, no count, no freshness bar. The AS OF
+  //    chip renders as NOTHING when the wire sends null: before anything has
+  //    come back there is no reading to date, and a zero would be a claim.
+  //  • ONE VERB PER SURFACE. The hub row's verb is the record; the record's
+  //    verb is the thread. The mute is stated on both and toggled on neither
+  //    (THE VOICE's muted row already owns the undo).
+
+  /** What a founding is called here: the name its founders were told to use,
+   *  and the instruments' designation when the record carries no name. */
+  private forkName(row: LedgerRow): string {
+    return row.childName.length > 0 ? row.childName : row.designation;
+  }
+
+  /** What a star is called here. `threadName`'s three-step fallback (the
+   *  player's own label, the designation their instruments assigned, then the
+   *  bare id), named for the star rather than for a conversation — a fired
+   *  order names a source there is no thread with. */
+  private starLabel(starId: string): string {
+    return this.threadName(starId);
+  }
+
+  /** The staleness chip, off the newest reading. NULL RENDERS AS NOTHING:
+   *  the row simply has no chip until something has come back. */
+  private ledgerAsOfText(lightAgeYears: number | null): string | null {
+    if (lightAgeYears === null) return null;
+    return `AS OF ${formatArchiveAge(lightAgeYears)} Y AGO`;
+  }
+
+  /** The band, as a word, with the size of the sample it rests on. The sample
+   *  line is the one number the band is allowed: it says how much has been
+   *  read, not how far anything has moved. `unread` has no sample to state. */
+  private ledgerBandSampleText(row: LedgerRow): string | null {
+    if (row.observedAxes === 0) return null;
+    return `READ ON ${row.observedAxes} OF ${DIAL_AXES.length}`;
+  }
+
+  /**
+   * One founding on the hub. The name, where it stands, the band as a word,
+   * the staleness chip when there is one, and where the conversation stands.
+   * The whole row is the verb (it opens the record) — there is no second
+   * control on it, and no badge that would make it a thing to clear.
+   */
+  private buildLedgerRow(row: LedgerRow): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "ledger-row";
+    btn.addEventListener("click", () => this.focusFork(row.voyageId, "hub"));
+
+    const top = document.createElement("div");
+    top.className = "ledger-row-top";
+
+    const name = document.createElement("div");
+    name.className = "ledger-name holos-serif";
+    name.textContent = this.forkName(row);
+    top.append(name);
+
+    const marks = document.createElement("div");
+    marks.className = "ledger-marks";
+    const state = document.createElement("div");
+    state.className = "tend-badge ledger-state-badge";
+    state.textContent = LEDGER_STATE_LABEL[row.state];
+    marks.append(state);
+    // A muted child keeps its row and says so. Nothing is notified anywhere,
+    // and the mute is undone from THE VOICE's own list, not from here.
+    if (row.muted) {
+      const muted = document.createElement("div");
+      muted.className = "tend-badge ledger-muted-badge";
+      muted.textContent = "MUTED";
+      marks.append(muted);
+    }
+    top.append(marks);
+    btn.append(top);
+
+    const bandRow = document.createElement("div");
+    bandRow.className = "ledger-band-row";
+    const band = document.createElement("div");
+    band.className = `tend-badge ledger-band-badge ledger-band-badge--${row.band}`;
+    band.textContent = DRIFT_BAND_LABEL[row.band];
+    bandRow.append(band);
+    const sample = this.ledgerBandSampleText(row);
+    if (sample !== null) {
+      const sampleEl = document.createElement("div");
+      sampleEl.className = "ledger-sample holos-caps";
+      sampleEl.textContent = sample;
+      bandRow.append(sampleEl);
+    }
+    btn.append(bandRow);
+
+    const meta = document.createElement("div");
+    meta.className = "ledger-row-meta holos-caps study-tabular";
+    const asOf = this.ledgerAsOfText(row.lightAgeYears);
+    meta.textContent = asOf === null
+      ? LINEAGE_THREAD_LABEL[row.thread]
+      : `${asOf} · ${LINEAGE_THREAD_LABEL[row.thread]}`;
+    btn.append(meta);
+
+    return btn;
+  }
+
+  /** THE FORK: one founding's whole record. Opened by a Ledger row or by a
+   *  report entry's `ledger` route, which is keyed on the voyage for the row's
+   *  own reason — a child outlives every source it was ever visible as. */
+  private focusFork(voyageId: string, from: "hub" | "report"): void {
+    this.view = "fork";
+    this.forkVoyageId = voyageId;
+    this.forkReturn = from;
+    this.renderFork();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
+  private renderFork(): void {
+    const voyageId = this.forkVoyageId;
+    const row = voyageId === null ? undefined : this.ledgerRowsById.get(voyageId);
+    this.body.innerHTML = "";
+    if (voyageId === null || row === undefined) {
+      // The row vanished between the tap and this render — see update().
+      this.view = "hub";
+      this.forkVoyageId = null;
+      this.renderHub();
+      return;
+    }
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => {
+      if (this.forkReturn === "report") this.openReport();
+      else this.openHub();
+    });
+    this.body.append(back);
+
+    // The launch sheet's header anatomy: the instruments' designation quiet
+    // above the name, and only when the two are different — a record that
+    // carries no name of its own says the designation once.
+    const header = document.createElement("div");
+    header.className = "study-focus-header";
+    if (row.childName.length > 0) {
+      const desig = document.createElement("div");
+      desig.className = "study-focus-designation holos-caps";
+      desig.textContent = row.designation;
+      header.append(desig);
+    }
+    const nameEl = document.createElement("div");
+    nameEl.className = "study-focus-name holos-serif";
+    nameEl.textContent = this.forkName(row);
+    header.append(nameEl);
+    this.body.append(header);
+
+    const meta = document.createElement("div");
+    meta.className = "holos-caps";
+    const metaParts = [
+      `${row.distanceLy.toFixed(1)} LY`,
+      LEDGER_STATE_LABEL[row.state],
+    ];
+    if (row.muted) metaParts.push("MUTED");
+    meta.textContent = metaParts.join(" · ");
+    this.body.append(meta);
+
+    this.body.append(this.hairline());
+
+    // ── The charter, as written ──
+    // Server prose, verbatim and textContent-only. It is the same charter it
+    // always was: the record renders what was sent and never a paraphrase.
+    const charterHeader = document.createElement("div");
+    charterHeader.className = "study-section-header holos-caps";
+    charterHeader.textContent = "THE CHARTER AS WRITTEN";
+    this.body.append(charterHeader);
+
+    const charterLine = document.createElement("div");
+    charterLine.className = "ledger-charter";
+    charterLine.textContent = row.charterLine;
+    this.body.append(charterLine);
+
+    this.body.append(this.hairline());
+
+    // ── The dates ──
+    // Absolute once they have passed, a clock pair while they are still
+    // running down (the mission detail's own trio). A founding's year is
+    // arithmetic on the launch; the confirmation is the year word of it could
+    // first reach here, and neither is a claim about what actually happened.
+    const now = nowYear();
+    this.body.append(this.buildClockRow("LAUNCHED", formatAbsoluteYear(row.launchedYear)));
+    this.body.append(
+      now < row.foundingYear
+        ? this.buildClockRow(
+            "FOUNDED",
+            formatCountdown(row.foundingYear) ?? formatAbsoluteYear(row.foundingYear),
+          )
+        : this.buildClockRow("FOUNDED", formatAbsoluteYear(row.foundingYear)),
+    );
+    this.body.append(
+      now < row.confirmYear
+        ? this.buildClockRow(
+            "CONFIRMED",
+            formatCountdown(row.confirmYear) ?? formatAbsoluteYear(row.confirmYear),
+          )
+        : this.buildClockRow("CONFIRMED", formatAbsoluteYear(row.confirmYear)),
+    );
+    if (row.darkSinceYear !== null) {
+      this.body.append(this.buildClockRow("DARK SINCE", formatAbsoluteYear(row.darkSinceYear)));
+    }
+
+    this.body.append(this.hairline());
+
+    // ── What has come back ──
+    const readHeader = document.createElement("div");
+    readHeader.className = "study-section-header holos-caps";
+    readHeader.textContent = "WHAT HAS COME BACK";
+    this.body.append(readHeader);
+
+    const bandRow = document.createElement("div");
+    bandRow.className = "ledger-band-row";
+    const band = document.createElement("div");
+    band.className = `tend-badge ledger-band-badge ledger-band-badge--${row.band}`;
+    band.textContent = DRIFT_BAND_LABEL[row.band];
+    bandRow.append(band);
+    const sample = this.ledgerBandSampleText(row);
+    if (sample !== null) {
+      const sampleEl = document.createElement("div");
+      sampleEl.className = "ledger-sample holos-caps";
+      sampleEl.textContent = sample;
+      bandRow.append(sampleEl);
+    }
+    this.body.append(bandRow);
+
+    // The band's own sentence, from the server's bank — the client renders no
+    // drift prose of its own.
+    const bandLine = document.createElement("div");
+    bandLine.className = "ledger-band-line";
+    bandLine.textContent = row.bandLine;
+    this.body.append(bandLine);
+
+    // The band's history: when this band was first entered, and — separately,
+    // because it is latched and cannot be taken back by a better sample later
+    // — the year independence was first read.
+    if (row.bandSinceYear !== null) {
+      this.body.append(
+        this.buildClockRow(
+          `${DRIFT_BAND_LABEL[row.band]} SINCE`,
+          formatAbsoluteYear(row.bandSinceYear),
+        ),
+      );
+    }
+    if (row.independentSinceYear !== null && row.band !== "independent") {
+      this.body.append(
+        this.buildClockRow("INDEPENDENT SINCE", formatAbsoluteYear(row.independentSinceYear)),
+      );
+    }
+
+    for (const reading of row.readings) {
+      this.body.append(this.buildDriftReading(reading));
+    }
+
+    this.body.append(this.hairline());
+
+    // ── The thread ──
+    const threadHeader = document.createElement("div");
+    threadHeader.className = "study-section-header holos-caps";
+    threadHeader.textContent = "THE THREAD";
+    this.body.append(threadHeader);
+
+    this.body.append(
+      this.buildClockRow("WHERE IT STANDS", LINEAGE_THREAD_LABEL[row.thread]),
+    );
+    if (row.lastExchangeYear !== null) {
+      this.body.append(
+        this.buildClockRow("LAST EXCHANGE", formatAbsoluteYear(row.lastExchangeYear)),
+      );
+    }
+    // YOUR OWN NEXT ARRIVAL, said as your own. There is no reply on this wire
+    // and there is nothing here that could render one.
+    if (row.nextExchangeYear !== null) {
+      this.body.append(
+        this.buildClockRow(
+          "YOURS ARRIVES",
+          formatCountdown(row.nextExchangeYear) ?? formatAbsoluteYear(row.nextExchangeYear),
+        ),
+      );
+    }
+
+    // The one verb this surface has. Offered only where a thread actually
+    // exists on this side of the light: a muted child has left the rack, and
+    // a child nobody has spoken to has no thread to open.
+    const hasThread = (this.contact?.threads ?? []).some((t) => t.starId === row.starId);
+    if (hasThread) {
+      const verbRow = document.createElement("div");
+      verbRow.className = "study-verb-row";
+      const verb = document.createElement("button");
+      verb.type = "button";
+      verb.className = "study-verb-btn";
+      verb.textContent = "OPEN THE THREAD";
+      verb.addEventListener("click", () => this.openThread(row.starId));
+      verbRow.append(verb);
+      this.body.append(verbRow);
+    }
+  }
+
+  /**
+   * One dial axis the parent has actually read something about: the dial's own
+   * question, what the charter wrote against what has been read, whether they
+   * agree, which channel carried it, and how old THAT reading is. Every
+   * reading carries its own date — a light reading is the crossing old, a
+   * stated one is as old as the year it was sent.
+   */
+  private buildDriftReading(r: DriftReading): HTMLDivElement {
+    const row = document.createElement("div");
+    row.className = "ledger-reading";
+
+    const question = document.createElement("div");
+    question.className = "ledger-reading-question";
+    question.textContent = r.question;
+    row.append(question);
+
+    // The label/value anatomy the mission sheet's clock rows already own: two
+    // readings of one axis, stacked so the disagreement is read down a column.
+    row.append(this.buildClockRow("THE CHARTER", r.charterPole));
+    row.append(this.buildClockRow("WHAT CAME BACK", r.readPole));
+
+    const marks = document.createElement("div");
+    marks.className = "ledger-marks ledger-reading-marks";
+    const verdict = document.createElement("div");
+    verdict.className = r.agrees
+      ? "tend-badge ledger-verdict-badge"
+      : "tend-badge ledger-verdict-badge ledger-verdict-badge--parted";
+    verdict.textContent = DRIFT_AGREE_LABEL[r.agrees ? "agrees" : "disagrees"];
+    marks.append(verdict);
+    const via = document.createElement("div");
+    via.className = "tend-badge tend-chip";
+    via.textContent = DRIFT_VIA_LABEL[r.via];
+    marks.append(via);
+    row.append(marks);
+
+    const age = document.createElement("div");
+    age.className = "study-archive-age holos-caps study-tabular";
+    age.textContent = `AS OF ${formatArchiveAge(r.lightAgeYears)} Y AGO`;
+    row.append(age);
+
+    return row;
+  }
+
+  // ── The standing order ───────────────────────────────────────────────
+  //
+  // ARMING IS THE CONSENT AND THE CHARTER IS ITS CONTENT. The sheet asks for
+  // both in one gesture, and the sentinel's charter is written on the launch
+  // sheet's own clause rows, because it IS a launch: what is being authorized
+  // is a specific dispatch, not a blank one. The order names no star and could
+  // not — what it will find has not happened yet.
+
+  /** The arming sheet. Always opens clean on an order that is not already
+   *  armed (the launch sheet's rule); an armed order's own charter is what
+   *  the sheet reads back, so there is nothing half-written to preserve. */
+  openOrders(): void {
+    this.view = "orders";
+    this.focusedStarId = null;
+    this.orderCharter = new Set();
+    this.renderOrders();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
+  private renderOrders(): void {
+    this.body.innerHTML = "";
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => this.openHub());
+    this.body.append(back);
+
+    const header = document.createElement("div");
+    header.className = "study-board-header holos-caps";
+    header.textContent = "STANDING ORDERS";
+    this.body.append(header);
+
+    const subtitle = document.createElement("div");
+    subtitle.className = "study-picker-subtitle";
+    subtitle.textContent =
+      "What the mind may send while nobody is watching. One order, one firing, and a fresh hand to arm it again.";
+    this.body.append(subtitle);
+
+    this.body.append(this.hairline());
+
+    for (const order of this.ledger.orders) {
+      this.body.append(this.buildOrderBlock(order));
+    }
+  }
+
+  /** One order class, in whatever state the wire says it is in. The catalog is
+   *  the bound on what may be armed and the wire carries the whole of it, so
+   *  this renders the server's own label and line and never a class of its
+   *  own invention. */
+  private buildOrderBlock(order: StandingOrderWire): HTMLDivElement {
+    const block = document.createElement("div");
+    block.className = "ledger-order";
+
+    const top = document.createElement("div");
+    top.className = "ledger-row-top";
+    const label = document.createElement("div");
+    label.className = "study-project-label holos-serif";
+    label.textContent = order.label;
+    top.append(label);
+    const state = document.createElement("div");
+    state.className = `tend-badge ledger-order-badge ledger-order-badge--${order.state}`;
+    state.textContent =
+      this.pendingOrderClass === order.orderClass ? "…" : ORDER_STATE_LABEL[order.state];
+    top.append(state);
+    block.append(top);
+
+    // The order as written, from the server. The condition is in this sentence
+    // and nowhere else: there is no threshold on this wire and no number here
+    // that a client could send back.
+    const line = document.createElement("div");
+    line.className = "study-project-line";
+    line.textContent = order.line;
+    block.append(line);
+
+    // THE PRICE, NAMED PLAINLY AND NAMED AS WHAT IT IS: a fire is priced at
+    // the moment it fires, not now, and a fire that cannot be paid for never
+    // becomes a debt — it fizzles and the record says so.
+    const price = document.createElement("div");
+    price.className = "study-project-meta holos-caps";
+    price.textContent = `${order.costCompute} COMPUTE AT FIRE TIME · WITHIN ${order.radiusLy} LY`;
+    block.append(price);
+
+    if (order.state === "armed" && order.armedYear !== null) {
+      block.append(this.buildClockRow("ARMED", formatAbsoluteYear(order.armedYear)));
+    }
+
+    // ── The fired record ──
+    // Outcome, target and the age of the light it acted on, frozen with the
+    // firing. The evidence does not get older in the record: the order acted
+    // on what it had.
+    if (order.state === "fired") {
+      const historyHeader = document.createElement("div");
+      historyHeader.className = "study-section-header holos-caps";
+      historyHeader.textContent = "WHAT IT DID";
+      block.append(historyHeader);
+
+      if (order.outcome !== null) {
+        block.append(this.buildClockRow("OUTCOME", ORDER_OUTCOME_LABEL[order.outcome]));
+      }
+      if (order.firedStarId !== null) {
+        block.append(this.buildClockRow("TOWARD", this.starLabel(order.firedStarId)));
+      }
+      if (order.firedYear !== null) {
+        block.append(this.buildClockRow("FIRED", formatAbsoluteYear(order.firedYear)));
+      }
+      if (order.evidenceAgeYears !== null) {
+        block.append(
+          this.buildClockRow(
+            "ON LIGHT",
+            `${formatArchiveAge(order.evidenceAgeYears)} Y OLD`,
+          ),
+        );
+      }
+    }
+
+    // ── The charter ──
+    // Armed: what it will launch under, read back from the wire. Otherwise the
+    // picker, on the launch sheet's own clause rows.
+    const charterHeader = document.createElement("div");
+    charterHeader.className = "study-section-header holos-caps";
+    charterHeader.textContent = order.state === "armed" ? "ITS CHARTER" : "WRITE THE CHARTER";
+    block.append(charterHeader);
+
+    const catalog = this.missionCatalog;
+    if (catalog === null) {
+      const hint = document.createElement("div");
+      hint.className = "study-picker-subtitle";
+      hint.textContent = "Nothing is available to arm from here.";
+      block.append(hint);
+      return block;
+    }
+
+    if (order.state === "armed") {
+      const list = document.createElement("div");
+      list.className = "study-brief-menu";
+      for (const id of order.charter) {
+        const def = catalog.clauses.find((c) => c.id === id);
+        if (def === undefined) continue;
+        const item = document.createElement("div");
+        item.className = "study-hyp-labelcol study-brief-reading";
+        const clauseLabel = document.createElement("span");
+        clauseLabel.className = "study-hyp-label holos-caps";
+        clauseLabel.textContent = def.label;
+        const clauseLine = document.createElement("span");
+        clauseLine.className = "study-hyp-gloss";
+        clauseLine.textContent = def.line;
+        item.append(clauseLabel, clauseLine);
+        list.append(item);
+      }
+      block.append(list);
+    } else {
+      for (const clause of catalog.clauses) {
+        if (!clause.appliesTo.includes("sentinel")) continue;
+        block.append(this.buildOrderClauseRow(clause));
+      }
+    }
+
+    // ── The verb ──
+    const verbRow = document.createElement("div");
+    verbRow.className = "study-verb-row";
+    const verb = document.createElement("button");
+    verb.type = "button";
+    verb.className = "study-verb-btn study-verb-btn--primary";
+    const pending = this.pendingOrderClass === order.orderClass;
+    let hint = "";
+
+    if (order.state === "armed") {
+      verb.textContent = "DISARM";
+      if (pending) verb.disabled = true;
+      else verb.addEventListener("click", () => this.disarmOrder(order.orderClass));
+    } else {
+      // Re-arming a spent order is a FRESH, PRESENT ACT: it replaces the
+      // previous arming whole, which is why a fired order offers the picker
+      // again rather than a repeat button.
+      verb.textContent = order.state === "fired" ? "ARM IT AGAIN" : "ARM";
+      const count = this.orderCharter.size;
+      const validCount = count >= catalog.minClauses && count <= catalog.maxClauses;
+      if (pending) {
+        verb.disabled = true;
+      } else if (!validCount) {
+        verb.disabled = true;
+        hint = "PICK TWO OR THREE";
+      } else {
+        verb.addEventListener("click", () => this.armOrder(order.orderClass));
+      }
+    }
+    verbRow.append(verb);
+    block.append(verbRow);
+
+    if (hint.length > 0) {
+      const hintEl = document.createElement("div");
+      hintEl.className = "study-brief-meta holos-caps";
+      hintEl.textContent = hint;
+      block.append(hintEl);
+    }
+
+    return block;
+  }
+
+  /** One clause on the arming sheet. The launch sheet's clause row exactly,
+   *  on its own selection set — the sentinel's charter is a charter, and it is
+   *  written the same way every other charter in the game is. */
+  private buildOrderClauseRow(c: CharterClauseDef): HTMLButtonElement {
+    const selected = this.orderCharter.has(c.id);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = selected
+      ? "tend-launch-clause-row tend-launch-clause-row--selected"
+      : "tend-launch-clause-row";
+    btn.addEventListener("click", () => this.toggleOrderClause(c));
+
+    const label = document.createElement("span");
+    label.className = "study-hyp-label holos-caps";
+    label.textContent = c.label;
+    const line = document.createElement("span");
+    line.className = "study-hyp-gloss";
+    line.textContent = c.line;
+    btn.append(label, line);
+    return btn;
+  }
+
+  /** Tap toggles; at most one clause per group (client-side enforcement —
+   *  missions.ts's validateCharter re-checks server-side regardless, on the
+   *  same call the arm handler makes). */
+  private toggleOrderClause(c: CharterClauseDef): void {
+    const catalog = this.missionCatalog;
+    if (catalog === null) return;
+    const next = new Set(this.orderCharter);
+    if (next.has(c.id)) {
+      next.delete(c.id);
+    } else {
+      for (const other of [...next]) {
+        const def = catalog.clauses.find((cc) => cc.id === other);
+        if (def !== undefined && def.group === c.group) next.delete(other);
+      }
+      next.add(c.id);
+    }
+    this.orderCharter = next;
+    this.renderOrders();
+  }
+
+  private armOrder(orderClass: string): void {
+    if (this.pendingOrderClass !== null) return;
+    this.pendingOrderClass = orderClass;
+    this.socket.send({ type: "armOrder", orderClass, charter: [...this.orderCharter] });
+    this.renderOrders();
+  }
+
+  private disarmOrder(orderClass: string): void {
+    if (this.pendingOrderClass !== null) return;
+    this.pendingOrderClass = orderClass;
+    this.socket.send({ type: "disarmOrder", orderClass });
+    this.renderOrders();
   }
 
   // ── A2.3: the CALL IT confirm, and tripwires ─────────────────────────

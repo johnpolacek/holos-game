@@ -192,6 +192,14 @@ body {
 .voyage-pin,
 .voyage-group-header,
 .voyage-hold-label,
+/* A4, the aftermath: a founding's name in THE LEDGER, the sample the band
+   rests on, the row's staleness/thread line and a reading's dial question.
+   Short label lines and enclosed classifiers; the band badge itself is on the
+   .tend-badge contract above. */
+.ledger-name,
+.ledger-sample,
+.ledger-row-meta,
+.ledger-reading-question, /* the ceremony's .dial-question, one surface over */
 /* A2.4: the contact verb, the hub's one voice row, and the ceremony's own
    chrome — the press affordance, the word that refuses, the coherence chip
    and a year stamped out on the sky. Every one of them short and enclosed. */
@@ -279,6 +287,10 @@ body {
 /* A4: the survey's one qualitative line about arriving second, straight from
    the server. A sentence, like the rest of this list. */
 .voyage-risk,
+/* A4, the aftermath: a founding's charter said as one sentence, and the band's
+   own sentence from the server's bank. Both server prose, rendered verbatim. */
+.ledger-charter,
+.ledger-band-line,
 /* The playtest reset's page: what starting over costs, and the refusal. */
 .study-startover-note {
   text-wrap: pretty;
@@ -2481,6 +2493,200 @@ body {
   border-radius: 999px;
   background: radial-gradient(circle at 50% 50%, var(--holos-cyan-dim), transparent 62%);
   animation: holos-bloom 1100ms ease forwards;
+}
+
+/* ── A4: THE LEDGER and the standing order ───────────────────────────────
+ * What became of the foundings. The panel's existing families do nearly all
+ * of it — a row is the thread row's chassis, a badge is .tend-badge, a
+ * label/value line is the mission sheet's clock row, and the arming sheet's
+ * clause rows are the launch sheet's own. What is new below is only what a
+ * child adds: the band as an enclosed word, the sample line beside it, and a
+ * reading's two poles set against each other.
+ *
+ * NO --holos-cyan ANYWHERE IN THIS BLOCK, and it is not the observatory's
+ * ordinary amber-and-ink rule being restated: it is the sharper claim under
+ * it. A child was written by this civilization and carries its charter, and
+ * cyan is what this game uses to say "you". A child is not you, and a Ledger
+ * that said otherwise would be making the one claim the whole surface exists
+ * to withhold. Nothing here may follow the charter composer's exception. */
+
+/* One founding on the hub, under THE LEDGER. The thread row's chassis with a
+   second and third line, because a child carries more than a state: the whole
+   row is the verb, and there is no badge on it that has to be cleared. */
+.ledger-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
+  width: 100%;
+  min-height: 60px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.6rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--holos-ink);
+}
+
+.ledger-row-top {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
+  width: 100%;
+}
+
+/* The name a founding was given, in the amber every row title on this sheet
+   takes. Never cyan: see this block's header. */
+.ledger-name {
+  font-size: var(--holos-text-lg);
+  color: var(--holos-amber);
+  min-width: 0;
+}
+
+.ledger-marks {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.28rem;
+  flex-shrink: 0;
+}
+
+.ledger-state-badge {
+  color: var(--holos-ink-dim);
+}
+
+/* A child gone dark to. The row stays and says so, a tier quieter — the mute
+   is undone from THE VOICE's own list, never from here. */
+.ledger-muted-badge {
+  color: var(--holos-ink-faint);
+  border-color: rgba(211, 185, 130, 0.34);
+}
+
+/* The band and the sample it rests on, side by side. */
+.ledger-band-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* THE BAND, AS A WORD. An enclosed classifier on the .tend-badge contract,
+   which is what earns it --holos-text-xxs: one word, the same five of them on
+   every row, and enclosed so the size reads as a classifier's. There is no
+   bar behind it and there never may be — a band is a tally over dated
+   observations, and a track would dress it as a measurement. */
+.ledger-band-badge {
+  color: var(--holos-ink-dim);
+}
+
+/* Nothing has come back that speaks to this. Quieter than a reading, because
+   it is the absence of one. */
+.ledger-band-badge--unread {
+  color: var(--holos-ink-faint);
+  border-color: rgba(211, 185, 130, 0.34);
+}
+
+/* The two that say the charter is still being kept. */
+.ledger-band-badge--close,
+.ledger-band-badge--kindred {
+  color: var(--holos-ink-dim);
+}
+
+/* The two that say it is not. Amber rather than the refusal red: a child that
+   has walked away from its charter is not an error, it is the thing this game
+   is about. */
+.ledger-band-badge--estranged,
+.ledger-band-badge--independent {
+  color: var(--holos-amber);
+  border-color: rgba(240, 172, 102, 0.5);
+}
+
+/* How much has been read. The one number a band is allowed, and it says the
+   size of the sample and never the size of the difference. */
+.ledger-sample {
+  color: var(--holos-ink-faint);
+}
+
+/* The row's last line: the staleness chip when there is a reading to date, and
+   where the conversation stands. NOTHING when the wire sent null — before
+   anything has come back there is no date, and a zero would be a claim. */
+.ledger-row-meta {
+  color: var(--holos-ink-faint);
+}
+
+/* The charter as written, and the band's own sentence — both server prose,
+   set as prose rather than as chrome. */
+.ledger-charter {
+  font-size: var(--holos-text-sm);
+  line-height: 1.45;
+  color: var(--holos-ink);
+  padding: 0.2rem 0 0.4rem;
+}
+
+.ledger-band-line {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  padding: 0.3rem 0 0.4rem;
+}
+
+/* One dial axis the parent has actually read something about. */
+.ledger-reading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.6rem 0 0.4rem;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.24);
+}
+
+.ledger-reading-question {
+  color: var(--holos-ink);
+}
+
+.ledger-reading-marks {
+  justify-content: flex-start;
+  padding-top: 0.3rem;
+}
+
+/* The charter's lean survived the reading. */
+.ledger-verdict-badge {
+  color: var(--holos-ink-dim);
+}
+
+/* It did not. Amber, for the estranged band's reason. */
+.ledger-verdict-badge--parted {
+  color: var(--holos-amber);
+  border-color: rgba(240, 172, 102, 0.5);
+}
+
+/* One order class on the arming sheet. */
+.ledger-order {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.4rem 0 0.8rem;
+}
+
+.ledger-order-badge {
+  color: var(--holos-ink-faint);
+  border-color: rgba(211, 185, 130, 0.34);
+}
+
+/* Armed: something may happen without you, and the sheet says so in the same
+   amber a live tripwire takes. */
+.ledger-order-badge--armed {
+  color: var(--holos-amber);
+  border-color: rgba(240, 172, 102, 0.5);
+}
+
+/* Fired: the arming is spent. A record, not an alarm. */
+.ledger-order-badge--fired {
+  color: var(--holos-ink-dim);
 }
 
 /* ── The report (AV2) ────────────────────────────────────────────────────
