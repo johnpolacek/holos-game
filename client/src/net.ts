@@ -13,6 +13,28 @@ import {
 const TOKEN_KEY = "holos.token";
 const ACCOUNT_KEY = "holos.account";
 
+const PARTY = "cohort";
+const ROOM = "genesis";
+
+/**
+ * Where the Cohort answers. Dev runs Vite (5173) and `wrangler dev` (8787)
+ * as separate processes, so dev defaults to localhost:8787 unless overridden
+ * for LAN/phone testing; production serves client + server from one origin.
+ */
+function cohortHost(): string {
+  return (
+    import.meta.env.VITE_PARTYKIT_HOST ??
+    (import.meta.env.DEV ? "localhost:8787" : window.location.host)
+  );
+}
+
+/** A URL on the Cohort's HTTP surface — same host, party and room the
+ *  socket below connects to, so the two can never drift apart. */
+export function cohortUrl(path: string): string {
+  return `${window.location.protocol}//${cohortHost()}/parties/${PARTY}/${ROOM}/${path}`;
+}
+
+
 /**
  * A2.6, DURABLE IDENTITY: this device holds ONE of these two, never both.
  *
@@ -33,6 +55,12 @@ export function readStoredToken(): string | null {
 /** The account key this device holds, if it has been claimed or signed into. */
 export function readStoredAccount(): string | null {
   return localStorage.getItem(ACCOUNT_KEY);
+
+/** Forget who this browser is. The next `hello` mints a fresh identity, so
+ *  the caller had better mean it — see startover.ts, the only caller. */
+export function clearStoredToken(): void {
+  localStorage.removeItem(TOKEN_KEY);
+
 }
 
 function storeToken(token: string): void {
@@ -71,15 +99,9 @@ export class CohortSocket {
 
   constructor() {
     this.socket = new PartySocket({
-      // Mirrors the A0 dot-demo's host derivation: dev runs Vite (5173) and
-      // `wrangler dev` (8787) as separate processes, so dev defaults to
-      // localhost:8787 unless overridden for LAN/phone testing; production
-      // serves client + server from the same origin.
-      host:
-        import.meta.env.VITE_PARTYKIT_HOST ??
-        (import.meta.env.DEV ? "localhost:8787" : window.location.host),
-      party: "cohort",
-      room: "genesis",
+      host: cohortHost(),
+      party: PARTY,
+      room: ROOM,
     });
 
     this.socket.addEventListener("open", () => {

@@ -76,6 +76,10 @@
     // line (build-voice.md § AV4).
     "HOLOS_VOICE_GEN": "on",
     "HOLOS_COUNSEL_GEN": "on"
+    // HOLOS_DEV_ENDPOINTS is deliberately ABSENT: it opens the Cohort's
+    // local-only dev HTTP surface, which hands out other civilizations'
+    // present. It belongs in `.dev.vars` and nowhere else. Anything set
+    // here ships.
   },
   "dev": {
     "port": 8787

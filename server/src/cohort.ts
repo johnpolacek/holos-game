@@ -11,7 +11,11 @@
 // those land per-slice from A1 on), gated to local development hosts so
 // every commit stays shippable to production.
 //
-// HTTP surface (wrangler dev only), under /parties/cohort/:name :
+// HTTP surface, under /parties/cohort/:name . Every route below is gated to
+// local development (a local hostname, or HOLOS_DEV_ENDPOINTS=on in
+// `.dev.vars` — see devEndpointsOpen) EXCEPT /dev/forget, which ships to
+// production too — see onRequest for why:
+//   POST /dev/forget   {token}                         erase one run (prod too)
 //   POST /dev/seed     {seedKey?, radiusLy?, aiCivs?}  create + persist a galaxy
 //   GET  /dev/state                                    truth overview (dev eyes only)
 //   GET  /dev/observe?observer=ID&target=ID            the light-delayed view
@@ -255,6 +259,10 @@ interface GalaxyMeta {
  */
 export interface CohortEnv extends VoiceGenEnv {
   Cohort: DurableObjectNamespace;
+  /** Opens the local-only half of the dev HTTP surface. "on" enables;
+   *  anything else, absence included, is off. Belongs in `.dev.vars` and
+   *  nowhere else — see devEndpointsOpen. */
+  readonly HOLOS_DEV_ENDPOINTS?: string;
 }
 
 /**
@@ -337,16 +345,69 @@ interface ConnState {
   openThreadStarId: string | null;
 }
 
-function json(data: unknown, status = 200): Response {
+function json(data: unknown, status = 200, extraHeaders: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(data, null, 2), {
     status,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...extraHeaders },
   });
 }
 
-/** Dev endpoints exist only where wrangler dev serves: local hosts. */
+/**
+ * CORS for /dev/forget, and only for it.
+ *
+ * In production the client is same-origin and none of this is consulted.
+ * In development it is load-bearing: `npm run dev:client` serves the client
+ * from :5173 while the Worker answers on :8787, and the documented phone
+ * setup moves both onto a LAN IP — so there is no origin allowlist that
+ * would hold, which is why this is `*`. It costs nothing: the token in the
+ * body is the credential, and a page that cannot read this browser's
+ * localStorage cannot produce one.
+ *
+ * The gated endpoints get none of this. They are reachable only from a
+ * local hostname or behind an operator's flag, and nothing in a browser
+ * needs to call them.
+ */
+const FORGET_CORS: Record<string, string> = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "POST, OPTIONS",
+  "access-control-allow-headers": "content-type",
+  "access-control-max-age": "86400",
+};
+
+/** The request arrived at a hostname only a local wrangler dev serves. */
 function isLocalDev(url: URL): boolean {
   return ["localhost", "127.0.0.1", "0.0.0.0", "[::1]"].includes(url.hostname);
+}
+
+/**
+ * Whether the local-only dev endpoints answer at all.
+ *
+ * The hostname check above used to be the whole gate, and it stopped
+ * firing the day the playholos.com routes went live: `wrangler dev`
+ * rewrites the request URL to the route it matched, so a request typed at
+ * localhost:8787 reaches this Worker as http://playholos.com/… . The gate
+ * kept doing its job in production and silently 404'd the entire dev
+ * surface on the dev machine it exists for.
+ *
+ * So the gate takes either signal. The hostname stays because it is still
+ * true wherever wrangler is not rewriting (no routes configured, a
+ * different config, `--host` overridden) and can never be true in
+ * production, where the hostname IS the route. `HOLOS_DEV_ENDPOINTS=on` is
+ * the one that fires today.
+ *
+ * That flag belongs in `.dev.vars` (gitignored) and NOWHERE else. In
+ * wrangler.jsonc's `vars` it would ship, and what it unlocks is precisely
+ * the truth the knowledge layer exists to withhold — /dev/state and
+ * /dev/observe hand out other civilizations' present. Deny by default:
+ * absence, "true", "1", and every other value read as off.
+ *
+ * Config rather than a request header, because a header would be a
+ * client's claim about itself. `url.hostname` is Cloudflare's routing
+ * decision and an env var is the operator's; neither is the caller's.
+ * (/dev/forget sits above this gate — it ships on purpose. See onRequest.)
+ */
+function devEndpointsOpen(env: CohortEnv, url: URL): boolean {
+  return env.HOLOS_DEV_ENDPOINTS === "on" || isLocalDev(url);
 }
 
 /**
@@ -3103,11 +3164,27 @@ export class Cohort extends Server<CohortEnv> {
 
   async onRequest(request: Request): Promise<Response> {
     const url = new URL(request.url);
-    if (!isLocalDev(url)) return json({ error: "not found" }, 404);
-
     const parts = url.pathname.split("/").filter((p) => p.length > 0);
     const devIdx = parts.indexOf("dev");
     const action = devIdx >= 0 ? parts.slice(devIdx + 1).join("/") : "";
+
+    // `forget` is the one route that answers in production: production is a
+    // playtest surface at this stage, and a playtester who wants to start
+    // over has no other way back to the ceremony. It is safe to expose
+    // because the token in the body IS the authorization — a randomUUID the
+    // caller could only hold by owning that run — and every effect is scoped
+    // to it. The rest stay local-only: they either hand out truth the
+    // knowledge layer exists to withhold (state/observe/sky) or move the
+    // shared world for everyone (seed/skip/event).
+    if (action === "forget") {
+      // The preflight the client's JSON POST triggers cross-origin in dev.
+      if (request.method === "OPTIONS") {
+        return new Response(null, { status: 204, headers: FORGET_CORS });
+      }
+      if (request.method === "POST") return this.devForget(request);
+    }
+
+    if (!devEndpointsOpen(this.env, url)) return json({ error: "not found" }, 404);
 
     if (request.method === "POST" && action === "seed") return this.devSeed(request);
     if (request.method === "GET" && action === "state") return this.devState();
@@ -3375,5 +3452,97 @@ export class Cohort extends Server<CohortEnv> {
       nowYear: gameYearAt(next, Date.now()),
       pendingEvents: pending.length,
     });
+  }
+
+  /**
+   * forget: erase one token's run so a playtester can start over. Deletes
+   * every per-token key, drops the token's civ out of the galaxy (which
+   * returns its star to pickPlayerHome's pool rather than leaving an
+   * unpiloted ghost), prunes the wakes that run armed, and sends any live
+   * tab on that token back to a fresh ceremony offer.
+   *
+   * This is a playtest reset, not a game verb, and it does something the
+   * game itself never does: it rewrites truth other players have already
+   * seen. Every view is derived from the galaxy at read time, so a
+   * forgotten civ's past light leaves the sky along with the civ — no
+   * departure, no fading record. Nothing in the fiction works this way.
+   *
+   * Idempotent: forgetting an unknown token succeeds and reports
+   * `hadRun: false`, so a playtester can fire it without checking first.
+   * The caller still owns its own localStorage — clearing `holos.token`
+   * after this call is what makes the next run a NEW identity, because a
+   * reused token re-derives the same `civ-p-` id it just gave up.
+   */
+  private async devForget(request: Request): Promise<Response> {
+    const body = await parseBody(request);
+    const token = stringField(body, "token");
+    if (token === undefined) return json({ error: "token (string) required" }, 400, FORGET_CORS);
+
+    // A forget can be the first thing a cold DO ever handles; seeding here
+    // keeps the offer below (and requireGalaxy) on solid ground.
+    await this.ensureSeeded();
+    const run = await this.ctx.storage.get<RunRecord>(`run:${token}`);
+
+    // Every prefix that hangs off a run. A token with no run still sweeps:
+    // a player who quit mid-ceremony has an `offerYear:` and nothing else.
+    await this.ctx.storage.delete([
+      `run:${token}`,
+      `offerYear:${token}`,
+      `voice:${token}`,
+      `report:${token}`,
+      `studies:${token}`,
+      `missions:${token}`,
+      `projects:${token}`,
+      `proposals:${token}`,
+    ]);
+
+    const civId = run?.civId ?? `civ-p-${token.slice(0, 12)}`;
+    const galaxy = this.requireGalaxy();
+    const civs = galaxy.civs.filter((c) => c.seed.id !== civId);
+    const removed = civs.length !== galaxy.civs.length;
+    if (removed) {
+      this.galaxy = { ...galaxy, civs };
+      await this.ctx.storage.put("galaxy:civs", civs);
+    }
+
+    // A wake belongs to the run that armed it; a forgotten run has none.
+    const pending = (await this.ctx.storage.get<ScheduledEvent[]>("events")) ?? [];
+    const keep = pending.filter((e) => e.token !== token);
+    if (keep.length !== pending.length) {
+      await this.ctx.storage.put("events", keep);
+      if (keep.length === 0) await this.ctx.storage.deleteAlarm();
+      else await this.armAlarm(keep);
+    }
+
+    // Live tabs on this token go straight back to the ceremony — the offer
+    // is re-anchored to now, since `offerYear:` went with the rest. Every
+    // OTHER placed connection gets a fresh sky, the same membership-changed
+    // push `become` sends, because a source just left their field.
+    const offerYear = await this.getOfferYear(token);
+    const candidates = this.makeCandidates(token, offerYear);
+    let connectionsReset = 0;
+    for (const state of this.conns.values()) {
+      if (state.token === token) {
+        state.civId = null;
+        state.reportBaselineYear = null;
+        this.sendMsg(state.conn, { type: "offer", candidates });
+        connectionsReset += 1;
+      } else if (state.civId !== null) {
+        await this.sendSky(state.conn, state.token, state.civId);
+      }
+    }
+
+    return json(
+      {
+        forgotten: token,
+        hadRun: run !== undefined,
+        civRemoved: removed ? civId : null,
+        starFreed: removed ? (run?.starId ?? null) : null,
+        connectionsReset,
+        note: "clear localStorage 'holos.token' too: a reused token re-derives the same civ id",
+      },
+      200,
+      FORGET_CORS,
+    );
   }
 }
