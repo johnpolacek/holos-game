@@ -12,6 +12,9 @@
 // which also matches the cradle catalog's skew.
 
 import { generateCivSeed, type CivId, type CivSeed } from "./civseed";
+// Type-only: the dated dial record a derived colony carries. dials.ts imports
+// nothing, so this pulls no runtime behind it.
+import type { DialEpoch } from "./dials";
 // Type-only, so nothing of contact.ts's runtime is pulled in behind the
 // galaxy record (contact.ts imports this module in turn; the cycle is erased).
 import type { ContactAct } from "./contact";
@@ -112,6 +115,37 @@ export interface PlacedCiv {
   readonly seed: CivSeed;
   readonly starId: StarId;
   readonly controller: "player" | "ai";
+  /**
+   * A4, optional and DERIVED-ONLY: this civilization answers nothing, ever.
+   * Set on exactly one kind of civ — a colony whose founding charter carried
+   * the `answer-nothing` clause (voyages.ts) — and read at exactly one place,
+   * traffic.ts's class resolution, where it forces `counterpartClass` to
+   * "silent" without inventing an eleventh archetype nobody wrote a voice for.
+   *
+   * IT IS NEVER PERSISTED, because the civs that carry it are never persisted:
+   * children are produced by `galaxyWithLandfalls` on every read and
+   * `saveGalaxyCivs` refuses to write one (cohort.ts's assertion). An absent
+   * field means "answers in character", which is every stored civ in the game.
+   */
+  readonly answersNothing?: boolean;
+  /**
+   * A4, optional and DERIVED-ONLY: where this civilization's dials have
+   * actually walked since it was founded, sampled at the same years its
+   * emission history is (voyages.ts's `foundingWalkedDials`). Set on exactly
+   * one kind of civ — a colony — and read at exactly one place, traffic.ts's
+   * dial culture part, where it is what makes a child's word about itself
+   * state the pole it HOLDS rather than the pole it was chartered with.
+   *
+   * Without it drift would be unreadable: the light channel would carry every
+   * disagreement the parent could ever see, and a colony could contradict its
+   * charter on one axis and never on the other four.
+   *
+   * NEVER PERSISTED, because the civs that carry it are never persisted
+   * (`galaxyWithLandfalls` produces them on every read and `saveGalaxyCivs`
+   * refuses to write one). An absent field means "has not walked", which is
+   * every stored civ in the game.
+   */
+  readonly walkedDials?: readonly DialEpoch[];
 }
 
 export interface GalaxyConfig extends StarFieldConfig {

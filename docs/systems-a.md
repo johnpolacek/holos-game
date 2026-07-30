@@ -1127,3 +1127,93 @@ exact anonymous resume path; both devices stay live and every sky
 fans out to the whole seat. The key travels in exactly one message
 type; accounts appear on no wire shape visible to another player: the
 account is a login, not a persona.
+
+---
+
+## §15 The travel half (A4, as built)
+
+Seedships, relativistic ships, the forecast, full charters, landfall,
+the Ledger, drift, and standing orders. The recursion made literal: a
+player writes a CivSeed-shaped value function, launches it on a real
+flight clock, and a child civilization enters everyone's sky at
+light-honest times.
+
+**The child is derived, never written.** `galaxyWithLandfalls`
+(voyages.ts) is the only producer of a child PlacedCiv: a pure fold
+over the stored voyage log in (landfallYear, id) order with occupancy
+threaded, so ship races are deterministic and an earlier colony blocks
+a later ship. The cohort's requireGalaxy() returns the derived roster
+through one memoized choke point; requireStoredGalaxy() serves only
+the write sites; saveGalaxyCivs asserts no CHILD_ID_PREFIX id ever
+reaches storage. The only truth a voyage writes is its launch record
+(galaxy:voyages, cohort-wide: a founded civilization is everyone's
+fact) and its departure light. Wipe the wake queue and every colony
+still exists. Invisibility is not enforced by voyage code at all: the
+child's first emission epoch is dated landfallYear, so the existing
+light-cone clip hides it from every observer until founding plus
+distance.
+
+**Three ships, F frozen at launch**: the seedship at 0.1c (canon,
+520 compute, Investment); the torch at 0.5c behind an eight-year
+departure flare (3400, Endeavor); the beam-pushed sail at 0.8c behind
+the launch-beam project and a battery burning at 0.80 for min(60, 2d)
+years (2600, Endeavor). Fast, informed, and loud, or slow, blind, and
+silent; the amendment horizon (F-1)d shrinks as speed rises. Time
+dilation is narration only.
+
+**The forecast survey** prices the act before it: information age at
+landfall is (1+F)d, and the arrival spread is a prior over public
+facts (spectral class), never truth: the survey reads no live voyages
+(a committed ship is not leakable), a visible source forces WIDEST,
+and a sub-floor civilization reads as an empty star until landfall
+finds it occupied: the designed-wrong-answer rule, reused.
+
+**The charter** is the launch-time value function: five dial positions
+snapped inside the parent's own bands with per-dial pins (a pinned
+axis never walks), four clause groups (founding, posture, signal-plan,
+on-hail; founding and posture required), one validateName token. The
+child's archetype resolves from the sheet through nearestArchetype,
+the same seam that places players; found-dark is the game's first
+sub-floor emitter, and found-dark plus send-no-word means never
+learning whether your child exists. No emission epoch may predate the
+landfall year.
+
+**The walk and the brake**: a child's sheet derives (childDialsAt),
+never ticks: a halflife walk from the charter toward the destination
+cradle's lean, slowed by conversation. Each completed exchange (your
+act arrived, their answer sent after it) credits one round trip of
+brake, capped at half of elapsed time, decaying with the walk itself:
+past two-thirds drift a child cannot be held at all. Distance decides
+who can be held close. The founding light samples the walked sheet, so
+devotion shows in the record, dated. Muting your child stops the brake
+dead.
+
+**The Ledger** derives every row from observables (lineage.ts: no
+truth path exists in the module; its header carries the grep). States
+are the parent's own clock arithmetic: outbound, awaiting-light,
+rooted, dark; `abandoned` is refused as unassertable from darkness,
+and independence is not a state but the top drift band, latched once,
+forever. Drift is a disagreement tally over dated observations: what
+you have actually read (the light channel on voice-silence; stated
+culture/dial parts on any axis) against the charter as written, over
+max(n,3), rendered as words with a sample line, never a number. The
+bands: unread, close, kindred, estranged, independent. The Ledger is a
+hub section with no cyan, no badges, no counts, and one verb per row:
+a child is a relationship, not an undertaking.
+
+**Standing orders**: one class ships: on warm movement inside twenty
+light-years, launch the sentinel. Armed on the sky with a sentinel
+charter as the consent's content; fired only from sky assembly, never
+from an alarm; once per arming; priced at fire time, and a fire that
+cannot be paid for never becomes a debt: it fizzles and says so. THE
+STANDING-ORDER INVARIANT stands in the cohort header beside the
+presence rule: a standing order may commit only reversible,
+Ambient-class dispatches that reveal nothing and ask nothing; it can
+never reach a ContactAct, a broadcast, or an Investment-class spend.
+saveMissionState has exactly three call sites, grepped.
+
+**Deferred, seams named**: the reunion payload and lineage referendum
+(PartKind "reunion"), the returning state (voyage.returnLeg), grounded
+`abandoned` (a landfall Assay), handoff of an independent child to a
+joining player (Phase B: a token bound to civ-v-*), dilation as a
+quantity, the sail's battery stopping.

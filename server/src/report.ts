@@ -31,9 +31,18 @@
 
 import type { ArchetypeId } from "./minds";
 import { missionProseName, SILENCE_GRACE_YEARS } from "./missions";
+// A4: the ship's name in prose. A VALUE import, and it is the only one this
+// module takes from voyages.ts — `voyageProseName` is a three-way string
+// switch that touches no galaxy, no cone and no seed, so the structural
+// guarantee in this file's header (no truth read, ever) is untouched.
+import { voyageProseName } from "./voyages";
+// A4 S2: the order's name in prose and the mission's, on exactly the same
+// terms — a string switch over a closed catalog, no galaxy, no cone, no seed.
+import { ORDER_CLASSES, orderProseName } from "./orders";
 import type {
   DetectedSource,
   Hypothesis,
+  LedgerWire,
   HypothesisId,
   MissionSnapshot,
   ProjectSnapshot,
@@ -41,6 +50,7 @@ import type {
   ReportPayload,
   ReportRoute,
   StudySnapshot,
+  VoyageSnapshot,
 } from "./protocol";
 import { questionById } from "./questions";
 import {
@@ -58,6 +68,14 @@ import {
   recordStudyGrounded,
   recordStudyOvertaken,
   recordStudyRegressed,
+  recordLineageBand,
+  recordLineageDark,
+  recordLineageLandfall,
+  recordOrderBlocked,
+  recordOrderFired,
+  recordOrderUnaffordable,
+  recordVoyageLandfall,
+  recordVoyageLaunched,
   recordTripwireTripped,
   render,
   reportHeader,
@@ -85,7 +103,15 @@ export type ReportKind =
   | "question-regressed"
   | "study-called"
   | "study-overtaken"
-  | "tripwire-tripped";
+  | "tripwire-tripped"
+  // ── A4 ──
+  | "voyage-launched"
+  | "voyage-landfall"
+  // ── A4 S2: the aftermath ──
+  | "order-fired"
+  | "lineage-landfall"
+  | "lineage-band"
+  | "lineage-dark";
 
 export type ReportFamily = "settled" | "refused" | "sent" | "spoken" | "unspoken" | "record";
 
@@ -147,6 +173,11 @@ export function newReportState(nowYear: number): ReportState {
 export interface DeriveReportEntriesInput {
   readonly studies: readonly StudySnapshot[];
   readonly missions: readonly MissionSnapshot[];
+  /** A4. Optional so every caller that predates voyages keeps compiling and
+   *  keeps deriving exactly the entries it derived before. */
+  readonly voyages?: readonly VoyageSnapshot[];
+  /** A4 S2: the Ledger, on the same optional terms and for the same reason. */
+  readonly ledger?: LedgerWire;
   readonly projects: readonly ProjectSnapshot[];
   /** For distanceLy (every remote entry's light age at its own year — R-33)
    *  and as a designation fallback. A study/source pairing not found here
@@ -567,7 +598,202 @@ function projectEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
 }
 
 /**
- * All nine kinds' candidates for this sky send, unfiltered against what is
+ * A4: the two things a voyage ever puts in the annal — it left, and the one
+ * word came home. Everything AFTER the landfall belongs to the Ledger, which
+ * is a relationship rather than an undertaking and keeps its own entries.
+ *
+ * `voyage-landfall` materializes from the SNAPSHOT'S REPORT and from nothing
+ * else, so the light-cone gate that produced it (voyages.ts's `voyageOutcome`,
+ * through a LightCone or a StarCone) is the only gate this module needs — and
+ * it keeps this file's structural guarantee intact: still no Galaxy, still no
+ * cone, still no truth read anywhere in it.
+ *
+ * A `send-no-word` charter produces NO ENTRY AT ALL, ever. Its snapshot has no
+ * report, so there is no candidate here, and the annal simply never mentions
+ * the landfall. That silence is the record being honest: nothing came.
+ */
+function voyageEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
+  const { localNames, designations, ascensionYear, nowYear, sinceYear } = input;
+  const out: StoredReportEntry[] = [];
+  for (const v of input.voyages ?? []) {
+    const sourceName = nameFor(v.starId, localNames, designations);
+    const shipName = voyageProseName(v.kind);
+
+    if (inWindow(v.launchedYear, sinceYear, nowYear)) {
+      const firstWordYears = v.firstWordYear - v.launchedYear;
+      const record = recordVoyageLaunched(
+        shipName,
+        v.childName,
+        sourceName,
+        v.distanceLy,
+        firstWordYears,
+      );
+      out.push({
+        id: `v/${v.id}/launched`,
+        kind: "voyage-launched",
+        family: "sent",
+        stampYear: v.launchedYear,
+        stamp: render(epochStamp(v.launchedYear, ascensionYear)),
+        record: render(record),
+        pinned: pinnedTokens(record),
+        route: { kind: "voyage", voyageId: v.id },
+      });
+    }
+
+    const report = v.report;
+    if (report !== null && inWindow(report.arrivedYear, sinceYear, nowYear)) {
+      const record = recordVoyageLandfall(
+        v.childName,
+        sourceName,
+        report.headline,
+        v.distanceLy,
+      );
+      out.push({
+        id: `v/${v.id}/landfall`,
+        kind: "voyage-landfall",
+        family: "spoken",
+        stampYear: report.arrivedYear,
+        stamp: render(epochStamp(report.arrivedYear, ascensionYear)),
+        record: render(record),
+        pinned: pinnedTokens(record),
+        route: { kind: "voyage", voyageId: v.id },
+      });
+    }
+  }
+  return out;
+}
+
+/**
+ * A4 S2: what a standing order did while nobody was looking. ONE ENTRY PER
+ * FIRING, whatever the firing decided — the arming is spent on all three
+ * outcomes, and an order that came due and could not be paid for is exactly
+ * the kind of thing an absent player must be told without having to go
+ * looking. The id carries the ARMING YEAR, so a re-armed order that fires
+ * again is a second entry and the same arming can never produce two.
+ *
+ * `evidenceAgeYears` is frozen on the wire (orders.ts froze it at the fire),
+ * so this sentence says how old the light was THEN and does not age.
+ */
+/** What the one armable class dispatches, for the sentence that names it.
+ *  Read from the catalog rather than restated, so an order that ever
+ *  dispatches something else renames itself here too. */
+const ORDER_MISSION_KIND = ORDER_CLASSES[0]?.missionKind ?? "sentinel";
+
+function orderEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
+  const { localNames, designations, ascensionYear, nowYear, sinceYear } = input;
+  const out: StoredReportEntry[] = [];
+  for (const order of input.ledger?.orders ?? []) {
+    if (order.firedYear === null || order.armedYear === null) continue;
+    if (!inWindow(order.firedYear, sinceYear, nowYear)) continue;
+    const starId = order.firedStarId;
+    if (starId === null) continue;
+    const sourceName = nameFor(starId, localNames, designations);
+    const orderName = orderProseName(order.orderClass);
+    const record =
+      order.outcome === "launched"
+        ? recordOrderFired(
+            orderName,
+            missionProseName(ORDER_MISSION_KIND),
+            sourceName,
+            order.evidenceAgeYears ?? 0,
+          )
+        : order.outcome === "unaffordable"
+          ? recordOrderUnaffordable(orderName, sourceName, order.costCompute)
+          : recordOrderBlocked(orderName, sourceName);
+    out.push({
+      id: `o/${order.orderClass}/${order.armedYear}`,
+      kind: "order-fired",
+      family: "sent",
+      stampYear: order.firedYear,
+      stamp: render(epochStamp(order.firedYear, ascensionYear)),
+      record: render(record),
+      pinned: pinnedTokens(record),
+      // The source it fired on, which is the surface the player would open
+      // next. A route to the mission would be better and cannot be built here:
+      // this module sees the snapshots, and the launched mission's id is not
+      // one of the things a fired order carries.
+      route: { kind: "source", starId },
+    });
+  }
+  return out;
+}
+
+/**
+ * A4 S2: the three things the Ledger puts in the annal.
+ *
+ * `lineage-landfall` is the first light from a child arriving, and it is a
+ * `record` (mute) entry deliberately: the ship's own word already earned a
+ * `spoken` entry and a remark, and the colony lighting up on schedule is the
+ * expected case rather than news.
+ *
+ * `lineage-band` fires on a STRICTLY HIGHER band and never on `close` — the
+ * first band is what landfall already said, and an entry for it would be the
+ * same fact twice in the same year. `lineage-dark` is `unspoken`, the family
+ * whose remarks are about a silence and never about a cause.
+ */
+function lineageEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
+  const { localNames, designations, ascensionYear, nowYear, sinceYear } = input;
+  const out: StoredReportEntry[] = [];
+  for (const row of input.ledger?.rows ?? []) {
+    const sourceName = nameFor(row.starId, localNames, designations);
+
+    if (row.state === "rooted" && inWindow(row.confirmYear, sinceYear, nowYear)) {
+      const record = recordLineageLandfall(row.childName, sourceName, row.distanceLy);
+      out.push({
+        id: `l/${row.voyageId}/landfall`,
+        kind: "lineage-landfall",
+        family: "record",
+        stampYear: row.confirmYear,
+        stamp: render(epochStamp(row.confirmYear, ascensionYear)),
+        record: render(record),
+        pinned: pinnedTokens(record),
+        route: { kind: "ledger", voyageId: row.voyageId },
+      });
+    }
+
+    if (
+      row.bandSinceYear !== null &&
+      row.band !== "unread" &&
+      row.band !== "close" &&
+      inWindow(row.bandSinceYear, sinceYear, nowYear)
+    ) {
+      const record = recordLineageBand(
+        row.childName,
+        row.band,
+        row.bandLine,
+        row.lightAgeYears ?? row.distanceLy,
+      );
+      out.push({
+        id: `l/${row.voyageId}/band/${row.band}`,
+        kind: "lineage-band",
+        family: "record",
+        stampYear: row.bandSinceYear,
+        stamp: render(epochStamp(row.bandSinceYear, ascensionYear)),
+        record: render(record),
+        pinned: pinnedTokens(record),
+        route: { kind: "ledger", voyageId: row.voyageId },
+      });
+    }
+
+    if (row.darkSinceYear !== null && inWindow(row.darkSinceYear, sinceYear, nowYear)) {
+      const record = recordLineageDark(row.childName, sourceName, row.distanceLy);
+      out.push({
+        id: `l/${row.voyageId}/dark`,
+        kind: "lineage-dark",
+        family: "unspoken",
+        stampYear: row.darkSinceYear,
+        stamp: render(epochStamp(row.darkSinceYear, ascensionYear)),
+        record: render(record),
+        pinned: pinnedTokens(record),
+        route: { kind: "ledger", voyageId: row.voyageId },
+      });
+    }
+  }
+  return out;
+}
+
+/**
+ * Every kind's candidates for this sky send, unfiltered against what is
  * already stored (that is `mergeReportEntries`'s job — this function is
  * stateless and returns the same candidates every time it is given the same
  * snapshots, `nowYear`, and `sinceYear`).
@@ -578,6 +804,9 @@ export function deriveReportEntries(
   return [
     ...questionEntries(input),
     ...missionEntries(input),
+    ...voyageEntries(input),
+    ...orderEntries(input),
+    ...lineageEntries(input),
     ...skyArrivalEntries(input),
     ...studyGroundedEntries(input),
     ...studyExitEntries(input),

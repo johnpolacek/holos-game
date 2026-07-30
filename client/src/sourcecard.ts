@@ -57,6 +57,12 @@ export type MissionCardState = "none" | "live" | "inactive";
  *  in flight and the row is still a verb. */
 export type ContactCardState = { readonly arrivesYear: number } | null;
 
+/** A4: the voyage row's state, as App derives it from `sky.voyages` for the
+ *  currently open source. "live" (a founding still under way there — the
+ *  server refuses a second, so the row is a state and not a verb), "none"
+ *  (nothing has ever been sent, or everything sent has closed). */
+export type VoyageCardState = "none" | "live";
+
 const SWIPE_CLOSE_PX = 56;
 const CHART_H = 46; // css px, the light-history strip's height
 const CHART_PAD_TOP = 6;
@@ -116,6 +122,7 @@ export class SourceCard {
   private readonly studyBtn: HTMLButtonElement;
   private readonly missionBtn: HTMLButtonElement;
   private readonly contactBtn: HTMLButtonElement;
+  private readonly voyageBtn: HTMLButtonElement;
   /** A2.6: the mutual quiet's rail, above the three affordance rows. Empty
    *  and hidden whenever no understanding stands with this source, which is
    *  the common case. */
@@ -125,6 +132,7 @@ export class SourceCard {
   private onStudyActionCb: ((starId: string) => void) | null = null;
   private onMissionActionCb: ((starId: string) => void) | null = null;
   private onContactActionCb: ((starId: string) => void) | null = null;
+  private onVoyageActionCb: ((starId: string) => void) | null = null;
 
   private source: DetectedSource | null = null;
   private localNames: ReadonlyMap<string, string> = new Map();
@@ -134,6 +142,7 @@ export class SourceCard {
   private studyStatus: StudyStatus | null = null;
   private missionState: MissionCardState | null = null;
   private contactState: ContactCardState = null;
+  private voyageState: VoyageCardState | null = null;
   private accord: AccordRail | null = null;
   private explainerEl: HTMLDivElement | null = null;
 
@@ -268,6 +277,23 @@ export class SourceCard {
     });
     contactRow.append(this.contactBtn);
 
+    // A4: the fourth row, same anatomy again, the founding verb. THE SURVEY
+    // covers the empty stars; this card covers the ones that are shining, and
+    // aiming a founding at somebody is allowed — it simply does not root, and
+    // the sheet's forecast says so before the tap that spends anything. Amber
+    // like the study and probe rows: what a ship crosses is somebody else's
+    // sky, and the cyan exception on this card is the beam's alone.
+    const voyageRow = document.createElement("div");
+    voyageRow.className = "source-card-voyage-row";
+    this.voyageBtn = document.createElement("button");
+    this.voyageBtn.type = "button";
+    this.voyageBtn.className = "source-card-voyage-affordance";
+    this.voyageBtn.textContent = "SEND A SHIP";
+    this.voyageBtn.addEventListener("click", () => {
+      if (this.source !== null) this.onVoyageActionCb?.(this.source.starId);
+    });
+    voyageRow.append(this.voyageBtn);
+
     // A2.6: the compliance rail. It sits ABOVE the three verbs because it is
     // a state of the relationship rather than something to do about it, and
     // it is the same two lines the thread renders one surface over (accord.ts
@@ -286,6 +312,7 @@ export class SourceCard {
       studyRow,
       missionRow,
       contactRow,
+      voyageRow,
     );
     this.root.append(this.backdrop, this.sheet);
     container.append(this.root);
@@ -325,6 +352,15 @@ export class SourceCard {
     this.onContactActionCb = cb;
   }
 
+  /** A4: fired when the founding-affordance row is tapped, with the open
+   *  source's starId. Same contract as the three rows above it — the card
+   *  reports the tap, and the App opens the sheet. Never fires while a
+   *  founding is already under way to this source: that variant is a state,
+   *  not a verb. */
+  onVoyageAction(cb: (starId: string) => void): void {
+    this.onVoyageActionCb = cb;
+  }
+
   isOpen(): boolean {
     return this.source !== null;
   }
@@ -343,12 +379,14 @@ export class SourceCard {
     this.studyStatus = null;
     this.missionState = null;
     this.contactState = null;
+    this.voyageState = null;
     this.accord = null;
     this.setExplainer(null); // a second source never inherits the first's note
     this.renderAll();
     this.renderStudyRow();
     this.renderMissionRow();
     this.renderContactRow();
+    this.renderVoyageRow();
     this.renderAccord();
     this.root.classList.add("open");
   }
@@ -393,6 +431,14 @@ export class SourceCard {
     this.renderContactRow();
   }
 
+  /** A4: the founding row's state for the currently open source, derived by
+   *  the App from `sky.voyages`. Called right after open() (and on every
+   *  later sky), mirroring setContactState. */
+  setVoyageState(state: VoyageCardState | null): void {
+    this.voyageState = state;
+    this.renderVoyageRow();
+  }
+
   /** A2.6: the mutual quiet standing with this source, or null for none. The
    *  App reads it off the thread summary the sky already carries; this card
    *  derives nothing and only renders (setContactState's contract). */
@@ -429,6 +475,7 @@ export class SourceCard {
     this.studyStatus = null;
     this.missionState = null;
     this.contactState = null;
+    this.voyageState = null;
     this.accord = null;
   }
 
@@ -546,6 +593,22 @@ export class SourceCard {
     this.contactBtn.textContent = "AIM A BEAM";
     this.contactBtn.className = "source-card-contact-affordance";
     this.contactBtn.disabled = false;
+  }
+
+  private renderVoyageRow(): void {
+    if (this.voyageState === "live") {
+      // One founding per star at a time (voyages.ts's cap), so there is
+      // nothing to open and nothing to send: the row states what is true and
+      // stops being tappable, the beam row's own rule.
+      this.voyageBtn.textContent = "A SHIP IS ALREADY GOING THERE";
+      this.voyageBtn.className =
+        "source-card-voyage-affordance source-card-voyage-affordance--active";
+      this.voyageBtn.disabled = true;
+      return;
+    }
+    this.voyageBtn.textContent = "SEND A SHIP";
+    this.voyageBtn.className = "source-card-voyage-affordance";
+    this.voyageBtn.disabled = false;
   }
 
   /** The rail: the headline, then what their light has done since, which is
