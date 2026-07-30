@@ -75,7 +75,19 @@
     // thing to check first — and `wrangler tail` prints every accepted
     // line (build-voice.md § AV4).
     "HOLOS_VOICE_GEN": "on",
-    "HOLOS_COUNSEL_GEN": "on"
+    "HOLOS_COUNSEL_GEN": "on",
+    // A5, web push. The VAPID `sub` claim: who to contact about this
+    // application server, sent inside every JWT to every push service. It is
+    // public by definition, which is why it lives here and the two keys do
+    // not — HOLOS_VAPID_PRIVATE_JWK and HOLOS_VAPID_PUBLIC_KEY are Workers
+    // secrets (`npx wrangler secret put …`) and must NEVER appear in this
+    // file. Both absent is the silent-absence case: welcome.push is null and
+    // notifications are simply not offered.
+    //
+    // It must parse as a mailto: or https: URI. A malformed one is the single
+    // most common first-run failure (Apple answers 400 and names nothing
+    // useful), so push.ts refuses to sign with anything else.
+    "HOLOS_VAPID_SUBJECT": "https://playholos.com/"
     // HOLOS_DEV_ENDPOINTS is deliberately ABSENT: it opens the Cohort's
     // local-only dev HTTP surface, which hands out other civilizations'
     // present. It belongs in `.dev.vars` and nowhere else. Anything set

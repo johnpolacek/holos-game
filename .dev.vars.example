@@ -21,3 +21,29 @@ HOLOS_DEV_ENDPOINTS = "on"
 # A key with the flags off generates nothing; a flag on with no key serves
 # templates silently and warns once in `wrangler tail`.
 ANTHROPIC_API_KEY = ""
+
+# A5, web push. Both of these are Workers secrets in production, never vars
+# and never in the repo:
+#   npx wrangler secret put HOLOS_VAPID_PRIVATE_JWK
+#   npx wrangler secret put HOLOS_VAPID_PUBLIC_KEY
+# They are ONE KEYPAIR and must be set together from one generation: the
+# Worker rebuilds the public point from the private JWK's own coordinates at
+# boot and refuses to serve notifications if the two disagree, rather than
+# minting subscriptions nobody can ever deliver to. Generate them with the
+# snippet in docs/deploy.md § Web push (VAPID). Both absent is the default and
+# means the feature is silently off: welcome.push is null, no service worker
+# registers, no hub row renders.
+HOLOS_VAPID_PRIVATE_JWK = ""
+HOLOS_VAPID_PUBLIC_KEY = ""
+
+# Short-circuits delivery so push can be exercised with no push service at
+# all: "on" logs the request (host, TTL, Topic, the head of the JWT) and
+# answers a synthetic 201 without opening a socket. A bare status code
+# instead ("410", "500") answers THAT, which is how the subscription-gone and
+# service-trouble branches are tested. Absence is off, and off is the only
+# thing that should ever ship. See docs/playtest.md § Testing push.
+HOLOS_PUSH_DRY_RUN = "off"
+
+# HOLOS_VAPID_SUBJECT lives in wrangler.jsonc's `vars`: it is public by
+# definition (it travels in every JWT). Override it here only if you are
+# testing against a different application server identity.
