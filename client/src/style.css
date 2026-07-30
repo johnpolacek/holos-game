@@ -263,10 +263,9 @@ body {
 /* A2.6: the claim ceremony's write-it-down sentence, and the re-onboard
    sheet's line — both running prose, sentences like the rest of this list. */
 .study-account-ceremony-line,
-.reclaim-line {
+.reclaim-line,
 /* The playtest reset's page: what starting over costs, and the refusal. */
 .study-startover-note {
-
   text-wrap: pretty;
 }
 
