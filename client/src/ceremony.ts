@@ -169,10 +169,47 @@ function dialPct(position: number): number {
   return ((position + 1) / 2) * 100;
 }
 
+/**
+ * A4: what turns a read-only band into a written one (the charter composer's
+ * dial rows, studyboard.ts). The band's own markup does not change — the
+ * PARENT'S range is still the track and the parent's position is still drawn,
+ * now as a ghost notch behind the child's — so the two surfaces cannot drift
+ * apart: BECOME reads a card, the charter writes one, and they are the same
+ * furniture seen from opposite sides.
+ *
+ * `onChange` receives a position ALREADY SNAPPED to one of `steps` notches
+ * inside [min,max] and already clamped: a caller can send it to the wire
+ * without re-deriving anything. Nothing here re-renders — the marker moves
+ * itself, so a drag never rebuilds the sheet under the thumb.
+ */
+export interface DialBandEdit {
+  /** The parent's own position, drawn behind the child's as a ghost. */
+  readonly ghostPosition: number;
+  /** Notches spanning [min,max] (the catalog's `dialSteps`). */
+  readonly steps: number;
+  readonly onChange: (position: number) => void;
+}
+
+/** The nearest of `steps` notches spanning [min,max] — voyages.ts's
+ *  `snapToNotch`, client side, so the sheet shows the position the server
+ *  will store rather than one it will quietly move. */
+function snapDial(position: number, min: number, max: number, steps: number): number {
+  const span = max - min;
+  if (span <= 0 || steps < 2) return min;
+  const step = span / (steps - 1);
+  const notch = Math.round((position - min) / step);
+  const clamped = Math.min(steps - 1, Math.max(0, notch));
+  return min + clamped * step;
+}
+
 /** Reusable dial band: pole labels (in-world only) + earned position + the
  * allowed range it was drawn from. Tapping the row expands an in-world
  * explanation — the axis question and what leaning each way means. */
-function renderDialBand(axis: DialAxis, setting: DialSetting): HTMLElement {
+export function renderDialBand(
+  axis: DialAxis,
+  setting: DialSetting,
+  edit?: DialBandEdit,
+): HTMLElement {
   const item = document.createElement("div");
   item.className = "dial-item";
 
@@ -201,6 +238,43 @@ function renderDialBand(axis: DialAxis, setting: DialSetting): HTMLElement {
   marker.style.left = `${dialPct(setting.position)}%`;
 
   track.append(range, marker);
+
+  if (edit !== undefined) {
+    // The ghost sits BEHIND the child's notch (appended first, so the live
+    // marker paints over it where the two coincide): the parent's own
+    // position, kept on screen so a charter reads as a departure from
+    // somewhere rather than a set of numbers picked in the dark.
+    const ghost = document.createElement("div");
+    ghost.className = "dial-marker dial-marker--ghost";
+    ghost.style.left = `${dialPct(edit.ghostPosition)}%`;
+    track.insertBefore(ghost, marker);
+    track.classList.add("dial-track--editable");
+
+    const put = (clientX: number): void => {
+      const rect = track.getBoundingClientRect();
+      if (rect.width <= 0) return;
+      const fraction = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      const raw = fraction * 2 - 1;
+      const bounded = Math.min(setting.max, Math.max(setting.min, raw));
+      const snapped = snapDial(bounded, setting.min, setting.max, edit.steps);
+      marker.style.left = `${dialPct(snapped)}%`;
+      edit.onChange(snapped);
+    };
+
+    track.addEventListener("pointerdown", (e) => {
+      // The track owns the gesture; the row underneath keeps its tap-to-read
+      // toggle, which is why this stops here rather than bubbling.
+      e.stopPropagation();
+      e.preventDefault();
+      track.setPointerCapture(e.pointerId);
+      put(e.clientX);
+    });
+    track.addEventListener("pointermove", (e) => {
+      if (!track.hasPointerCapture(e.pointerId)) return;
+      put(e.clientX);
+    });
+    track.addEventListener("click", (e) => e.stopPropagation());
+  }
 
   const right = document.createElement("span");
   right.className = "dial-pole dial-pole--right";

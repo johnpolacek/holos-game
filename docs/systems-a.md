@@ -1127,3 +1127,313 @@ exact anonymous resume path; both devices stay live and every sky
 fans out to the whole seat. The key travels in exactly one message
 type; accounts appear on no wire shape visible to another player: the
 account is a login, not a persona.
+
+---
+
+## §15 The travel half (A4, as built)
+
+Seedships, relativistic ships, the forecast, full charters, landfall,
+the Ledger, drift, and standing orders. The recursion made literal: a
+player writes a CivSeed-shaped value function, launches it on a real
+flight clock, and a child civilization enters everyone's sky at
+light-honest times.
+
+**The child is derived, never written.** `galaxyWithLandfalls`
+(voyages.ts) is the only producer of a child PlacedCiv: a pure fold
+over the stored voyage log in (landfallYear, id) order with occupancy
+threaded, so ship races are deterministic and an earlier colony blocks
+a later ship. The cohort's requireGalaxy() returns the derived roster
+through one memoized choke point; requireStoredGalaxy() serves only
+the write sites; saveGalaxyCivs asserts no CHILD_ID_PREFIX id ever
+reaches storage. The only truth a voyage writes is its launch record
+(galaxy:voyages, cohort-wide: a founded civilization is everyone's
+fact) and its departure light. Wipe the wake queue and every colony
+still exists. Invisibility is not enforced by voyage code at all: the
+child's first emission epoch is dated landfallYear, so the existing
+light-cone clip hides it from every observer until founding plus
+distance.
+
+**Three ships, F frozen at launch**: the seedship at 0.1c (canon,
+520 compute, Investment); the torch at 0.5c behind an eight-year
+departure flare (3400, Endeavor); the beam-pushed sail at 0.8c behind
+the launch-beam project and a battery burning at 0.80 for min(60, 2d)
+years (2600, Endeavor). Fast, informed, and loud, or slow, blind, and
+silent; the amendment horizon (F-1)d shrinks as speed rises. Time
+dilation is narration only.
+
+**The forecast survey** prices the act before it: information age at
+landfall is (1+F)d, and the arrival spread is a prior over public
+facts (spectral class), never truth: the survey reads no live voyages
+(a committed ship is not leakable), a visible source forces WIDEST,
+and a sub-floor civilization reads as an empty star until landfall
+finds it occupied: the designed-wrong-answer rule, reused.
+
+**The charter** is the launch-time value function: five dial positions
+snapped inside the parent's own bands with per-dial pins (a pinned
+axis never walks), four clause groups (founding, posture, signal-plan,
+on-hail; founding and posture required), one validateName token. The
+child's archetype resolves from the sheet through nearestArchetype,
+the same seam that places players; found-dark is the game's first
+sub-floor emitter, and found-dark plus send-no-word means never
+learning whether your child exists. No emission epoch may predate the
+landfall year.
+
+**The walk and the brake**: a child's sheet derives (childDialsAt),
+never ticks: a halflife walk from the charter toward the destination
+cradle's lean, slowed by conversation. Each completed exchange (your
+act arrived, their answer sent after it) credits one round trip of
+brake, capped at half of elapsed time, decaying with the walk itself:
+past two-thirds drift a child cannot be held at all. Distance decides
+who can be held close. The founding light samples the walked sheet, so
+devotion shows in the record, dated. Muting your child stops the brake
+dead.
+
+**The Ledger** derives every row from observables (lineage.ts: no
+truth path exists in the module; its header carries the grep). States
+are the parent's own clock arithmetic: outbound, awaiting-light,
+rooted, dark; `abandoned` is refused as unassertable from darkness,
+and independence is not a state but the top drift band, latched once,
+forever. Drift is a disagreement tally over dated observations: what
+you have actually read (the light channel on voice-silence; stated
+culture/dial parts on any axis) against the charter as written, over
+max(n,3), rendered as words with a sample line, never a number. The
+bands: unread, close, kindred, estranged, independent. The Ledger is a
+hub section with no cyan, no badges, no counts, and one verb per row:
+a child is a relationship, not an undertaking.
+
+**Standing orders**: one class ships: on warm movement inside twenty
+light-years, launch the sentinel. Armed on the sky with a sentinel
+charter as the consent's content; fired only from sky assembly, never
+from an alarm; once per arming; priced at fire time, and a fire that
+cannot be paid for never becomes a debt: it fizzles and says so. THE
+STANDING-ORDER INVARIANT stands in the cohort header beside the
+presence rule: a standing order may commit only reversible,
+Ambient-class dispatches that reveal nothing and ask nothing; it can
+never reach a ContactAct, a broadcast, or an Investment-class spend.
+saveMissionState has exactly three call sites, grepped.
+
+**Deferred, seams named**: the reunion payload and lineage referendum
+(PartKind "reunion"), the returning state (voyage.returnLeg), grounded
+`abandoned` (a landfall Assay), handoff of an independent child to a
+joining player (Phase B: a token bound to civ-v-*), dilation as a
+quantity, the sail's battery stopping.
+
+## §16 Grown behavior (A5, as built)
+
+The archetype spectrum acting over time. An AI civilization's emission
+history is no longer the curve its seed was generated with: it is a
+pure function of (its seed, the cohort seed key, the stored act log,
+the stored voyage record, and every other civilization's derivable
+light), evaluated at read time inside the cohort's derivedFold and
+stored nowhere. The third application of the derivation discipline
+(AI speech in §13, children in §15, now light itself), and the
+cheapest: EmissionEpoch[] was already a future-inclusive authored
+curve, and A5 generalizes A4's foundingEmissionHistory move from
+colonies to everyone.
+
+**Behavior writes light, never character.** emissionHistory is the
+only field the fold rewrites, plus the derived-only behaviorGrown
+flag (saveGalaxyCivs throws on it, the CHILD_ID_PREFIX assertion's
+sibling). Dials, archetype, posture, charter, chronicle, ladders and
+stocks are untouched, so maskTierAt, charterPosture, drift and the
+contest read the same facts as before. The authored curve is layered
+on additively, never edited; nothing is dated before
+max(0, ascensionYear), the authored dark turn, or the end of the
+waking, so the deep past is byte-identical by construction.
+
+**The rule table** (behavior.ts BEHAVIOR_RULES, one row per
+archetype, each with a `why` column): five cadence shapes: climb
+(tide, beacon), pulse (engine, congress, herald), fade (monument,
+cloister, shepherd), train (sowing), shed (phoenix), periods 900 to
+3600 years. At five real minutes per game year a source produces one
+visible transition every 2.5 to 8 real days, so something in an
+8-to-16-civ sky moves every day or two. The engine's ceiling (0.115)
+sits under MADE_HEAT_FLOOR and the cloister's floor (0.012) under
+DETECTION_FLOOR: the one civilization that can vanish outright. A
+young civilization gets the sixth shape: the waking, a flare at its
+ascensionYear (3 to 35 real hours after cohort creation), after
+which its archetype's cadence begins.
+
+**Reactions**: four triggers, each an arrival through the reactor's
+own cone (new-source, warm, quiet, beam); four responses: kindle
+(beacon, tide, herald), flinch (monument, cloister, shepherd,
+sowing), skip (engine, congress: the missed beat, delivered by
+deleting a scheduled epoch), hasten (phoenix pulls its dark phase
+forward). A player's own broadcast is the warm trigger for free, so
+their loud act makes a nearby quiet source visibly dim about two
+real days later: the one loop nothing else in the game closes. The
+shepherd reacts only inside its 12 ly ward radius.
+
+**The fold** (galaxyWithBehavior, exactly one call site, in
+derivedFold after the landfall fold, so a drifted colony grows into
+the behavior of the character it became): cadence laid down in
+closed form (cost per event, never per year), then a global event
+queue drained in (arrivalYear, reactorId, triggerKey) order with
+seeded lag in [24, 180] years. Well-founded because every causal
+step advances time by at least 24 years; terminated by
+REACTION_CAP 8 with MIN_REACTION_SPACING 600 y; capped at
+CADENCE_CAP 48, which is the arc, not a loop: five real months to a
+year and a half of sky, then a settled posture, answered by A5's
+cohort-seeding bullet. Memoized behind one new memo term,
+era = floor(nowYear / 240 y), horizon two eras out, so a sky send
+costs what it cost before.
+
+**BEHAVIOR CAUSALITY** (the applyBroadcast safety property, one
+noun over): every behavior epoch is dated at or after its newest
+input, every new input is dated now, so no derivation ever inserts,
+moves or removes an epoch at or before nowYear, and already-served
+light is byte-identical forever. Two structural guards sit above
+the table because tuning cannot supply them: the invisibility guard
+(a source under DETECTION_FLOOR is exactly what its seed says, so a
+found-dark colony stays hidden) and the churn guard (no behavior
+epoch may cross MADE_HEAT_FLOOR within 2400 years of the last
+crossing, so the overtaken exit fires at most about once a real
+week per source). Players are immune by reference: a player
+civilization is returned as the identical object.
+
+**Unprompted openers** became an archetype-keyed table in
+traffic.ts: beacon, tide and herald keep firstBrightYear unchanged;
+the congress newly opens on firstWarmYear, the player's first
+upward MADE_HEAT_FLOOR crossing at or after cohort year 0; the
+other six never open. At most one candidate per pair, as before.
+
+**Zero new wire fields, zero new persistence keys, zero banked
+lines.** Every payoff lands on a shipped surface: the source card
+and echo shell, the evidence trail, the annal, belief shifts and
+the crosses tripwire, the overtaken exit, the warm-movement
+standing order, the leakage-stops tripwire, the Ledger's drift
+band, and a thread that opens itself.
+
+**Deferred, seams named**: a lightHistory wire cap (needs
+EvidenceEntry.id off the array index first), a line of chrome for
+the vanished cloister's closed study, retunes as diffs to
+BEHAVIOR_RULES only, and the successor problem (cohort seeding).
+
+## §17 Web push (A5, as built)
+
+The second half of the tripwire bullet: in-app shipped with A2.3, and
+now the phone. A player arms a tripwire, closes the tab for a week,
+and their device says when a watch trips. At five real minutes per
+game year a week away is two thousand years of galaxy, so the push is
+the async spine's basic need answered: absence becomes fiction
+instead of neglect.
+
+**Payload-free, structurally.** The POST body is empty; the service
+worker (client/public/sw.js, no fetch handler, no caching) shows one
+fixed line, "A watch tripped. One of the conditions you left standing
+now holds. The board has the rest." The server stores no subscriber
+key material (no p256dh, no auth), so no code path could put a fact
+on a push service's wire even if a later change tried. The content
+waits behind the tap, in the game, through the cone, as always.
+
+**The watch.** A tripwire's condition can change only at a dated
+arrival: a grown emission epoch reaching the observer, a bought
+question answering, a probe report landing. scheduleWatch computes
+each seat's next change point and puts one singleton, trim-exempt
+watch event on the existing alarm queue (backstop one real day);
+runWatch re-derives, decides, sends, and writes only push:<token>.
+Alarms stay wake-ups, never truth: the saveStudyState writer set is
+byte-identical to before the slice. One push per absence; the alarm
+chain stops after a push and the next connect restarts it. A seat
+with no subscription pays nothing on any sky send.
+
+**The catch-up walk.** Two of the three tripwire kinds are not
+monotone; a condition that held and stopped holding across an
+absence was previously never recorded. findFirings walks a study's
+change points oldest-first and finds the first year each armed kind
+held; it has exactly two callers, the watch (which only counts) and
+the sky settle (which records), so the push and the board cannot
+disagree. firedYear now carries the year the condition held rather
+than the year somebody looked: a behavior change to a shipped A2.3
+surface, and the bullet's own intent.
+
+**Consent and the cliff.** The ask is spent at the first successful
+arming, once per seat, on the account sheet's mould; never on load,
+never where it cannot be granted. The hub row is the settings
+surface and speaks for this device only. On iOS, push needs the app
+on the Home Screen, and the inert row says exactly that. One denial
+is permanent, so every never-ask branch is load-bearing.
+
+**Crypto with zero dependencies.** VAPID ES256 on crypto.subtle: the
+private key is a JWK in a Workers secret, signatures come out raw
+P1363 which is exactly what JWS wants (no DER anywhere in the
+slice), JWTs are cached per audience, and a boot assertion rebuilds
+the public key from the JWK and disables push on mismatch. Rotation
+is destructive by nature; keyId cleanup plus the boot re-sync heal
+it. Client-supplied endpoints pass an https-plus-allowlist SSRF gate
+before the Worker will fetch them.
+
+**Verified without a push service**: HOLOS_PUSH_DRY_RUN plus
+/dev/push, /dev/watch, /dev/vapid drive the whole path headlessly,
+including the load-bearing consistency check (the recorded firedYear
+equals the change point the watch reported). The one leg this
+environment cannot verify is a bodyless push delivering on real iOS
+hardware; docs/playtest.md carries that checklist.
+
+**Deferred, seams named**: pushes for a first hail and for probe
+reports (the change-point machinery generalizes), re-notify on long
+absence, a notification inbox (never), email (no), per-tripwire
+preferences, offline caching. Standing orders are structurally
+blocked from push: an order has not fired until the settle fires it,
+and no alarm may fire one.
+
+## §18 Seeding and the frontier (A5, as built)
+
+The last Phase A slice: the galaxy-generation retune act3-design.md's
+"silence, kept" section handed to whoever owned it, the outward join,
+and the held stars. Three parts, all server-side, all derived; the
+wire, the client and civseed.ts are untouched by construction.
+
+**The posture mix.** generateGalaxy draws a target posture per seeded
+civilization (BRIGHT_SHARE per age band: young one in four, peer one
+in eight, elder one in twelve) and redraws the catalog chain until a
+character fits, eight attempts before taking what it is given. The
+mix chooses which civilizations exist, never what a civilization is:
+no dark Beacons, no bright Cloisters, the chain's own distribution
+conditioned on posture. Measured across three hundred cohorts with
+grown behavior applied, the loud fraction falls from about half to
+one in five at steady state, and the sign of aging flips: the fades
+now outweigh the pulses once the wakings are done, so the sky gets
+quieter as it ages, which is what pillar one always claimed. The
+opening sky stays deliberately hotter (about a third loud at year
+zero, settling within four real hours): young worlds mid-adolescence
+and dark peers' flares still in flight are the two transients the
+design blessed. The cost is named: bright archetypes fall from three
+per cohort to about one, and BRIGHT_SHARE.young is the lever if
+playtest finds the sky characterless rather than quiet.
+
+**The frontier.** pickPlayerHome keeps its contract (innermost
+eligible star, null when full) and its floor grows: two light-years
+of required separation per seated player, capped at just over half
+the neighborhood radius, colonies counted as occupancy but not as
+seats. The first joiner lands exactly where they always did; the
+sixth lands with ten-plus light-years of quiet and reads their
+nearest neighbor at about seventy real minutes one way instead of
+twenty-seven. Within a cohort the frontier buys hours, not years;
+the "years of real time" insulation in the topology note is a
+cohort-to-cohort claim, and cohorts still do not touch.
+
+**Reserved sky.** Six outer-shell stars per cohort, chosen by a
+derived predicate keyed on the cohort's own seed (reservedStarIds:
+definition plus exactly four call sites, AI seeding, placement, the
+survey board, voyage launch; the greppable contract). Never stored,
+never sent, and silent by design: the survey simply offers the
+next-nearest star, and a voyage aimed at a reserved star answers the
+same bad-message a typo gets, because a refusal a player can
+distinguish from a mistake is a leak about content that does not
+exist yet. Existing cohorts get their reserved set the moment this
+ships, derived from what is already on disk; an incumbent civ on a
+newly reserved star (about one in five cohorts) is left where it is.
+The honest limit, recorded so nobody ships against it: the stars are
+held, the protection is Phase B's. Inside a 25 ly sphere nothing is
+beyond practical reach; Phase B owes either geometry (an outer band
+beyond the seeded radius) or a rule on the civilization (arrivals
+before ascension refused), and should decide before B1.
+
+**Flagged, not fixed**: the industrial emission band sits wholly at
+or above LEAKAGE_FLOOR, so a young world's whole adolescence reads
+loud (a rise you could watch would need the band widened downward,
+a content change to the class a player reads); and the shepherd's
+bright default posture contradicts its own charter (a one-word flip
+worth half a point of loudness, but a change to what the archetype
+is). Both belong to later slices.

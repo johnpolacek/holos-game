@@ -56,7 +56,7 @@
 // `threadRefRowsFor` go through), and cohort.ts's READ-SIDE paths only
 // (`buildThreads` through `assembleSkyState`, and `scheduleThreadWakes`,
 // which schedules a wake and mutates nothing). It must never appear inside a
-// handler that mutates `this.galaxy`.
+// handler that mutates `this.storedGalaxy`.
 //
 // A2.6 NOTE, because it looks like an exception and is not:
 // `onSendSignal` — which does append an act — calls `threadRefRowsFor`, and
@@ -84,7 +84,7 @@
 // at CALL time, and neither module reads the other at module-initialization
 // time.
 
-import type { CivId, EmissionEpoch } from "./civseed";
+import type { CivId, CivSeed, EmissionEpoch } from "./civseed";
 import { lightDelayYears } from "./clock";
 import {
   BEAM_DWELL_YEARS,
@@ -93,8 +93,11 @@ import {
   SILENCE_DECLARED_YEARS,
   type ContactAct,
 } from "./contact";
+// A4: the dial catalog, and the dated-sheet lookup a colony's own word about
+// itself is read through. dials.ts imports nothing and carries no truth.
+import { DIAL_AXES, dialSheetAt, type DialAxisId } from "./dials";
 import { civById, civDistanceLy, starById, type Galaxy } from "./galaxy";
-import { emissionAt, lightConeFor, peekTruth, visibleSky } from "./knowledge";
+import { emissionAt, lightConeFor, peekTruth, visibleSky, MADE_HEAT_FLOOR } from "./knowledge";
 import type { ArchetypeId } from "./minds";
 import {
   MAX_SIGNALS_ON_WIRE,
@@ -355,6 +358,17 @@ export function counterpartClass(a: ArchetypeId): CounterpartClass {
   return COUNTERPART_CLASS[a];
 }
 
+/**
+ * A4: the first year this civilization could have transmitted anything —
+ * the start of its emission record, or its ascension if it somehow has none.
+ * For a seeded civ this sits millennia in the past and constrains nothing;
+ * for a founded colony it is the landfall year, and it is the whole of the
+ * causality fix at `deriveAiSignals`' push site.
+ */
+function existsFromYear(seed: CivSeed): number {
+  return seed.emissionHistory[0]?.fromYear ?? seed.ascensionYear;
+}
+
 // ---------------------------------------------------------------------------
 // Physics
 // ---------------------------------------------------------------------------
@@ -466,6 +480,61 @@ function firstBrightYear(history: readonly EmissionEpoch[]): number | null {
   }
   return null;
 }
+
+/**
+ * A5: the first year the player's own world was ever read as RUNNING HOT —
+ * the first upward crossing of MADE_HEAT_FLOOR at or after cohort year 0. The
+ * congress's unprompted opener hangs off this and nothing else.
+ *
+ * It is a different question from `firstBrightYear`, and the difference is the
+ * character of who is asking. A lantern comes looking for something LOUD, so
+ * it reads a level. A congress is the natural interlocutor for a world that
+ * has just begun to run hot, so it reads a CROSSING: the year a neighborhood
+ * would first have had to classify the player as made heat rather than as a
+ * biosphere with weather. The at-or-after-year-0 clause keeps a seeded civ's
+ * own authored industrial rise, which is millennia deep, from counting as
+ * something that just happened.
+ *
+ * It reads the player's emission history, which is the same clipped structure
+ * every other predicate in this table reads. BEHAVIOR NEVER TOUCHES A PLAYER'S
+ * HISTORY (a5-synthesis.md R5), so `heldDark`, `brightAfter`, `firstBrightYear`
+ * and this are all provably unmoved by A5's fold.
+ */
+function firstWarmYear(history: readonly EmissionEpoch[]): number | null {
+  let previous = 0;
+  for (const epoch of history) {
+    const crossed = previous < MADE_HEAT_FLOOR && epoch.level >= MADE_HEAT_FLOOR;
+    previous = epoch.level;
+    if (crossed && epoch.fromYear >= 0) return epoch.fromYear;
+  }
+  return null;
+}
+
+/**
+ * A5: WHO OPENS UNPROMPTED, AND ON WHAT. Keyed on ARCHETYPE rather than on
+ * counterpart class, which is both more legible and the point of the change —
+ * it lets the engine sit out while the congress speaks, and the two of them
+ * share a class.
+ *
+ * Six archetypes never open unprompted, and `null` says so in the table rather
+ * than by omission, so a new archetype cannot acquire an opener by accident.
+ * MAX_UNPROMPTED_PER_PAIR is preserved BY CONSTRUCTION exactly as before: at
+ * most one candidate is ever built per pair, whichever row matched.
+ */
+type UnpromptedTrigger = "first-bright" | "first-warm";
+
+const UNPROMPTED_OPENER: Readonly<Record<ArchetypeId, UnpromptedTrigger | null>> = {
+  beacon: "first-bright",
+  tide: "first-bright",
+  herald: "first-bright",
+  congress: "first-warm",
+  engine: null,
+  monument: null,
+  cloister: null,
+  sowing: null,
+  shepherd: null,
+  phoenix: null,
+};
 
 /**
  * The congress cannot call it. Deterministic and legible rather than random:
@@ -778,6 +847,40 @@ function aiCulture(input: AiComposeInput, rng: ReturnType<typeof createRng>, ope
   return { kind: "culture", source: "chronicle", index, axis: null, pole: null, text: line };
 }
 
+/**
+ * A4: ONE DIAL, READ OFF THE SHEET THIS CIVILIZATION ACTUALLY HOLDS.
+ *
+ * `walkedDials` is a colony's dated record of where its dials have gone since
+ * it was founded (voyages.ts's `foundingWalkedDials`); every other
+ * civilization in the game has none and falls back to the sheet it was seeded
+ * with, which is exactly what it did before this existed. The lookup is by the
+ * TRIGGER YEAR, so a reply composed in the year it was sent states what was
+ * true then and stays byte-identical on every later derivation.
+ *
+ * This is what makes a founding's drift readable: a colony asked what it
+ * believes answers with the pole it holds, and a parent comparing that against
+ * the charter is comparing two things that were both actually said.
+ * Structurally identical to signalparts.ts's `materializeCulture` dial arm, so
+ * the two paths emit the same shape and a part says nothing about which side
+ * composed it.
+ */
+function aiCultureDial(input: AiComposeInput, rng: ReturnType<typeof createRng>): SignalPart {
+  const civ = civById(input.g, input.aiId);
+  const index = rng.int(0, DIAL_AXES.length - 1);
+  const axis = DIAL_AXES[index];
+  if (axis === undefined) return aiCulture(input, rng, false);
+  const sheet = dialSheetAt(civ.walkedDials ?? [], civ.seed.dials, input.evalYear);
+  const leaning = sheet[axis.id].position < 0 ? axis.left : axis.right;
+  return {
+    kind: "culture",
+    source: "dial",
+    index,
+    axis: axis.id,
+    pole: leaning.inWorld,
+    text: leaning.gloss,
+  };
+}
+
 function aiRequest(input: AiComposeInput, rng: ReturnType<typeof createRng>): SignalPart {
   const want = rng.pick(["finding", "sighting", "archive", "culture"] as const);
   // Either an open ask, or one aimed at the player's own star — which this
@@ -860,6 +963,15 @@ function composeAiParts(input: AiComposeInput): {
   const push = (part: SignalPart | null): void => {
     if (part !== null) parts.push(part);
   };
+  // A4: an ASK IS ANSWERED BEFORE A FLOURISH. Only one culture part survives
+  // the per-kind cap, and a class that has already led with its charter would
+  // otherwise push the answer to a direct question straight off the end of the
+  // list. Whoever asked gets the slot.
+  const answerCulture = (part: SignalPart): void => {
+    const at = parts.findIndex((p) => p.kind === "culture");
+    if (at >= 0) parts[at] = part;
+    else parts.push(part);
+  };
   const answerRequest = (): void => {
     for (const part of input.inbound) {
       if (part.kind !== "request") continue;
@@ -869,7 +981,13 @@ function composeAiParts(input: AiComposeInput): {
         // answering with itself instead. A human can perform the same refusal.
         push(input.cls === "whisperer" ? aiCulture(input, rng, false) : aiSighting(input, rng));
       } else if (part.want === "archive") push(aiArchiveOfPlayer(input, "long"));
-      else push(aiCulture(input, rng, false));
+      // A4 (synthesis R3): ASKED WHO YOU ARE, ANSWER WITH A DIAL. The charter
+      // and the chronicle are what a civilization was; a dial is what it is
+      // now, and it is the only culture part that carries an axis and a pole
+      // for a reader to compare anything against. It is also the coverage
+      // lever the Ledger's drift rests on — a parent who never asks reads one
+      // axis forever, and asking is how the sample grows.
+      else answerCulture(aiCultureDial(input, rng));
     }
   };
 
@@ -943,7 +1061,14 @@ export function deriveAiSignals(
   // NOT a branch in the signal path (`onSendSignal` names no controller
   // anywhere); a bound on what the derivation is FOR.
   if (civById(g, playerId).controller !== "player") return [];
-  const cls = counterpartClass(ai.seed.archetype);
+  // A4: a colony chartered `answer-nothing` is silent by INSTRUCTION rather
+  // than by character, so the override sits here and not in the class table —
+  // its archetype is whatever its dials say, and it keeps that archetype's
+  // voice for every other purpose. The flag is derived-only and set by exactly
+  // one producer (voyages.ts's `childCivFor`); every stored civ in the game
+  // leaves it absent.
+  const cls: CounterpartClass =
+    ai.answersNothing === true ? "silent" : counterpartClass(ai.seed.archetype);
   if (cls === "silent") return [];
 
   const player = civById(g, playerId);
@@ -954,10 +1079,14 @@ export function deriveAiSignals(
   const inbound = actsBetween(g.acts, playerId, aiId);
 
   const candidates: Candidate[] = [];
-  if (cls === "lantern" && MAX_UNPROMPTED_PER_PAIR > 0) {
-    const bright = firstBrightYear(player.seed.emissionHistory);
-    if (bright !== null) {
-      candidates.push({ kind: "hail", evalYear: bright, inReplyTo: null, act: null, tie: 0 });
+  const opener = UNPROMPTED_OPENER[ai.seed.archetype];
+  if (opener !== null && MAX_UNPROMPTED_PER_PAIR > 0) {
+    const year =
+      opener === "first-bright"
+        ? firstBrightYear(player.seed.emissionHistory)
+        : firstWarmYear(player.seed.emissionHistory);
+    if (year !== null) {
+      candidates.push({ kind: "hail", evalYear: year, inReplyTo: null, act: null, tie: 0 });
     }
   }
   for (const act of inbound) {
@@ -1085,6 +1214,16 @@ export function deriveAiSignals(
       ? recessRng.range(RECESS_MIN_YEARS, RECESS_MAX_YEARS)
       : 0;
     const sentYear = evalYear + d + deliberationFor(cls, threadId, ordinal) + recess;
+    // A4, THE EXISTENCE FLOOR. Nothing may transmit from before it existed.
+    // It was unreachable while every counterpart was seeded at cohort creation
+    // with a biosphere epoch millennia deep; a FOUNDED COLONY breaks that — its
+    // history begins at its landfall year, and a lantern child's unprompted
+    // opener is evaluated at the year the PLAYER first went bright, which can
+    // be centuries before the ship even left. The candidate is dropped whole
+    // (not clamped forward), because a hail that could not have been sent is
+    // not a late hail, and `replyIndex` is deliberately not advanced: a reply
+    // nobody sent is not this thread's first.
+    if (sentYear < existsFromYear(ai.seed) - BEAM_EPS) continue;
     out.push({
       id: `ai/${aiId}/${playerId}/${ordinal}`,
       fromCivId: aiId,
@@ -1332,6 +1471,57 @@ export function threadRefRowsFor(
   return refRowsOf(
     mergedThreadRows(g, playerId, otherId, nowYear, civDistanceLy(g, playerId, otherId)),
   );
+}
+
+/**
+ * A4: ONE ARRIVED DIAL PART, as the Ledger reads it. Nothing but what the
+ * counterpart said about itself and when it said it — no body, no tone, no
+ * reference, and no row identity.
+ */
+export interface LineageCulturePart {
+  readonly axis: DialAxisId;
+  /** The pole the sender stated, in world words, frozen at send. */
+  readonly pole: string;
+  /** The year it was said, which is what the reading is AS OF. */
+  readonly sentYear: number;
+  /** The year it landed here, which is what decides whether it is the newest
+   *  thing this parent knows about that axis. */
+  readonly learnedYear: number;
+}
+
+/**
+ * THE STATED CHANNEL, and the only door onto it. `mergedThreadRows` stays
+ * private: the Ledger has no business with thread rows, wire ids or bodies,
+ * and handing it the merge would let a later change there quietly widen what
+ * a drift reading can see.
+ *
+ * Inbound only, dial parts only, ALREADY ARRIVED — the merge's own filter,
+ * unchanged and not re-implemented here, which is the point of going through
+ * it. A part still in flight is invisible to this function in exactly the way
+ * it is invisible to the rack.
+ */
+export function lineageCulturePartsFor(
+  g: Galaxy,
+  playerId: CivId,
+  otherId: CivId,
+  nowYear: number,
+): readonly LineageCulturePart[] {
+  const rows = mergedThreadRows(g, playerId, otherId, nowYear, civDistanceLy(g, playerId, otherId));
+  const out: LineageCulturePart[] = [];
+  for (const row of rows) {
+    if (row.from !== "them") continue;
+    for (const part of row.parts) {
+      if (part.kind !== "culture" || part.source !== "dial") continue;
+      if (part.axis === null || part.pole === null) continue;
+      out.push({
+        axis: part.axis,
+        pole: part.pole,
+        sentYear: row.sentYear,
+        learnedYear: row.learnedYear,
+      });
+    }
+  }
+  return out;
 }
 
 /**

@@ -1223,12 +1223,60 @@ endgame's mechanical layer later, per the vision's roadmap.
   pre-singularity worlds) and character (the full archetype spectrum, and
   stranger). Rule-based is enough — light-lag hides AI shallowness.
 - **The frontier grows.** New players and cohorts seed outward, where
-  light-lag insulates them from established play for years of real time.
+  light-lag insulates them from established play. **Built:**
+  `pickPlayerHome` keeps the rule it always had — the innermost star that
+  is not somebody's home and clears `MIN_CIV_SEPARATION_LY` — and makes
+  the floor grow, by `FRONTIER_STEP_LY` (2 ly) per **seated player**, up to
+  `FRONTIER_CAP_FRACTION` (0.55) of the neighborhood radius. Three
+  properties carry it. The floor is the existing rule, so at zero seats it
+  is the old constant and **the first player lands exactly where they
+  always did**. Isolation is measured against every civilization, seeded
+  elder and seat and somebody's founding alike, which is why colonies need
+  no special handling: they are in the derived roster, so they are already
+  in the floor. And within the band the innermost star wins, because the
+  frontier is a floor and not a target — a joiner sits as close in as the
+  floor permits, keeping the sky populated around them rather than being
+  exiled to the rim. Measured over 200 cohorts, the sixth joiner's
+  light-delay to the cohort's oldest seat goes from 41 to 81 minutes one
+  way, and to their *nearest* seat from 5.8 to 14.0 ly. Say the honest
+  thing about "years of real time": at five real minutes per game year a
+  real year of insulation is 105,000 light-years and the whole neighborhood
+  is 25, so within a cohort the frontier buys **hours, not years** — a late
+  joiner's first conversation with an established player is an afternoon's
+  round trip rather than a coffee break. The "years" promise is a
+  cohort-to-cohort claim, and it is true at that scale, because a separate
+  cohort is a separate Durable Object with its own galaxy.
 - **Protected incubation.** Human players' Act 1–2 worlds exist in the
   shared galaxy (a biosignature world is detectable) but are seeded beyond
   practical reach: no strike, probe, or transmission can arrive before
   ascension. The recursion — watch, uplift, exploit, leave alone — applies
-  to AI-run young worlds only.
+  to AI-run young worlds only. **Half built: the stars are held, the
+  protection is Phase B's.** `reservedStarIds` (galaxy.ts) holds
+  `RESERVED_STAR_COUNT` (6) stars out of every cohort, drawn from the outer
+  shell beyond `RESERVE_MIN_RADIUS_FRACTION` (0.7) of the radius. It is
+  **derived**, a pure function of the stored `seedKey` and the stored
+  catalog: no field on `Star`, no key in storage, no byte on the wire, no
+  migration, and no second copy of the answer free to disagree with the
+  first. Keyed on the seed key rather than on star id alone, so `st-0183`
+  is not reserved in every cohort in the game; **scattered rather than
+  contiguous**, because a fenced volume is exactly the visible tell this
+  bullet cannot afford, and Phase B needs a star per incubating world
+  rather than a region. The reservation binds in three places and one
+  filter — AI home seeding, player placement, the voyage survey, and a
+  voyage's destination — and nowhere else, which is the greppable contract
+  (`grep -rn "reservedStarIds" server/src` must show the definition and
+  exactly four call sites). To every other read path a reserved star is
+  ordinary empty sky: it stays in the catalog the client is welcomed with,
+  a player may privately name it, and a voyage aimed at one answers the
+  **same** error an unknown star id already gets, because a refusal has to
+  be indistinguishable from a typo. What this does **not** yet buy is the
+  promise in the bullet's second sentence: "beyond practical reach" does
+  not hold inside a 25 ly sphere, where a reserved star is a few real hours
+  by seedship. Phase B owes either the geometry (incubators in an annulus
+  past the seeded radius; the predicate already carries the shape) or a rule
+  on the civilization (a player-incubator refuses arrivals dated before its
+  ascension year, which is what this bullet's wording actually describes),
+  and it should decide which before B1.
 - **Shared vigils.** Seeding should sometimes give one young world more
   than one watcher, each unaware of the other. Discovering mid-vigil that
   the dark beside you is another vigil is a contact arc that begins at a
@@ -1305,54 +1353,99 @@ catalog. `DEFAULT_GALAXY_CONFIG` puts 8 civilizations among ~262 stars in
 a 25 ly sphere, so ~97% of catalog objects host nobody. That part of the
 silence is satisfied by construction and is not the interesting half.
 
-### Where current seeding stands (measured, 2026-07)
+### Where seeding stands (as built, 2026-07)
 
-Measured over 500 generated cohorts (4,000 seeded civilizations) at
-`DEFAULT_GALAXY_CONFIG`, emission sampled through `emissionAt`:
+The constraint is now enforced at the galaxy level, by the mechanism this
+section used to ask for. `generateGalaxy` draws a **posture per seeded
+civilization** from `BRIGHT_SHARE` (galaxy.ts) — the sibling of
+`drawAgeBand`, weighted by age band: young 0.25, peer 0.12, elder 0.08 —
+and then lets the catalog chain redraw, up to eight times, until it offers
+a character whose posture matches. `civseed.ts` is untouched and
+`GenerateCivParams` gained no field, which is the point: **the mix chooses
+which civilizations exist, never what a civilization is.** A Beacon still
+shines; there are simply fewer Beacons.
 
-- **53% are loud in truth at year 0** — against a target near 20%. Seen
-  from inside the bubble the figure is worse at first (**~66%** of
-  observed sources at year 0, because peers' bright years are still in
-  flight), settling to **~49%** from about year 50 on and staying flat
-  from there.
-- The dominant term is **ascended bright postures: 35 of those 53
-  points**, permanently loud. A bright civilization's post-ascension epoch
-  is drawn at 0.45–0.95 and never ends (`drawEmissionHistory`), so every
-  bright elder and peer shines for the life of the cohort.
-- **14 points are young civilizations mid-industrial** — correct in
-  spirit, but frozen: `drawEmissionHistory` returns early for the young
-  band, so a young civilization never ascends and never quiets. Its brief
-  adolescence is, in the model, permanent.
-- **5 points are dark-posture peers whose turn has not landed yet** —
-  exactly the deliberate in-flight silence the knowledge layer exists to
-  serve, and the one term that is behaving as designed.
+Measured over 300 generated cohorts (2,400 seeded civilizations) at
+`DEFAULT_GALAXY_CONFIG`, on the same seeds before and after. Three
+numbers, because they answer different questions: **seed-loud** is the
+authored curve alone, **grown-loud** is the truth every observer's light
+is drawn from once behavior.ts's fold has run at the horizon `derivedFold`
+uses, and **observed-loud** is the fraction of *detectable* sources that
+read loud from the seat `pickPlayerHome` hands out, each source read at
+`y − d`.
 
-So current seeding does **not** satisfy the constraint; it is off by
-roughly a factor of two and a half, and the shortfall is one number's
-fault. **Flagged, not retuned** — the fix is a tuning decision, not a bug
-fix, and it belongs to whoever owns the next galaxy-generation slice.
+| game year | before: seed / grown / observed | after: seed / grown / observed |
+|---|---|---|
+| 0 | 52.8% / **54.5%** / 60.5% | 30.5% / **33.6%** / 44.4% |
+| 50 | 47.3% / **49.1%** / 49.3% | 23.3% / **26.8%** / 26.8% |
+| 250 | 47.3% / **49.4%** / 52.1% | 23.3% / **26.1%** / 29.2% |
+| 500 | 47.3% / **48.0%** / 55.2% | 23.3% / **19.9%** / 25.4% |
+| 1000 | 47.3% / **48.6%** / 56.3% | 23.3% / **20.8%** / 26.5% |
+| 4000 | 47.3% / **47.9%** / 59.0% | 23.3% / **19.8%** / 28.0% |
 
-**The tunable.** Posture is resolved per civilization inside
-`generateCivSeed`, from the species row and the archetype default
-(`row.posture === "either" ? archetypeById(archetype).defaultPosture`),
-which lands at ~45% bright with no galaxy-level knob anywhere. The
-smallest change that would enforce the constraint is a **posture mix at
-the galaxy level — the sibling of `drawAgeBand`**: draw a target posture
-per seeded civilization from an explicit weighting in `generateGalaxy` and
-let the catalog chain pick which bright or dark character fits it, exactly
-as the age band already constrains `drawAscensionYear`. Lowering the
-bright shine level is the wrong knob: a Beacon that does not shine is not
-a Beacon, and pillar 2 wants the ones who chose loudness to be
-unmistakable when you find them.
+**One seeded civilization in five from year 500 on, which is the target.**
+The seeded bright share fell from 45.6% to 15.5% (young 26.5%, peer 13.1%,
+elder 7.6%), and from year 500 the identity is flat: grown-loud is the
+bright share plus about three points of behavior transient — a pulse or a
+kindle carrying a dark civilization over `LEAKAGE_FLOOR` for a while,
+which is pillar 1 working and the one term that should survive any future
+retune untouched. Note the sign flip in the third column: behavior now
+*lowers* the steady state rather than raising it, because once the wakings
+are done the fades outweigh the pulses. The sky gets quieter as it ages,
+which is the reading pillar 1 wants and the inverse of what shipped
+before.
 
-**A second, smaller note for the same slice.** Nothing in the current
-model sits below `DETECTION_FLOOR`: a dark-turned civilization settles at
-0.02–0.06 and still mints a source, classified `DARK NODE`. That is
-defensible — `DARK NODE` *is* the Teeming Dark ambiguity, not silence —
-but it means no seeded civilization is ever simply not there. Every blank
-in the catalog is a star with no civilization on it. A later slice that
-wants "we looked, and there was nothing to look at" needs a floor beneath
-`DETECTION_FLOOR`, not a smaller number above it.
+Loud sources per cohort, out of 8, at year 500: the mean fell from **3.84
+to 1.59**, the mode is one, and no cohort in 300 had more than five
+(before, 32 of 300 had six or more). The plain-language target was "one or
+two loud in a cohort, not four", and four or more now happens in 6% of
+cohorts instead of 55%.
+
+**The opening is still hot, deliberately.** At year 0 truth reads 34% and
+the first seat reads 44% of its detectable sources loud, and both settle by
+game year 50 — four real hours. The excess is two transients this document
+already blessed: young worlds mid-adolescence (pillar 1's short stretch,
+now genuinely short because they wake), and dark peers whose ascension
+flare is still crossing the neighborhood (pillar 3's Light Echo). A first
+sky with three things burning in it, two of which have already stopped
+burning, is the act's opening beat.
+
+**What it costs.** Because posture rides character, rare bright postures
+mean rare bright *characters*: a bright-archetype neighbour drops from 3.3
+per cohort to 1.2, so about a third of cohorts have no loud landmark at
+all. All twenty lineages and all forty-one cradles still appear and
+nothing is starved to zero, and three things blunt it — the ceremony's
+candidate generation is untouched, so **players** are still drawn from the
+unconstrained chain; colonies inherit their founders' charters; and a young
+bright civilization's waking gives a quiet cohort a loud arrival hours into
+play. If playtest finds the sky characterless rather than quiet, the lever
+is `BRIGHT_SHARE.young`, which buys character at the lowest cost in
+permanent loudness.
+
+**Two things flagged, not fixed.** First, *the industrial band is a floor,
+not a rise*: `drawEmissionHistory` gives the pre-ascension epoch
+`rng.range(0.1, 0.18)` and `LEAKAGE_FLOOR` is 0.1, so every civilization
+that has begun industry reads loud for its entire adolescence. That is the
+14 points in the year-0 column and the whole of the remaining opening
+excess. Widening the band downward (0.05 to 0.18) would make `LIVING
+WORLD` → `BROADCAST LEAKAGE` an event you can watch rather than an initial
+condition; it is a content change to the class a player reads, and it
+belongs to whoever owns the young-world beat. Second, *the Shepherd's
+default posture contradicts its own charter*: minds.ts gives it
+`defaultPosture: "bright"` under "We grew strong so the small could stay
+small, and never know why." A vigil-keeper that shines contaminates its own
+wards. Flipping it is a one-word coherence fix worth about half a point of
+loud fraction, and it changes what an existing archetype *is*, so it is not
+a tuning slice's call.
+
+**A third note, unchanged.** Nothing in the model sits below
+`DETECTION_FLOOR`: a dark-turned civilization settles at 0.02–0.06 and
+still mints a source, classified `DARK NODE`. That is defensible — `DARK
+NODE` *is* the Teeming Dark ambiguity, not silence — but it means no seeded
+civilization is ever simply not there. Every blank in the catalog is a star
+with no civilization on it. A later slice that wants "we looked, and there
+was nothing to look at" needs a floor beneath `DETECTION_FLOOR`, not a
+smaller number above it.
 
 ### On screen
 
