@@ -146,6 +146,22 @@ export interface PlacedCiv {
    * every stored civ in the game.
    */
   readonly walkedDials?: readonly DialEpoch[];
+  /**
+   * A5, optional and DERIVED-ONLY: this civilization's emission history has
+   * been grown by behavior.ts's fold and is no longer the one its seed was
+   * generated with. Set on exactly one kind of civ — an AI civilization whose
+   * cadence or reactions actually moved its light — and read at exactly one
+   * place, cohort.ts's `saveGalaxyCivs`, where it throws.
+   *
+   * IT IS NEVER PERSISTED, and unlike the two fields above the civs that carry
+   * it CAN be stored ones: a seeded AI civilization is on disk, and what is
+   * derived is its light. So the assertion is the whole guard. Writing a grown
+   * history down would freeze one derivation's answer into the record and put
+   * a second copy of every source's light on disk, free to disagree with the
+   * fold the first time a rule row is retuned. An absent field means "the
+   * light its seed was written with", which is every stored civ in the game.
+   */
+  readonly behaviorGrown?: boolean;
 }
 
 export interface GalaxyConfig extends StarFieldConfig {

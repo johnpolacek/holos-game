@@ -24,6 +24,16 @@
 //   there, on the same star, with the same history, because nothing about it
 //   was ever a stored fact.
 //
+//   A5 EXTENDS THE SAME RULE TO LIGHT. An AI civilization's emission history
+//   is grown at read time too (behavior.ts's `galaxyWithBehavior`, called from
+//   `derivedFold` right after the landfall fold), so `galaxy:civs` holds the
+//   light every seed was GENERATED with and never the light the sky is
+//   currently showing. There are two derived-only flags on `PlacedCiv` that
+//   must never reach disk — `civ-v-` ids and `behaviorGrown` — and
+//   `saveGalaxyCivs()` throws on both. `answersNothing` and `walkedDials` need
+//   no assertion of their own: only a colony carries them, and a colony can
+//   never get that far.
+//
 // Its greppable form:
 //
 //   grep -rn "storedGalaxy\|requireStoredGalaxy" server/src/cohort.ts
@@ -198,6 +208,11 @@ import {
   type BoughtQuestion,
 } from "./questions";
 import { buildTendList } from "./tend";
+// A5. The behavior fold is READ-SIDE and has exactly one call site, inside
+// `derivedFold` below (behavior.ts's greppable form). It rewrites emission
+// histories and nothing else, and `saveGalaxyCivs` refuses to persist a civ
+// that carries the flag it sets.
+import { galaxyWithBehavior, BEHAVIOR_ERA_YEARS } from "./behavior";
 // A4. `galaxyWithLandfalls` does not appear here by name and must not: this
 // object reaches the derived roster through `foldLandfalls`, which produces
 // the same civs AND the per-voyage outcomes the snapshot needs, in one pass.
@@ -597,12 +612,20 @@ export class Cohort extends Server<CohortEnv> {
    * clock-dependent derivation memoizable at all: within a year the fold's
    * output cannot change, and the moment a ship arrives the count moves and
    * the memo is discarded.
+   *
+   * A5 adds one more term, `era`, for the same kind of reason: grown behavior
+   * is generated out to a horizon, and the horizon has to move eventually or a
+   * cohort would run past its own last cadence epoch. One era is
+   * BEHAVIOR_ERA_YEARS, which is 20 real hours, so the behavior fold re-runs
+   * at most once a real work-day per cohort on top of the act, launch and
+   * landfall invalidations the roster fold already pays for.
    */
   private derivedMemo: {
     readonly stored: Galaxy;
     readonly voyages: readonly StoredVoyage[];
     readonly acts: readonly ContactAct[];
     readonly landed: number;
+    readonly era: number;
     readonly galaxy: Galaxy;
     readonly outcomes: ReadonlyMap<string, LandfallOutcome>;
   } | null = null;
@@ -3982,6 +4005,12 @@ export class Cohort extends Server<CohortEnv> {
    *
    * Requires the clock, which is sound: the clock and the galaxy are written
    * together at every seed path, so a cohort that has one has the other.
+   *
+   * A5, AND THE ORDER IS THE WHOLE OF IT (a5-synthesis.md R1): behavior runs
+   * AFTER the landfall fold, never before. A colony's `base(y)` is therefore
+   * `foundingEmissionHistory`'s walked curve and its archetype is the one its
+   * dials actually reached, so a drifted child grows into the behavior of the
+   * character it became rather than the one its charter named.
    */
   private derivedFold(): {
     readonly galaxy: Galaxy;
@@ -3991,23 +4020,30 @@ export class Cohort extends Server<CohortEnv> {
     const voyages = this.voyageState.voyages;
     const nowYear = gameYearAt(this.requireClock(), Date.now());
     const landed = voyages.filter((v) => voyageLandfallYear(v) <= nowYear + YEAR_EPS).length;
+    const era = Math.floor(nowYear / BEHAVIOR_ERA_YEARS);
     const memo = this.derivedMemo;
     if (
       memo !== null &&
       memo.stored === stored &&
       memo.voyages === voyages &&
       memo.acts === stored.acts &&
-      memo.landed === landed
+      memo.landed === landed &&
+      memo.era === era
     ) {
       return memo;
     }
     const fold = foldLandfalls(stored, voyages, nowYear);
-    const galaxy = fold.civs === stored.civs ? stored : { ...stored, civs: fold.civs };
+    const landedGalaxy = fold.civs === stored.civs ? stored : { ...stored, civs: fold.civs };
+    // Two eras out, so the horizon is always at least one full era above the
+    // present: light that has to cross the neighborhood is already generated
+    // by the time anybody's cone reaches it.
+    const galaxy = galaxyWithBehavior(landedGalaxy, (era + 2) * BEHAVIOR_ERA_YEARS);
     this.derivedMemo = {
       stored,
       voyages,
       acts: stored.acts,
       landed,
+      era,
       galaxy,
       outcomes: fold.outcomes,
     };
@@ -4033,11 +4069,20 @@ export class Cohort extends Server<CohortEnv> {
    * recoverable condition, it is a proof that the split above was broken.
    *
    * Every write of `galaxy:civs` in this object goes through here.
+   *
+   * A5's assertion is the same claim about light rather than about rosters: a
+   * grown emission history is derived on every read, so writing one down would
+   * freeze one derivation's answer into the record and give every source a
+   * second copy of its own light, free to disagree with the fold the first
+   * time a rule row is retuned. Same reasoning, same loudness.
    */
   private async saveGalaxyCivs(civs: readonly PlacedCiv[]): Promise<void> {
     for (const civ of civs) {
       if (civ.seed.id.startsWith(CHILD_ID_PREFIX)) {
         throw new Error(`refusing to persist a derived colony: ${civ.seed.id}`);
+      }
+      if (civ.behaviorGrown === true) {
+        throw new Error(`refusing to persist a grown emission history: ${civ.seed.id}`);
       }
     }
     await this.ctx.storage.put("galaxy:civs", civs);
