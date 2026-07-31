@@ -158,6 +158,11 @@ body {
 .study-board-divider,
 .study-hub-label,
 .study-hub-sub,
+/* The hub masthead: the civilization's name, and the star-and-year line under
+   it. A title and a label line; the charter below them is prose and joins the
+   pretty list instead. */
+.hub-masthead-name,
+.hub-masthead-standing,
 .study-row-name,
 .study-row-class,
 .study-focus-designation,
@@ -239,6 +244,8 @@ body {
 /* Pretty — running prose. */
 .chronicle,
 .charter,
+/* The same charter, restated at the head of the hub. */
+.hub-masthead-charter,
 .dial-reading,
 .study-brief-body,
 .study-brief-conf-gloss,
@@ -904,7 +911,13 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: max(0.6rem, env(safe-area-inset-top)) 1.1rem
+  /* The gutter lives on the BODY (and on the topbar's own close button), not
+     here: the hub masthead bleeds its world plate to the sheet's edges, and it
+     can only do that by cancelling a gutter its own scroller owns. The three
+     overlay sheets that mount as siblings of the body — the key sheet, the
+     watch sheet, the composer — all position against left/right 0 and carry
+     their own padding, so none of them moves. */
+  padding: max(0.6rem, env(safe-area-inset-top)) 0
     max(1rem, env(safe-area-inset-bottom));
   /* Translucent over the sky: the stars stay in view behind the menu. The
      blur softens them into glows under the type instead of crisp points
@@ -965,7 +978,9 @@ body {
 
 .study-board-close {
   position: absolute;
-  right: 0;
+  /* The sheet's gutter moved to the body (see its padding), so the topbar now
+     runs edge to edge and this carries the gutter itself. */
+  right: 1.1rem;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -989,8 +1004,96 @@ body {
 .study-board-body {
   flex: 1;
   min-height: 0;
+  /* The sheet's gutter, carried here so the hub masthead can cancel it and
+     bleed its world plate to the sheet's edges. */
+  padding: 0 1.1rem;
   overflow-y: auto;
+  /* The masthead bleeds exactly this padding and no more, so nothing is
+     clipped. Without the declaration the scroller computes its unset axis to
+     `auto` and the sheet gains a sideways scroll nothing in it wants. */
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+}
+
+/* ── The hub masthead ─────────────────────────────────────────────────────
+ * The front of a civilization, not a panel title: the world it came from, its
+ * name, its charter, and where and when it is standing. See
+ * StudyBoard.buildHubMasthead for why the sheet opens this way.
+ *
+ * It bleeds to the sheet's edges — the plate is the only full-width thing in
+ * the panel, and a world inset by a gutter reads as an illustration rather
+ * than as somewhere you are. */
+.hub-masthead {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 14rem;
+  margin: 0 -1.1rem 0.2rem;
+  padding: 3.5rem 1.1rem 0;
+}
+
+/* The plate, dissolved downward into the sheet by a mask rather than covered
+   by a scrim: a scrim that reached full opacity would leave an opaque patch
+   against a sheet that is deliberately translucent over the sky, and the seam
+   would read as a box. Where the mask is unsupported the band simply ends on
+   a hard edge, which is a plainer masthead and not a broken one. */
+.hub-masthead-plate {
+  position: absolute;
+  inset: 0;
+  opacity: 0.92;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.55) 0%,
+    #000 14%,
+    #000 38%,
+    rgba(0, 0, 0, 0.5) 68%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.55) 0%,
+    #000 14%,
+    #000 38%,
+    rgba(0, 0, 0, 0.5) 68%,
+    transparent 100%
+  );
+}
+
+.hub-masthead-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* The name the player kept or chose, in the face and size the inheritance
+   card set it in: the same name, the same voice, one surface on. Left-aligned
+   rather than centered, because everything under it is a left-aligned sheet
+   and a centered name would float free of it. The shadow is for the tail of
+   the plate still behind it, not for mood. */
+.hub-masthead-name {
+  font-size: var(--holos-text-2xl);
+  letter-spacing: 0.06em;
+  color: var(--holos-ink);
+  text-shadow: 0 2px 14px rgba(7, 6, 10, 0.9);
+  overflow-wrap: anywhere;
+}
+
+/* The founding epigraph, in the ceremony's .charter register a size down: the
+   one line on this sheet that asks nothing of the reader. */
+.hub-masthead-charter {
+  margin: 0;
+  font-style: italic;
+  font-size: var(--holos-text-sm);
+  line-height: 1.5;
+  color: var(--holos-ink-dim);
+  text-shadow: 0 2px 12px rgba(7, 6, 10, 0.9);
+}
+
+.hub-masthead-standing {
+  padding-top: 0.35rem;
+  color: var(--holos-gold);
 }
 
 /* Panel titles carry the display face: these are the names of places in the

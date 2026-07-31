@@ -65,6 +65,23 @@ export function formatAbsoluteYear(year: number): string {
   return `Y${Math.round(year)}`;
 }
 
+/**
+ * A civilization's own count from its own ascension: "4 AE". The cohort's
+ * absolute year is what `nowYear()` returns and what `formatAbsoluteYear`
+ * stamps out; this is the OTHER dating, the one a civilization uses about
+ * itself, and it is the only one that may stand beside that civilization's
+ * own name (prose-style.md R-33, and voice.ts's `epochStamp`, which builds
+ * the same stamp server-side for the report's annal).
+ *
+ * Clamped at zero. A player civ ascended a handful of years before the act
+ * opens, so the difference is always positive in practice; a civ still
+ * climbing would count from a founding it has not reached, and "-3 AE" is
+ * not a date.
+ */
+export function formatEpochYear(year: number, ascensionYear: number): string {
+  return `${Math.max(0, Math.round(year - ascensionYear))} AE`;
+}
+
 /** Compact game-time span: "20 y", "1,200 y". Whole years, thousands-separated. */
 export function formatGameYears(years: number): string {
   const rounded = Math.max(0, Math.round(years));

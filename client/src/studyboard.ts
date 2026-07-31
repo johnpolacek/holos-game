@@ -135,7 +135,8 @@ import { MAX_NAME_LEN, validateName } from "@holos/protocol";
 // its five rows with the ceremony's function rather than a copy of it — the
 // card you inherit and the card you write are the same furniture, and a second
 // implementation would let the two drift apart.
-import { renderDialBand } from "./ceremony";
+import { cradleGradient, renderDialBand } from "./ceremony";
+import { worldArt } from "./art";
 import type { CohortSocket } from "./net";
 import { startOver } from "./startover";
 import { QUESTION_METHOD } from "./questionmethod";
@@ -155,6 +156,7 @@ import {
   formatAbsoluteYear,
   formatClockPair,
   formatCountdown,
+  formatEpochYear,
   formatGameYears,
   formatRealDuration,
   nowYear,
@@ -1952,21 +1954,98 @@ export class StudyBoard {
 
   // ── Render: hub view ──────────────────────────────────────────────────
 
+  /** The masthead's standing line: where this civilization is, and when it is
+   *  by its own count. The star wears its catalog designation because that is
+   *  what the sky calls it, and the year is EPOCH-DATED (R-33) — the cohort's
+   *  absolute year is the clock this panel's chrome stamps elsewhere, and it
+   *  is not what a civilization calls the year it is living in. */
+  private standingLineText(self: SelfView): string {
+    return `${self.designation} · YEAR ${formatEpochYear(nowYear(), self.seed.ascensionYear)}`;
+  }
+
+  /**
+   * THE MASTHEAD. This sheet used to open on the word START, a line saying
+   * what the sheet was for, and the compute ledger: three pieces of chrome,
+   * and not one of them said whose sheet it was. The ceremony hands a player
+   * a named civilization standing on a rendered world, and this is the very
+   * next surface they read — forgetting all of it here is what made the sheet
+   * read as a menu of verbs rather than as the front of a civilization.
+   *
+   * So it opens with the civilization instead: its world, its name, the
+   * charter it was founded on, and where and when it is standing. Nothing
+   * here is new on the wire — `SelfView.seed` is the whole record, already in
+   * hand — so the masthead costs one image and no protocol at all.
+   *
+   * The word START moves down to head the verbs as a section, beside THE
+   * VOICE and THE LEDGER, which is what it always was.
+   *
+   * Null before the first sky. The hub cannot be opened before one lands, so
+   * that is belt and braces; the caller falls back to the plain title.
+   */
+  private buildHubMasthead(): HTMLElement | null {
+    const self = this.self;
+    if (self === null) return null;
+
+    const masthead = document.createElement("div");
+    masthead.className = "hub-masthead";
+
+    // The wide crop suits a band; the cradle gradient sits under it as the
+    // fallback, so an unplated cradle or a plate that fails to load still
+    // carries the world's own color rather than leaving a hole. Same two
+    // layers, same order, as the inheritance card one surface back.
+    const plate = document.createElement("div");
+    plate.className = "hub-masthead-plate";
+    const url = worldArt(self.seed.cradleId, "wide");
+    const gradient = cradleGradient(self.seed.cradleId);
+    plate.style.background =
+      url !== null ? `url("${url}") center 45% / cover no-repeat, ${gradient}` : gradient;
+    masthead.append(plate);
+
+    const body = document.createElement("div");
+    body.className = "hub-masthead-body";
+
+    const name = document.createElement("div");
+    name.className = "hub-masthead-name holos-serif";
+    name.textContent = self.seed.name;
+    body.append(name);
+
+    // The founding epigraph, in the register it was accepted in (the
+    // ceremony's own .charter voice, a size down): the civilization's words
+    // about itself, which is the one line on this sheet nobody has to act on.
+    const charter = document.createElement("p");
+    charter.className = "hub-masthead-charter";
+    charter.textContent = `"${self.seed.charter}"`;
+    body.append(charter);
+
+    const standing = document.createElement("div");
+    standing.className = "hub-masthead-standing holos-caps";
+    standing.textContent = this.standingLineText(self);
+    // Ticked by the 1s clock like every other locally-derived time on this
+    // panel, so the year turns over under the reader's eye rather than only
+    // between opens. It is the sheet's one moving part and it should move.
+    this.liveClocks.push({ el: standing, text: () => this.standingLineText(self) });
+    body.append(standing);
+
+    body.append(this.buildBudgetLine());
+
+    masthead.append(body);
+    return masthead;
+  }
+
   private renderHub(): void {
     this.body.innerHTML = "";
     this.liveClocks = [];
 
-    const header = document.createElement("div");
-    header.className = "study-board-header holos-caps";
-    header.textContent = "START";
-    this.body.append(header);
-
-    const subtitle = document.createElement("div");
-    subtitle.className = "study-picker-subtitle";
-    subtitle.textContent = "What your civilization can begin now.";
-    this.body.append(subtitle);
-
-    this.body.append(this.buildBudgetLine());
+    const masthead = this.buildHubMasthead();
+    if (masthead !== null) {
+      this.body.append(masthead);
+    } else {
+      const header = document.createElement("div");
+      header.className = "study-board-header holos-caps";
+      header.textContent = "START";
+      this.body.append(header);
+      this.body.append(this.buildBudgetLine());
+    }
 
     if (this.explainerText !== null) {
       const note = document.createElement("div");
@@ -1992,6 +2071,20 @@ export class StudyBoard {
 
       this.body.append(this.hairline());
     }
+
+    // The verbs, under the word the chip out on the sky opens with. It heads a
+    // SECTION here rather than the whole sheet: the masthead above is the
+    // sheet's title now, and START is one of three things this panel offers
+    // beside THE VOICE and THE LEDGER, not the name of all of them.
+    const startHeader = document.createElement("div");
+    startHeader.className = "study-section-header holos-caps";
+    startHeader.textContent = "START";
+    this.body.append(startHeader);
+
+    const startSubtitle = document.createElement("div");
+    startSubtitle.className = "study-picker-subtitle";
+    startSubtitle.textContent = "What your civilization can begin now.";
+    this.body.append(startSubtitle);
 
     this.body.append(
       this.buildHubRow(

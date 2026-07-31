@@ -156,8 +156,10 @@ export function hasPendingBecome(): boolean {
 
 /** Cradle-tinted gradient for the world panel — the base layer, shown on its
  * own for cradles without a plate (id 41) and as the fallback beneath the real
- * planet plate if it fails to load. */
-function cradleGradient(cradleId: number): string {
+ * planet plate if it fails to load. Exported because the study board's hub
+ * masthead shows the same world one surface on, and a world that falls back to
+ * one color there and another here would be two worlds. */
+export function cradleGradient(cradleId: number): string {
   const hue = (cradleId * 47) % 360;
   return (
     `radial-gradient(120% 90% at 50% 15%, hsl(${hue} 50% 24%) 0%, ` +
