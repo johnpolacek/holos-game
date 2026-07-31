@@ -985,6 +985,13 @@ export class StudyBoard {
 
   private onInspectCb: ((starId: string) => void) | null = null;
 
+  // Which star the open view is about, as last announced to onViewedStarCb.
+  // Many paths move the view (the open* methods, a sky update's fallbacks,
+  // the ticker), so announceViewedStar() diffs against this and only a real
+  // change reaches the App — which points the sky's selection ring at it.
+  private onViewedStarCb: ((starId: string | null) => void) | null = null;
+  private announcedViewedStarId: string | null = null;
+
   // A2.4: the contact block from the latest `sky`, for THE VOICE section —
   // whether a shout is already going out, and therefore whether the row is a
   // verb or a status. Null until the first sky.
@@ -1307,6 +1314,7 @@ export class StudyBoard {
         this.leaveThread();
         this.view = "hub";
         this.renderHub();
+        this.announceViewedStar();
         return;
       }
       const detail = contact?.openThread ?? null;
@@ -1485,6 +1493,12 @@ export class StudyBoard {
     } else {
       this.renderList();
     }
+
+    // A sky can move the view without an open* call (the vanished-study and
+    // vanished-mission fallbacks above), so re-announce here. The early
+    // returns above either changed nothing or handed off through an open*
+    // method, and the ticker backstops the rest.
+    this.announceViewedStar();
   }
 
   openBoard(): void {
@@ -1722,6 +1736,8 @@ export class StudyBoard {
     this.openFlag = false;
     this.root.classList.remove("open");
     this.stopTicking();
+    // A closed panel is about nothing; the ring it was holding lets go.
+    this.announceViewedStar();
     // A4: a press that loses its surface is a press that ended. The sheet
     // going away is a release, and a release is silent.
     this.cancelVoyageHold();
@@ -1740,6 +1756,43 @@ export class StudyBoard {
     return this.openFlag;
   }
 
+  /** The star the open panel is currently about, or null when the panel is
+   *  closed or on a view that is not about one system. Keyed on the view,
+   *  not the per-view star fields, because those may hold stale ids after
+   *  the view moves on. */
+  viewedStarId(): string | null {
+    if (!this.openFlag) return null;
+    switch (this.view) {
+      case "focused":
+        return this.focusedStarId;
+      case "brief":
+        return this.briefStarId;
+      case "thread":
+        return this.threadStarId;
+      case "launch":
+        return this.launchStarId;
+      case "voyage":
+        return this.voyageStarId;
+      case "mission": {
+        if (this.focusedMissionId === null) return null;
+        return this.missionsById.get(this.focusedMissionId)?.starId ?? null;
+      }
+      default:
+        return null;
+    }
+  }
+
+  /** Recomputes viewedStarId() and fires onViewedStarCb only on a change.
+   *  Called from every choke point a view change passes through (open* via
+   *  startTicking, close, the end of update) plus the 1s ticker as a
+   *  backstop, so it must stay cheap and idempotent. */
+  private announceViewedStar(): void {
+    const starId = this.viewedStarId();
+    if (starId === this.announcedViewedStarId) return;
+    this.announcedViewedStarId = starId;
+    this.onViewedStarCb?.(starId);
+  }
+
   destroy(): void {
     this.stopTicking();
     this.cancelVoyageHold();
@@ -1753,8 +1806,13 @@ export class StudyBoard {
   /** Starts the 1s ticker if it is not already running. Idempotent — every
    * open* method calls this, so opening while already open is a no-op. */
   private startTicking(): void {
+    // Every open* method ends here, so this is the one choke point that sees
+    // each deliberate view change (the idempotent guard below must not skip
+    // it: "already ticking" does not mean "same view").
+    this.announceViewedStar();
     if (this.tickHandle !== null) return;
     this.tickHandle = window.setInterval(() => {
+      this.announceViewedStar();
       // AV3: the hub's only time-varying content is the budget line — a
       // full renderHub() every second would wipe the body between
       // finger-down and finger-up on a proposal's accept/decline buttons.
@@ -1866,6 +1924,15 @@ export class StudyBoard {
    * with the tapped source's starId. */
   onInspect(cb: (starId: string) => void): void {
     this.onInspectCb = cb;
+  }
+
+  /** Fired whenever the star the open panel is about changes: a starId when
+   *  the view reads one system (a study, a thread, a launch sheet), null
+   *  when it does not or the panel closed. The panel only covers part of a
+   *  desktop screen, so the sky beside it keeps its selection ring on the
+   *  system being read — the App owns that wiring. */
+  onViewedStar(cb: (starId: string | null) => void): void {
+    this.onViewedStarCb = cb;
   }
 
   /** A2.4: fired when THE VOICE's one row is tapped. Like onInspect, the

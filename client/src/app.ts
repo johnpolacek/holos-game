@@ -592,6 +592,11 @@ export class App {
       model.onSelectSource((source) => {
         if (source === null) {
           sourceCard.close();
+          // Desktop: the board may still be open beside the sky, reading one
+          // system. An empty-sky tap dismisses the card, not that, so the
+          // ring falls back to the board's system rather than to nothing.
+          const viewed = studyBoard.viewedStarId();
+          if (viewed !== null) model.selectStar(viewed);
         } else {
           sourceCard.open(source, this.localNames);
           sourceCard.setStudyStatus(this.findStudy(source.starId)?.status ?? null);
@@ -602,7 +607,21 @@ export class App {
           sourceCard.setExplainer(this.takeSourceCardVoice());
         }
       });
-      sourceCard.onClose(() => model.clearSelection());
+      sourceCard.onClose(() => {
+        // The card's dismiss drops its ring, unless the board behind it is
+        // still reading a system; then the ring falls back to that one.
+        const viewed = studyBoard.viewedStarId();
+        if (viewed !== null) model.selectStar(viewed);
+        else model.clearSelection();
+      });
+      // The board is a partial-width panel on desktop, so the sky stays
+      // visible beside it: the selection ring tracks whichever system the
+      // open view is about. On a null the ring is only dropped when no card
+      // holds its own selection over the board.
+      studyBoard.onViewedStar((starId) => {
+        if (starId !== null) model.selectStar(starId);
+        else if (!sourceCard.isOpen()) model.clearSelection();
+      });
       studyBoard.onInspect((starId) => {
         const source = this.sources.find((s) => s.starId === starId);
         if (source === undefined) return;
