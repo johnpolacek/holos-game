@@ -1132,9 +1132,14 @@ export const PROPOSAL_VERBS: Readonly<Record<ProposalKind, string>> = {
 
 /**
  * The one gesture a new player has: a clean reading and no study yet. The
- * second sentence restates in prose what the brief screen it opens already
- * says in chrome ("NO COMPUTE · NO CLOCK · REVERSIBLE") — R-35a, a proposal
- * names no fact its destination does not also show.
+ * tail used to restate the brief's cost chrome ("NO COMPUTE · NO CLOCK ·
+ * REVERSIBLE") and read as a price tag on the one surface that has to earn
+ * the tap (prose-audit.md, A11). It now restates the brief's OTHER sentence
+ * instead — "the light arrives whether or not you attend to it" — said as
+ * `we`, so the same reading holds on both sides of the tap, and closes on
+ * the observatory's one licensed flourish: a true statement of physics.
+ * Still R-35a-clean; the costs answer lives on the brief, where a costs
+ * question belongs.
  */
 export function reasonFirstWatch(
   sourceName: string,
@@ -1142,17 +1147,21 @@ export function reasonFirstWatch(
   distanceLy: number,
   confidence: number,
 ): PinnedLine {
-  return line`${F.source(sourceName)} carries one reading and no study: ${F.label(classLabel)}, ${F.years(distanceLy)} away, at ${F.percent(confidence)} confidence. A watch costs no compute and can be put down again.`;
+  return line`${F.source(sourceName)} carries one reading and no study: ${F.label(classLabel)}, ${F.years(distanceLy)} away, at ${F.percent(confidence)} confidence. Its light keeps arriving whether we look or not. A watch is the looking.`;
 }
 
 /**
  * The returning-player case: every open study is waiting on light and
- * nothing is affordable, so the honest move is a free one. Same shape as
- * `reasonFirstWatch` minus the confidence figure — a watch is offered on
- * its own merits here, not as "the sharpest smudge."
+ * nothing is affordable. The first sentence keeps "affordable" because that
+ * bookkeeping fact is the OCCASION, but the argument is no longer the price
+ * (prose-audit.md, A12): it is that this source's light is landing,
+ * continuously, with nobody at the far end — which is the same thing the
+ * stalled studies are waiting for, being delivered here, unread. Closes on
+ * a different beat than `reasonFirstWatch`'s tail, and first-watch is
+ * serve-exclusive besides, so the two never co-render.
  */
 export function reasonWiden(sourceName: string, classLabel: string, distanceLy: number): PinnedLine {
-  return line`Every study open is waiting on light, and nothing on any of them is affordable. ${F.source(sourceName)} is unwatched: ${F.label(classLabel)}, ${F.years(distanceLy)} away. Watching costs nothing.`;
+  return line`Every open study is waiting on light, and nothing on any of them is affordable. ${F.source(sourceName)} is unwatched: ${F.label(classLabel)}, ${F.years(distanceLy)} away. Its light is arriving now, and no one here is reading it.`;
 }
 
 /**
