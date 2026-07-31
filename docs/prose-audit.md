@@ -775,3 +775,97 @@ is ever promoted to a surface.
 for a typical neighborhood hop rather than a constant restated. `audit:facts`
 deliberately does not pin it: inventing a coupling the catalog does not claim
 would make the audit lie about what it guarantees.
+
+---
+
+## Pass 5 — the watch proposals (scoped)
+
+Scoped re-audit, on a direct complaint from the game's owner: the two
+proposal reasons that offer a free watch both closed on a price tag.
+
+- `voice.ts` `reasonFirstWatch`: "…A watch costs no compute and can be put
+  down again."
+- `voice.ts` `reasonWiden`: "…Watching costs nothing."
+
+This is not one of the humanizer's 35 patterns; both sentences would pass
+every mechanical rule the gate has. It is a register finding under §1's own
+test: with nothing deleted, neither sentence is *grand*. The proposal reason
+is the mind's argument for its opening move, the first prose a new player
+reads under WHAT WE WOULD DO NEXT, and the argument it made was an
+accountant's: what the move costs, not what it is. The wonder was left
+entirely to the destination screen (the brief's "The light arrives whether
+or not you attend to it, so watching spends only patience"), so the surface
+that had to earn the tap was the flattest one in the chain.
+
+The stacking made it worse. AV4's counsel seam writes the archetype's stance
+beside the reason, and the prompt's invitation to write "what it costs us in
+the thing we actually mind losing" is answered in kind when the reason's own
+tail is a price: a shipped Tide stance read "Watching costs us nothing we
+would have eaten anyway" directly under "A watch costs no compute". Two cost
+sentences, stacked, on the surface that exists to say what watching is for.
+
+| | Count |
+|---|---|
+| Applied | 2 |
+| Recorded | 2 |
+
+### Applied
+
+#### A11 — `reasonFirstWatch`: the price tag becomes the physics
+
+> …at n% confidence. ~~A watch costs no compute and can be put down again.~~
+> **Its light keeps arriving whether we look or not. A watch is the looking.**
+
+Drafted twice on the deep-reasoner with different framings (a physics pass
+and a meaning pass) and synthesized. The chosen tail restates the brief's own
+cost sentence from the mind's side of the glass: the first clause is the
+brief's "the light arrives whether or not you attend to it" said as *we*, so
+the same reading holds on both sides of the tap (the picker/brief identity
+precedent), and the closing definition is the observatory's one licensed
+flourish, a true statement of physics. 23 framing words, three sentences
+(R-35's ceiling), present tense, wit 0, no numeral, nothing named that the
+brief does not show (R-35a). The free/reversible fact still reaches the
+player: it is the brief's WHAT IT COSTS section and its
+`NO COMPUTE · NO CLOCK · REVERSIBLE` chrome, one tap away, where a costs
+question belongs.
+
+#### A12 — `reasonWiden`: the unread arrival
+
+> Every open study is waiting on light, and nothing on any of them is
+> affordable. HOL-nnnn-i is unwatched: LABEL, n years away. ~~Watching costs
+> nothing.~~ **Its light is arriving now, and no one here is reading it.**
+
+The occasion is a stall (nothing affordable, everything waiting), and the
+honest argument for widening was never the price: it is that this source's
+light is landing, continuously, with nobody at the far end. The tail states
+that and nothing else. The first sentence keeps "affordable": it is the
+bookkeeping fact that *causes* this proposal, in a sentence about
+bookkeeping being stuck, and softening it would blur the occasion. 30
+framing words, present tense, wit 0. The two reasons no longer share a
+closing beat ("the looking" / "no one here is reading it" are complementary
+sides of one truth, not the same claim twice), and first-watch is
+serve-exclusive besides, so they never co-render.
+
+### Recorded
+
+#### K13 — No gate rule, and why
+
+The tell was a register choice on an authored, fact-carrying line. A regex
+cannot hold "costs no compute and can be put down again" apart from
+`reasonQuestion`'s "it costs 40 and answers in 6", which R-35a *requires* to
+state its price. Rejection here would be a judgement about which sentence
+owed the player wonder, and the gate never judges; it counts. Nothing added.
+
+#### K14 — The counsel prompt is not the offender
+
+The stacked Tide stance looks like a prompt failure and is not. The prompt
+already declares thought-overlap a failure ("An overlap of thought is as bad
+as an overlap of wording") and already bans naming a price; the cost-themed
+stance was legal under both because it priced nothing and the overlap was
+with the *reason's* theme, which the prompt cannot see as a fault when the
+angle it offers ("what it costs us in the thing we actually mind losing") is
+archetype material. With the reason's tail no longer a price, the pairing
+reads as intended. No prompt change, so no PROMPT_VERSION bump; cached
+stances were written "for the kind of move, not for this one"
+(`voicegen.ts`'s own note at the set-fingerprint), so they remain valid
+beside the new reason text.
