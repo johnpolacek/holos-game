@@ -110,7 +110,8 @@ const LIGHT_CONE_EPS = 1e-6;
 /**
  * The only truth read outside observeCiv. Returns null — never a clamped or
  * approximated value — when `year` is above the cone. Callers turn that
- * null into "pending" / "in flight" / "awaiting light"; none of them can
+ * null into "in flight" / "awaiting light" (mission reports; questions now
+ * resolve at the cone edge and should never see it); none of them can
  * turn it into a number.
  */
 export function peekTruth(galaxy: Galaxy, cone: LightCone, year: number): CivTruth | null {

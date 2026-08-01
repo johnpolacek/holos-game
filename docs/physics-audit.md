@@ -129,33 +129,33 @@ The plateau gates already handle the genuinely short record honestly —
 (`questions.ts:404-406`), which is the *correct* physics answer: not a
 countdown, a statement of what the archive lacks.
 
-**The fix.** Replace the flat constant with a derived shortfall:
-`answersInYears = max(0, baselineNeededYears − archiveSpanYears)`, where
-archive-bound questions (lines, edges, off-axis) have
-`baselineNeededYears = 0` and the three time-domain questions carry a
-baseline need that the (almost always sufficient) archive is measured
-against. Answers with zero shortfall land the year they are bought; the
-freeze-at-purchase rule, the wire shape, and `answersYearFor` as the
-single source all survive unchanged — the number feeding them changes.
-The compute **cost stays**: a freshly ascended mind is genuinely
-compute-bounded (`drawStocks`: compute = 120·(1+E+I)), and deep
-model-space inference is the one thing it can honestly be short of. Price
-the question; never date it.
+**The fix — as built (2026-08).** This audit first proposed a derived
+shortfall (`answersInYears = max(0, baselineNeededYears −
+archiveSpanYears)`), but the abstraction cannot cash it: the archive
+models epochs of broadband level, not arcs, curves, or crossings, so no
+per-question "span" exists that is not arbitrary — and for every seeded
+source the honest span is millennia anyway, making the shortfall zero
+everywhere it could be computed. So the built rule is the simpler,
+stronger one: **every question answers the year it is bought**, and the
+plateau findings — unchanged — remain the honest refusal when the record
+itself falls short ("the record needs a second arrival"). The
+freeze-at-purchase rule survives on `boughtYear`; the pending machinery
+(wire `answersYear`, tend rows, wake pushes, the ANSWERS IN clock row)
+is deleted rather than zeroed. The compute **cost stays**: a freshly
+ascended mind is genuinely compute-bounded (`drawStocks`: compute =
+120·(1+E+I)), and deep model-space inference is the one thing it can
+honestly be short of. Price the question; never date it.
 
 **Knock-ons, enumerated:**
 
 - *Haste projects lose their stat.* `long-baseline-optical` (30% sooner),
   `occultation-network` (50% sooner), and `sky-vault` (20% sooner on all
-  six) currently buy down a number that mostly ceases to exist. The
-  physically honest retarget: a finer instrument needs **less baseline**
-  (a sharper astrometric solution resolves a mass from a smaller fraction
-  of the orbit's swing; a denser occultation net needs fewer crossings) —
-  so haste becomes a reduction of `baselineNeededYears`, which only bites
-  when the archive is genuinely short, plus a confidence or discount
-  component so the project is never a dead purchase. `sky-vault`'s own
-  line already argues the honest version: "a question put to a thousand
-  years of record is half answered before it is bought" — make that
-  literal: the Vault extends usable `archiveSpanYears`.
+  six) bought down a number that ceased to exist. As built: all three
+  became **question-discounts at their old percentages** (a cleaner
+  measurement takes less inference to solve), the `question-haste`
+  effect kind is deleted, and the deepest discount stack (weigh-it under
+  long baseline × pulsar clocks × Vault, 0.392 of base) clears
+  `EFFECT_KEEP_FLOOR = 0.25`.
 - *The cost/clock inverse dies.* "Patience cheap, haste dear"
   (systems-a.md §2.2) was the pricing logic; with latency gone, cost
   should re-anchor on inference depth alone (lines and edges deep and
@@ -167,10 +167,10 @@ the question; never date it.
   catalog-padded, which is exactly the pacing note contest.ts already
   states (rungs accrue while a study *sits*, not while a question runs).
   First-look-never-regresses is unchanged.
-- *UI.* The `ANSWERS IN N Y · ≈M M` row reads `ANSWERS NOW` (or is
-  omitted) at zero shortfall; the work-list `answering` state becomes
-  rare and honest (a real wait for a real crossing). The clock-pair
-  convention stays for the cases that keep a date.
+- *UI.* As built: the `ANSWERS IN N Y · ≈M M` row and the work-list
+  `answering` state are gone for questions; the offered card shows cost
+  alone and the spend resolves to the finding in place. The clock-pair
+  convention stays where a real clock runs: missions and voyages.
 - *Prose.* questionmethod.ts is already right and needs at most touch-ups
   where it currently apologizes for the wait ("the clock waits on the
   crossings" stays true — but only fires when crossings are actually
@@ -222,9 +222,12 @@ fuel carried aboard").
 
 ### P1-4 · Confidence falls off linearly; light falls off by the square
 
-`confidenceFor` (`knowledge.ts:308-311`) charges a flat 0.01 per
+`confidenceFor` (knowledge.ts) charges a flat 0.01 per
 light-year — and its own comment already confesses ("Placeholder shape
-for A1"). Meanwhile traffic.ts degrades beams by `ref/(ref + d²)` —
+for A1"). *(As built 2026-08: replaced with root-received-flux
+saturation, calibrated so beams hold ≥0.76 through 15 ly and near
+biosignatures read 0.82–0.88; the time-its-shadows plateau gate rose to
+0.35 to stay reachable under the new floor.)* Meanwhile traffic.ts degrades beams by `ref/(ref + d²)` —
 the codebase disagrees with itself about how light dims. Received flux
 goes as level/d²; confidence (which stands in for SNR) should be a
 function of that flux against an aperture term, clamped to the existing
