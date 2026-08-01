@@ -92,13 +92,22 @@ report reads `Occupancy`, never `PlacedCiv`.
 **Physics first.** Photons already at home are a free archive; thinking
 about them is not. A bought question buys **no new light** — it buys a
 deeper read of light already in hand. That is why the currency is
-Compute, why the answer is dated, and why the no-leak story is four
-lines: `resolveQuestion` asks `peekTruth` for the year the inference
-lands on and gets `null` until the cone admits it.
+Compute, and — since the 2026-08 physics retune, docs/physics-audit.md
+§P0-1 — why Compute is the *only* thing it costs. **Compute may price a
+question; it may never date one.** Every question answers **the year it
+is bought**: the archive is continuous and already spans millennia at
+purchase time, so the orbital swing, the cooling span and the crossings
+are in the record before anyone asks. Where a record genuinely is too
+short, the plateau gates (§2.4) say so in words rather than counting down
+to it.
 
-The answer's target year is **`answersYear − cone.distanceLy`** — the
-inference completes at home in `answersYear`, and what it can speak to is
-the light that had arrived by then.
+`resolveQuestion` still asks `peekTruth` for the year the inference lands
+on and gets `null` until the cone admits it. That guard is kept as belt
+and braces — it is the whole no-leak story in one line — and now always
+admits, because a purchase year is never later than now.
+
+The answer's target year is **`boughtYear − cone.distanceLy`**, which is
+exactly the light-cone edge on the day the question was asked.
 
 **No RNG anywhere in the module.** Findings are keyed by `Occupancy`, not
 by signal class: the same physical truth reads the same way whichever
@@ -107,22 +116,29 @@ instrument asked.
 ### §2.2 The catalog
 
 All six are **Investment** class (`QUESTION_COST_CLASS`). Costs are in
-compute; integration is in game years. Integration years are systems-a's
-original numbers, canonical over content.md's 15–60y figures. Costs were
-**retuned 2026-07 (the scarcity pass)**: the originals (60/45/75/40/90/55)
-tripled, so a full attention pool covers a few questions rather than every
-menu at once — see §2.2b. The cost/clock inverse the originals encoded
-(patience cheap, haste dear: a long-baseline question waits and thinks
-little; a fast question brute-forces light in hand) is preserved exactly.
+compute, and cost is the only field a question carries besides its
+applies-to matrix: there is **no integration column**, because there is no
+integration. Costs were **retuned 2026-07 (the scarcity pass)**: the
+originals (60/45/75/40/90/55) tripled, so a full attention pool covers a
+few questions rather than every menu at once — see §2.2b.
 
-| id | label | cost | integration | applies to |
-| --- | --- | ---: | ---: | --- |
-| `weigh-it` | WEIGH IT | 180 | 12 | infrared-excess, transit-shadows |
-| `temperature-over-time` | TAKE ITS TEMPERATURE | 135 | 24 | infrared-excess, transit-shadows, broadcast-leakage, directed-beam |
-| `read-its-lines` | READ ITS LINES | 225 | 8 | infrared-excess, transit-shadows, broadcast-leakage, biosignature |
-| `time-its-shadows` | TIME ITS SHADOWS | 120 | 18 | transit-shadows, biosignature |
-| `catch-its-edges` | CATCH ITS EDGES | 270 | 6 | infrared-excess, transit-shadows, biosignature, directed-beam |
-| `listen-off-axis` | LISTEN OFF-AXIS | 165 | 10 | broadcast-leakage, directed-beam |
+**Superseded.** The cost/clock inverse ("patience cheap, haste dear") was
+the pricing logic while questions had clocks. It died with them in the
+2026-08 physics retune (docs/physics-audit.md §P0-1): the flat
+`integrationYears` was authored drama, not physics, and the archive model
+this document already describes (§F2) convicts it. Price now re-anchors on
+**inference depth alone** — lines and edges deep and dear, shadows and
+temperature shallow and cheap — which is what the shipped numbers already
+roughly encoded, so none of them moved.
+
+| id | label | cost | applies to |
+| --- | --- | ---: | --- |
+| `weigh-it` | WEIGH IT | 180 | infrared-excess, transit-shadows |
+| `temperature-over-time` | TAKE ITS TEMPERATURE | 135 | infrared-excess, transit-shadows, broadcast-leakage, directed-beam |
+| `read-its-lines` | READ ITS LINES | 225 | infrared-excess, transit-shadows, broadcast-leakage, biosignature |
+| `time-its-shadows` | TIME ITS SHADOWS | 120 | transit-shadows, biosignature |
+| `catch-its-edges` | CATCH ITS EDGES | 270 | infrared-excess, transit-shadows, biosignature, directed-beam |
+| `listen-off-axis` | LISTEN OFF-AXIS | 165 | broadcast-leakage, directed-beam |
 
 `appliesTo` is physics, not balance: you cannot time shadows that are not
 there.
@@ -174,27 +190,39 @@ one cheap question in roughly 100 real minutes.
 
 ### §2.3 Effects, and when they freeze
 
-A question bought at year *B* answers on the discount and haste granted
-by projects **landed by *B*** — never retroactively. Because a project's
+A question bought at year *B* is priced on the discounts granted by
+projects **landed by *B*** — never retroactively. Because a project's
 landing year is an immutable historical fact once stored, re-deriving
 "what was landed by *B*" years later reproduces the identical number
 forever; nothing needs freezing in storage beyond `boughtYear` itself.
 
-`effectiveCostFor` / `effectiveIntegrationYearsFor` take `atYear`
-explicitly, so one helper serves both the live *offered* preview
-(`atYear = nowYear`) and the frozen *pending* / *answered* reading
-(`atYear = boughtYear`).
+`effectiveCostFor` takes `atYear` explicitly, so one helper serves both
+the live *offered* preview (`atYear = nowYear`) and the frozen *answered*
+reading (`atYear = boughtYear`).
+
+There is **no `question-haste` effect kind** and there cannot be one: a
+project may not move a clock a question does not have. The three projects
+that once granted haste — the long baseline (30% on weigh-it and
+catch-its-edges), the occultation net (50% on time-its-shadows) and the
+Vault (20% on all six) — were retargeted to `question-discount` at the
+same percentages in the 2026-08 retune, on the physical argument that a
+cleaner measurement takes less inference to solve. The Vault's own pitch
+("a question put to a thousand years of record is half answered before it
+is bought") is now literally the mechanic.
 
 Aggregation lives in `projects.ts` and stays pure: matching effects stack
 **multiplicatively** as keep-fractions, unfloored. The **25%-of-base
 floor** (`EFFECT_KEEP_FLOOR = 0.25`) is applied once, in `questions.ts`,
-where the fraction is actually spent. Cost rounds to whole compute;
-integration years round to one decimal.
+where the fraction is actually spent, and the deepest stack the catalog
+can build sits well clear of it (weigh-it under the long baseline, the
+pulsar clocks and the Vault: 0.7 × 0.7 × 0.8 = 0.392). Cost rounds to
+whole compute.
 
-`answersYearFor(def, bought, projectState) = boughtYear +
-effectiveIntegrationYearsFor(def, boughtYear, …)` is the single source
-both `resolveQuestion` and the `OpenQuestion` wire snapshot read, so the
-two can never disagree about when a finding lands.
+`boughtYear` is the single source both `resolveQuestion` and the
+`OpenQuestion` wire snapshot read, so the two can never disagree about
+when a finding lands. Stored state needed no migration: `StoredStudy.bought`
+already carried nothing but the id and the purchase year, and everything
+else re-derives.
 
 ### §2.4 The finding tables
 
@@ -209,7 +237,7 @@ baseline, decided by a pure function of the signal in hand.
 | weigh-it | `confidence < 0.35` | `no-clean-solution` |
 | temperature-over-time | `lightHistory.length < 2` | `no-baseline` |
 | read-its-lines | `emissionLevel < 0.03` | `too-few-photons` |
-| time-its-shadows | `confidence < 0.3` | `no-timing-survives` |
+| time-its-shadows | `confidence < 0.35` | `no-timing-survives` |
 | catch-its-edges | `confidence < 0.35` | `no-clean-polarization` |
 | listen-off-axis | occupancy `banked` or `living-quiet` | `nothing-on-axis` |
 
@@ -342,8 +370,7 @@ re-close the study the instant it was reopened, because the report never
 goes away.
 
 `StudyMove` gained `arrivedYear` for this: the home-side twin of
-`asOfYear` (an answer's integration completing, a report's light
-landing). Both it and `openedYear` are home years; `asOfYear` is a year
+`asOfYear` (an answer's purchase year, a report's light landing). Both it and `openedYear` are home years; `asOfYear` is a year
 at the target, and comparing across those axes would be a category error.
 
 A grounded study is closed: the server refuses a question bought on any
@@ -644,11 +671,15 @@ projects, missions) plus nothing new. Every date on a row derives from a
 purchase-time stamp plus catalog constants — never a stored date of its
 own.
 
-**The no-backlog rule.** Available projects and offered questions are not
-undertakings — nothing has been committed to, so they are not rows.
-Answered questions leave the work list too: they have become evidence on
-the study, which is where the player reads them. **There is nothing to
-groom.**
+**The no-backlog rule.** Available projects are not undertakings —
+nothing has been committed to, so they are not rows. **There is nothing
+to groom.**
+
+**Questions are not rows at all** (changed 2026-08, the physics retune).
+A question answers the year it is bought, so there is never a moment at
+which one is under way: the purchase becomes evidence on the study in the
+same breath, which is where the player reads it. The `question` member of
+`TendKind` is gone with the rows.
 
 **Every open study is a row** (changed 2026-07, with the TEND rename).
 The rule was once "a study row appears only if it has at least one
@@ -659,17 +690,16 @@ which is the honest rendering of a vigil that is only accruing light.
 Closed studies stay off: grounded is finished and shelved is put down,
 and both live on the study board.
 
-**Parenting is by star, one level deep.** A question or mission row's
-`parentId` is `study/${starId}` exactly when an **open** (not shelved)
-study exists on that star; otherwise null, and a mission launched with no
-study open is a top-level row.
+**Parenting is by star, one level deep.** A mission row's `parentId` is
+`study/${starId}` exactly when an **open** (not shelved) study exists on
+that star; otherwise null, and a mission launched with no study open is a
+top-level row.
 
 **Rows and their one date:**
 
 | kind | which rows exist | `nextYear` / `nextLabel` |
 | --- | --- | --- |
 | project | started only (running or landed) | `landedYear` / LANDS, or none once standing |
-| question | pending only | `answersYear` / ANSWERS |
 | mission | always, whatever the state | see below |
 | study | only with ≥1 child | mirrors the earliest child's |
 
@@ -762,8 +792,9 @@ cases stamping `openedYear` exactly as `openStudy` would (an already-open
 study keeps its `openedYear`). Grounded alone still refuses, because
 reopening a grounded study restamps what the grounded exit measures
 against and must stay a deliberate act. The handler then appends the
-`BoughtQuestion {id, boughtYear: nowYear}`, commits the cost against the
-one allocation, and pushes a wake for `answersYear`.
+`BoughtQuestion {id, boughtYear: nowYear}` and commits the cost against
+the one allocation. It pushes **no wake**: the answer is already in the
+send that follows.
 
 **`launchMission`** requires: a placed connection; a visible source; a
 known kind; a charter that survives `validateCharter`; **no live mission
@@ -1149,17 +1180,31 @@ reaches storage. The only truth a voyage writes is its launch record
 (galaxy:voyages, cohort-wide: a founded civilization is everyone's
 fact) and its departure light. Wipe the wake queue and every colony
 still exists. Invisibility is not enforced by voyage code at all: the
-child's first emission epoch is dated landfallYear, so the existing
-light-cone clip hides it from every observer until founding plus
-distance.
+child's first emission epoch is dated at the year the ship itself
+became visible at the far end, so the existing light-cone clip hides
+it from every observer until that year plus distance.
 
 **Three ships, F frozen at launch**: the seedship at 0.1c (canon,
-520 compute, Investment); the torch at 0.5c behind an eight-year
-departure flare (3400, Endeavor); the beam-pushed sail at 0.8c behind
-the launch-beam project and a battery burning at 0.80 for min(60, 2d)
-years (2600, Endeavor). Fast, informed, and loud, or slow, blind, and
-silent; the amendment horizon (F-1)d shrinks as speed rises. Time
-dilation is narration only.
+520 compute, Investment) on a burn slow enough that neither end of it
+is visible; the torch at 0.5c on a fuel that burns matter whole,
+behind an eight-year departure flare (3400, Endeavor); the beam-pushed
+sail at 0.8c behind the launch-beam project and a battery burning at
+0.80 for min(60, 2d) years (2600, Endeavor). Fast, informed, and loud,
+or slow, blind, and silent; the amendment horizon (F-1)d shrinks as
+speed rises. Time dilation is narration only.
+
+**Deceleration is visible too** (physics-audit.md P1-3). A torch
+brakes at 0.45 for the 8 years before landfall, mirroring its
+departure; a sail, with no beam waiting for it, drags itself down at
+0.20 for 30 years. Both epochs sit in the CHILD's derived emission
+history, dated before its founding year because the ship really was
+there burning, and both are UNCONDITIONAL: found-dark governs what is
+built after the ships open and cannot brake an engine quietly. The
+seedship writes no arrival epoch at all, which is what earns it the
+one line in the catalog that promises to land unheard. Nothing new
+crosses the wire for any of it: an emission epoch is already how the
+sky sees everything, and the cone delivers a pre-landfall epoch to
+each observer at its own year plus their distance, for free.
 
 **The forecast survey** prices the act before it: information age at
 landfall is (1+F)d, and the arrival spread is a prior over public

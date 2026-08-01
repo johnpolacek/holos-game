@@ -352,9 +352,11 @@ export type HypothesisMenus = Readonly<
   Record<SignalClass, readonly HypothesisMenuEntry[]>
 >;
 
-/** offered: not yet bought. pending: bought, integration still running.
- *  answered: the finding has landed. */
-export type QuestionState = "offered" | "pending" | "answered";
+/** offered: not yet bought. answered: bought, and the finding is in hand.
+ *  There is no third state and there cannot be one — a question answers the
+ *  year it is bought (physics-audit.md P0-1), so nothing about it is ever
+ *  under way. */
+export type QuestionState = "offered" | "answered";
 
 /**
  * The answer as the board shows it. Carries prose and dates only — no
@@ -364,7 +366,7 @@ export type QuestionState = "offered" | "pending" | "answered";
  */
 export interface QuestionFinding {
   readonly id: string;
-  readonly asOfYear: number; // = answersYear − distanceLy
+  readonly asOfYear: number; // = boughtYear − distanceLy, the light-cone edge
   readonly lightAgeYears: number; // nowYear − asOfYear
   readonly annotation: string;
   readonly moved: readonly HypothesisId[];
@@ -376,10 +378,11 @@ export interface QuestionFinding {
 
 /**
  * One question on a study: what it costs, what it would separate, and —
- * once bought — where its clock stands and what it found. `costCompute` /
- * `integrationYears` reflect any landed discount/haste project: a LIVE
- * preview while `offered`, frozen at `boughtYear` once bought
- * (synthesis.md §4 — effects never apply retroactively).
+ * once bought — what it found. There is no clock on this shape: the price
+ * is the whole of what a question asks of a player, and the answer lands
+ * the year the compute is committed. `costCompute` reflects any landed
+ * discount project: a LIVE preview while `offered`, frozen at `boughtYear`
+ * once bought (synthesis.md §4 — effects never apply retroactively).
  */
 export interface OpenQuestion {
   readonly id: QuestionId;
@@ -387,23 +390,26 @@ export interface OpenQuestion {
   readonly line: string;
   readonly costClass: CostClass; // "investment"
   readonly costCompute: number;
-  readonly integrationYears: number;
   /**
    * The receipt behind a discounted `costCompute`: the catalog base and
    * the landed project(s) that granted the reduction, composed server-side
    * (ProjectSnapshot's effectLine precedent) — e.g. "DOWN FROM 90 COMPUTE
    * · GRANTED BY THE SPECTROGRAPH BANK". Null when no discount has landed,
    * which is the common case. Live while `offered`, frozen at `boughtYear`
-   * once bought, exactly like the numbers it explains.
+   * once bought, exactly like the number it explains.
    */
   readonly costProvenance: string | null;
-  /** Same receipt for a hastened `integrationYears`, or null. */
-  readonly hasteProvenance: string | null;
   readonly separates: readonly HypothesisId[]; // derived per class at snapshot time
   readonly state: QuestionState;
-  readonly boughtYear: number | null; // null iff offered
-  readonly answersYear: number | null; // null iff offered; boughtYear + integrationYears
-  readonly finding: QuestionFinding | null; // non-null iff answered
+  /** null iff offered. Once set it is also the year the answer landed. */
+  readonly boughtYear: number | null;
+  /**
+   * Non-null once `answered`. The one gap is arithmetically unreachable:
+   * questions.ts still asks the light cone for the purchase year before it
+   * answers, and a year at or before now is always inside the cone. The
+   * field stays nullable so that guard stays a guard.
+   */
+  readonly finding: QuestionFinding | null;
 }
 
 /**

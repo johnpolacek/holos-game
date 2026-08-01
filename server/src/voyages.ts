@@ -28,11 +28,22 @@
 // (`civAtStar`, `pickPlayerHome`, `hasHailed`), a far worse blast radius than
 // one choke point in cohort.ts.
 //
-// NOTHING ABOUT THE LIGHT CONE CHANGES. A child's emission history begins at
-// its landfall year, so `emissionAt` returns 0 for every observer whose
-// `asOfYear` is earlier, `observeCiv` produces a null signal, and `visibleSky`
-// omits it. Invisibility until founding + distance falls out of the gate that
-// already existed; this module adds no visibility rule of its own.
+// NOTHING ABOUT THE LIGHT CONE CHANGES. A child's emission history begins when
+// the ship itself became visible at the far end, so `emissionAt` returns 0 for
+// every observer whose `asOfYear` is earlier, `observeCiv` produces a null
+// signal, and `visibleSky` omits it. Invisibility until that year plus distance
+// falls out of the gate that already existed; this module adds no visibility
+// rule of its own.
+//
+// FOR A SEEDSHIP THAT YEAR IS THE LANDFALL YEAR. For a torch or a sail it is
+// EARLIER, by the length of the braking burn, because a ship that stops must
+// brake and braking is as bright as leaving (physics-audit.md P1-3). That is
+// the one epoch in this module dated before founding, and it is not a
+// retro-dating: the ship really was there, burning, in those years. Two things
+// keep it honest. The fold below still admits the child at `landfallYear`, so
+// nothing appears in a roster before the founding is decided; and the cone
+// still clips at `asOfYear`, so a near observer reads the braking burn late
+// rather than early. Both errors point the same way, which is the safe one.
 //
 // WHY NOT `StoredMission`. `targetCivId` is mandatory and load-bearing there
 // (a probe is sent to whoever was home), `MissionState` is per-token where a
@@ -140,7 +151,7 @@ export interface VoyageKindDef {
   /** A project that must have LANDED before this kind may launch, or null. */
   readonly requiresProject: ProjectId | null;
   /** The sender's own departure light: level, and how long it holds. Null for
-   *  a seedship, which leaves on chemistry and is never seen leaving. */
+   *  a seedship, whose burn is slow enough that nobody sees it leave. */
   readonly departureLevel: number | null;
   /** Years of departure light per light-year of the crossing (the sail's
    *  battery pushes for a stretch proportional to the trip), or null. */
@@ -149,13 +160,28 @@ export interface VoyageKindDef {
   readonly departureYears: number | null;
   /** Ceiling on the departure light's duration, in years, or null. */
   readonly departureYearsCap: number | null;
+  /**
+   * THE ARRIVAL LIGHT: how bright the braking burn is at the far end, and for
+   * how many years before landfall it runs. Null for a seedship, whose brake
+   * is as slow and as cold as its launch and stays under DETECTION_FLOOR.
+   *
+   * DECELERATION IS THE FORGOTTEN HALF (physics-audit.md P1-3). A ship that
+   * stops must spend as much as it spent leaving, pointed the other way, in
+   * somebody else's sky. It is UNCONDITIONAL: a `found-dark` charter governs
+   * what the colony builds after the ships open and cannot make an engine
+   * brake quietly.
+   */
+  readonly brakingLevel: number | null;
+  readonly brakingYears: number | null;
 }
 
 /** A seedship at a tenth of lightspeed. `PROBE_C_FRACTION` is canon and
  *  probe-haste deliberately does NOT apply: the project is a launch beam for
  *  instruments, and a colony ship is not an instrument. */
 export const SEEDSHIP_FLIGHT_YEARS_PER_LY = 10;
-/** A torch at half lightspeed, on fuel it carries. */
+/** A torch at half lightspeed, on fuel it carries. The fuel has to burn matter
+ *  whole: an exhaust at a few percent of lightspeed would need a mass ratio
+ *  around a million to reach 0.5c and stop again (physics-audit.md P1-3). */
 export const TORCH_FLIGHT_YEARS_PER_LY = 2;
 /** A sail at four fifths, pushed from home. Faster than the torch is physics,
  *  not a balance choice: offboard power escapes the rocket equation. It is
@@ -167,7 +193,7 @@ export const VOYAGE_KINDS: readonly VoyageKindDef[] = [
   {
     kind: "seedship",
     label: "THE SEEDSHIP",
-    line: "Everything a founding needs, moving slowly enough that chemistry can pay for it. It arrives in a century and it arrives unannounced; nobody watching this system will know it ever left.",
+    line: "Everything a founding needs, moved by a burn too slow and too cold to see, and stopped by another one just like it. It arrives in a century and it arrives unannounced; nobody watching this system will know it ever left.",
     costClass: "investment",
     costCompute: 520,
     flightYearsPerLy: SEEDSHIP_FLIGHT_YEARS_PER_LY,
@@ -176,11 +202,16 @@ export const VOYAGE_KINDS: readonly VoyageKindDef[] = [
     departureYearsPerLy: null,
     departureYears: null,
     departureYearsCap: null,
+    // The unannounced arrival is the seedship's alone, and this null is why:
+    // the brake is spread over the same slow burn as the launch, and neither
+    // one ever climbs to DETECTION_FLOOR.
+    brakingLevel: null,
+    brakingYears: null,
   },
   {
     kind: "torch",
     label: "THE TORCH",
-    line: "Half of lightspeed, bought with fuel carried aboard and burned where anyone can see it. The flare lasts eight years and crosses the neighborhood forever after.",
+    line: "Half of lightspeed, bought with a fuel that burns matter whole, carried aboard and spent where anyone can see it. The flare lasts eight years and crosses the neighborhood forever after; it lights a second time at the far end, to stop.",
     costClass: "endeavor",
     costCompute: 3400,
     flightYearsPerLy: TORCH_FLIGHT_YEARS_PER_LY,
@@ -189,11 +220,15 @@ export const VOYAGE_KINDS: readonly VoyageKindDef[] = [
     departureYearsPerLy: null,
     departureYears: 8,
     departureYearsCap: null,
+    // The departure flare run backwards: the same engine, the same duration,
+    // the same brightness, pointed the other way and lit over the destination.
+    brakingLevel: 0.45,
+    brakingYears: 8,
   },
   {
     kind: "sail",
     label: "THE SAIL",
-    line: "Four fifths of lightspeed, pushed from home by the launch beam for as long as the beam can still find it. It is the fastest thing we can build and the loudest, and it travels at somebody else's discretion.",
+    line: "Four fifths of lightspeed, pushed from home by the launch beam for as long as the beam can still find it. It is the fastest thing we can build and the loudest, and it travels at somebody else's discretion. Nothing pushes back at the far end, so it brakes against the thin stuff between the stars, slowly, and in plain view.",
     costClass: "endeavor",
     costCompute: 2600,
     flightYearsPerLy: SAIL_FLIGHT_YEARS_PER_LY,
@@ -202,6 +237,12 @@ export const VOYAGE_KINDS: readonly VoyageKindDef[] = [
     departureYearsPerLy: 2,
     departureYears: null,
     departureYearsCap: 60,
+    // There is no beam waiting at the destination, so the sail stops the only
+    // way it can: drag against the medium and a magnetic scoop, which takes
+    // far longer than the torch's burn and shows far less while it does it.
+    // Fainter than the departure and longer, and above the floor throughout.
+    brakingLevel: 0.2,
+    brakingYears: 30,
   },
 ];
 
@@ -229,6 +270,23 @@ export function departureLightFor(
     (def.departureYearsPerLy === null ? 0 : def.departureYearsPerLy * distanceLy);
   const years = def.departureYearsCap === null ? raw : Math.min(def.departureYearsCap, raw);
   return { years, level: def.departureLevel };
+}
+
+/**
+ * `departureLightFor`'s twin at the other end: how long, and how bright, the
+ * braking burn runs before landfall. Null for a seedship.
+ *
+ * It takes a KIND rather than a def because its callers hold a launch record,
+ * and it does not take a distance because a brake is a fixed spend against a
+ * fixed cruise speed: the ship has the same velocity to lose whether it crossed
+ * three light-years or twenty.
+ */
+export function brakingLightFor(
+  kind: VoyageKind,
+): { readonly years: number; readonly level: number } | null {
+  const def = VOYAGE_KINDS.find((k) => k.kind === kind);
+  if (def === undefined || def.brakingLevel === null || def.brakingYears === null) return null;
+  return { years: def.brakingYears, level: def.brakingLevel };
 }
 
 // ---------------------------------------------------------------------------
@@ -287,7 +345,7 @@ export const VOYAGE_CLAUSES: readonly VoyageClauseDef[] = [
     id: "found-dark",
     group: "posture",
     label: "Found dark",
-    line: "Bank the heat, bury the works, and put nothing above the rock that a telescope could resolve. If we are found, let it be by somebody who came and looked.",
+    line: "Bank the heat, bury the works, and put nothing above the rock that a telescope could resolve. The crossing says what it says; after that, if we are found, let it be by somebody who came and looked.",
   },
   {
     id: "report-the-landfall",
@@ -550,6 +608,28 @@ export function voyageLandfallYear(v: StoredVoyage): number {
   return v.launchedYear + v.flightYearsPerLy * v.distanceLy;
 }
 
+/**
+ * THE YEAR THE DESTINATION FIRST HAS ANYTHING TO SEE: the year the braking
+ * burn lights, or the landfall year for a ship that brakes below the floor.
+ * Every observer reads it at this year plus their own distance to the star,
+ * and no earlier, which is what the wake schedule is built from.
+ *
+ * NEVER EARLIER THAN THE LAUNCH. A sail brakes for thirty years and reaches a
+ * near star in less than that, so the unclamped subtraction would date its
+ * arrival light before the ship left — an epoch in observers' past, which is
+ * the one thing `foundingEmissionHistory` may never write. The short hop
+ * spends its whole crossing slowing down instead, which is also the only way a
+ * ship that never finished accelerating could arrive at all. Its burn is then
+ * credited to the destination star for the whole flight, because a star is the
+ * only place this sky has to put a light; the ship is somewhere on the line
+ * between, and nothing in the game can resolve that.
+ */
+export function voyageArrivalLightYear(v: StoredVoyage): number {
+  const braking = brakingLightFor(v.kind);
+  if (braking === null) return voyageLandfallYear(v);
+  return Math.max(v.launchedYear, voyageLandfallYear(v) - braking.years);
+}
+
 /** The earliest year home can hear anything back — and, by the same
  *  arithmetic, the year the colony's own first light arrives. THE PARENT
  *  LEARNS TWICE IN THE SAME YEAR, which is not a coincidence: both facts
@@ -748,11 +828,20 @@ function postureOfSheet(sheet: DialSheet, fallback: Posture): Posture {
  * The colony's light, authored at founding and dated forward.
  *
  * HARD RULE, and the reason this function exists rather than a constant: NO
- * EPOCH IS EVER DATED BEFORE `landfallYear`. A retro-dated epoch would pop a
- * source into existence in observers' PAST, and the light-cone gate has no
- * defence against that because it is not a leak — it is a lie in the record.
+ * EPOCH IS EVER DATED BEFORE THE SHIP WAS THERE TO MAKE IT
+ * (`voyageArrivalLightYear`). An epoch dated any earlier would pop a source
+ * into existence in observers' PAST, and the light-cone gate has no defence
+ * against that because it is not a leak — it is a lie in the record.
  *
- * The first epoch states the CHARTER'S posture, because that is what the
+ * THE BRAKING BURN IS THE ONE EPOCH BEFORE FOUNDING, and it is that rule's
+ * limit rather than an exception to it: a torch or a sail spends years
+ * shedding its cruise speed over the destination, and those years are real,
+ * loud, and nobody's secret. It is written UNCONDITIONALLY, dark charter or
+ * not. `found-dark` is an instruction about what gets built once the ships
+ * open; an engine large enough to stop a starship cannot be run discreetly,
+ * and the colony's own posture takes over from the landfall year on.
+ *
+ * The first FOUNDING epoch states the CHARTER'S posture, because that is what the
  * founders were told to do. Every later epoch samples the WALKED posture
  * (synthesis R2), so a colony chartered dark whose dials lean Voice brightens
  * on schedule, dated, in the record, and a parent watching it can read the
@@ -766,6 +855,12 @@ export function foundingEmissionHistory(
   const landfallYear = voyageLandfallYear(v);
   const chartered = charterPosture(v.charter);
   const history: EmissionEpoch[] = [];
+  const braking = brakingLightFor(v.kind);
+  if (braking !== null) {
+    // `voyageArrivalLightYear` and not the subtraction, so the wake schedule
+    // and the light it wakes people for can never name two different years.
+    history.push({ fromYear: voyageArrivalLightYear(v), level: braking.level });
+  }
   let last: Posture | null = null;
   for (let k = 0; k < EMISSION_EPOCH_COUNT; k++) {
     const year = landfallYear + k * EMISSION_EPOCH_YEARS;
@@ -1248,7 +1343,16 @@ export function buildSurvey(
 export const OCCUPIED_RISK_LINE =
   "Nothing reserves a star. Another founding may already be under way toward this one, and the first to arrive is the one that roots.";
 
-/** The floor a `found-dark` colony sits under, restated where it is used so
- *  the two numbers cannot drift apart. Referenced rather than compared: the
- *  claim is a design fact about FOUND_DARK_LEVEL, checked once, here. */
+/**
+ * The floor a `found-dark` colony sits under FROM THE LANDFALL YEAR ON,
+ * restated where it is used so the two numbers cannot drift apart. Referenced
+ * rather than compared: the claim is a design fact about FOUND_DARK_LEVEL,
+ * checked once, here.
+ *
+ * IT IS A CLAIM ABOUT THE COLONY, NOT ABOUT THE SHIP THAT CARRIED IT. A torch
+ * or a sail brakes above this floor for years before it lands, in everybody's
+ * sky, and a dark charter does not change that (`brakingLevel`). The dark
+ * posture starts when the ships open; what the arrival announced is already
+ * on its way out at that point, and cannot be recalled.
+ */
 export const FOUND_DARK_IS_SUB_FLOOR = FOUND_DARK_LEVEL < DETECTION_FLOOR;

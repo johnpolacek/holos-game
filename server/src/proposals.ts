@@ -16,8 +16,8 @@
 // (fingerprints). This module therefore reads no clock: it takes no
 // `nowYear`, because every time-derived quantity it needs is already
 // resolved on a snapshot (ProjectSnapshot.status, OpenQuestion.state /
-// integrationYears, MissionSnapshot.state, ComputeBudget.free). Nothing in
-// it can drift.
+// costCompute, MissionSnapshot.state, ComputeBudget.free). Nothing in it can
+// drift.
 //
 // NO ARCHETYPE HERE, deliberately — same omission report.ts's
 // DeriveReportEntriesInput makes: the floor's prose is archetype-neutral by
@@ -245,7 +245,6 @@ function ruleQuestion(input: EnumerateProposalsInput): ProposalCandidate | undef
 
   for (const study of studies) {
     if (study.status !== "open") continue;
-    if (study.openQuestions.some((q) => q.state === "pending")) continue;
     if (missions.some((m) => m.starId === study.starId && isLiveMission(m.state))) continue;
 
     const { lead, runnerUp } = topTwo(study.hypotheses);
@@ -286,7 +285,7 @@ function ruleQuestion(input: EnumerateProposalsInput): ProposalCandidate | undef
     kind: "question",
     route: { kind: "question", starId: study.starId, questionId: question.id },
     fingerprint: `q:${study.starId}:${question.id}:${lead?.id ?? "none"}:${runnerUp?.id ?? "none"}`,
-    reason: reasonQuestion(name, def.proseName, question.line, question.costCompute, question.integrationYears),
+    reason: reasonQuestion(name, def.proseName, question.line, question.costCompute),
     priority: PRIORITY.question,
   };
 }

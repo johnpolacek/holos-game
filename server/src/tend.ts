@@ -7,23 +7,26 @@
 // purchase-time stamp (`startedYear` / `boughtYear` / `launchedYear`) plus
 // catalog constants — never a stored date of its own.
 //
-// NO-BACKLOG RULE. Available projects and offered questions are not
-// undertakings — nothing has been committed to yet, so they are not rows.
-// Answered questions leave the Tend too: they have become evidence on the
-// study, which is where the player reads them. A study row appears only if
-// it has at least one child, so an idle vigil (a study with no purchase
-// under way) is not clutter.
+// NO-BACKLOG RULE. Available projects are not undertakings — nothing has
+// been committed to yet, so they are not rows. A study row appears only if
+// it has at least one child, so an idle vigil (a study with no work under
+// way) is not clutter.
 //
-// PARENTING IS BY STAR, ONE LEVEL DEEP. A question or mission row's
-// `parentId` is `study/${starId}` exactly when an OPEN (not shelved) study
-// exists on that star, else null — a mission launched with no study open
-// is a top-level row.
+// QUESTIONS ARE NOT ROWS AT ALL. A question answers the year it is bought
+// (physics-audit.md P0-1), so there is never a moment at which one is under
+// way: a purchase becomes evidence on the study in the same breath, which is
+// where the player reads it. The Tend is for work with a date on it.
+//
+// PARENTING IS BY STAR, ONE LEVEL DEEP. A mission row's `parentId` is
+// `study/${starId}` exactly when an OPEN (not shelved) study exists on that
+// star, else null — a mission launched with no study open is a top-level
+// row.
 
 import { hasLanded, landedYear, projectById, type CostClass, type ProjectState } from "./projects";
 import { SENTINEL_CADENCE_YEARS, type WorkState } from "./missions";
 import type { MissionSnapshot, StudySnapshot, VoyageSnapshot } from "./protocol";
 
-export type TendKind = "study" | "project" | "question" | "mission" | "voyage";
+export type TendKind = "study" | "project" | "mission" | "voyage";
 
 /**
  * One undertaking. `nextYear` is the ONE date the row is waiting on; the
@@ -37,7 +40,7 @@ export interface TendRow {
   readonly costClass: CostClass; // the class chip
   readonly state: WorkState;
   readonly nextYear: number | null;
-  readonly nextLabel: string | null; // "LANDS" | "ANSWERS" | "ARRIVES" | "FIRST WORD" | "NEXT WORD"
+  readonly nextLabel: string | null; // "LANDS" | "ARRIVES" | "FIRST WORD" | "NEXT WORD"
   /**
    * The year this stretch of waiting BEGAN — the other end of the span the
    * client draws a track across (`fromYear` → `nextYear ?? markYear`). Not
@@ -255,9 +258,9 @@ function sortTendRows(rows: readonly TendRow[]): readonly TendRow[] {
 /**
  * Assembles the whole Tend from the three state records that already
  * exist plus the two new ones (studies, missions). `studies` is the
- * already-derived wire `StudySnapshot[]` for this sky send — its
- * `openQuestions` carry the state/boughtYear/answersYear this module reads,
- * so buildTendList never re-derives a question's clock itself.
+ * already-derived wire `StudySnapshot[]` for this sky send — this module
+ * reads only its status and its annotation line, and never re-derives
+ * anything about the work under it.
  */
 export function buildTendList(input: {
   readonly nowYear: number;
@@ -299,27 +302,6 @@ export function buildTendList(input: {
       parentId: null,
       starId: null,
     });
-  }
-
-  // Question rows: pending only; offered/answered are not rows.
-  for (const study of studies) {
-    for (const q of study.openQuestions) {
-      if (q.state !== "pending" || q.answersYear === null) continue;
-      rows.push({
-        id: `question/${study.starId}/${q.id}`,
-        kind: "question",
-        label: q.label,
-        sub: q.line,
-        costClass: q.costClass,
-        state: "in-hand",
-        nextYear: q.answersYear,
-        nextLabel: "ANSWERS",
-        fromYear: q.boughtYear,
-        markYear: null,
-        parentId: parentFor(study.starId),
-        starId: study.starId,
-      });
-    }
   }
 
   // Mission rows: every mission is a row, whatever its state.

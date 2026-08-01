@@ -166,17 +166,17 @@ const source = (starId, cls, distanceLy, confidence, level = 0.6) => ({
 
 const hypo = (id, label, gloss, share) => ({ id, label, gloss, share });
 
-const question = (id, label, line, cost, years, state, separates, finding = null) => ({
+const question = (id, label, line, cost, state, separates, finding = null) => ({
   id,
   label,
   line,
   costClass: "investment",
   costCompute: cost,
-  integrationYears: years,
   separates,
   state,
+  // A question answers the year it is bought (physics-audit.md P0-1), so
+  // `boughtYear` is also the answer's year and there is no second date.
   boughtYear: state === "offered" ? null : 5000,
-  answersYear: state === "offered" ? null : 5000 + years,
   finding,
 });
 
@@ -240,7 +240,6 @@ const Q_WEIGH = question(
   "WEIGH IT",
   "Put the mass against the heat and see whether the two can belong to the same object.",
   18,
-  4,
   "offered",
   ["industry", "natural"],
 );
@@ -249,7 +248,6 @@ const Q_LINES = question(
   "READ ITS LINES",
   "Split the light and read what the spectrum admits to.",
   26,
-  6,
   "offered",
   ["industry", "performance"],
 );
@@ -258,7 +256,6 @@ const Q_PLATEAU = question(
   "TIME ITS SHADOWS",
   "Time the crossings and see whether the schedule is kept.",
   22,
-  5,
   "answered",
   ["industry", "natural"],
   { shape: "plateau", line: "The reading did not move. Watching longer will not move it either." },
@@ -407,7 +404,7 @@ const SCENARIOS = [
           "star-3390",
           "broadcast-leakage",
           LEAD_CLEAR,
-          [question("read-its-lines", "READ ITS LINES", "what it is made of, and what has been done to its air", 8, 3, "offered", ["industry", "natural"])],
+          [question("read-its-lines", "READ ITS LINES", "what it is made of, and what has been done to its air", 8, "offered", ["industry", "natural"])],
         ),
       ],
       budget: budget(120),

@@ -4031,11 +4031,12 @@ export class StudyBoard {
         this.pendingQuestion.questionId === q.id;
       const free = this.currentFreeCompute();
       const affordable = free >= q.costCompute;
-      const base = `${q.costCompute} COMPUTE · ANSWERS IN ${formatClockPair(q.integrationYears)}`;
-      // The cost/clock line reads the same as it always did, shortfall and
-      // all — the only change is that the states below now dress the spend
-      // button rather than the row, which stays tappable so a question can
-      // be read when it cannot be bought.
+      const base = `${q.costCompute} COMPUTE`;
+      // The cost line carries the shortfall and nothing else. There is no
+      // clock pair on a question: the archive is already deep enough to
+      // answer, so a price is the whole of what is being asked. The states
+      // below dress the spend button rather than the row, which stays
+      // tappable so a question can be read when it cannot be bought.
       const shortfall = Math.ceil(q.costCompute - free);
       meta.textContent = affordable || !buyable ? base : `${base} · ${shortfall} SHORT`;
       if (!buyable || isPending || !affordable) head.classList.add("study-project-row--muted");
@@ -4081,19 +4082,15 @@ export class StudyBoard {
         }
 
         // 3. The terms, stated where the decision is made — the project
-        //    sheet's anatomy (cost row, clock row, allocation line), so
-        //    the fold says what is spent, when the answer lands, and what
-        //    the allocation can bear, before the verb is offered. Where a
-        //    landed project has moved a number off its catalog base, the
-        //    server's receipt line renders under the row it explains, so
-        //    an effective number is never mistaken for an arbitrary one.
+        //    sheet's anatomy minus its clock row, because a question has
+        //    no clock: the fold says what is spent and what the allocation
+        //    can bear, and the answer lands on the tap. Where a landed
+        //    project has moved the cost off its catalog base, the server's
+        //    receipt line renders under the row it explains, so an
+        //    effective number is never mistaken for an arbitrary one.
         detail.append(this.buildClockRow("COST", `${q.costCompute} COMPUTE`));
         if (q.costProvenance !== null) {
           detail.append(this.buildProvenanceLine(q.costProvenance));
-        }
-        detail.append(this.buildClockRow("ANSWERS IN", formatClockPair(q.integrationYears)));
-        if (q.hasteProvenance !== null) {
-          detail.append(this.buildProvenanceLine(q.hasteProvenance));
         }
         detail.append(this.buildBudgetLine());
 
@@ -4145,22 +4142,7 @@ export class StudyBoard {
       return wrap;
     }
 
-    if (q.state === "pending") {
-      const row = document.createElement("div");
-      row.className = "study-project-row study-project-row--disabled";
-      row.dataset.questionId = q.id;
-      const label = document.createElement("div");
-      label.className = "study-project-label holos-serif";
-      label.textContent = q.label;
-      const meta = document.createElement("div");
-      meta.className = "study-project-meta holos-caps";
-      const countdown = q.answersYear === null ? null : formatCountdown(q.answersYear);
-      meta.textContent = countdown !== null ? `ANSWERS IN ${countdown}` : "ANSWERING";
-      row.append(label, meta);
-      return row;
-    }
-
-    // "answered"
+    // "answered" — the only other state a question has.
     const row = document.createElement("div");
     row.className = "study-project-row study-project-row--disabled";
     row.dataset.questionId = q.id;
@@ -6165,9 +6147,9 @@ export class StudyBoard {
 
   // ── Render: mission detail ───────────────────────────────────────────
 
-  /** The receipt under a discounted cost/clock row — the server-composed
-   *  "DOWN FROM … · GRANTED BY …" line (OpenQuestion.costProvenance /
-   *  hasteProvenance). Faint: it explains a number, it is not one to act on. */
+  /** The receipt under a discounted cost row — the server-composed
+   *  "DOWN FROM … · GRANTED BY …" line (OpenQuestion.costProvenance).
+   *  Faint: it explains a number, it is not one to act on. */
   private buildProvenanceLine(text: string): HTMLDivElement {
     const line = document.createElement("div");
     line.className = "study-question-provenance holos-caps";
@@ -6632,8 +6614,8 @@ export class StudyBoard {
 
   /** How long the sender's own departure light burns — voyages.ts's
    *  `departureLightFor`, on the catalog numbers the wire already carries.
-   *  Null for a seedship, which leaves on chemistry and is never seen
-   *  leaving. */
+   *  Null for a seedship, whose burn is too slow to see and which is never
+   *  seen leaving. */
   private departureYearsFor(k: VoyageKindDef, distanceLy: number): number | null {
     if (k.departureLevel === null) return null;
     const raw =

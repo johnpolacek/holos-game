@@ -268,8 +268,9 @@ function questionEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
     const sourceName = nameFor(study.starId, localNames, designations);
 
     for (const q of study.openQuestions) {
-      if (q.state !== "answered" || q.finding === null || q.answersYear === null) continue;
-      const stampYear = q.answersYear;
+      if (q.state !== "answered" || q.finding === null || q.boughtYear === null) continue;
+      // The purchase year IS the answer year (physics-audit.md P0-1).
+      const stampYear = q.boughtYear;
       if (!inWindow(stampYear, sinceYear, nowYear)) continue;
       const def = questionById(q.id);
       if (def === undefined) continue; // defensive: the catalog is closed and total

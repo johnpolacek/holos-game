@@ -1176,9 +1176,8 @@ export function reasonQuestion(
   questionProseName: string,
   questionLine: string,
   costCompute: number,
-  integrationYears: number,
 ): PinnedLine {
-  return line`Nothing is under way on the ${F.source(sourceName)} study. The ${F.label(questionProseName)} asks ${F.label(questionLine)}; it costs ${F.compute(costCompute)} and answers in ${F.years(integrationYears)}.`;
+  return line`Nothing is under way on the ${F.source(sourceName)} study. The ${F.label(questionProseName)} asks ${F.label(questionLine)}; it costs ${F.compute(costCompute)} and answers on the record already in hand.`;
 }
 
 /**

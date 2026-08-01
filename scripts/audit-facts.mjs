@@ -132,7 +132,10 @@ for (const record of records(projects, "PROJECTS")) {
     check(`${id}: income rate`, line, rate, said ? Number(said[1]) : null);
   }
 
-  // "answer 30% sooner" / "cost 40% less compute"
+  // "cost 40% less compute" / "costs 20% less compute". The only percent a
+  // project effect carries is a question discount: nothing in the catalog
+  // moves a question's clock, because a question has none (physics-audit.md
+  // P0-1). A `percent` on any future effect kind lands here too.
   const percent = num("percent");
   if (percent !== null) {
     const said = line.match(/(\d+)%/);
@@ -157,10 +160,10 @@ for (const record of records(projects, "PROJECTS")) {
 
   // The question chrome the line recites, against `questionIds`.
   //
-  // A SUBSET must be named: "WEIGH IT and CATCH ITS EDGES answer 30% sooner"
-  // is a promise about those two, and the player has no other way to know
-  // which. THE WHOLE SET must NOT be: sky-vault reaches every question and
-  // says "Every question on every study", which is both better prose and
+  // A SUBSET must be named: "WEIGH IT and CATCH ITS EDGES cost 30% less
+  // compute" is a promise about those two, and the player has no other way to
+  // know which. THE WHOLE SET must NOT be: sky-vault reaches every question
+  // and says "Every question on every study", which is both better prose and
   // drift-proof. So the check flips on which case it is, and the failure mode
   // it really guards is a line that enumerates five of six.
   const ids = [...effect.matchAll(/"([a-z-]+)"/g)].map((q) => q[1]);
@@ -198,6 +201,15 @@ for (const record of records(projects, "PROJECTS")) {
 // The seedship's "It arrives in a century" is deliberately NOT checked: it is
 // a crossing time for a typical neighborhood hop, not a constant restated, and
 // pinning it would be inventing a coupling the catalog does not claim.
+//
+// THE ARRIVAL IS CHECKED, AND NOT AS A NUMBER. `brakingLevel` decides whether
+// a ship announces itself at the far end for years before it lands, and all
+// three lines sell that: the seedship promises an arrival nobody sees, the
+// torch and the sail promise the opposite. So the coupling declared below is
+// between the FIELD BEING NULL and WHICH PROMISE THE SENTENCE MAKES, and the
+// phrases it looks for are listed here rather than inferred. `brakingYears` is
+// not checked because no line states it; give a line a duration and it joins
+// the flare-years check above, in words.
 // ---------------------------------------------------------------------------
 
 /** "half" / "a tenth" / "four fifths" -> a number, or null. */
@@ -248,6 +260,23 @@ for (const record of records(voyages, "VOYAGE_KINDS")) {
     const flare = line.match(/flare lasts (\w+) years?/);
     const spoken = flare ? (WORD_NUMBER.get(flare[1]) ?? Number(flare[1])) : null;
     check(`${kind}: flare years`, line, Number(flareHit[1]), spoken);
+  }
+
+  // The arrival, against `brakingLevel`. A null brake is the ONE ship that may
+  // promise to land unheard; anything else must say it is seen doing it.
+  const brakeHit = record.match(/brakingLevel:\s*(null|-?[\d.]+)/);
+  if (brakeHit) {
+    const promised = /\bunannounced\b/.test(line)
+      ? "lands unheard"
+      : /\bfar end\b/.test(line)
+        ? "seen braking at the far end"
+        : "the line says nothing about the arrival";
+    check(
+      `${kind}: the arrival its line sells`,
+      line,
+      brakeHit[1] === "null" ? "lands unheard" : "seen braking at the far end",
+      promised,
+    );
   }
 }
 

@@ -113,10 +113,18 @@ The v1 question types, each mapping to real observational practice:
   else might it be meant for.
 
 Each question carries a **cost in compute** (economy-design.md's price of
-knowing; an Investment) and a **time to answer** (integration on real
-clocks, hours to days, clock pair always shown). Buying one puts a row on
-the work list — `awaiting light`, countdown running — and the answer arrives
-in a report, moving the distribution when it lands.
+knowing; an Investment) and nothing else. **As built, there is no time to
+answer**: every question resolves the year it is bought, and the answer
+speaks to the light-cone edge of that year. Earlier drafts of this
+document gave each one an integration clock on real time, hours to days,
+with a clock pair always shown; the 2026-08 physics retune deleted it
+(docs/physics-audit.md §P0-1 — compute may price a question, it may never
+date one). The archive is continuous and already spans millennia at
+purchase time, so the swing, the curve and the crossings are in hand
+before anyone asks; where a record genuinely is too short, the answer
+says so in words instead of counting down to it. Buying a question puts
+no row on the work list, because nothing about it is ever under way: the
+finding lands on the study and in the report in the same breath.
 
 **The spend is the inference, not the looking.** A civilization at this
 stage collects everything its instruments can reach, continuously; the
