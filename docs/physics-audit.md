@@ -220,6 +220,17 @@ fuel carried aboard").
   colony ship should be watchable by everyone in range, which is the
   dark-forest tension the design wants for free.
 
+  *(As built 2026-08: the torch burns antimatter in plain words and
+  lights a second time to stop, eight years at 0.45; the sail brakes
+  against the medium, thirty years at 0.2; the seedship alone keeps the
+  unannounced arrival, its brake below the detection floor. Braking
+  epochs are unconditional — found-dark begins at landfall — and are
+  clamped to the launch year so a short hop spends its whole crossing
+  slowing down. One known gap, accepted: a voyage that finds its star
+  occupied never founds a civ, so its brake has no history to live on
+  and stays invisible; fixing that needs a source that is not a
+  civilization, an architecture change deferred on purpose.)*
+
 ### P1-4 · Confidence falls off linearly; light falls off by the square
 
 `confidenceFor` (knowledge.ts) charges a flat 0.01 per
