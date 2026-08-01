@@ -304,9 +304,33 @@ function classify(truth: CivTruth, seed: CivSeed): SignalClass {
   return seed.ladders.energy >= 3 ? "transit-shadows" : "broadcast-leakage";
 }
 
-/** Thin belief confidence: nearer and brighter reads surer. Placeholder shape for A1. */
+/**
+ * The aperture term the received flux is measured against — the noise the
+ * collector cannot get below. Lower it and the same photons read surer, which
+ * is what a collecting-area project physically buys (physics-audit.md P1-4).
+ */
+const APERTURE_K = 0.022;
+/**
+ * How much of the [0.2, 0.95] band a rising SNR spans. Above 0.75 the ceiling
+ * is REACHED rather than approached: past a clean-enough read the clamp binds
+ * and near, bright sources sit at 0.95, as they did under the old shape.
+ */
+const CONFIDENCE_SPAN = 0.85;
+/** Inside this the source is your own system; it keeps the flux finite at d = 0. */
+const NEAR_FIELD_LY = 0.25;
+
+/**
+ * Belief confidence from RECEIVED FLUX, not from range: a source delivers
+ * level/d² to the aperture — the same inverse square traffic.ts degrades a
+ * beam by — and confidence stands in for SNR, which rises as the ROOT of that
+ * flux and saturates. Sure near home, photon-starved far out, and the
+ * plateau gates that read it become starvation gates rather than distance ones.
+ */
 function confidenceFor(distance: number, level: number): number {
-  const raw = 0.95 - distance / 100 - (0.25 - Math.min(0.25, level * 0.5));
+  const d = Math.max(distance, NEAR_FIELD_LY);
+  const rootFlux = Math.sqrt(Math.max(0, level) / (d * d));
+  const snr = rootFlux / (rootFlux + APERTURE_K);
+  const raw = 0.2 + CONFIDENCE_SPAN * snr;
   return Math.round(Math.min(0.95, Math.max(0.2, raw)) * 100) / 100;
 }
 
