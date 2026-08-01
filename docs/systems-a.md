@@ -237,7 +237,7 @@ baseline, decided by a pure function of the signal in hand.
 | weigh-it | `confidence < 0.35` | `no-clean-solution` |
 | temperature-over-time | `lightHistory.length < 2` | `no-baseline` |
 | read-its-lines | `emissionLevel < 0.03` | `too-few-photons` |
-| time-its-shadows | `confidence < 0.3` | `no-timing-survives` |
+| time-its-shadows | `confidence < 0.35` | `no-timing-survives` |
 | catch-its-edges | `confidence < 0.35` | `no-clean-polarization` |
 | listen-off-axis | occupancy `banked` or `living-quiet` | `nothing-on-axis` |
 

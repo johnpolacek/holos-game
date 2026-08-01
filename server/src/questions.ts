@@ -444,7 +444,11 @@ function readItsLinesFinding(occupancy: Occupancy, signal: ObservedSignal): Find
 }
 
 function timeItsShadowsFinding(occupancy: Occupancy, signal: ObservedSignal): Finding {
-  if (signal.confidence < 0.3) {
+  // 0.35 like its siblings, not the original 0.3: under flux-based
+  // confidence (knowledge.ts) the in-field floor sits near 0.30, so a 0.3
+  // gate could never fire inside the 25 ly ball and the refusal below was
+  // dead content. At 0.35 it fires where it should: faint and far.
+  if (signal.confidence < 0.35) {
     return plateau(
       "time-its-shadows",
       "no-timing-survives",
