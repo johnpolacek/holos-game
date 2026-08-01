@@ -272,6 +272,7 @@ import {
   toVoyageSnapshot,
   validateCharterDials,
   validateVoyageCharter,
+  voyageArrivalLightYear,
   voyageFirstWordYear,
   voyageKindById,
   voyageLandfallYear,
@@ -2186,10 +2187,15 @@ export class Cohort extends Server<CohortEnv> {
 
     // THE DEPARTURE LIGHT — a real truth write, by a live socket, on
     // `applyBroadcast`'s exact terms and through the same code
-    // (`applyEpisode`). A seedship leaves on chemistry and writes nothing;
-    // a torch flares for eight years at 0.45, a sail's battery pushes for
-    // min(60, 2d) years at 0.80, and both of them are in the neighborhood's
-    // echo forever after. The write goes to the STORED roster.
+    // (`applyEpisode`). A seedship's burn is too slow to see and writes
+    // nothing; a torch flares for eight years at 0.45, a sail's battery pushes
+    // for min(60, 2d) years at 0.80, and both of them are in the
+    // neighborhood's echo forever after. The write goes to the STORED roster.
+    //
+    // THE ARRIVAL LIGHT IS NOT WRITTEN HERE and is not written by anyone: the
+    // braking burn belongs to the CHILD's emission history, which is derived
+    // at the fold (`foundingEmissionHistory`) along with everything else about
+    // a colony that does not exist yet.
     const light = departureLightFor(kindDef, distance);
     if (light !== null) {
       const stored = this.requireStoredGalaxy();
@@ -2235,12 +2241,17 @@ export class Cohort extends Server<CohortEnv> {
    *
    *   the owner, at landfall            the decision is made, out there
    *   the owner, at first word          the report and the first light, together
-   *   every placed player, at landfall + their own distance to the CHILD'S star
+   *   every placed player, when the FAR END first reaches them
    *   every placed player, at launch + their own distance to HOME (torch/sail)
    *
    * The third is the one that matters for other people: a colony entering
    * their sky is a membership change in their field, and they should not have
-   * to guess when.
+   * to guess when. It is `voyageArrivalLightYear` and not the landfall year,
+   * because a torch or a sail brakes in the open for years before it lands and
+   * that burn is the first thing anybody sees (physics-audit.md P1-3). The
+   * floor at landfall is the roster's, not the light's: the fold has no child
+   * to show before the founding is decided, so an observer sitting closer to
+   * that star than the burn is long simply reads the burn late.
    */
   private async scheduleVoyageWakes(
     voyage: StoredVoyage,
@@ -2268,7 +2279,11 @@ export class Cohort extends Server<CohortEnv> {
       const star = starById(galaxy.stars, civ.starId);
       wakes.push({
         token,
-        atYear: landfallYear + distanceLy(childStar.position, star.position) + WAKE_SLOP_YEARS,
+        atYear:
+          Math.max(
+            landfallYear,
+            voyageArrivalLightYear(voyage) + distanceLy(childStar.position, star.position),
+          ) + WAKE_SLOP_YEARS,
         key: `v/${voyage.id}/light/${civ.seed.id}`,
       });
       if (!hasDepartureLight || civ.seed.id === voyage.ownerCivId) continue;

@@ -1180,17 +1180,31 @@ reaches storage. The only truth a voyage writes is its launch record
 (galaxy:voyages, cohort-wide: a founded civilization is everyone's
 fact) and its departure light. Wipe the wake queue and every colony
 still exists. Invisibility is not enforced by voyage code at all: the
-child's first emission epoch is dated landfallYear, so the existing
-light-cone clip hides it from every observer until founding plus
-distance.
+child's first emission epoch is dated at the year the ship itself
+became visible at the far end, so the existing light-cone clip hides
+it from every observer until that year plus distance.
 
 **Three ships, F frozen at launch**: the seedship at 0.1c (canon,
-520 compute, Investment); the torch at 0.5c behind an eight-year
-departure flare (3400, Endeavor); the beam-pushed sail at 0.8c behind
-the launch-beam project and a battery burning at 0.80 for min(60, 2d)
-years (2600, Endeavor). Fast, informed, and loud, or slow, blind, and
-silent; the amendment horizon (F-1)d shrinks as speed rises. Time
-dilation is narration only.
+520 compute, Investment) on a burn slow enough that neither end of it
+is visible; the torch at 0.5c on a fuel that burns matter whole,
+behind an eight-year departure flare (3400, Endeavor); the beam-pushed
+sail at 0.8c behind the launch-beam project and a battery burning at
+0.80 for min(60, 2d) years (2600, Endeavor). Fast, informed, and loud,
+or slow, blind, and silent; the amendment horizon (F-1)d shrinks as
+speed rises. Time dilation is narration only.
+
+**Deceleration is visible too** (physics-audit.md P1-3). A torch
+brakes at 0.45 for the 8 years before landfall, mirroring its
+departure; a sail, with no beam waiting for it, drags itself down at
+0.20 for 30 years. Both epochs sit in the CHILD's derived emission
+history, dated before its founding year because the ship really was
+there burning, and both are UNCONDITIONAL: found-dark governs what is
+built after the ships open and cannot brake an engine quietly. The
+seedship writes no arrival epoch at all, which is what earns it the
+one line in the catalog that promises to land unheard. Nothing new
+crosses the wire for any of it: an emission epoch is already how the
+sky sees everything, and the cone delivers a pre-landfall epoch to
+each observer at its own year plus their distance, for free.
 
 **The forecast survey** prices the act before it: information age at
 landfall is (1+F)d, and the arrival spread is a prior over public

@@ -362,8 +362,16 @@ export function counterpartClass(a: ArchetypeId): CounterpartClass {
  * A4: the first year this civilization could have transmitted anything —
  * the start of its emission record, or its ascension if it somehow has none.
  * For a seeded civ this sits millennia in the past and constrains nothing;
- * for a founded colony it is the landfall year, and it is the whole of the
- * causality fix at `deriveAiSignals`' push site.
+ * for a founded colony it is the year its own light begins, and it is the
+ * whole of the causality fix at `deriveAiSignals`' push site.
+ *
+ * FOR A TORCH OR A SAIL THAT IS THE BRAKING BURN, which starts before the
+ * landfall year (voyages.ts, physics-audit.md P1-3), so such a colony may
+ * answer while it is still coming in. That reads correctly rather than
+ * loosely: the thing under the burn is a ship with a working reactor and the
+ * charter aboard, and a reply it sends on approach still arrives at
+ * `sentYear + d`, which no observer can read before the fold has admitted the
+ * colony anyway.
  */
 function existsFromYear(seed: CivSeed): number {
   return seed.emissionHistory[0]?.fromYear ?? seed.ascensionYear;

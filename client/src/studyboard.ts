@@ -6614,8 +6614,8 @@ export class StudyBoard {
 
   /** How long the sender's own departure light burns — voyages.ts's
    *  `departureLightFor`, on the catalog numbers the wire already carries.
-   *  Null for a seedship, which leaves on chemistry and is never seen
-   *  leaving. */
+   *  Null for a seedship, whose burn is too slow to see and which is never
+   *  seen leaving. */
   private departureYearsFor(k: VoyageKindDef, distanceLy: number): number | null {
     if (k.departureLevel === null) return null;
     const raw =

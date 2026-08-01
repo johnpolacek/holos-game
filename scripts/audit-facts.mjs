@@ -201,6 +201,15 @@ for (const record of records(projects, "PROJECTS")) {
 // The seedship's "It arrives in a century" is deliberately NOT checked: it is
 // a crossing time for a typical neighborhood hop, not a constant restated, and
 // pinning it would be inventing a coupling the catalog does not claim.
+//
+// THE ARRIVAL IS CHECKED, AND NOT AS A NUMBER. `brakingLevel` decides whether
+// a ship announces itself at the far end for years before it lands, and all
+// three lines sell that: the seedship promises an arrival nobody sees, the
+// torch and the sail promise the opposite. So the coupling declared below is
+// between the FIELD BEING NULL and WHICH PROMISE THE SENTENCE MAKES, and the
+// phrases it looks for are listed here rather than inferred. `brakingYears` is
+// not checked because no line states it; give a line a duration and it joins
+// the flare-years check above, in words.
 // ---------------------------------------------------------------------------
 
 /** "half" / "a tenth" / "four fifths" -> a number, or null. */
@@ -251,6 +260,23 @@ for (const record of records(voyages, "VOYAGE_KINDS")) {
     const flare = line.match(/flare lasts (\w+) years?/);
     const spoken = flare ? (WORD_NUMBER.get(flare[1]) ?? Number(flare[1])) : null;
     check(`${kind}: flare years`, line, Number(flareHit[1]), spoken);
+  }
+
+  // The arrival, against `brakingLevel`. A null brake is the ONE ship that may
+  // promise to land unheard; anything else must say it is seen doing it.
+  const brakeHit = record.match(/brakingLevel:\s*(null|-?[\d.]+)/);
+  if (brakeHit) {
+    const promised = /\bunannounced\b/.test(line)
+      ? "lands unheard"
+      : /\bfar end\b/.test(line)
+        ? "seen braking at the far end"
+        : "the line says nothing about the arrival";
+    check(
+      `${kind}: the arrival its line sells`,
+      line,
+      brakeHit[1] === "null" ? "lands unheard" : "seen braking at the far end",
+      promised,
+    );
   }
 }
 
