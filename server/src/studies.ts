@@ -43,11 +43,8 @@ import type {
 } from "./protocol";
 import { LEAKAGE_FLOOR, type LightCone, type ObservedSignal, type SignalClass } from "./knowledge";
 import {
-  answersYearFor,
   costProvenanceFor,
   effectiveCostFor,
-  effectiveIntegrationYearsFor,
-  hasteProvenanceFor,
   possibleShiftsFor,
   questionsFor,
   resolveQuestion,
@@ -1037,11 +1034,12 @@ function mergeEvidence(
 }
 
 /**
- * One question's wire snapshot: offered (with a LIVE discount/haste
- * preview), pending (frozen at `boughtYear`, no finding yet), or answered
- * (frozen, with the finding). Also returns the `StudyMove` an answered
- * question contributes, so the caller can fold it into `distributionFor`
- * and the evidence trail without a second pass over `bought`.
+ * One question's wire snapshot: offered (with a LIVE discount preview) or
+ * answered (frozen at `boughtYear`, with the finding). There is no third
+ * branch — a purchase answers the year it is made. Also returns the
+ * `StudyMove` an answered question contributes, so the caller can fold it
+ * into `distributionFor` and the evidence trail without a second pass over
+ * `bought`.
  */
 function assembleQuestion(
   galaxy: Galaxy,
@@ -1064,27 +1062,25 @@ function assembleQuestion(
         line: def.line,
         costClass: QUESTION_COST_CLASS,
         costCompute: effectiveCostFor(def, nowYear, projectState),
-        integrationYears: effectiveIntegrationYearsFor(def, nowYear, projectState),
         costProvenance: costProvenanceFor(def, nowYear, projectState),
-        hasteProvenance: hasteProvenanceFor(def, nowYear, projectState),
         separates,
         state: "offered",
         boughtYear: null,
-        answersYear: null,
         finding: null,
       },
       move: null,
     };
   }
 
-  const answersYear = answersYearFor(def, bought, projectState);
   const costCompute = effectiveCostFor(def, bought.boughtYear, projectState);
-  const integrationYears = effectiveIntegrationYearsFor(def, bought.boughtYear, projectState);
   const costProvenance = costProvenanceFor(def, bought.boughtYear, projectState);
-  const hasteProvenance = hasteProvenanceFor(def, bought.boughtYear, projectState);
   const finding = resolveQuestion(galaxy, cone, def, bought, signal, projectState, purchases);
 
   if (finding === null) {
+    // Unreachable arithmetic: the cone always admits a year at or before
+    // now, and a purchase year always is one. Kept because the guard it
+    // mirrors is kept (questions.ts's no-leak line), and rendered as the
+    // bare row the client already draws for an answer with no finding.
     return {
       wire: {
         id: def.id,
@@ -1092,20 +1088,17 @@ function assembleQuestion(
         line: def.line,
         costClass: QUESTION_COST_CLASS,
         costCompute,
-        integrationYears,
         costProvenance,
-        hasteProvenance,
         separates,
-        state: "pending",
+        state: "answered",
         boughtYear: bought.boughtYear,
-        answersYear,
         finding: null,
       },
       move: null,
     };
   }
 
-  const asOfYear = answersYear - cone.distanceLy;
+  const asOfYear = bought.boughtYear - cone.distanceLy;
   const wireFinding: QuestionFinding = {
     id: finding.id,
     asOfYear,
@@ -1126,7 +1119,7 @@ function assembleQuestion(
           id: `${starId}/q/${def.id}`,
           kind: "answer",
           asOfYear,
-          arrivedYear: answersYear,
+          arrivedYear: bought.boughtYear,
           annotation: finding.annotation,
           shift: finding.shift,
           regress: finding.shape === "regress",
@@ -1139,13 +1132,10 @@ function assembleQuestion(
       line: def.line,
       costClass: QUESTION_COST_CLASS,
       costCompute,
-      integrationYears,
       costProvenance,
-      hasteProvenance,
       separates,
       state: "answered",
       boughtYear: bought.boughtYear,
-      answersYear,
       finding: wireFinding,
     },
     move,
@@ -1195,8 +1185,8 @@ export function tripwireHolds(
         (q) =>
           q.finding !== null &&
           q.finding.shape === "regress" &&
-          q.answersYear !== null &&
-          q.answersYear > armedYear,
+          q.boughtYear !== null &&
+          q.boughtYear > armedYear,
       );
     case "leakage-stops": {
       // The newest ARRIVED epoch sits below the leakage floor while an

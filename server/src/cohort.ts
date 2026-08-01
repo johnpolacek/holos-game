@@ -206,12 +206,7 @@ import {
   type MissionState,
   type StoredMission,
 } from "./missions";
-import {
-  answersYearFor,
-  effectiveCostFor,
-  questionById,
-  type BoughtQuestion,
-} from "./questions";
+import { effectiveCostFor, questionById, type BoughtQuestion } from "./questions";
 import { buildTendList } from "./tend";
 // A5, WEB PUSH. Every symbol here is TRANSPORT: base64url, a VAPID signature,
 // one bodyless POST, and the record of which devices asked to be told. push.ts
@@ -1912,13 +1907,9 @@ export class Cohort extends Server<CohortEnv> {
     const updatedProjectState = commitCompute(projectState, cost, nowYear);
     await this.saveProjectState(state.token, updatedProjectState);
 
-    const answersYear = answersYearFor(def, bought, projectState);
-    await this.pushWakeEvent({
-      token: state.token,
-      atYear: answersYear,
-      key: `q/${starId}/${def.id}`,
-    });
-
+    // No wake for the answer: it is already in this send. A question
+    // answers the year it is bought (physics-audit.md P0-1), so there is
+    // nothing later to be woken for.
     await this.sendSkyToSeat(state);
   }
 
@@ -2967,15 +2958,14 @@ export class Cohort extends Server<CohortEnv> {
    * years. So "was this ever true" becomes a short loop over a short list.
    *
    * Three sources, and no fourth. A landed project is deliberately NOT one: a
-   * haste project moves the PREVIEW of a future answer, never an answer
-   * already frozen.
+   * discount moves the PREVIEW of a future purchase, never a purchase already
+   * made.
    */
   private studyChangePoints(
     stored: StoredStudy,
     targetCiv: PlacedCiv,
     distanceLy: number,
     missions: readonly StoredMission[],
-    projectState: ProjectState,
     fromYear: number,
     toYear: number,
   ): readonly number[] {
@@ -2987,13 +2977,14 @@ export class Cohort extends Server<CohortEnv> {
     for (const epoch of targetCiv.seed.emissionHistory) {
       points.push(epoch.fromYear + distanceLy);
     }
-    // 2. ANSWERS. The same frozen number the assembly uses, from the same
-    //    function, so a haste project that landed after the buy cannot make
-    //    the two disagree.
+    // 2. ANSWERS, which are the years the questions were bought — a
+    //    question answers the day it is asked (physics-audit.md P0-1).
+    //    Every one of them therefore sits at or before the year the player
+    //    was last here, so none can fall inside an away window; the filter
+    //    below would drop them anyway, and pushing them says the step
+    //    function's second source out loud.
     for (const bought of stored.bought) {
-      const def = questionById(bought.id);
-      if (def === undefined) continue;
-      points.push(answersYearFor(def, bought, projectState));
+      points.push(bought.boughtYear);
     }
     // 3. REPORTS, the light-return leg already inside `expectedArrivals`.
     for (const m of missions) {
@@ -3071,7 +3062,6 @@ export class Cohort extends Server<CohortEnv> {
         targetCiv,
         civDistanceLy(galaxy, civId, targetId),
         inputs.missions,
-        inputs.projectState,
         fromYear,
         toYear,
       );
@@ -3183,7 +3173,6 @@ export class Cohort extends Server<CohortEnv> {
         targetCiv,
         civDistanceLy(galaxy, civId, targetCiv.seed.id),
         inputs.missions,
-        inputs.projectState,
         nowYear,
         backstop,
       )[0];

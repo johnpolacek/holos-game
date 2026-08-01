@@ -44,8 +44,10 @@
 // dedicated to this economy and no drift to correct for.
 //
 // A2.2 EFFECT AGGREGATION. Nine new projects land alongside the four
-// shipped ones, in five effect kinds (content.md PART 2, synthesis.md §4).
-// `questionCostKeepFractionAt` / `questionYearsKeepFractionAt` /
+// shipped ones, in four effect kinds (content.md PART 2, synthesis.md §4;
+// the fifth, `question-haste`, is gone — physics-audit.md P0-1: compute may
+// price a question, it may never date one).
+// `questionCostKeepFractionAt` /
 // `landedProbeCruiseFractionAt` / `confidenceLiftAt` are this module's
 // answer to "what do the LANDED projects grant, right now" — every one
 // reads only `hasLanded` project effects, stacks matching ones
@@ -75,22 +77,21 @@ export type ProjectId =
 export type CostClass = "ambient" | "investment" | "endeavor" | "epochal";
 
 /**
- * Five effect kinds, exactly as briefed (content.md PART 2, synthesis.md
- * §4). Each project carries exactly one. `question-discount` /
- * `question-haste` reduce a question's costCompute / integrationYears;
- * `probe-haste` replaces the canonical 0.1c cruise fraction with the
- * MAXIMUM across landed projects (never summed); `confidence-lift` raises
- * the floor under a signal's confidence, never the value itself.
+ * Four effect kinds (content.md PART 2, synthesis.md §4). Each project
+ * carries exactly one. `question-discount` reduces a question's
+ * costCompute; `probe-haste` replaces the canonical 0.1c cruise fraction
+ * with the MAXIMUM across landed projects (never summed); `confidence-lift`
+ * raises the floor under a signal's confidence, never the value itself.
+ *
+ * There is no effect that moves a question's clock, and there cannot be one:
+ * a question answers the year it is bought (physics-audit.md P0-1), so a
+ * finer instrument buys a cleaner measurement, which takes less inference to
+ * solve — a discount, not a countdown.
  */
 export type ProjectEffect =
   | { readonly kind: "compute-income"; readonly addRatePerYear: number }
   | {
       readonly kind: "question-discount";
-      readonly questionIds: readonly QuestionId[];
-      readonly percent: number;
-    }
-  | {
-      readonly kind: "question-haste";
       readonly questionIds: readonly QuestionId[];
       readonly percent: number;
     }
@@ -187,22 +188,22 @@ export const PROJECTS: readonly ProjectDef[] = [
     label: "Open the long baseline",
     proseName: "the long baseline",
     line: "Two collectors an astronomical unit apart, holding phase to a fraction of a wavelength. Resolution was never about the mirror, only about how far apart you are willing to stand.",
-    effectLine: "WEIGH IT and CATCH ITS EDGES answer 30% sooner, on every study.",
+    effectLine: "WEIGH IT and CATCH ITS EDGES cost 30% less compute, on every study.",
     costClass: "investment",
     costCompute: 380,
     durationYears: 30,
-    effect: { kind: "question-haste", questionIds: ["weigh-it", "catch-its-edges"], percent: 30 },
+    effect: { kind: "question-discount", questionIds: ["weigh-it", "catch-its-edges"], percent: 30 },
   },
   {
     id: "occultation-network",
     label: "Spread the occultation net",
     proseName: "the occultation net",
     line: "Stations strung across the whole system, so that when a foreground body clips a distant source, somebody is always standing in the shadow.",
-    effectLine: "TIME ITS SHADOWS answers 50% sooner, on every study.",
+    effectLine: "TIME ITS SHADOWS costs 50% less compute, on every study.",
     costClass: "investment",
     costCompute: 300,
     durationYears: 25,
-    effect: { kind: "question-haste", questionIds: ["time-its-shadows"], percent: 50 },
+    effect: { kind: "question-discount", questionIds: ["time-its-shadows"], percent: 50 },
   },
   {
     id: "spectrograph-bank",
@@ -260,12 +261,12 @@ export const PROJECTS: readonly ProjectDef[] = [
     label: "Commit the sky to the Vault",
     proseName: "the Vault",
     line: "Every arrival kept whole and referenced for as long as there is anyone left to ask, because a question put to a thousand years of record is half answered before it is bought.",
-    effectLine: "Every question on every study answers 20% sooner.",
+    effectLine: "Every question on every study costs 20% less compute.",
     costClass: "endeavor",
     costCompute: 2200,
     durationYears: 110,
     effect: {
-      kind: "question-haste",
+      kind: "question-discount",
       questionIds: [
         "weigh-it",
         "temperature-over-time",
@@ -570,40 +571,24 @@ export function questionCostKeepFractionAt(
   );
 }
 
-/** The raw integration-years keep-fraction from every landed `question-haste`
- *  project naming `questionId`, at `atYear`. 1 means no haste landed yet. */
-export function questionYearsKeepFractionAt(
-  state: ProjectState,
-  questionId: QuestionId,
-  atYear: number,
-): number {
-  return stackedKeepFractionAt(state, atYear, (effect) =>
-    effect.kind === "question-haste" && effect.questionIds.includes(questionId)
-      ? effect.percent
-      : null,
-  );
-}
-
 /**
- * The prose names of every LANDED project of `kind` naming `questionId` at
- * `atYear` — the provenance behind the keep-fractions above, in started
- * order. questions.ts composes these into the receipt line under a
- * discounted cost/clock row; the aggregation stays here so the two reads
- * (how much, and granted by whom) can never disagree about which projects
- * count.
+ * The prose names of every LANDED `question-discount` project naming
+ * `questionId` at `atYear` — the provenance behind the keep-fraction above,
+ * in started order. questions.ts composes these into the receipt line under
+ * a discounted cost row; the aggregation stays here so the two reads (how
+ * much, and granted by whom) can never disagree about which projects count.
  */
 export function questionGrantProseNamesAt(
   state: ProjectState,
   questionId: QuestionId,
   atYear: number,
-  kind: "question-discount" | "question-haste",
 ): readonly string[] {
   const names: string[] = [];
   for (const p of state.started) {
     const def = projectById(p.id);
     if (def === undefined || !hasLanded(def, p, atYear)) continue;
     const effect = def.effect;
-    if (effect.kind !== kind || !effect.questionIds.includes(questionId)) continue;
+    if (effect.kind !== "question-discount" || !effect.questionIds.includes(questionId)) continue;
     names.push(def.proseName);
   }
   return names;

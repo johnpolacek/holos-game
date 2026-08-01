@@ -4,10 +4,18 @@
 // PHYSICS FIRST. Photons already at home are a free archive; thinking
 // about them is not (knowledge.ts's F2). A bought question buys no new
 // light — it buys a deeper read of light already in hand. That is why the
-// currency is Compute, why the answer is dated, and why the whole no-leak
-// story is four lines: `resolveQuestion` asks `peekTruth` for the year the
-// inference lands on, and gets `null` back until the light-cone admits it.
-// The pending state is arithmetic, not a guard (knowledge.ts's LightCone).
+// currency is Compute, and why compute is the ONLY thing it costs: the
+// archive is continuous and already spans millennia at the moment of
+// purchase, so the swing, the curve and the crossings are in the record
+// before anyone asks. **Compute may price a question; it may never date
+// one** (physics-audit.md P0-1). Every question answers the year it is
+// bought, and where the record is genuinely short the answer says so in
+// words (the plateau gates below) rather than counting down to nothing.
+//
+// `resolveQuestion` still asks `peekTruth` for the year the inference lands
+// on, and that guard stays, belt and braces: it is the whole no-leak story
+// in one line. It now always admits, because a purchase year is never later
+// than now and a cone always reaches it.
 //
 // FINDINGS ARE KEYED BY OCCUPANCY, NOT BY SIGNAL CLASS. The same physical
 // truth (an ascended civ radiating almost nothing) reads the same way
@@ -34,14 +42,14 @@
 // a fact about the target's behavior.
 //
 // EFFECTS FREEZE AT PURCHASE (synthesis.md §4). A question bought at year
-// B answers on the discount/haste granted by projects LANDED BY B — never
+// B is priced on the discounts granted by projects LANDED BY B — never
 // retroactively. Because a project's landing year is itself an immutable
 // historical fact once stored, re-deriving "what was landed by B" years
 // later reproduces the identical number forever, so nothing needs to be
-// frozen in storage beyond `boughtYear` itself. `effectiveCostFor` /
-// `effectiveIntegrationYearsFor` take `atYear` explicitly so the SAME
-// helper serves both the live "offered" preview (atYear = nowYear) and the
-// frozen "pending"/"answered" reading (atYear = bought.boughtYear).
+// frozen in storage beyond `boughtYear` itself. `effectiveCostFor` takes
+// `atYear` explicitly so the SAME helper serves both the live "offered"
+// preview (atYear = nowYear) and the frozen "answered" reading
+// (atYear = bought.boughtYear).
 
 import type { LadderStages } from "./civseed";
 import { instrumentTierAt, resolveContest } from "./contest";
@@ -58,7 +66,6 @@ import {
   confidenceLiftAt,
   questionCostKeepFractionAt,
   questionGrantProseNamesAt,
-  questionYearsKeepFractionAt,
   type ProjectState,
 } from "./projects";
 import type { HypothesisRole } from "./studies";
@@ -116,7 +123,6 @@ export interface QuestionDef {
   readonly proseName: string;
   readonly line: string; // what it would tell apart, plain words
   readonly costCompute: number;
-  readonly integrationYears: number;
   /** Signal classes this question can even be asked of. Physics, not
    *  balance: you cannot time shadows that are not there. */
   readonly appliesTo: readonly SignalClass[];
@@ -126,15 +132,18 @@ export interface QuestionDef {
 export const QUESTION_COST_CLASS = "investment" as const;
 
 /**
- * The full v1 question catalog. Integration years and the applies-to
- * matrix are systems-a.md §2.2's numbers (canonical per synthesis.md §3 —
- * content.md's 40–160 / 15–60y figures are superseded); `label` uses
- * content.md's chrome forms and `line` its glosses. Costs are the 2026-07
- * scarcity pass: systems-a's originals (60/45/75/40/90/55) tripled, so a
- * full attention pool (ATTENTION_YEARS × income, projects.ts) covers a few
- * questions rather than the whole menu — the cost/clock inverse (patience
- * cheap, haste dear) is preserved exactly. systems-a.md §2.2 records the
- * retune.
+ * The full v1 question catalog. The applies-to matrix is systems-a.md
+ * §2.2's (canonical per synthesis.md §3); `label` uses content.md's chrome
+ * forms and `line` its glosses. Costs are the 2026-07 scarcity pass:
+ * systems-a's originals (60/45/75/40/90/55) tripled, so a full attention
+ * pool (ATTENTION_YEARS × income, projects.ts) covers a few questions
+ * rather than the whole menu. systems-a.md §2.2 records the retune.
+ *
+ * There is no clock field, and the costs no longer sit opposite one: with
+ * latency gone (physics-audit.md P0-1) a price is anchored on inference
+ * depth alone, which is what the shipped numbers already roughly encode —
+ * lines and edges are deep and dear, shadows and temperature shallow and
+ * cheap.
  */
 export const QUESTIONS: readonly QuestionDef[] = [
   {
@@ -143,7 +152,6 @@ export const QUESTIONS: readonly QuestionDef[] = [
     proseName: "weighing",
     line: "how heavy it is, and whether the warmth matches the weight",
     costCompute: 180,
-    integrationYears: 12,
     appliesTo: ["infrared-excess", "transit-shadows"],
   },
   {
@@ -152,7 +160,6 @@ export const QUESTIONS: readonly QuestionDef[] = [
     proseName: "temperature watch",
     line: "whether it is cooling the way nature cools, or being held",
     costCompute: 135,
-    integrationYears: 24,
     appliesTo: ["infrared-excess", "transit-shadows", "broadcast-leakage", "directed-beam"],
   },
   {
@@ -161,7 +168,6 @@ export const QUESTIONS: readonly QuestionDef[] = [
     proseName: "line reading",
     line: "what it is made of, and what has been done to its air",
     costCompute: 225,
-    integrationYears: 8,
     appliesTo: ["infrared-excess", "transit-shadows", "broadcast-leakage", "biosignature"],
   },
   {
@@ -170,7 +176,6 @@ export const QUESTIONS: readonly QuestionDef[] = [
     proseName: "shadow timing",
     line: "whether the crossings keep a clock, and what kind",
     costCompute: 120,
-    integrationYears: 18,
     appliesTo: ["transit-shadows", "biosignature"],
   },
   {
@@ -179,7 +184,6 @@ export const QUESTIONS: readonly QuestionDef[] = [
     proseName: "edge look",
     line: "how the light comes off it, since air answers differently than surface",
     costCompute: 270,
-    integrationYears: 6,
     appliesTo: ["infrared-excess", "transit-shadows", "biosignature", "directed-beam"],
   },
   {
@@ -188,7 +192,6 @@ export const QUESTIONS: readonly QuestionDef[] = [
     proseName: "off-axis listening",
     line: "what spills around the edge of the signal, and who the middle is for",
     costCompute: 165,
-    integrationYears: 10,
     appliesTo: ["broadcast-leakage", "directed-beam"],
   },
 ];
@@ -239,22 +242,19 @@ export interface BoughtQuestion {
 }
 
 // ---------------------------------------------------------------------------
-// Effective cost / integration years — the one place the 25%-of-base floor
-// is enforced (projects.ts's aggregation stays a pure, unfloored stack).
+// Effective cost — the one place the 25%-of-base floor is enforced
+// (projects.ts's aggregation stays a pure, unfloored stack).
 // ---------------------------------------------------------------------------
 
-/** No stack of discount/haste projects can push a question below this
- *  fraction of its catalog base (content.md PART 2's rule). */
+/** No stack of discount projects can push a question below this fraction of
+ *  its catalog base (content.md PART 2's rule). The deepest stack the
+ *  catalog can build is WEIGH IT under the long baseline, the pulsar clocks
+ *  and the Vault: 0.7 × 0.7 × 0.8 = 0.392, well clear of the floor. */
 const EFFECT_KEEP_FLOOR = 0.25;
 
 /** costCompute after every landed discount project, rounded to whole compute. */
 export function effectiveQuestionCost(baseCost: number, keepFraction: number): number {
   return Math.round(baseCost * Math.max(EFFECT_KEEP_FLOOR, keepFraction));
-}
-
-/** integrationYears after every landed haste project, rounded to 1 decimal. */
-export function effectiveIntegrationYears(baseYears: number, keepFraction: number): number {
-  return Math.round(baseYears * Math.max(EFFECT_KEEP_FLOOR, keepFraction) * 10) / 10;
 }
 
 /** The live (or frozen, if `atYear` is a purchase year) cost for `def`. */
@@ -269,23 +269,11 @@ export function effectiveCostFor(
   );
 }
 
-/** The live (or frozen) integration years for `def`. */
-export function effectiveIntegrationYearsFor(
-  def: QuestionDef,
-  atYear: number,
-  projectState: ProjectState,
-): number {
-  return effectiveIntegrationYears(
-    def.integrationYears,
-    questionYearsKeepFractionAt(projectState, def.id, atYear),
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Provenance — the receipt behind an effective number. When a landed
-// project has moved a question's cost or clock off its catalog base, the
-// player deserves to see the base and the grantor, or the effective number
-// reads as an arbitrary constant. Composed server-side (ProjectSnapshot's
+// project has moved a question's cost off its catalog base, the player
+// deserves to see the base and the grantor, or the effective number reads
+// as an arbitrary constant. Composed server-side (ProjectSnapshot's
 // effectLine precedent: the client never needs the effect union), caps to
 // match the chrome meta lines it renders among. Null whenever nothing has
 // landed, which is the common case and renders as nothing.
@@ -303,34 +291,9 @@ export function costProvenanceFor(
   atYear: number,
   projectState: ProjectState,
 ): string | null {
-  const names = questionGrantProseNamesAt(projectState, def.id, atYear, "question-discount");
+  const names = questionGrantProseNamesAt(projectState, def.id, atYear);
   if (names.length === 0) return null;
   return `DOWN FROM ${def.costCompute} COMPUTE · GRANTED BY ${joinProseNames(names).toUpperCase()}`;
-}
-
-/** The receipt under the ANSWERS IN row, or null if no haste has landed. */
-export function hasteProvenanceFor(
-  def: QuestionDef,
-  atYear: number,
-  projectState: ProjectState,
-): string | null {
-  const names = questionGrantProseNamesAt(projectState, def.id, atYear, "question-haste");
-  if (names.length === 0) return null;
-  return `DOWN FROM ${def.integrationYears} Y · GRANTED BY ${joinProseNames(names).toUpperCase()}`;
-}
-
-/**
- * The year a bought question's inference completes, using the haste
- * landed BY `bought.boughtYear` (frozen — never the live rate). The single
- * source both `resolveQuestion` and the OpenQuestion wire snapshot read, so
- * the two can never disagree about when a finding lands.
- */
-export function answersYearFor(
-  def: QuestionDef,
-  bought: BoughtQuestion,
-  projectState: ProjectState,
-): number {
-  return bought.boughtYear + effectiveIntegrationYearsFor(def, bought.boughtYear, projectState);
 }
 
 // ---------------------------------------------------------------------------
@@ -729,68 +692,64 @@ export function possibleShiftsFor(id: QuestionId): readonly RoleShift[] {
 
 // ---------------------------------------------------------------------------
 // The relevant window — which stretch of TARGET years a look is contested
-// over. Both endpoints are `answersYear − distanceLy`, and both are frozen
-// the moment they are bought (the effects-freeze above), so a window is
-// immutable forever once its later purchase has been made.
+// over. Both endpoints are `boughtYear − distanceLy`, which is exactly the
+// light-cone edge on the day the question was asked, and a purchase year is
+// an immutable historical fact, so a window is fixed forever once its later
+// purchase has been made.
 // ---------------------------------------------------------------------------
 
 /**
  * T_prev: the greatest target year among purchases at a strictly LOWER index
- * in the study's `bought` record whose answer lands strictly earlier than
- * this one's. Null when there is no such purchase, and that null is
- * load-bearing: the FIRST question on a study has no earlier look to
- * separate less than, so it can never regress. Two questions bought in the
- * same breath give a window of essentially zero length and nothing can be
- * lost across it; a study left to sit for centuries between looks hands the
- * target every one of those years. The pacing is the player's.
+ * in the study's `bought` record bought strictly earlier than this one.
+ * Null when there is no such purchase, and that null is load-bearing: the
+ * FIRST question on a study has no earlier look to separate less than, so it
+ * can never regress. Two questions bought in the same breath give no window
+ * at all and nothing can be lost across it; a study left to sit for
+ * centuries between looks hands the target every one of those years. The
+ * pacing is the player's.
  */
 function priorTargetYearFor(
   purchases: readonly BoughtQuestion[],
   index: number,
-  answersYear: number,
+  boughtYear: number,
   distanceLy: number,
-  projectState: ProjectState,
 ): number | null {
   let best: number | null = null;
   for (let i = 0; i < index; i++) {
     const earlier = purchases[i];
     if (earlier === undefined) continue;
-    const earlierDef = questionById(earlier.id);
-    if (earlierDef === undefined) continue;
-    const earlierAnswers = answersYearFor(earlierDef, earlier, projectState);
-    if (earlierAnswers >= answersYear) continue;
-    const targetYear = earlierAnswers - distanceLy;
+    if (earlier.boughtYear >= boughtYear) continue;
+    const targetYear = earlier.boughtYear - distanceLy;
     if (best === null || targetYear > best) best = targetYear;
   }
   return best;
 }
 
-/** How many purchases at a lower index answer at or before this one — the
+/** How many purchases at a lower index answered at or before this one — the
  *  study's own accumulated baseline, the second channel of instrumentTierAt. */
 function priorAnswerCount(
   purchases: readonly BoughtQuestion[],
   index: number,
-  answersYear: number,
-  projectState: ProjectState,
+  boughtYear: number,
 ): number {
   let count = 0;
   for (let i = 0; i < index; i++) {
     const earlier = purchases[i];
     if (earlier === undefined) continue;
-    const earlierDef = questionById(earlier.id);
-    if (earlierDef === undefined) continue;
-    if (answersYearFor(earlierDef, earlier, projectState) <= answersYear) count++;
+    if (earlier.boughtYear <= boughtYear) count++;
   }
   return count;
 }
 
 /**
- * The answer, or null while the inference has not completed. Pure: same
- * inputs, same output, forever — `answersYearFor` freezes the haste at
- * `bought.boughtYear`, so a re-derivation years later reproduces the
- * identical finding. The whole no-leak story: ask `peekTruth` for the
- * answer's target year, and if it is still above the light cone, the
- * answer is `null` — arithmetic, not a guard.
+ * The answer. Pure: same inputs, same output, forever — the purchase year is
+ * the answer year and never moves, so a re-derivation centuries later
+ * reproduces the identical finding.
+ *
+ * `null` is the light cone refusing the year, and it is kept as belt and
+ * braces rather than deleted: it is the whole no-leak story in one line, and
+ * a guard that has stopped being reachable is still the guard. It cannot
+ * fire on a purchase, because a purchase year is never later than now.
  *
  * `purchases` is the study's WHOLE purchase record in buy order, and `bought`
  * is one of its entries. It is passed because a look is contested against the
@@ -815,8 +774,7 @@ export function resolveQuestion(
   projectState: ProjectState,
   purchases: readonly BoughtQuestion[],
 ): Finding | null {
-  const answersYear = answersYearFor(def, bought, projectState);
-  const targetYear = answersYear - cone.distanceLy;
+  const targetYear = bought.boughtYear - cone.distanceLy;
   const truth = peekTruth(galaxy, cone, targetYear);
   if (truth === null) return null;
   const seed = civById(galaxy, cone.targetId).seed;
@@ -828,15 +786,14 @@ export function resolveQuestion(
   const priorTargetYear = priorTargetYearFor(
     purchases,
     index,
-    answersYear,
+    bought.boughtYear,
     cone.distanceLy,
-    projectState,
   );
   if (priorTargetYear === null) return base; // a first look has no window
 
   const instrumentTier = instrumentTierAt(
     confidenceLiftAt(projectState, bought.boughtYear),
-    priorAnswerCount(purchases, index, answersYear, projectState),
+    priorAnswerCount(purchases, index, bought.boughtYear),
   );
   switch (resolveContest({ seed, targetYear, priorTargetYear, instrumentTier }).shape) {
     case "clear":

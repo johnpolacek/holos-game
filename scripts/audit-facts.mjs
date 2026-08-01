@@ -132,7 +132,10 @@ for (const record of records(projects, "PROJECTS")) {
     check(`${id}: income rate`, line, rate, said ? Number(said[1]) : null);
   }
 
-  // "answer 30% sooner" / "cost 40% less compute"
+  // "cost 40% less compute" / "costs 20% less compute". The only percent a
+  // project effect carries is a question discount: nothing in the catalog
+  // moves a question's clock, because a question has none (physics-audit.md
+  // P0-1). A `percent` on any future effect kind lands here too.
   const percent = num("percent");
   if (percent !== null) {
     const said = line.match(/(\d+)%/);
@@ -157,10 +160,10 @@ for (const record of records(projects, "PROJECTS")) {
 
   // The question chrome the line recites, against `questionIds`.
   //
-  // A SUBSET must be named: "WEIGH IT and CATCH ITS EDGES answer 30% sooner"
-  // is a promise about those two, and the player has no other way to know
-  // which. THE WHOLE SET must NOT be: sky-vault reaches every question and
-  // says "Every question on every study", which is both better prose and
+  // A SUBSET must be named: "WEIGH IT and CATCH ITS EDGES cost 30% less
+  // compute" is a promise about those two, and the player has no other way to
+  // know which. THE WHOLE SET must NOT be: sky-vault reaches every question
+  // and says "Every question on every study", which is both better prose and
   // drift-proof. So the check flips on which case it is, and the failure mode
   // it really guards is a line that enumerates five of six.
   const ids = [...effect.matchAll(/"([a-z-]+)"/g)].map((q) => q[1]);

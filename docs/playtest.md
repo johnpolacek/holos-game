@@ -248,11 +248,13 @@ A script that touches every A2.3 through A2.6 beat. Run it with
    browser; take a candidate whose dials you can argue with. Watch
    terminal 3 for both bots placing.
 2. **0:03 — open the vigil.** Flag your two nearest sources and open
-   studies on them. Buy one question on each. Note what the boards say
-   before any answer lands.
-3. **0:06 — skip 20 years.** Your answers land; so do the bots'. Read the
-   evidence trail: an arrival, an answer, a report all read differently.
-   If a board went backwards, that is A2.3's regress, and the mind has a
+   studies on them. Buy one question on each. Both answer on the tap, so
+   note how far each board moves on a single look.
+3. **0:06 — skip 20 years.** Light lands, and so do the bots' moves. Read
+   the evidence trail: an arrival, an answer, a report all read
+   differently. Buy a second question on one of the studies now: the
+   window it is contested over is the stretch you just let pass. If a
+   board went backwards, that is A2.3's regress, and the mind has a
    sentence about it.
 4. **0:10 — arm and launch.** Arm the `crosses` tripwire on the flatter
    study and launch an assay at the sharper one. Skip 20 years and watch
