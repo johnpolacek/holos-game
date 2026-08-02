@@ -1443,6 +1443,7 @@ body {
    loudest prose on the hub and the only thing there with a claim on you. */
 .proposal-line {
   font-size: var(--holos-text-xl);
+  font-weight: 200;
   line-height: 1.35;
   color: var(--holos-ink);
 }
