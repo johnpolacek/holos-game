@@ -115,9 +115,9 @@ record the game uses to run it:
   answers and what leaning each way means. Where the shaded band is
   narrow, the character is already decided; a harsh world leaves firm
   convictions.
-- **The chronicle.** The legible history, a handful of dated, past-tense
-  lines from first life to the threshold — the opening pages of a record
-  that never stops accruing.
+- **The chronicle.** The legible history, a handful of past-tense lines
+  running in order from first life to the threshold — the opening pages of
+  a record that never stops accruing.
 - **The charter.** One sentence, set like a line carved over a door: the
   founding document the player will be accepting, not writing.
 

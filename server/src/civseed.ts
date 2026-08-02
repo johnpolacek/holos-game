@@ -288,7 +288,6 @@ function chronicleFor(
   lineage: Lineage,
   params: GenerateCivParams,
   posture: Posture,
-  ascensionYear: number,
 ): string[] {
   const row = speciesMindFor(lineage.id);
   const lines = [
@@ -304,9 +303,21 @@ function chronicleFor(
   lines.push(row.wake);
   // In-world phrasing only: "posture beat" is design vocabulary
   // (act2-design.md § Close) and never reaches the player.
+  //
+  // NEITHER BEAT CARRIES A YEAR, and the bright one is where that has to be
+  // said out loud, because it reads like it wants one. R-33 allows a
+  // chronicle exactly one calendar — the civilization's own count from its
+  // own ascension ("year n AE") — and the cohort's absolute year may not
+  // reach a surface at all. This sentence is *about* the ascension, so its
+  // own epoch-dated stamp would be `year 0 AE` every time: the date is
+  // already carried by "when the choice came", and printing it would either
+  // be tautological or, as it was until now, the cohort year leaking (a civ
+  // that ascended two years before the cohort opened said "since -2" on the
+  // source card and in every culture signal it sent). voyages.ts's founding
+  // chronicle states the same beat the same way, without a year.
   lines.push(
     posture === "bright"
-      ? `When the choice came, it chose to be heard; it burned brighter every year since ${Math.round(ascensionYear)}.`
+      ? `When the choice came, it chose to be heard; it has burned brighter every year since.`
       : `When the choice came, it chose the dark; the light of its bright years had not yet arrived.`,
   );
   if (params.ageBand === "elder") {
@@ -340,6 +351,6 @@ export function generateCivSeed(rng: Rng, params: GenerateCivParams): CivSeed {
     stocks: drawStocks(ladders),
     emissionHistory: drawEmissionHistory(rng, params, ascensionYear, posture, ladders),
     charter: archetypeById(archetype).charter,
-    chronicle: chronicleFor(cradle, lineage, params, posture, ascensionYear),
+    chronicle: chronicleFor(cradle, lineage, params, posture),
   };
 }
