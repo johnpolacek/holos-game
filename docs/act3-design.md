@@ -1438,14 +1438,16 @@ wards. Flipping it is a one-word coherence fix worth about half a point of
 loud fraction, and it changes what an existing archetype *is*, so it is not
 a tuning slice's call.
 
-**A third note, unchanged.** Nothing in the model sits below
-`DETECTION_FLOOR`: a dark-turned civilization settles at 0.02–0.06 and
-still mints a source, classified `DARK NODE`. That is defensible — `DARK
-NODE` *is* the Teeming Dark ambiguity, not silence — but it means no seeded
-civilization is ever simply not there. Every blank in the catalog is a star
-with no civilization on it. A later slice that wants "we looked, and there
-was nothing to look at" needs a floor beneath `DETECTION_FLOOR`, not a
-smaller number above it.
+**A third note, updated by the P2-5 retune.** Detection is now received
+flux (`DETECTION_FLUX_FLOOR`, knowledge.ts), not a scalar level, but the
+claim survives: a dark-turned civilization settles at 0.02–0.06, which
+clears the flux floor at every in-field distance, and still mints a
+source, classified `DARK NODE`. That is defensible — `DARK NODE` *is* the
+Teeming Dark ambiguity, not silence — but it means no seeded civilization
+is ever simply not there. Every blank in the catalog is a star with no
+civilization on it. The floor beneath the floor now exists:
+`UNSEEABLE_LEVEL` (7.2e-5), below which no observer at any legal distance
+sees anything — it is where found-dark colonies live (systems-a.md §19).
 
 ### On screen
 

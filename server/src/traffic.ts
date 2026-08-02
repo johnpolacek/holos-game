@@ -97,7 +97,14 @@ import {
 // itself is read through. dials.ts imports nothing and carries no truth.
 import { DIAL_AXES, dialSheetAt, type DialAxisId } from "./dials";
 import { civById, civDistanceLy, starById, type Galaxy } from "./galaxy";
-import { emissionAt, lightConeFor, peekTruth, visibleSky, MADE_HEAT_FLOOR } from "./knowledge";
+import {
+  beamReceivedFraction,
+  emissionAt,
+  lightConeFor,
+  peekTruth,
+  visibleSky,
+  MADE_HEAT_FLOOR,
+} from "./knowledge";
 import type { ArchetypeId } from "./minds";
 import {
   MAX_SIGNALS_ON_WIRE,
@@ -205,11 +212,11 @@ export interface PhysicsStamp {
 // Constants
 // ---------------------------------------------------------------------------
 
-/** The range a transmitter is trimmed for. */
-const BEAM_REFERENCE_LY = 5;
-
-/** However far away, something arrives. A beam is aimed. */
-const RECEIVED_FLOOR = 0.02;
+// THE BEAM FALLOFF IS NOT A CONSTANT OF THIS MODULE ANY MORE. The reference
+// range and the arrival floor moved to knowledge.ts with the function that
+// reads them (`beamReceivedFraction`), because `observeCiv` needs the same law
+// and knowledge.ts is the end of the import chain that both sides can reach.
+// See the Physics section below, and physics-audit.md P2-6.
 
 /**
  * Below this, the counterpart's light-view of you reads as quiet.
@@ -382,37 +389,27 @@ function existsFromYear(seed: CivSeed): number {
 // ---------------------------------------------------------------------------
 
 /**
- * What the arriving beam MEASURES: an inverse-square fall-off against the
- * range the transmitter was trimmed for. At 3 ly it reads 0.74; at 6.8 ly,
- * 0.35; at 15 ly, 0.10.
+ * ONE FALLOFF LAW, AND IT LIVES IN knowledge.ts (physics-audit.md P2-6).
  *
- * THIS IS NOT `BEAM_RECEIVED_LEVEL` (contact.ts, 0.40), AND UNIFYING THE TWO
- * WOULD BREAK A2.4. They are different quantities that happen to share a
- * range:
+ * This module used to keep its own copy and a note saying the copy must never
+ * be unified with contact.ts's flat `BEAM_RECEIVED_LEVEL`, on the grounds that
+ * a MEASUREMENT and a GUARANTEE are different quantities and a
+ * distance-dependent guarantee is not one. The second half of that was the
+ * mistake: what guarantees a dark civilization can make itself seen by exactly
+ * one observer is that `observeCiv`'s beam branch skips the detection test, not
+ * that the level it reports ignores the crossing. So the guarantee stayed, the
+ * flat constant went, and both sides now read `beamReceivedFraction`.
  *
- *  - `BEAM_RECEIVED_LEVEL` is a CLASSIFICATION floor. `observeCiv` assigns it
- *    so that a dark civilization can always make itself seen by exactly one
- *    observer, at any distance. It is a guarantee, and a distance-dependent
- *    guarantee is not one.
- *  - `receivedFraction` is a MEASUREMENT of the beam that actually landed. It
- *    is rendered as the thread's instrument header, it falls off with
- *    distance because that is what a beam does, and nothing depends on it
- *    being above any threshold.
- *
- * The first says "you can see them". The second says "and here is how badly
- * the crossing cost". Both ship.
+ * What this module still does with it is unchanged: the fraction is rendered as
+ * the thread's instrument header ("here is how badly the crossing cost"), and
+ * nothing here depends on it clearing any threshold.
  */
-function receivedFraction(distanceLy: number): number {
-  const ref = BEAM_REFERENCE_LY * BEAM_REFERENCE_LY;
-  const raw = ref / (ref + distanceLy * distanceLy);
-  return Math.min(1, Math.max(RECEIVED_FLOOR, raw));
-}
 
 /** Derived at delivery from the distance alone. `relayPath` has no machinery
  *  behind it in A2.5 and is deliberately not on the wire. */
 export function stampFor(distanceLy: number, sentYear: number): PhysicsStamp {
   const transitYears = lightDelayYears(distanceLy);
-  const received = receivedFraction(distanceLy);
+  const received = beamReceivedFraction(distanceLy);
   return {
     transitYears,
     distanceLy,

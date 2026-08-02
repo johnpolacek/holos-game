@@ -158,10 +158,14 @@ export interface ContactAct {
  */
 export const BEAM_DWELL_YEARS = 24;
 
-/** What a received beam reads as. Well above DETECTION_FLOOR on purpose:
- *  the whole point of a hail is that a dark civilization can make itself
- *  seen by exactly one observer. */
-export const BEAM_RECEIVED_LEVEL = 0.4;
+// WHAT A RECEIVED BEAM READS AS no longer lives here. It was a flat 0.4 at
+// every range; since physics-audit.md P2-6 it is `beamReceivedLevel` in
+// knowledge.ts, one falloff law shared with the instrument header traffic.ts
+// renders. The constant moved rather than being deleted from the design: what
+// this module still owns is WHETHER a beam lands (`beamCrossing`), and the
+// guarantee it exists for is untouched, because the beam branch skips the
+// detection test rather than out-shouting it. A dark civilization can still
+// make itself seen by exactly one observer, at any distance.
 
 /** How long a broadcast shout lasts in the sender's own emission history. */
 export const BROADCAST_SHOUT_YEARS = 24;

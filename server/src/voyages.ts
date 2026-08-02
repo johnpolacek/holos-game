@@ -84,7 +84,7 @@ import {
   type StarId,
 } from "./galaxy";
 import {
-  DETECTION_FLOOR,
+  UNSEEABLE_LEVEL,
   lightConeFor,
   peekTruth,
   peekWorld,
@@ -163,7 +163,7 @@ export interface VoyageKindDef {
   /**
    * THE ARRIVAL LIGHT: how bright the braking burn is at the far end, and for
    * how many years before landfall it runs. Null for a seedship, whose brake
-   * is as slow and as cold as its launch and stays under DETECTION_FLOOR.
+   * is as slow and as cold as its launch and never reaches anybody's sky.
    *
    * DECELERATION IS THE FORGOTTEN HALF (physics-audit.md P1-3). A ship that
    * stops must spend as much as it spent leaving, pointed the other way, in
@@ -204,7 +204,7 @@ export const VOYAGE_KINDS: readonly VoyageKindDef[] = [
     departureYearsCap: null,
     // The unannounced arrival is the seedship's alone, and this null is why:
     // the brake is spread over the same slow burn as the launch, and neither
-    // one ever climbs to DETECTION_FLOOR.
+    // one ever climbs into anybody's sky.
     brakingLevel: null,
     brakingYears: null,
   },
@@ -801,11 +801,17 @@ export function destinationCradleIdFor(g: Galaxy, v: StoredVoyage): number {
 export const FOUND_BRIGHT_LEVEL = 0.45;
 /**
  * What a colony chartered `found-dark` puts above the rock: BELOW
- * DETECTION_FLOOR, on purpose. It is in `galaxy.civs` and in nobody's sky. A
- * beam from it still short-circuits the floor, because a hail is aimed and
+ * `UNSEEABLE_LEVEL`, on purpose. It is in `galaxy.civs` and in nobody's sky. A
+ * beam from it still short-circuits detection, because a hail is aimed and
  * `observeCiv`'s beam branch was never gated on brightness.
+ *
+ * DROPPED FROM 0.01 BY physics-audit.md P2-5. Detection is received flux now,
+ * and 0.01 is not dark; it is a source anybody inside about 35 ly can see, so
+ * the found-dark contract would have quietly died on the day the threshold
+ * became honest. This is what banking the heat actually costs, and the fiction
+ * already claimed it: bank the heat, bury the works.
  */
-export const FOUND_DARK_LEVEL = 0.01;
+export const FOUND_DARK_LEVEL = 5e-5;
 
 /** How often the founding record takes a reading of the colony's posture. */
 const EMISSION_EPOCH_YEARS = 240;
@@ -1344,15 +1350,28 @@ export const OCCUPIED_RISK_LINE =
   "Nothing reserves a star. Another founding may already be under way toward this one, and the first to arrive is the one that roots.";
 
 /**
- * The floor a `found-dark` colony sits under FROM THE LANDFALL YEAR ON,
- * restated where it is used so the two numbers cannot drift apart. Referenced
- * rather than compared: the claim is a design fact about FOUND_DARK_LEVEL,
- * checked once, here.
+ * INVISIBLE AT EVERY LEGAL DISTANCE, FROM THE LANDFALL YEAR ON. Checked once,
+ * here, so the design fact about FOUND_DARK_LEVEL is referenced rather than
+ * re-derived wherever it is relied on.
+ *
+ * The claim used to be "under a scalar floor" and is now the stronger one it
+ * always meant (physics-audit.md P2-5): detection is received flux, so a level
+ * is not dark on its own, only dark AT A RANGE. `UNSEEABLE_LEVEL` is the flux
+ * floor as read by the closest observer the galaxy seats, so sitting beneath it
+ * means no observer anywhere in the field has the photons, not merely the
+ * distant ones.
+ *
+ * THE ONE HOLE, STATED: `UNSEEABLE_LEVEL`'s worst case is
+ * `MIN_CIV_SEPARATION_LY`, which governs where HOME STARS are seated. A
+ * founding may root closer than that to its parent, and a colony inside about
+ * 2.5 ly of a neighbor does clear the flux floor at this level. That is a
+ * placement rule to tighten, not a reason to make the light dimmer than the
+ * fiction supports.
  *
  * IT IS A CLAIM ABOUT THE COLONY, NOT ABOUT THE SHIP THAT CARRIED IT. A torch
- * or a sail brakes above this floor for years before it lands, in everybody's
+ * or a sail brakes far above this for years before it lands, in everybody's
  * sky, and a dark charter does not change that (`brakingLevel`). The dark
  * posture starts when the ships open; what the arrival announced is already
  * on its way out at that point, and cannot be recalled.
  */
-export const FOUND_DARK_IS_SUB_FLOOR = FOUND_DARK_LEVEL < DETECTION_FLOOR;
+export const FOUND_DARK_IS_SUB_FLOOR = FOUND_DARK_LEVEL < UNSEEABLE_LEVEL;

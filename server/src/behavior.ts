@@ -26,7 +26,7 @@
 // TWO STRUCTURAL GUARDS sit above the rule table, because neither claim can be
 // made true by tuning ten rows and both are load-bearing elsewhere in the
 // game. `levelFor` holds the INVISIBILITY GUARD (a source under
-// DETECTION_FLOOR is exactly what its seed says, so a hidden colony can never
+// UNSEEABLE_LEVEL is exactly what its seed says, so a hidden colony can never
 // be popped into the sky) and refuses to let a floor or a ceiling move a
 // civilization past its own authored level in the direction its shape is not
 // going. `guardChurn` holds MIN_HEAT_CROSSING_YEARS, which is what keeps the
@@ -100,7 +100,7 @@ import type { ContactAct } from "./contact";
 // defines it is the one this module reads (see `behaviorStartYear`).
 import { darkTurnYear } from "./contest";
 import { distanceLy, starById, type Galaxy, type Vec3Ly } from "./galaxy";
-import { emissionAt, DETECTION_FLOOR, MADE_HEAT_FLOOR } from "./knowledge";
+import { emissionAt, UNSEEABLE_LEVEL, MADE_HEAT_FLOOR } from "./knowledge";
 import type { ArchetypeId } from "./minds";
 import { createRng } from "./rng";
 
@@ -613,10 +613,18 @@ function round(level: number): number {
  * with two guards that are the difference between layering and replacing.
  *
  * THE INVISIBILITY GUARD (synthesis R4) comes first and is absolute: where
- * `base(y)` is under DETECTION_FLOOR the evolved level IS `base(y)`, exactly.
+ * `base(y)` is under UNSEEABLE_LEVEL the evolved level IS `base(y)`, exactly.
  * A `found-dark` colony sits at FOUND_DARK_LEVEL, stays in `galaxy.civs` and
  * stays in nobody's sky; `FOUND_DARK_IS_SUB_FLOOR` survives untouched, and no
  * rule row can accidentally pop a hidden colony into the sky.
+ *
+ * THE GUARD READS THE WORST CASE, and since physics-audit.md P2-5 it says so.
+ * Detection is received flux, so "visible" is a question about a pair, and a
+ * rule row here knows no observer and no distance. `UNSEEABLE_LEVEL` is the
+ * level below which NOBODY at any legal separation has the photons, which is
+ * the only threshold a distance-free guard is entitled to use: it refuses to
+ * move exactly the sources that no reading could have caught anyway, and
+ * leaves every source somebody could see to the rule table.
  *
  * THE CLAMP NEVER CROSSES BASE. The bounds are widened to hold `base(y)`
  * itself, so a floor cannot LIFT a civilization the shape is not lifting and a
@@ -634,7 +642,7 @@ function levelFor(
   offsetAdd: number,
   targetAt: number | null,
 ): number {
-  if (base < DETECTION_FLOOR) return base;
+  if (base < UNSEEABLE_LEVEL) return base;
   const raw = targetAt === null ? base + offsetAdd : Math.max(base + offsetAdd, targetAt);
   const lower = Math.min(rule.floorLevel, base);
   const upper = Math.max(rule.ceilLevel ?? 1, base);
@@ -753,14 +761,24 @@ export interface NotableTransition {
 }
 
 /**
- * Every crossing of DETECTION_FLOOR or MADE_HEAT_FLOOR, in either direction.
+ * Every crossing of UNSEEABLE_LEVEL or MADE_HEAT_FLOOR, in either direction.
  * ONE EPOCH MAY CARRY TWO: a colony rooting bright goes from nothing to 0.45
  * and is both a new source and a warm one, and both are true, so both are
  * pushed.
  *
  * This is the optimization that makes the fold small. A history of sixty
  * cadence epochs oscillating inside one band produces zero events; the same
- * history crossing a floor twice produces two.
+ * history crossing a floor twice produces two, and that is only cheap because
+ * the scan is per SOURCE rather than per pair.
+ *
+ * WHICH IS WHY IT READS THE WORST CASE (physics-audit.md P2-5, same argument
+ * as `levelFor`'s guard). Under flux detection the fully honest form of
+ * "new source" is per reactor, and this scan has no reactor in hand; the
+ * distance the reaction does care about is already the caller's
+ * `rule.radiusLy`. So the threshold here is the level below which the crossing
+ * could not be news to ANYONE, and the shipped content makes the two answers
+ * identical anyway: every authored level is either nothing or 0.02 and up,
+ * which clears the flux floor across the whole field.
  */
 export function notableTransitions(
   history: readonly EmissionEpoch[],
@@ -769,9 +787,9 @@ export function notableTransitions(
   let previous = 0;
   for (const epoch of history) {
     const level = epoch.level;
-    if (previous < DETECTION_FLOOR && level >= DETECTION_FLOOR) {
+    if (previous < UNSEEABLE_LEVEL && level >= UNSEEABLE_LEVEL) {
       out.push({ fromYear: epoch.fromYear, kind: "new-source" });
-    } else if (previous >= DETECTION_FLOOR && level < DETECTION_FLOOR) {
+    } else if (previous >= UNSEEABLE_LEVEL && level < UNSEEABLE_LEVEL) {
       out.push({ fromYear: epoch.fromYear, kind: "vanished" });
     }
     if (previous < MADE_HEAT_FLOOR && level >= MADE_HEAT_FLOOR) {
