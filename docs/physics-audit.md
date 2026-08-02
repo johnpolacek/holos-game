@@ -261,6 +261,20 @@ this can wait, but it must be fixed before the field ever grows, and the
 `FOUND_DARK_LEVEL = 0.01 < DETECTION_FLOOR` coupling (`voyages.ts:1254`)
 must move with it.
 
+*(As built 2026-08: detection is `level/d² ≥ DETECTION_FLUX_FLOOR =
+8e-6`, calibrated so the faintest shipped content — a 0.02 dark tail
+across the full 50 ly field — sits exactly at the edge; nothing
+currently visible went dark. The scalar consumers moved to
+`UNSEEABLE_LEVEL = 7.2e-5`, the level invisible at even the 3 ly minimum
+separation, and `FOUND_DARK_LEVEL` dropped to 5e-5 beneath it — banking
+the heat properly, so the dark-colony contract survives by physics
+rather than by rule. Two honest edges accepted on the record: a cloister
+holding at 0.012 is now legible inside ~39 ly and dark only to the far
+sky, which is the thesis working; and a colony founded within ~2.5 ly of
+a neighbor is detectable even dark, because the survey does not enforce
+the seeding separation — if that ever needs fixing, fix it in placement,
+not by dimming the light.)*
+
 ### P2-6 · The beam classification floor is flat
 
 `BEAM_RECEIVED_LEVEL = 0.4` (`contact.ts:164`) classifies a received
@@ -268,6 +282,13 @@ beam at the same level regardless of distance, while traffic.ts computes
 the honest received fraction for the same beam's *content*. Low stakes
 (it is a classification floor, not a measurement, and the code says so),
 but the two should eventually draw from one falloff.
+
+*(As built 2026-08: one law, the trimmed transmitter. `beamReceivedLevel
+= 0.8 × 25/(25 + d²)` lives in knowledge.ts and traffic.ts imports it;
+the flat constant is gone. At the 5 ly reference the received level is
+exactly the old 0.4 with the old 0.92 confidence, so the common case is
+unchanged; a beam at 3 ly now reads brighter and surer, and a far hail
+weakens honestly until catch-its-edges plateaus on it past ~30 ly.)*
 
 ### P2-7 · Bankable compute and the attention ceiling
 

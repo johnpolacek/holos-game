@@ -4153,9 +4153,9 @@ export class Cohort extends Server<CohortEnv> {
         // and starts measuring from there.
         //
         // The detection-floor drop is deliberately NOT a trigger. It is
-        // unreachable in v1 anyway (a dark civ's emission levels sit above
-        // DETECTION_FLOOR), and the existing behavior for a source that
-        // vanishes is to omit the study silently, which stays.
+        // unreachable in v1 anyway (a dark civ's emission levels pass
+        // detectableAt at every in-field distance), and the existing behavior
+        // for a source that vanishes is to omit the study silently, which stays.
         const overtakes =
           !grounds &&
           stored.status === "open" &&

@@ -69,8 +69,33 @@ a boundary sits:
 
 The floors are hoisted constants shared with `classify`:
 `LEAKAGE_FLOOR = 0.1`, `MADE_HEAT_FLOOR = 0.12` (the latter also
-`studies.ts`'s `WORLD_OUTPUT_CEILING`). `DETECTION_FLOOR = 0.015` is
-separate: below it nothing is a source at all.
+`studies.ts`'s `WORLD_OUTPUT_CEILING`).
+
+**Detection is separate, and it is not a level** (physics-audit.md
+P2-5). Whether a source is in the sky at all is a question about
+RECEIVED FLUX, so it is a question about a *pair*:
+`detectableAt(level, d)` passes when `level / max(d, 0.25 ly)² ≥
+DETECTION_FLUX_FLOOR`, with `DETECTION_FLUX_FLOOR = 8e-6` and the
+near-field clamp shared with `confidenceFor` (which is what keeps
+self-observation, at distance 0, always true). The old scalar
+`DETECTION_FLOOR = 0.015` is gone; it admitted the same emission level
+at 3 ly and at 50, which was the one place this layer disagreed with the
+inverse square everything else runs on.
+
+The floor is calibrated so the shipped sky barely moves: 0.02 (the
+faintest authored tail) over the widest crossing of a 25 ly-radius field
+(50 ly) is exactly 8e-6, so that source sits at the edge and stays
+visible everywhere. Reach by level, in light-years: 0.02 → 50, 0.03 →
+61, 0.04 → 71, 0.06 → 87, 0.10 → 112, 0.18 → 150, 0.45 → 237. The one
+in-field consequence is recorded in §19.
+
+Two derived scalars follow from it, for the callers that genuinely have
+no observer in hand:
+
+| name | value | means |
+| --- | --- | --- |
+| `DETECTION_FLUX_FLOOR` | `8e-6` | the threshold itself, on `level / d²` |
+| `UNSEEABLE_LEVEL` | `8e-6 × 3² = 7.2e-5` | the level below which NOBODY can see you, taking the worst case from galaxy.ts's `MIN_CIV_SEPARATION_LY = 3` |
 
 **`banked` is the designed wrong answer.** A shut-down civilization reads
 as a cooled remnant to every instrument and to a fist-sized probe alike.
@@ -942,10 +967,12 @@ no light already served to anyone can change. Verified mechanically.
 
 **Observation** (`observeCiv`'s beam branch): directedness is the
 `toCivId` filter; the cone is the same `asOfYear` every other channel
-reads. The target sees `directed-beam` at `BEAM_RECEIVED_LEVEL` from
+reads. The target sees `directed-beam` at `beamReceivedLevel(d)` from
 `sentYear` through `sentYear + BEAM_DWELL_YEARS`, `lightHistory`
-staying unfaked broadband. A dark sender surfaces to the target alone,
-at arrival: the detection floor is short-circuited only for the
+staying unfaked broadband. (Since P2-6 that is one falloff law rather
+than the flat `BEAM_RECEIVED_LEVEL = 0.4` this section described at
+A2.4; see §19.) A dark sender surfaces to the target alone,
+at arrival: the detection test is short-circuited only for the
 addressee, which is the entire point of a directed beam. The
 `directed-beam` study menu is reachable at last, and a study open on
 that star comes back overtaken by A2.3's machinery with no new code.
@@ -1056,9 +1083,13 @@ Forty-three banked strings, `audit:voice`-gated.
 
 **Physics stamps**: transit years, distance, received fraction
 (REF squared over REF squared plus d squared, REF 5 ly, floored at
-0.02), degradation — a measurement of the arriving beam, deliberately
-distinct from `BEAM_RECEIVED_LEVEL`, the classification floor that
-keeps a dark civ visible to its addressee.
+0.02), degradation — a measurement of the arriving beam. It used to be
+deliberately distinct from `BEAM_RECEIVED_LEVEL`, the flat
+classification floor; since P2-6 the two are one law in `knowledge.ts`
+(`beamReceivedFraction`, which this module now imports rather than
+copies) and what keeps a dark civ visible to its addressee is that the
+beam branch skips detection, not that its level ignores the crossing.
+See §19.
 
 **The wire**: threads ride the sky's contact block as a list/detail
 split; the open thread is per-connection state, no DO key.
@@ -1293,8 +1324,11 @@ cloister, shepherd), train (sowing), shed (phoenix), periods 900 to
 3600 years. At five real minutes per game year a source produces one
 visible transition every 2.5 to 8 real days, so something in an
 8-to-16-civ sky moves every day or two. The engine's ceiling (0.115)
-sits under MADE_HEAT_FLOOR and the cloister's floor (0.012) under
-DETECTION_FLOOR: the one civilization that can vanish outright. A
+sits under MADE_HEAT_FLOOR, and the cloister's floor (0.012) is the
+faintest thing anybody authored: the one civilization that can vanish.
+Under P2-5's flux threshold it vanishes *for distant observers* rather
+than outright, going out past about 39 ly and staying faintly readable
+nearer than that. A
 young civilization gets the sixth shape: the waking, a flare at its
 ascensionYear (3 to 35 real hours after cohort creation), after
 which its archetype's cadence begins.
@@ -1329,7 +1363,7 @@ input, every new input is dated now, so no derivation ever inserts,
 moves or removes an epoch at or before nowYear, and already-served
 light is byte-identical forever. Two structural guards sit above
 the table because tuning cannot supply them: the invisibility guard
-(a source under DETECTION_FLOOR is exactly what its seed says, so a
+(a source under UNSEEABLE_LEVEL is exactly what its seed says, so a
 found-dark colony stays hidden) and the churn guard (no behavior
 epoch may cross MADE_HEAT_FLOOR within 2400 years of the last
 crossing, so the overtaken exit fires at most about once a real
@@ -1482,3 +1516,87 @@ a content change to the class a player reads); and the shepherd's
 bright default posture contradicts its own charter (a one-word flip
 worth half a point of loudness, but a change to what the archetype
 is). Both belong to later slices.
+
+## §19 One falloff law (P2-5, P2-6, as built)
+
+Two places in the codebase disagreed with the inverse square the rest of
+it runs on, and this slice removed both. Nothing here is a new mechanic:
+it is the same sky, asked the question in the honest units.
+
+**Detection became received flux.** `DETECTION_FLOOR = 0.015` is gone,
+replaced by `DETECTION_FLUX_FLOOR = 8e-6` and the pairwise test
+`detectableAt(level, d)` in `knowledge.ts` (§1 records the constants and
+the calibration). `observeCiv`'s static branch is the only gate that
+runs it; the beam branch still short-circuits detection entirely,
+because a beam is aimed and announces itself at any range.
+
+Callers that had no observer in hand moved to `UNSEEABLE_LEVEL`
+(7.2e-5), the flux floor read at the closest separation the galaxy
+seats, which is the only distance-free threshold an honest flux model
+allows. Three of them:
+
+- `behavior.ts` `levelFor`'s invisibility guard: a source under it is
+  exactly what its seed says, so no rule row can pop a hidden colony
+  into the sky.
+- `behavior.ts` `notableTransitions`: the new-source and vanished
+  crossings. The fully honest form is per reactor, and this scan is per
+  source by design (it is what makes the fold small); the distance the
+  reaction cares about is already the rule's own `radiusLy`.
+- `voyages.ts` `FOUND_DARK_IS_SUB_FLOOR`, whose claim is now the
+  stronger one it always meant.
+
+**`FOUND_DARK_LEVEL` dropped from 0.01 to 5e-5.** Under a flux
+threshold 0.01 is not dark: it is a source anybody inside about 35 ly
+can see, so the found-dark contract would have died quietly on the day
+the threshold became honest. At 5e-5 a dark colony is invisible past
+2.5 ly, which is inside the 3 ly separation floor. The hole in that,
+recorded on the constant: `MIN_CIV_SEPARATION_LY` governs where HOME
+STARS are seated, and a founding may root closer to its parent than
+that. Tightening it is a placement rule, not a dimmer light.
+
+**The one in-field consequence.** Every authored emission level is
+either nothing or 0.02 and up, and 0.02 clears the floor across the
+whole field, so the sky is unchanged with a single exception: the
+cloister's floor of 0.012 used to sit under the scalar floor and go out
+for everybody. It now goes out past about 39 ly and stays faintly
+readable nearer than that. That is better physics and arguably a better
+cloister (hidden from the far sky, legible to its neighbors), and it is
+a content question rather than a physics one, so it is recorded here
+rather than tuned.
+
+**Beams draw from one falloff.** `contact.ts`'s flat
+`BEAM_RECEIVED_LEVEL = 0.4` and `traffic.ts`'s local `receivedFraction`
+were the same physics written twice and reconciled never. Both are now
+`knowledge.ts`'s `beamReceivedFraction` (reference range 5 ly, floored
+at 0.02) times `BEAM_TRIMMED_LEVEL = 0.8`, the level a transmitter is
+trimmed to deliver. The 0.8 is back-solved so the reference range is
+untouched: at 5 ly the fraction is one half and the received level is
+0.4, exactly what shipped.
+
+The old note in `traffic.ts` argued the two must never merge, on the
+grounds that a distance-dependent guarantee is not a guarantee. The
+guarantee survives: what lets a dark civilization make itself seen by
+exactly one observer is that the beam branch skips the detection test,
+not that the level it reports ignores the crossing.
+
+What a beam reads as, by distance:
+
+| d (ly) | fraction | received level | confidence | old confidence |
+| --- | --- | --- | --- | --- |
+| 3 | 0.74 | 0.59 | 0.95 | 0.95 |
+| 5 | 0.50 | 0.40 | 0.92 | 0.92 |
+| 8 | 0.28 | 0.22 | 0.82 | 0.86 |
+| 12 | 0.15 | 0.12 | 0.68 | 0.80 |
+| 15 | 0.10 | 0.08 | 0.59 | 0.76 |
+| 20 | 0.06 | 0.05 | 0.48 | 0.70 |
+| 30 | 0.03 | 0.02 | 0.35 | 0.62 |
+| 40 | 0.02 | 0.02 | 0.31 | 0.56 |
+
+Past about 30 ly a beam falls under questions.ts's 0.35 plateau gate, so
+a far correspondent's star answers with catch-its-edges and little else.
+That is photon starvation doing its job rather than a distance gate
+wearing its clothes, and it is the intended reading. A second, quieter
+consequence: the level shown for a beam is `max(truth, received)`, so a
+beam from a genuinely dark civilization far across the field now reports
+that civilization's own faint level rather than a borrowed 0.4, and
+`read-its-lines` plateaus on it for the same reason.

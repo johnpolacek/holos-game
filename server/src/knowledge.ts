@@ -19,7 +19,7 @@
 
 import type { CivId, CivSeed, EmissionEpoch } from "./civseed";
 import { lightDelayYears } from "./clock";
-import { beamCrossing, BEAM_RECEIVED_LEVEL } from "./contact";
+import { beamCrossing } from "./contact";
 import { civById, civDistanceLy, distanceLy, starById, type Galaxy } from "./galaxy";
 // A2.5: the derived half of the beam branch. Imported for its FUNCTION
 // REFERENCE only, resolved at call time — traffic.ts imports `lightConeFor`
@@ -268,16 +268,63 @@ export interface ObservedCiv {
   readonly signal: ObservedSignal | null;
 }
 
+/** Inside this the source is your own system; it keeps the flux finite at
+ *  d = 0. Shared by the detection test and `confidenceFor` below, which is
+ *  what makes self-observation (distance 0) pass both. */
+const NEAR_FIELD_LY = 0.25;
+
 /**
- * Emission below this is indistinguishable from empty sky in A0.
+ * DETECTION IS RECEIVED FLUX, NOT EMISSION LEVEL (physics-audit.md P2-5).
  *
- * Exported since A4: a colony chartered `found-dark` emits BELOW it on
- * purpose (voyages.ts's FOUND_DARK_LEVEL), which makes it the first emitter in
- * the game that is in `galaxy.civs` and in nobody's sky. The floor is the one
- * number that claim depends on, so the module that depends on it reads the
- * constant rather than a copy of its value.
+ * A source delivers `level / d²` to the collector. The old scalar floor
+ * admitted a given emission level into the sky at 3 ly and at 50 alike, which
+ * was the one place this module disagreed with the inverse square
+ * `confidenceFor` already runs on. Same threshold, asked of the flux.
+ *
+ * CALIBRATED SO THE SHIPPED SKY DOES NOT MOVE. The faintest thing the game
+ * authors is a dark tail at 0.02, and the widest crossing of a 25 ly-radius
+ * field is 50 ly: 0.02 / 50² is exactly this number, so that source sits at the
+ * edge and stays visible. Everything else clears it everywhere in field —
+ * biospheres 0.03 to 0.06, dark tails 0.02 to 0.06, industrial 0.10 to 0.18, a
+ * shine or a flare 0.30 and up, behavior.ts's own WAKING_DARK 0.04 and
+ * HEAT_HOLD 0.119. Nothing that was visible went out. The shape is the fix,
+ * and it is the fix the field can grow past 25 ly behind.
  */
-export const DETECTION_FLOOR = 0.015;
+export const DETECTION_FLUX_FLOOR = 8e-6;
+
+/**
+ * The closest two civilizations are ever seated, restated from galaxy.ts's
+ * `MIN_CIV_SEPARATION_LY` (module-private to placement) so the derivation
+ * below can name the worst case without an import that would say this module
+ * cares where anybody was put. Keep the two in step.
+ */
+const SEPARATION_FLOOR_LY = 3;
+
+/**
+ * THE LEVEL NO OBSERVER CAN EVER SEE. Under a flux threshold "detected" is a
+ * question about a PAIR, so a module that needs a plain scalar — "this thing
+ * is in nobody's sky, full stop" — needs the worst case rather than the
+ * average one: the flux floor as read by the nearest observer the galaxy will
+ * ever seat. Below it, no legal observer at any legal distance has the photons.
+ *
+ * Exported since A4 for the claim it was minted to carry: a colony chartered
+ * `found-dark` emits BELOW it on purpose (voyages.ts's FOUND_DARK_LEVEL),
+ * which makes it the first emitter in the game that is in `galaxy.civs` and in
+ * nobody's sky. That module reads this constant rather than a copy of its
+ * value.
+ */
+export const UNSEEABLE_LEVEL = DETECTION_FLUX_FLOOR * SEPARATION_FLOOR_LY * SEPARATION_FLOOR_LY;
+
+/**
+ * The detection test itself: does this source's flux clear the floor AT THIS
+ * OBSERVER? The near-field clamp is `confidenceFor`'s, for the same reason and
+ * with the same consequence — your own system is at distance 0 and you always
+ * see yourself.
+ */
+export function detectableAt(level: number, distance: number): boolean {
+  const d = Math.max(distance, NEAR_FIELD_LY);
+  return level / (d * d) >= DETECTION_FLUX_FLOOR;
+}
 
 /**
  * Emission at or above this reads as machines, pre-ascension — classify's
@@ -317,8 +364,6 @@ const APERTURE_K = 0.022;
  * and near, bright sources sit at 0.95, as they did under the old shape.
  */
 const CONFIDENCE_SPAN = 0.85;
-/** Inside this the source is your own system; it keeps the flux finite at d = 0. */
-const NEAR_FIELD_LY = 0.25;
 
 /**
  * Belief confidence from RECEIVED FLUX, not from range: a source delivers
@@ -333,6 +378,61 @@ function confidenceFor(distance: number, level: number): number {
   const snr = rootFlux / (rootFlux + APERTURE_K);
   const raw = 0.2 + CONFIDENCE_SPAN * snr;
   return Math.round(Math.min(0.95, Math.max(0.2, raw)) * 100) / 100;
+}
+
+// ---------------------------------------------------------------------------
+// The beam falloff — ONE LAW (physics-audit.md P2-6)
+// ---------------------------------------------------------------------------
+//
+// There used to be two. traffic.ts measured the arriving beam with an
+// inverse-square fall-off against the range the transmitter was trimmed for,
+// and the beam branch below classified every received beam at a flat 0.4 no
+// matter how far it had come. The old note in traffic.ts argued the two were
+// different quantities (a MEASUREMENT and a GUARANTEE) and that unifying them
+// would break the A2.4 promise. The promise survives the unification: what
+// guarantees a dark civilization can make itself seen by exactly one observer
+// is that the beam branch SKIPS THE DETECTION FLOOR ENTIRELY, not that the
+// level it reports is distance-free. A beam is aimed; it announces itself at
+// any range. How LOUD it reads, and how sure the read is, are then honest
+// functions of the crossing, like everything else in this module.
+
+/** The range a transmitter is trimmed for. */
+const BEAM_REFERENCE_LY = 5;
+
+/** However far away, something arrives. A beam is aimed. */
+const BEAM_RECEIVED_FLOOR = 0.02;
+
+/**
+ * The level a transmitter is trimmed to DELIVER, back-solved from what the
+ * game already shipped: at the 5 ly reference range the fraction is one half,
+ * so the received level is 0.4, which is what the old flat constant said. A
+ * beam at the reference distance is unchanged; nearer ones read brighter and
+ * surer, farther ones weaker and less sure. Past about 30 ly the read falls
+ * under questions.ts's 0.35 gate and a beam plateaus the study board, which is
+ * photon starvation doing its job rather than a distance gate wearing its
+ * clothes.
+ */
+export const BEAM_TRIMMED_LEVEL = 0.8;
+
+/**
+ * How much of the beam arrives: an inverse-square fall-off against the range
+ * the transmitter was trimmed for. At 3 ly it reads 0.74; at 6.8 ly, 0.35; at
+ * 15 ly, 0.10. Floored, because a beam is aimed and something always lands.
+ *
+ * Lives here rather than in traffic.ts because BOTH callers are now downstream
+ * of it: traffic.ts renders it as the thread's instrument header (that module
+ * imports from this one already, and the reverse would be a new cycle), and
+ * `observeCiv` below reads the beam's level and confidence off it.
+ */
+export function beamReceivedFraction(distanceLy: number): number {
+  const ref = BEAM_REFERENCE_LY * BEAM_REFERENCE_LY;
+  const raw = ref / (ref + distanceLy * distanceLy);
+  return Math.min(1, Math.max(BEAM_RECEIVED_FLOOR, raw));
+}
+
+/** What a beam trimmed for the reference range reads as after that crossing. */
+export function beamReceivedLevel(distanceLy: number): number {
+  return BEAM_TRIMMED_LEVEL * beamReceivedFraction(distanceLy);
 }
 
 /**
@@ -356,8 +456,8 @@ export function observeCiv(
   // already derived above and reads no clock of its own, so a beam can never
   // surface early; it is filtered on the recipient, so no other observer
   // sees anything but the sender's ordinary broadband light; and it
-  // short-circuits DETECTION_FLOOR, which is the entire point — a silent
-  // civilization reveals itself TO THEM ALONE. See contact.ts.
+  // short-circuits the detection test entirely, which is the entire point — a
+  // silent civilization reveals itself TO THEM ALONE. See contact.ts.
   const beam =
     observerId === targetId
       ? null
@@ -378,15 +478,19 @@ export function observeCiv(
 
   let signal: ObservedSignal | null = null;
   if (beam !== null || derivedBeam !== null) {
+    // P2-6: one falloff law, shared with traffic.ts's instrument header. The
+    // beam still needs no detection test — it is aimed — but what it READS as
+    // is now the crossing it actually made.
+    const received = beamReceivedLevel(distance);
     signal = {
-      emissionLevel: Math.max(truth.emissionLevel, BEAM_RECEIVED_LEVEL),
+      emissionLevel: Math.max(truth.emissionLevel, received),
       classification: "directed-beam",
-      confidence: confidenceFor(distance, BEAM_RECEIVED_LEVEL),
+      confidence: confidenceFor(distance, received),
       // Broadband, unchanged: the arrival adds a CLASS, never a fake
       // history. A beam is aimed and leaves no trace in the light curve.
       lightHistory: target.seed.emissionHistory.filter((e) => e.fromYear <= asOfYear),
     };
-  } else if (truth.emissionLevel >= DETECTION_FLOOR) {
+  } else if (detectableAt(truth.emissionLevel, distance)) {
     signal = {
       emissionLevel: truth.emissionLevel,
       classification: classify(truth, target.seed),
