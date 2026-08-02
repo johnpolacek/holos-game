@@ -444,9 +444,9 @@ const CHRONICLE_LABELS: readonly string[] = ["world", "body", "waking"];
 /**
  * The mind, in words. Anything still carrying a digit after the identifier
  * strip is DROPPED ENTIRELY rather than rewritten — cradle names are real
- * astronomy and the bright-posture chronicle line ends in a year, so this
- * fires in practice. Dropping, never repairing, is the gate's own principle
- * applied one step earlier.
+ * astronomy and their fingerprints quote real numbers, so this fires in
+ * practice. Dropping, never repairing, is the gate's own principle applied
+ * one step earlier.
  */
 function mindBlock(mind: MindSurface): string {
   const card = VOICE_CARDS[mind.archetype];

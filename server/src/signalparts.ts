@@ -279,9 +279,15 @@ export interface ArchivePart {
  * VERIFIED AT AUTHORING TIME, and stated here so the next builder inherits
  * the check: NONE of these three sources interpolates `CivSeed.name`.
  * `archetypeById(a).charter` is a catalog literal; `chronicleFor` composes
- * cradle and lineage names, fingerprints, the waking line and an ascension
- * year, and never the civilization's own name; a dial gloss is a `DialPole`
- * literal. The civilization's name is not a fact about it that travels.
+ * cradle and lineage names, fingerprints and the waking line, and never the
+ * civilization's own name; a dial gloss is a `DialPole` literal. The
+ * civilization's name is not a fact about it that travels.
+ *
+ * A chronicle line also carries NO YEAR (R-33, and civseed.ts states why at
+ * the posture beat). It matters most here: a culture part is frozen at send
+ * and read by a stranger light-years and centuries later, so a cohort-absolute
+ * year on one would be the one date in the game that means nothing to whoever
+ * received it.
  */
 export interface CulturePart {
   readonly kind: "culture";

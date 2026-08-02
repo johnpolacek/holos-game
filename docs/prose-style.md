@@ -68,7 +68,7 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | Dial question | `dials.ts` question | Plain interrogative | 0 |
 | Cradle fingerprint | `cradles.ts` fingerprint | World's voice: plain, geological, dry edge; fact-preserving | 1 |
 | Lineage fingerprint | `lineages.ts` fingerprint | Body's voice: plain, biological, dry edge; fact-preserving | 1 |
-| Chronicle template | `civseed.ts` chronicleFor | Biographer's deadpan (Act 1); dry annalist's appendix — dated entries, past tense — for Act 3, same deadpan family | 2 |
+| Chronicle template | `civseed.ts` chronicleFor | Biographer's deadpan (Act 1); dry annalist's appendix — past tense, in the order it happened, and undated (R-33a) — for Act 3, same deadpan family | 2 |
 | UI chrome / captions | `model.ts`, `sourcecard.ts` | Observatory deadpan | 0 |
 | work-list rows / states | `tend.ts`, `studyboard.ts` | Observatory deadpan | 0 |
 | Ceremony microcopy | `ceremony.ts` labels/hints | Observatory deadpan | 1 |
@@ -223,6 +223,18 @@ Named mechanics of the register. Apply **at most one** per short string.
   in years, never a difference of two years — an annal does not re-age its
   entries when they are re-read, and a line dated `year 160 AE` says the
   same thing forever.
+- **R-33a The seed chronicle carries no year.** The §2 register calls it an
+  annalist's appendix, which reads like an invitation to date its entries;
+  `civseed.ts`'s builder must decline. Its lines are authored *at* the
+  ascension they describe, so the only stamp R-33 would allow them is `year
+  0 AE`, and a date every entry shares is not a date. The failure this
+  forbids is not a wrong year but a **cohort-absolute** one: the bright
+  posture beat used to end "since -2", the seeding calendar leaking onto the
+  source card and into every culture signal (`traffic.ts` hands whole
+  chronicle lines to strangers, who share none of the sender's clocks).
+  Durations stay legal — `voyages.ts`'s founding chronicle states a crossing
+  in years — because R-33 bans the calendar, not arithmetic. Checked by
+  `audit:facts`: nothing the templates interpolate may name a year.
 - **R-34 The report derives from wire snapshots only.** `report.ts` imports
   no truth-side and no knowledge-layer symbol — not `civTruthAt`,
   `emissionAt`, `occupancyAt`, `peekTruth`, `observeCiv`, `lightConeFor`.

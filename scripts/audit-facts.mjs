@@ -301,6 +301,57 @@ if (radiusConst && orderLine) {
 }
 
 // ---------------------------------------------------------------------------
+// civseed.ts — the chronicle restates no year at all
+//
+// The odd one out: every check above pins prose to a field it must AGREE with,
+// and this one pins prose to a field it must never quote. `chronicleFor`
+// composed its bright-posture beat as "it burned brighter every year since
+// ${ascensionYear}" — a plain restatement of `CivSeed.ascensionYear`, which is
+// a COHORT-ABSOLUTE game year. R-33 gives a chronicle exactly one calendar,
+// the civilization's own count from its own ascension, and says the cohort's
+// year never reaches a surface; a civ seeded two years before the cohort
+// opened therefore introduced itself with "since -2" on its source card and in
+// every culture signal it sent (traffic.ts hands whole chronicle lines to
+// strangers). No audit saw it: the number was correct, so R-1 had nothing to
+// catch, and the digit was interpolated rather than written, so no digit grep
+// found it either.
+//
+// So the coupling declared here is an absence. A chronicle line is authored at
+// the ascension it describes, which makes its own epoch-dated stamp `year 0
+// AE` by construction: there is no year one could legitimately carry. The
+// builder does interpolate — cradle and lineage names and their fingerprints,
+// which is the whole point of it — so what the check reads is narrower and
+// duller than "no interpolation". NOTHING THE TEMPLATES INTERPOLATE MAY NAME A
+// YEAR. That is enough, because a year can only reach this prose through a
+// binding, and every binding that holds one in this file says so in its name.
+//
+// voyages.ts's `childChronicle` is deliberately not held to this. It states
+// two durations ("18 light-years away", "the crossing took 40 years"), and a
+// duration is not a date; R-33 bans the calendar, not arithmetic.
+// ---------------------------------------------------------------------------
+
+const civseed = read("server/src/civseed.ts");
+const chronicleBody = civseed.match(/function chronicleFor\([\s\S]*?\n\}/);
+if (chronicleBody) {
+  const dated = [...chronicleBody[0].matchAll(/\$\{([^}]*)\}/g)]
+    .map((m) => m[1].trim())
+    .filter((expr) => /year/i.test(expr));
+  check(
+    "chronicle: states no year of the cohort's calendar",
+    "chronicleFor's templates",
+    "",
+    dated.length === 0 ? "" : `interpolates: ${dated.join(", ")}`,
+  );
+} else {
+  failures.push({
+    what: "chronicle year check",
+    prose: "(not found)",
+    expected: "a `function chronicleFor(...)` in civseed.ts to read",
+    actual: "the audit could not find one; has civseed.ts been restructured?",
+  });
+}
+
+// ---------------------------------------------------------------------------
 
 if (projectCount === 0) {
   console.error("matched zero projects — the audit is not testing anything");
