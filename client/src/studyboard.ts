@@ -2307,6 +2307,27 @@ export class StudyBoard {
             () => this.claimAccount(),
           ),
     );
+
+    // The playtest reset. Below its own hairline and in faint ink rather
+    // than the rows' amber, because it is not one of the verbs the panel
+    // exists to offer: everything above is something the CIVILIZATION can
+    // begin, and this is something the PLAYER does to the run. It never
+    // fires from here — the tap opens the consequences first.
+    //
+    // It renders LAST in the hub, and it must stay inside renderHub(): it
+    // spent a slice stranded after the `return` in buildMutedRow(), where
+    // it typechecked, audited and shipped as unreachable code — so the
+    // panel offered no way to start over at all.
+    this.body.append(this.hairline());
+    this.body.append(
+      this.buildHubRow(
+        "Start over",
+        "Give up this civilization and inherit again.",
+        true,
+        () => this.openStartOver(),
+        "aside",
+      ),
+    );
   }
 
   /** From App, on every `welcome` — the one fact this panel needs about
@@ -2700,23 +2721,6 @@ export class StudyBoard {
       this.socket.send({ type: "muteThread", starId, muted: false });
     });
     return btn;
-
-    // The playtest reset. Below its own hairline and in faint ink rather
-    // than the rows' amber, because it is not one of the verbs the panel
-    // exists to offer: everything above is something the CIVILIZATION can
-    // begin, and this is something the PLAYER does to the run. It never
-    // fires from here — the tap opens the consequences first.
-    this.body.append(this.hairline());
-    this.body.append(
-      this.buildHubRow(
-        "Start over",
-        "Give up this civilization and inherit again.",
-        true,
-        () => this.openStartOver(),
-        "aside",
-      ),
-    );
-
   }
 
   /** `tone` is the row's standing in the panel, not its state: "aside" is a
