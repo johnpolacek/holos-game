@@ -2483,9 +2483,9 @@ body {
   color: var(--holos-ink-faint);
 }
 
-/* The two lines that are a price rather than a schedule: the departure light
-   a torch or a sail pays in, and the project a sail waits on. Amber, because
-   they are the reason to choose differently. */
+/* The lines that are a price rather than a schedule: the light a torch or a
+   sail pays in at each end of the crossing, and the project a sail waits on.
+   Amber, because they are the reason to choose differently. */
 .voyage-clock--loud {
   color: var(--holos-amber);
 }

@@ -6624,6 +6624,17 @@ export class StudyBoard {
     return k.departureYearsCap === null ? raw : Math.min(k.departureYearsCap, raw);
   }
 
+  /** How long the braking burn shows at the far end — voyages.ts's
+   *  `brakingLightFor`, clamped the way `voyageArrivalLightYear` clamps it.
+   *  The brake is a fixed spend against a fixed cruise speed, so it does not
+   *  scale with the crossing; but it can never start before the ship left, and
+   *  a hop shorter than the brake spends its whole flight slowing down. Null
+   *  for a seedship, which is never seen arriving. */
+  private brakingYearsFor(k: VoyageKindDef, flightYears: number): number | null {
+    if (k.brakingLevel === null || k.brakingYears === null) return null;
+    return Math.min(k.brakingYears, flightYears);
+  }
+
   /** One axis of the charter in progress, seeded on first read from the
    *  PARENT'S OWN position: a charter nobody touched says "carry on as we
    *  are", which is a real instruction and not an empty form. */
@@ -6874,9 +6885,10 @@ export class StudyBoard {
   /**
    * One ship, with both of its clocks. The mission sheet's buildKindRow
    * anatomy plus what a founding adds: the prerequisite a sail waits on, and
-   * the DEPARTURE LIGHT — the price in visibility, stated plainly, because it
-   * is the one cost of this act that is paid by being seen rather than by
-   * spending anything.
+   * the LIGHT AT BOTH ENDS — the price in visibility, stated plainly, because
+   * it is the one cost of this act that is paid by being seen rather than by
+   * spending anything. Leaving and arriving are the same engine pointed two
+   * ways, so they read as two rows of the same shape.
    */
   private buildVoyageKindRow(
     k: VoyageKindDef,
@@ -6929,6 +6941,14 @@ export class StudyBoard {
       seen.className = "voyage-clock voyage-clock--loud holos-caps study-tabular";
       seen.textContent = `SEEN LEAVING FOR ${formatGameYears(departure)}`;
       btn.append(seen);
+    }
+
+    const braking = this.brakingYearsFor(k, clocks.flightYears);
+    if (braking !== null) {
+      const arriving = document.createElement("div");
+      arriving.className = "voyage-clock voyage-clock--loud holos-caps study-tabular";
+      arriving.textContent = `SEEN ARRIVING FOR ${formatGameYears(braking)}`;
+      btn.append(arriving);
     }
 
     if (blocked !== null) {
