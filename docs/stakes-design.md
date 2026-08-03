@@ -79,10 +79,106 @@ Three rules shape it:
   ignorance is played as what it is: an enormous bet placed on stale
   data. The game never forbids it and never needs to.
 
-Whether destruction is total or partial — whether a strike cripples and
-the kill takes follow-through, a mercy mechanic in the spirit of Clash of
-Clans' shield — is an **open question** (see below), to be decided
-deliberately rather than inherited by default brutality.
+Whether destruction is total or partial was reviewed in a second round
+and is settled: see *The mercy settlement*, next.
+
+---
+
+## The mercy settlement (settled)
+
+Settled in a second review round (2026-08). The question was whether the
+game needs a mercy mechanic; the answer is that the physics and the
+economics already built one, and the design accepts what they built.
+
+### Kills are campaigns, not shots
+
+One relativistic impactor is an extinction event for a planet — and a
+civilization is not a planet. Habitats, moons, outposts, and deep-space
+infrastructure spread across a system cannot be killed by any single
+projectile. A true kill requires saturation: many projectiles,
+coordinated arrival windows, then confirmation. The first strike
+cripples; the kill takes follow-through. No one-shot system-killer
+exists, and none gets invented — the constraints are real.
+
+### The attack menu
+
+Why an attacker attacks decides what the attack is, and the reasons
+split the verb permanently, because **you cannot loot a crater**.
+Whatever a target knew, built, and held burns with it; gaining anything
+requires the target to survive the taking.
+
+- **Strike.** Kill the threat. Gains nothing but safety. Cheapest, and
+  everything of value is destroyed with the danger.
+- **Raid.** Take something and leave. Requires presence — ships, agents,
+  action in local time — against resistance.
+- **Conquer.** Take and hold. The slowest, most visible, most expensive
+  verb on the menu.
+
+What is lootable, in hard terms: infrastructure (collectors, swarms, a
+black-hole tap), real estate, and whatever archives were not burned in
+time — a mind's knowledge lives in substrate, and substrate can
+self-destruct. The consequence is a gradient that does more for mercy
+than any shield could: **the more valuable a civilization, the more its
+enemies want it alive.** Pure annihilation is reserved for targets that
+are only dangerous, never rich.
+
+### The shield is the attacker's blindness
+
+A struck civilization goes dark — wounded or dead, diminished or
+regrouping, the light does not say. The attacker cannot confirm the kill
+for decades, and follow-through means a second campaign against a target
+it can no longer see, a target that now knows its return address. Mercy
+is not a timer the game grants the victim; it is the epistemic fog the
+physics grants automatically, and the victim plays inside it. Third
+parties are watching too: conflict has a recognizable pattern — the
+flash, the changed emissions — so a strike is also a public act.
+
+### Wounded is a played state
+
+The most common post-attack condition is neither dead nor whole, and it
+is playable — the wounded chapter is meant to be the most dramatic in
+the game. The wounded verbs, all existing design vocabulary: go fully
+dark; flee (a relativistic exodus that arrives somewhere else, centuries
+later, as someone new); beam an ally for help; scatter seedships as
+insurance; write a vengeance charter and launch it before the
+follow-through lands. And the escape hatch: a player with a colony may
+pivot the thread to it, per the fork rules — the wounded existence keeps
+running on its charter.
+
+The morning-after screen serves this state. The player wakes (288 game
+years pass in a real day; the strike landed while they slept), reviews
+what happened and what remains, and chooses from the verbs above. Only
+when a campaign truly finishes — last existence, no remnants — does the
+run end.
+
+### Shots are signed
+
+A relativistic projectile's trajectory back-computes: the vector points
+at the launcher, and the whole watching sky can do the arithmetic. An
+attack publishes its author's name at lightspeed, which is what makes
+deterrence, blowback, and reputation work without an invented rule. The
+exception is priced: a strike launched from a mission platform in deep
+space traces to the platform, so anonymity costs a mission — centuries
+of setup, an agent that can be disowned. Cheap attacks are attributable;
+anonymous attacks are premeditated and expensive.
+
+### Death, rebirth, and the cohort
+
+When the last existence dies, the run is over and the player joins a new
+cohort: fresh galaxy, fresh players, knowledge reset. Cohorts start
+simultaneously, which closes the bullying seam — there are no elder
+civilizations positioned to erase the newly seated.
+
+What, if anything, ends a cohort is **deliberately experimental**. Holos
+is not an elimination game: a cohort might collaborate into peaceful
+deep time, or burn itself down in total war, and both are the game
+working. The named risk of open-ended cohorts — that total death late in
+an old cohort is the harshest outcome in the design — is watched, not
+pre-solved, because the settled mechanics already lean against it: an
+old civilization is usually a dispersed one (dispersal is the hedge, and
+time buys colonies), and the loot gradient makes the rich worth more
+alive. If playtests show late death landing too hard, the cohort's arc
+is where the fix goes (see open questions).
 
 ---
 
@@ -274,7 +370,8 @@ players will check in twice a day for a decade-long knife fight),
 Neptune's Pride (travel-time dread; the attack launched while you slept),
 EVE Online's nullsec intel culture (player-produced threat information
 becomes the most valuable commodity in the game), Clash of Clans (the
-check-in loop; and the shield, see open questions).
+check-in loop; its shield's analog here is the attacker's blindness, see
+the mercy settlement).
 
 ---
 
@@ -282,10 +379,10 @@ check-in loop; and the shield, see open questions).
 
 Named here so they are decided on purpose, not by default:
 
-1. **Mercy.** Is destruction total, or does the first strike cripple
-   while the kill takes follow-through? A shield-like mechanic converts
-   death into setback and keeps players in the game; pure brutality is
-   honest to the physics. Decide before consequence ships.
+1. **The cohort's arc.** Does anything end a cohort — a horizon, a
+   condition, nothing? Experimental by decision, not by neglect. The
+   pressure point to watch in playtests: the cost of total death late in
+   an old cohort.
 2. **The jump threshold.** What measure of divergence blocks a
    branch-jump, and how is its approach shown to the player before the
    door closes?
