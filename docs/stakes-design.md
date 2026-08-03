@@ -142,8 +142,9 @@ dark; flee (a relativistic exodus that arrives somewhere else, centuries
 later, as someone new); beam an ally for help; scatter seedships as
 insurance; write a vengeance charter and launch it before the
 follow-through lands. And the escape hatch: a player with a colony may
-pivot the thread to it, per the fork rules — the wounded existence keeps
-running on its charter.
+pivot the thread to it — instantly, blindly, even into a diverged child
+(see *The thread you play*) — and the wounded existence keeps running on
+its charter.
 
 The morning-after screen serves this state. The player wakes (288 game
 years pass in a real day; the strike landed while they slept), reviews
@@ -275,22 +276,64 @@ Two properties make it the thesis of the game in one mechanic:
 ## The thread you play (settled)
 
 At a divergence, the player follows **one branch**. The player is not the
-homeworld; the player is a thread of continuity carried through a fork.
+homeworld; the player is a thread of continuity carried through a fork —
+a perspective, not an in-world object. Jumping is a camera move, never a
+transmission: nothing travels, nothing can be shot down in flight. What
+the physics governs instead is *knowledge* — whether the place you would
+land is still you — and that is where the whole design of the jump
+lives. Settled in a third review round (2026-08).
 
-- The player may **jump** between branches — colony to source, source to
-  colony — while the branches still substantially share values.
-- **Divergence blocks the jump.** Past the threshold, the other branch is
-  no longer *you*; the door closes for good. Divergence, already a
-  quantity the design believes in, is the tether.
-- The branch not being played runs autonomously on its charter. An
-  orphaned branch stays in the galaxy as a real actor wearing the
-  player's old face and values. Every player thereby seeds the world with
-  estranged descendants, and late-game contact is sometimes your own
-  abandoned self.
-- One place at a time. There is no steering both; the game's soul is
+- **Aligned family is one self.** While a colony still aligns with its
+  source, the thread moves freely among the branches, in any direction,
+  any number of times.
+- **Divergence is the colony's own stance, taken silently.** It is not a
+  meter and cannot be read directly. Every unplayed branch is run by the
+  game as an actor — playing its charter, its cradle, its local life —
+  and a colony can grow so independent it no longer wants to align. The
+  farther away and the longer untended, the likelier. It does not
+  announce the change. Nobody tells you your child has left; you infer
+  it, or you ask.
+- **Asking is light-bound.** The only test of alignment is a question,
+  and the answer takes the round trip. A jump initiated in health *is*
+  such a question: it resolves after the light-time there and back — you
+  move if the answer is yes, and if the answer is no, a refusal arrives
+  and you have learned the truth at the speed the universe allows. There
+  is no free oracle; the jump button cannot be ping-tested faster than
+  light.
+- **The membrane is one-way, not a wall.** A diverged colony can still
+  be entered — once. Entering is **emigration**: you bring no values and
+  impose nothing; you take up theirs, their dials, their environment,
+  and play forward as them. It rejected alignment; you accepted theirs.
+  There is no return, because to your old family you are now the
+  stranger.
+- **The wounded exception.** Gated to the wounded state, emigration is
+  instant and blind: no round trip, no question asked. You become the
+  colony as it truly is, sight unseen. The escape hatch is a leap of
+  faith by design — a wounded player jumping ship accepts whatever their
+  child has become.
+- **What you leave continues.** The source and every still-aligned
+  colony carry on as a single autonomous actor wearing your old
+  identity, and land on your threat board like anyone else. Late-game
+  contact is sometimes your own abandoned self, studied through
+  instruments, its forgiveness unreadable.
+- **One place at a time.** There is no steering both; the game's soul is
   that you can't.
 
-The jump threshold and its measure are an **open question** below.
+### The family register
+
+Because divergence cannot be read, the player judges a colony by what
+can be: an instrument, per colony, holding the observable record. When
+it last beamed, what it said, and what it has stopped saying. What your
+instruments see it doing, graded against the charter it left with — it
+was chartered dark and it is building bright. And the same readings any
+source on the threat board gets — posture, capability, emissions —
+because past a certain distance, your own child is exactly that: a
+source, watched and uncertain.
+
+Whether a *healthy* civilization may deliberately emigrate into a
+diverged descendant — abandoning a thriving self for another life — is
+**deferred, not rejected**: the first slice gates emigration to the
+wounded (see open questions).
 
 ---
 
@@ -383,9 +426,10 @@ Named here so they are decided on purpose, not by default:
    condition, nothing? Experimental by decision, not by neglect. The
    pressure point to watch in playtests: the cost of total death late in
    an old cohort.
-2. **The jump threshold.** What measure of divergence blocks a
-   branch-jump, and how is its approach shown to the player before the
-   door closes?
+2. **Emigration in health.** May a thriving player deliberately defect
+   into a diverged descendant, making the orphans a menu of alternate
+   lives? Gated to the wounded for the first slice; loosening it later
+   is a real option, priced in identity.
 3. **Scarcity beyond black holes.** The map needs more than one kind of
    contested thing, or the galaxy has exactly one story. Candidates must
    pass the same test: real under the physics, unfakeable, worth
