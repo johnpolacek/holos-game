@@ -151,10 +151,12 @@ const RING_STEP_S = 0.25;
 const SMUDGE_COUNT = 6;
 const SMUDGE_MIN_LY = 25;
 const SMUDGE_MAX_LY = 55;
-/** Their spread across the screen plane, in light-years. Squeezed on the
- *  horizontal because a phone held upright is the frame being composed for. */
-const SMUDGE_SPREAD_MIN_LY = 5;
-const SMUDGE_SPREAD_MAX_LY = 14;
+/** How far off center each one sits in the volume's frame, as a share of the
+ *  screen's half-height. Not a light-year figure: the sky has to compose on
+ *  the screen it is composed for, and the distance above is what is true. */
+const SMUDGE_FRAME_MIN = 0.22;
+const SMUDGE_FRAME_MAX = 0.62;
+/** The horizontal is the narrow axis on a phone held upright. */
 const SMUDGE_SPREAD_X_MUL = 0.55;
 const SMUDGE_PX_MIN = 88;
 const SMUDGE_PX_MAX = 96;
@@ -241,6 +243,10 @@ export class Intro {
   private homeView: CameraView | null = null;
 
   private railFrom = 0;
+  /** Where the line block starts, read once when the rail arrives rather than
+   *  every frame: the rail sits above the words, and a layout read inside the
+   *  frame loop is a layout read inside the frame loop. */
+  private railTop = 0;
   private rings: Ring[] = [];
   private ringsEmitting = false;
   private lastRingAt = 0;
@@ -348,6 +354,9 @@ export class Intro {
 
   /** First frame. Everything downstream is timed from here. */
   private begin(now: number): void {
+    // Escape can land before the renderer's first frame does. If it has, the
+    // way out is already under way and there is no sequence left to start.
+    if (this.phase === "finish") return;
     this.homeView =
       this.model.introPose() ??
       this.model.openingPose() ?? {
@@ -384,6 +393,7 @@ export class Intro {
       this.lineAt = now + FIRST_LINE_MS;
       this.lineText = this.lines[0] ?? "";
     }
+    if (beat === 2) this.railTop = this.lineEl.offsetTop;
     if (beat === 3) {
       this.ringsEmitting = true;
       this.lastRingAt = 0;
@@ -449,6 +459,8 @@ export class Intro {
   /** Skip. Never a cut: the camera makes the whole journey, faster. */
   private skip(): void {
     if (this.released || this.phase === "finish") return;
+    // A rail still standing leaves the way it would have left anyway.
+    if (this.beat === 2 && this.railFrom === 0) this.railFrom = performance.now();
     this.phase = "finish";
     this.endKind = "skip";
     this.endStart = performance.now();
@@ -471,6 +483,7 @@ export class Intro {
   /** Take the prose and the chrome off screen over `ms`. */
   private closeChrome(ms: number): void {
     this.root.style.setProperty("--intro-out-ms", `${ms}ms`);
+    this.ringsEmitting = false;
     this.lineAt = null;
     this.lineEl.classList.remove("visible");
     this.skipBtn.classList.remove("visible");
@@ -506,7 +519,7 @@ export class Intro {
     this.disc = null;
     this.corona?.destroy();
     this.corona = null;
-    for (const b of this.blotches) b.destroy();
+    for (const b of this.blotches) b.sprite.destroy();
     this.blotches = [];
     for (const s of this.smudges ?? []) s.sprite.destroy();
     this.smudges = null;
@@ -624,8 +637,12 @@ export class Intro {
     const x = p.x;
     const y = p.y;
     const rPx = (frame.focal * radiusLy) / p.depth;
-    const alpha =
-      fade * clamp01((rPx - DISC_FADE_LO_PX) / (DISC_FADE_HI_PX - DISC_FADE_LO_PX));
+    // The hand-off band, absolute because the Model's glow is (its clamp is
+    // 200px), and tightened on a short screen so beat one is a full disc on
+    // every frame size rather than only on a tall one.
+    const hi = Math.min(DISC_FADE_HI_PX, frame.height * 0.375);
+    const lo = Math.min(DISC_FADE_LO_PX, frame.height * 0.15);
+    const alpha = fade * clamp01((rPx - lo) / Math.max(hi - lo, 1));
     if (alpha <= 0.004) {
       this.hideLimb();
       return;
@@ -679,10 +696,11 @@ export class Intro {
    */
   private drawRail(frame: ModelFrame, now: number, fade: number): void {
     let alpha = 0;
-    if (this.phase === "hold" && this.beat === 2) {
-      alpha = clamp01((now - this.beatStart) / RAIL_IN_MS);
-    } else if (this.phase !== "hold" && this.beat === 2 && this.railFrom > 0) {
-      alpha = 1 - clamp01((now - this.railFrom) / RAIL_OUT_MS);
+    if (this.beat === 2) {
+      alpha =
+        this.phase === "hold"
+          ? clamp01((now - this.beatStart) / RAIL_IN_MS)
+          : 1 - clamp01((now - this.railFrom) / RAIL_OUT_MS);
     }
     alpha *= fade;
     if (alpha <= 0.004) return;
@@ -696,7 +714,8 @@ export class Intro {
 
     const w = frame.width;
     const h = frame.height;
-    const railY = Math.min(h * RAIL_Y_FRAC, this.lineEl.offsetTop - 24);
+    const top = this.railTop > 0 ? this.railTop : h;
+    const railY = Math.min(h * RAIL_Y_FRAC, top - 24);
     const gapMin = w * MARK_GAP_MIN_FRAC;
     const gapMax = w * MARK_GAP_MAX_FRAC;
     const raw = world.ok ? world.x - starX : -gapMax;
@@ -835,25 +854,40 @@ export class Intro {
     const cosEl = Math.cos(view.el);
     const rnd = mulberry32(hash32(`${this.seed}:sky`));
 
+    // What one light-year subtends, as a share of the frame's half-height:
+    // the frame's own optics, read back rather than restated here.
+    const optics = frame.focal / (frame.height / 2);
+
     const out: Smudge[] = [];
     for (let i = 0; i < SMUDGE_COUNT; i++) {
-      // Laid out in the camera's own frame and rotated back into the world by
-      // the inverse of the Model's yaw-then-pitch, so the field composes from
-      // the volume and still moves with true parallax on the way there. The
-      // horizontal spread is the narrow one because a phone held upright is
-      // the frame being composed for.
-      const theta = rnd() * Math.PI * 2;
-      const spread =
-        SMUDGE_SPREAD_MIN_LY + (SMUDGE_SPREAD_MAX_LY - SMUDGE_SPREAD_MIN_LY) * rnd();
-      const sx = spread * Math.cos(theta) * SMUDGE_SPREAD_X_MUL;
-      const sy = spread * Math.sin(theta);
-      // The depth that makes the true separation from home the distance drawn
-      // for it. Near side or far side, since either is a place light comes
-      // from. The basis is orthonormal, so the three legs are the distance.
+      // Each one is placed by TWO facts that have to hold at once: how far it
+      // truly is from home, and where it lands in the frame. Solve the angle
+      // off the view axis that satisfies both, then rotate the whole thing
+      // back into the world through the inverse of the Model's yaw-then-pitch.
+      // Everything after that is honest projection: they part with real
+      // parallax on the way out and never move on their own.
       const dist = SMUDGE_MIN_LY + (SMUDGE_MAX_LY - SMUDGE_MIN_LY) * rnd();
-      const flat = Math.hypot(sx, sy);
-      const sz =
-        Math.sqrt(Math.max(dist * dist - flat * flat, 1)) * (rnd() < 0.5 ? -1 : 1);
+      const frac = SMUDGE_FRAME_MIN + (SMUDGE_FRAME_MAX - SMUDGE_FRAME_MIN) * rnd();
+      const reach = dist * Math.hypot(optics, frac);
+      // The far root of the two: past home rather than between home and the
+      // camera, so the recession never has to fly through the field and no
+      // smudge arrives by passing the lens.
+      const alpha =
+        Math.PI -
+        Math.asin(clamp01((view.distLy * frac) / Math.max(reach, 1e-6))) -
+        Math.atan2(frac, optics);
+
+      // Around the view axis, squeezed on the horizontal because a phone held
+      // upright is the frame being composed for.
+      const theta = rnd() * Math.PI * 2;
+      const ox = Math.cos(theta) * SMUDGE_SPREAD_X_MUL;
+      const oy = Math.sin(theta);
+      const on = Math.hypot(ox, oy) || 1;
+      const off = dist * Math.sin(alpha);
+      const sx = (off * ox) / on;
+      const sy = (off * oy) / on;
+      const sz = dist * Math.cos(alpha);
+
       const dy = sy * cosEl + sz * sinEl;
       const z1 = -sy * sinEl + sz * cosEl;
       const dx = sx * cosAz - z1 * sinAz;
