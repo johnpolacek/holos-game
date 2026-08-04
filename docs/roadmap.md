@@ -606,7 +606,11 @@ gets priced risky besides).
       counsel giving direction (the shipped AV4 counsel seam, turned
       on), the hybrid home layout landed, the cards-versus-dashboard
       call made. Near-zero new systems; attacks the playtest's stated
-      complaint directly. Subsumes AV1–AV3.
+      complaint directly. Subsumes AV1–AV3. *(Amended 2026-08: the
+      purpose line was mocked and cut in review — the purpose is shown by
+      the intro's four beats, never stated. Launch brief:
+      [build-s0.md](./build-s0.md), which records the mock's settled
+      layout and copy.)*
 - [ ] **S1 — The prizes and the mirror.** The two-layer sky (real
       catalog as public knowledge, statistically-honest hidden objects
       to survey out), prospecting as the early game, the near scarcity
