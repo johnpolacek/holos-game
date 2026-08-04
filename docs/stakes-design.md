@@ -353,14 +353,26 @@ the instrument ladder this galaxy actually calls for:
 - **Posture.** Bright, dark, sleeping. Observable, with the standing
   caveat that a sleeping civilization and an empty sky look alike by
   design.
-- **Intent.** The irreducible unknown. Investigation narrows it and never
-  closes it, because minds lie. This is the range that keeps studies
-  alive after capability is settled.
+- **Record.** The dossier: everything attributable to the source. What
+  it has done (strikes are signed, conflict is legible, an occupied
+  black hole glows), what it has said (beams received, broadcasts
+  caught, promises made), what it has kept and broken, and what your
+  agents found on-site. Investigation buys entries, never conclusions.
 
-**Threat is derived, never stored:** capability × proximity ×
-intent-uncertainty, presented as a readout of the other three. And
-**every reading wears its age** — "as of 14 years ago" — because the map
-is the past and the instruments must say so on every line.
+**Intent is never shown.** A fourth review round (2026-08) removed it
+from the dashboard entirely: intent is a theory of mind about another
+player, the one thing no instrument can measure, and the game refusing
+to compute it is what makes the board a game of judgment. The
+instruments report what can be measured; the human judges what can't.
+(This also closes a leak: stated intent would converge cleanly on AI-run
+civilizations and stay slippery on human ones, and the instrument itself
+would betray which sources are people.)
+
+**Exposure is derived, never stored:** capability × proximity,
+explicitly disposition-free — what a source *could* do to you and how
+soon, never whether it would. And **every reading wears its age** — "as
+of 14 years ago" — because the map is the past and the instruments must
+say so on every line.
 
 ### Two registers
 
@@ -372,8 +384,85 @@ The same screen speaks twice, and the registers never blur:
   question below); prose-style.md's chronicle rules do not apply to it.
 - **The chronicle speaks.** The voice — prose-style.md, the style gate,
   the banks — retreats to what it does best: the authored beats, the
-  chronicle lines, the moments. It stops carrying load the instruments
-  should carry. Mystery is a flavor, not an interface.
+  chronicle lines, the mind's counsel. It stops carrying load the
+  instruments should carry. Mystery is a flavor, not an interface.
+
+---
+
+## Judging intent (settled)
+
+Settled in the fourth review round (2026-08). With intent off the
+dashboard, the machinery around it is about evidence: what exists, what
+it costs, and how a player is judged on theirs.
+
+### The evidence ladder is presence-gated
+
+At range, everything is dual-use: a mass driver launches cargo and kills
+planets; a propulsion laser is a weapon pointed politely; industry is
+armament with the safety on. Remote instruments narrow capability
+forever and barely touch behavior, so the dossier entries that matter
+most — what a civilization is actually doing inside its own system —
+come only from presence: an agent on-site, at mission prices, at
+centuries of lead time, at the risk of being caught and becoming an
+incident in someone else's dossier about *you*. Espionage is the most
+expensive and most consequential verb on the board, which is where a
+hard-SF game should put it.
+
+### Lying has three tenses
+
+- **The past is unfakeable.** Old light is archived in every observer's
+  instruments, published at lightspeed; a claim that contradicts your
+  own shone history can be checked by anyone with a long enough
+  baseline. Nothing can be unshone — the sky keeps receipts.
+- **The present is expensive.** Masking, shaping a signature, running a
+  false face: continuous upkeep in energy and compute, the
+  mask-versus-instrument contest already priced in economy-design.md.
+- **The future is free.** Promises are words. The whole trust problem
+  concentrates here, and the only cure is physical: a mission is sunk
+  and unrecallable at launch — commitment credible without enforcement
+  because it cannot be taken back.
+
+A lie caught is the loudest entry a dossier can hold.
+
+### Legibility is a verb set
+
+Intent is two-sided: while a player reads the sky, the sky reads them.
+Proving peace means deliberately feeding other players' dossiers on you,
+and the costly signals are first-class verbs: accept an observer (a
+standing foreign agent in your system, revocable and therefore only
+semi-credible); the joint mission under a co-written charter, the one
+co-authored object; the exchange of hostages in the Banks sense —
+something of real value physically placed in the other's reach. Costly
+to fake, therefore informative.
+
+### The record rots honestly
+
+Entries never vanish, and every one wears its age. A three-hundred-year
+kept promise weighs whatever the reader decides old promises weigh: the
+aging is displayed, the discounting is human. Trust is maintained, not
+banked.
+
+### False flags are permitted, never subsidized
+
+A strike launched from a platform positioned to implicate someone else
+is the darkest verb the system permits, and no rule forbids it. The
+mission system's economics carry the weight: centuries of setup, an
+agent that can be disowned, and discovery being the loudest possible
+tell about the framer.
+
+### The mind counsels; the instruments do not
+
+The civilization is a superintelligence and it has opinions. They arrive
+in the chronicle register, never the instrument register: counsel in a
+voice — "they have armed for a hundred years and speak only of peace" —
+that the player is free to weigh and disbelieve. This grows into a
+conversational surface: the player talks the sky through with the mind
+itself, a chat with the civilization. Two hard rules bind that surface.
+**The mind knows only what the civilization knows** — its knowledge is
+scoped to the knowledge layer, and it can no more read a stranger's
+present than the telescopes can, so counsel can never leak ground truth
+the instruments do not hold. And **the mind never states the number the
+instruments refuse to state**: it argues; it does not compute verdicts.
 
 ---
 
@@ -434,9 +523,6 @@ Named here so they are decided on purpose, not by default:
    contested thing, or the galaxy has exactly one story. Candidates must
    pass the same test: real under the physics, unfakeable, worth
    centuries of travel.
-4. **Narrowing intent.** What investments narrow the intent range, what
-   can a target do to poison them, and does lying cost the liar anything
-   detectable?
-5. **The instrument register's style rules.** Units, range notation,
+4. **The instrument register's style rules.** Units, range notation,
    staleness stamps, and which audits apply to it. The chronicle's gates
    must not bind it, and it must not leak into the chronicle's surfaces.
