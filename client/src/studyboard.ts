@@ -794,6 +794,10 @@ export class StudyBoard {
     | "fork"
     | "orders"
     | "startover"
+    // S0.1: the Mind page's stub — a title and the intro's replay entry.
+    // Its own view, the startover/report precedent: nothing here reads a
+    // `sky` either.
+    | "mind"
     | "report"
     // A2.5: one thread, in full. Its own view rather than a fold inside the
     // hub — a conversation is read top to bottom, and the composer needs the
@@ -998,6 +1002,9 @@ export class StudyBoard {
   private contact: ContactWire | null = null;
   private onVoiceActionCb: (() => void) | null = null;
   private onHailActionCb: ((starId: string) => void) | null = null;
+  // S0.1: the Mind page's one action — fired on tap, staged by the App
+  // (closing the board, arming Intro) like every other ceremony entry.
+  private onReplayIntroCb: (() => void) | null = null;
   // A one-shot: openHub("voice") scrolls the section into view on the render
   // that follows, and clears itself. The HOME mote's tap is the only caller.
   private hubScrollToVoice = false;
@@ -1484,6 +1491,10 @@ export class StudyBoard {
       // the `else` below falls back to the study list, which would drop the
       // player out of a confirmation they are mid-way through reading.
       this.renderStartOver();
+    } else if (this.view === "mind") {
+      // Nothing on this stub reads a `sky` either — the startover branch's
+      // reason, above.
+      this.renderMind();
     } else if (this.view === "report") {
       // Defensive consistency only, the `tend`/`projects` precedent — a
       // `sky` carries none of the report's own data, so this just re-runs
@@ -1605,6 +1616,18 @@ export class StudyBoard {
     this.view = "thread";
     this.focusedStarId = null;
     this.renderThread();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
+  /** S0.1: the Mind page's stub. A title and one row (the intro's replay);
+   *  S0.3 grows this into the real page. Nothing here reads a `sky`, the
+   *  startover/report precedent. */
+  openMind(): void {
+    this.view = "mind";
+    this.focusedStarId = null;
+    this.renderMind();
     this.openFlag = true;
     this.root.classList.add("open");
     this.startTicking();
@@ -1950,6 +1973,13 @@ export class StudyBoard {
     this.onHailActionCb = cb;
   }
 
+  /** S0.1: fired when the Mind page's one row is tapped. Like onVoiceAction,
+   *  the panel reports the tap and stages nothing — starting Intro over the
+   *  sky is the App's business. */
+  onReplayIntro(cb: () => void): void {
+    this.onReplayIntroCb = cb;
+  }
+
   /** A2.4: hide the two standing chips while a ceremony is armed. They opt
    *  themselves into pointer-events even though their root does not, so a
    *  ceremony overlay cannot cover them — they have to stand down. */
@@ -2282,6 +2312,12 @@ export class StudyBoard {
         () => this.openReport(),
       ),
     );
+
+    // S0.1: THE MIND. Its stub sits under the report for the same reason
+    // the watch does one row down — all three are about what happened
+    // while the player was not looking, or (here) what they have not yet
+    // seen at all.
+    this.body.append(this.buildMindRow());
 
     // A5: the watch. It belongs here, under the report, because it is about
     // the same thing the report is about: what happened while you were not
@@ -2651,6 +2687,25 @@ export class StudyBoard {
     return btn;
   }
 
+  /** S0.1: THE MIND's row on the hub — the only way back into the intro
+   *  once its one autoplay has been spent (a returning player never sees it
+   *  uninvited). Built directly on the `study-hub-row` chassis rather than
+   *  through `buildHubRow`: that helper's second line is prose, and this
+   *  stub page has none to add. */
+  private buildMindRow(): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "study-hub-row";
+    btn.addEventListener("click", () => this.openMind());
+
+    const labelEl = document.createElement("div");
+    labelEl.className = "study-hub-label";
+    labelEl.textContent = "The mind";
+
+    btn.append(labelEl);
+    return btn;
+  }
+
   /** What this counterpart is called here: the player's own label if they
    *  gave one, else the designation their instruments assigned. A thread can
    *  outlive its source's visibility, so the starId is the last resort. */
@@ -2952,6 +3007,38 @@ export class StudyBoard {
         "The cohort would not let go of this run. Nothing was given up. Try again.";
       this.renderStartOver();
     }
+  }
+
+  /** S0.1: THE MIND's stub page — a title and the one row this slice ships,
+   *  the intro's replay. `study-verb-row`/`study-verb-btn` rather than
+   *  `buildHubRow`: that helper's second line is prose this stub has none
+   *  of, the startover confirm button's own reason for the same choice. */
+  private renderMind(): void {
+    this.body.innerHTML = "";
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => this.openHub());
+    this.body.append(back);
+
+    const header = document.createElement("div");
+    header.className = "study-board-header holos-caps";
+    header.textContent = "THE MIND";
+    this.body.append(header);
+
+    this.body.append(this.hairline());
+
+    const row = document.createElement("div");
+    row.className = "study-verb-row";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "study-verb-btn study-verb-btn--primary";
+    btn.textContent = "PLAY THE OPENING AGAIN";
+    btn.addEventListener("click", () => this.onReplayIntroCb?.());
+    row.append(btn);
+    this.body.append(row);
   }
 
   // ── Render: explore view ─────────────────────────────────────────────
