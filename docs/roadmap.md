@@ -8,7 +8,8 @@ the solo acts following as the origin path. Where this disagrees with the
 vision, the vision wins.*
 
 > Related: [vision.md](./vision.md) (§ Scope and roadmap),
-> [act3-design.md](./act3-design.md) and [act3-map.md](./act3-map.md) (the
+> [stakes-design.md](./stakes-design.md) (the survival revision; Phase S
+> builds it), [act3-design.md](./act3-design.md) and [act3-map.md](./act3-map.md) (the
 > act being built), [act3-civilizations.md](./act3-civilizations.md) (what
 > fills it), [act2-design.md](./act2-design.md) / [act2-minds.md](./act2-minds.md)
 > (the character system Phase A consumes as data and Phase B later produces
@@ -203,6 +204,16 @@ sky (§18) all shipped. **Every Phase A build item is now done**; the
 open exit condition for the phase is A2's fun gate (two phones, one
 evening), which is a playtest, not a build.
 
+**The fun gate ran (2026-08) and failed.** A human playtest found the
+shipped slice not fun: purpose unstated, actions buried, knowledge
+without consequence. The diagnosis and the design response are
+[stakes-design.md](./stakes-design.md) (a five-round design review that
+settled purpose, death, visibility, forks, intent, and scarcity); the
+build response is **Phase S** below, which is now the active phase. The
+gate ceremony itself is retired: each Phase S stage is played by the
+designer before the next opens, and the phase's exit is taste, owned
+honestly.
+
 **→ Previously next (now shipped in code): AV — the voice.** Decided
 2026-07: the shipped game has the machinery but no narrator — the
 pull-back is wordless, nothing states the frame, and the mind never
@@ -384,6 +395,9 @@ Inserted 2026-07, before A2.3: the mind becomes the voice of the
 interface. The story is fully designed (walkthrough.md is the script,
 prose-style.md the voice spec) but the build never speaks it — this
 slice closes that gap. Full brief: [build-voice.md](./build-voice.md).
+*(Update 2026-08: the unbuilt AV1–AV3 fold into Phase S's S0 — the
+frame — and build into the UX reboot's surfaces, not the condemned
+panels.)*
 
 - [ ] **AV1 — The first line and the frame**: the mind's arrival line
       after the pull-back (per archetype), and one-time explainers for
@@ -537,6 +551,91 @@ walkthrough's season (walkthrough.md).
 
 ---
 
+## Phase S — Stakes *(inserted 2026-08; the active phase)*
+
+Phase A built the machinery; the human playtest found it not fun.
+[stakes-design.md](./stakes-design.md) is the premise this phase builds:
+purpose stated, death real, visibility an economy, scarcity a map,
+intent a human judgment. Two workstreams run together — the **UX
+reboot** (how everything ships) and the **stakes systems** (what ships)
+— in stages the designer plays before the next opens.
+
+### The UX reboot (settled 2026-08)
+
+The shipped desk-and-panel presentation is condemned; the server systems
+beneath it — the knowledge layer, economy, missions, charters, the
+Ledger — survive untouched. The client is the replaceable half.
+
+- **Hybrid home.** A home dashboard with the Model as its centerpiece:
+  the map is the heart, the dashboard carries navigation and what
+  graphics can't.
+- **The kept ingredient.** The one element the playtest liked: *the
+  spatial feeling of having a place in a real sky*, and seeing the
+  relative distances from Home to everything of interest. Every layout
+  decision protects and amplifies this.
+- **Drawn over stated.** If it is a physical quantity, it is drawn on
+  the map: the mirror as a translucent sphere expanding from Home a
+  light-year a year, exposure as reach arcs, probes as dots on drawn
+  trajectories wearing arrival years, beams as corridors, staleness as
+  fade. Prose belongs to the mind's counsel; numbers belong to the card
+  the player opened on purpose. The echo shell was this rule's first
+  instance — promoted from poster to paradigm.
+- **Open call (resolve in S0):** whether overflow detail lives on
+  map-anchored cards or dashboard pages. Prototype both; pick by thumb.
+- **Inspirations, by role, Holos-flavored, never cloned:** Subterfuge
+  (map-is-everything mobile interaction, drawn timers), Neptune's Pride
+  (dread from arrival times on a bare map), Sins of a Solar Empire and
+  Homeworld (the continuous zoom), Stellaris (semantic zoom: what a
+  star shows changes with camera distance), Outer Wilds' ship log (the
+  record as a knowledge graph — the model for the one big non-map
+  surface), Clash of Clans (the return-visit rhythm, feeding AV2's
+  report). Anti-model: EVE's spreadsheet presentation.
+- ui-design.md gets revised to match as part of S0.
+
+### The stages
+
+Sequenced by three rules argued in review (2026-08): **loops, not
+systems** (every consequence ships with its minimal legibility);
+**time-to-felt-effect** (order by what week one feels like); **motive
+before violence** (scarcity before strikes — with simultaneous starts
+and the investigation ramp, early striking is implausible anyway, and
+gets priced risky besides).
+
+- [ ] **S0 — The frame.** The purpose line at minute one ("You are
+      trying to continue to exist"), the verbs unburied, the mind's
+      counsel giving direction (the shipped AV4 counsel seam, turned
+      on), the hybrid home layout landed, the cards-versus-dashboard
+      call made. Near-zero new systems; attacks the playtest's stated
+      complaint directly. Subsumes AV1–AV3.
+- [ ] **S1 — The prizes and the mirror.** The two-layer sky (real
+      catalog as public knowledge, statistically-honest hidden objects
+      to survey out), prospecting as the early game, the near scarcity
+      tier first (rogue planets, cold sites, gardens; lens lines and
+      black holes as the far tier), and the self-signature mirror drawn
+      as geometry. Completes a loop from shipped parts: survey → find →
+      seedship (A4) → charter a child at the prize (A4) → Ledger drift
+      (A4).
+- [ ] **S2 — Exposure and the thread.** The exposure readout
+      (capability × proximity, drawn as reach), the record as a
+      ship-log-style dossier surface, the jump/membrane/emigration
+      rules over the shipped Ledger, the family register.
+- [ ] **S3 — Consequence.** Weapons investment, the attack menu (strike
+      thin first; raid and conquer after), wounding and the attacker's
+      blindness, the morning-after, signed shots, death and new-cohort
+      rebirth. Tested over real weeks, not an evening — this loop lives
+      on Subterfuge time.
+- [ ] **S4 — The instrument ladder, complete.** The two registers in
+      final form, presence/capability/posture/record cards everywhere,
+      staleness stamps as a system, and the instrument register's style
+      rules written and wired into the audits (stakes-design.md's open
+      question).
+
+**Phase S ships when** the playtest that failed in 2026-08 stops
+failing — each stage played before the next opens, the exit owned as
+taste.
+
+---
+
 ## Phase B — The origin path *(coarse by design)*
 
 The solo acts, built after the galaxy is alive, producing `CivSeed`s by
@@ -649,7 +748,9 @@ Per the vision roadmap + per-act scopes (v1 posture is bold — relativistic
 ships moved *into* v1 above; these stay out): self-transmission + the
 seat's full form; human-inheritance of *diverged
 in-game colonies* (v1 inherits *generated* civs; the drifted-colony
-handoff needs the drift system matured); the conflict/deterrence layer;
+handoff needs the drift system matured); the conflict/deterrence layer
+*(reversed 2026-08: Phase S moves the conflict layer into v1 —
+stakes-design.md made consequence the center)*;
 the mission system (agents, veterans, mission charters, vignette
 returns, cooperative missions and the compensation menu — v1's probes
 and hails are its skeleton);
@@ -673,3 +774,7 @@ too, landing with Phase B's pivot.
   light-lag is the cover, per the vision.
 - **Clock tuning** — 5 min/year is a target, not scripture; A2 is where
   it gets play-tested against real sessions.
+- **The UX reboot's scope** — Phase S condemns the shipped presentation
+  while keeping the systems, and the risk is a long dark stretch
+  rebuilding surfaces with nothing playable. The mitigation is the
+  stage order: S0 ships in days, and every stage ends playable.
