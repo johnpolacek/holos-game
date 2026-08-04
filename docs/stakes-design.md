@@ -271,6 +271,123 @@ Two properties make it the thesis of the game in one mechanic:
   divergence away from its parent. Winning the objective never makes a
   number go up; it makes something that used to be you strong.
 
+The black hole is one entry on a larger map, settled in a fifth review
+round: see *The scarcity map*, next.
+
+---
+
+## The scarcity map (settled)
+
+Settled in a fifth review round (2026-08). What else is worth crossing
+the gulf for, generated from a law rather than listed from taste.
+
+### The two laws
+
+- **The map law.** Anything a civilization can build at home with enough
+  energy, raw material, and patience — ships, habitats, computers, even
+  megastructures — is never worth a centuries-long trip, because you
+  would build it instead of fetching it. The only things worth
+  traveling for are the **unrepeatable** (things that cannot be made at
+  any price) and the **positional** (value that is a location, which no
+  effort elsewhere can substitute). Nothing manufacturable goes on the
+  map.
+- **The economy law.** "Enough patience" is the catch. Waiting a
+  thousand years is fine if nobody is coming; if a rival might strike in
+  two hundred, speed matters. The home economy's scarce resource is not
+  energy but energy *per year* — build rate, research rate, answer
+  rate. Threats turn time into a resource, even for immortals.
+
+In one sentence: **you travel for what can't be made; you race for what
+can.**
+
+### The map, flavor by flavor
+
+The map is deliberately **flavor-differential** — every major flavor of
+civilization prizes at least one thing the others don't, which is a
+neutrality rule with teeth: two civilizations can meet over an asset and
+not be rivals, or better, each hold what the other wants more. **The
+scarcity map is the trade map**, and trade's true currency is
+information — locations, findings, archives.
+
+- **Black holes** — the energy climbers' prize (see *The prize is a
+  beacon*).
+- **Lens lines** — the watchers' prize. Gravity bends light: a heavy
+  dead star or black hole acts as a magnifying glass for whoever parks
+  an instrument at the right spot behind it, giving a view of a distant
+  system no ordinary telescope will ever match (real, current science —
+  missions to use our own Sun this way have been studied). The spot
+  works for **one target at a time**, because the lens and the target
+  must line up — so "the spot that watches you" is a specific,
+  occupiable place somewhere behind some dead star, and either nobody
+  is there, or a rival has quietly aimed the galaxy's best telescope at
+  your home for the last century. Passive, silent, and the discovery
+  that your line is occupied is a dossier entry of the first order.
+- **Rogue planets and the deep cold** — the integrators' and sleepers'
+  prize: matter platforms far from any star, where the dark is free and
+  computing runs cheapest. Homes for the quiet.
+- **Garden worlds** — the custodians' prize, and everyone's science: a
+  world where life arose on its own is an unrepeatable experiment,
+  priceless to study and impossible to remake once paved.
+- **Habitable worlds** — the biological Refusers' prize: the one flavor
+  that still needs real estate in the plain old sense.
+- **Ruins** — everyone's prize: information that exists exactly once
+  (see below).
+
+### Ruins: the game digs up its own dead
+
+No authored ancient ruins in v1. Two sources instead, both real:
+
+- **In-cohort:** deaths make dig sites. The civilization destroyed in
+  year 400 is a destination by year 900 — its half-burned archives, its
+  abandoned works, and above all the record of what killed it. The
+  attacker gains nothing (you cannot loot a crater), but the
+  archaeologists who arrive centuries later are another matter.
+- **Cross-cohort:** dead cohorts become the ancient strata of future
+  ones. When a cohort's galaxy goes quiet, its corpse — husks, orphans
+  that outlived their players, salted gardens — folds into the seeding
+  of later cohorts. The Fermi question's answer in any Holos galaxy is
+  literally previous players: every ruin was somebody's real run, and
+  no writer invented it.
+
+### The two-layer sky
+
+The galaxy is generated from our real current best map of the universe,
+then extrapolated — the same method the cradle catalog already uses with
+exoplanet statistics, extended galaxy-wide.
+
+- **The textbook sky:** real catalog stars and known objects, public
+  knowledge every player starts with, because any civilization has
+  astronomy. The real map is brutally asymmetric at scale — the nearest
+  *known* black hole is roughly 1,500 light-years out, an epic
+  months-long undertaking at the game clock — and the asymmetry is kept,
+  because the asymmetry is the drama.
+- **The dark sky:** the real map is radically incomplete, and statistics
+  say quiet black holes, rogue planets, and unclaimed gardens exist
+  unseen far closer than the known ones. These are seeded
+  statistically-honestly and exist only for whoever surveys them out.
+  **Prospecting is the early game**, and a found location is tradeable
+  information.
+
+### Salting is legal, loud, and remembered
+
+Denial is physically possible and no in-fiction rule forbids it: pave
+the garden, burn the archive, foul the lens corridor. The deterrent is
+the dossier, not a rule — destruction is visible and attributable, and
+"they burned the library" follows the salter forever. The galaxy's
+unrepeatable things can genuinely be lost to spite; that is what
+unrepeatable means.
+
+### The game teaches its physics
+
+None of this lands if only astronomers understand it. Every scarcity's
+surface carries a plain-language account of why it matters — what a
+lens line is, why a rogue planet is a home, what a garden world is
+worth — in the instrument register's clear voice or the mind's counsel,
+never in jargon. A player who has never heard of gravitational lensing
+learns it from the card, not from a wiki. The rule generalizes: whenever
+a mechanic leans on real physics, the surface that shows it explains
+it.
+
 ---
 
 ## The thread you play (settled)
@@ -519,10 +636,6 @@ Named here so they are decided on purpose, not by default:
    into a diverged descendant, making the orphans a menu of alternate
    lives? Gated to the wounded for the first slice; loosening it later
    is a real option, priced in identity.
-3. **Scarcity beyond black holes.** The map needs more than one kind of
-   contested thing, or the galaxy has exactly one story. Candidates must
-   pass the same test: real under the physics, unfakeable, worth
-   centuries of travel.
-4. **The instrument register's style rules.** Units, range notation,
+3. **The instrument register's style rules.** Units, range notation,
    staleness stamps, and which audits apply to it. The chronicle's gates
    must not bind it, and it must not leak into the chronicle's surfaces.
