@@ -833,8 +833,17 @@ export interface LedgerWire {
 // precedent — keeps voice.ts/minds.ts off the client). Nothing here concerns
 // any remote civ: these are the player's own civilization only.
 
-export type VoiceKey = "arrival" | "age" | "compute" | "clock" | "epoch" | "silence";
-export const VOICE_KEYS: readonly VoiceKey[] = ["arrival", "age", "compute", "clock", "epoch", "silence"];
+export type VoiceKey =
+  | "arrival" | "age" | "compute" | "clock" | "epoch" | "silence"
+  // S0.1: the four intro beats after the ceremony's BECOME. Kept as four
+  // keys, not one, so `seen` tracks each beat independently the way every
+  // other frame line does — a client that dismissed beat three but dropped
+  // its connection before beat four gets exactly the tail on reconnect.
+  | "intro1" | "intro2" | "intro3" | "intro4";
+export const VOICE_KEYS: readonly VoiceKey[] = [
+  "arrival", "age", "compute", "clock", "epoch", "silence",
+  "intro1", "intro2", "intro3", "intro4",
+];
 export function isVoiceKey(v: unknown): v is VoiceKey {
   // Derived from VOICE_KEYS so the union, the array, and the guard cannot
   // drift apart (adding "epoch" to only two of the three cost a real bug:
@@ -1187,6 +1196,9 @@ export type CohortClientMessage =
   | { type: "disarmTripwire"; starId: string; kind: string }
   // ── AV1 ──
   | { type: "voiceSeen"; key: VoiceKey }
+  // S0.1: the Mind page's replay entry. No payload: there is exactly one
+  // intro to ask for, and asking for it again is exactly the replay.
+  | { type: "requestIntro" }
   // ── AV2 ──
   | { type: "requestReport" }
   // ── AV3 ──
@@ -1819,6 +1831,13 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
   // every other malformed message.
   if (msg["type"] === "voiceSeen" && isVoiceKey(msg["key"])) {
     return { type: "voiceSeen", key: msg["key"] };
+  }
+
+  // S0.1: no fields and no error code, the requestReport precedent just
+  // below — a malformed one just means the replay does not start, and the
+  // Mind page's replay button is still sitting right there to tap again.
+  if (msg["type"] === "requestIntro") {
+    return { type: "requestIntro" };
   }
 
   // AV2: no fields, so nothing to guard beyond the discriminant. Same
