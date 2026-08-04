@@ -1,0 +1,641 @@
+# HOLOS
+### Stakes — purpose, threat, and the visibility economy
+
+*What the player is for, what can kill them, why anyone is ever seen, and
+what the instruments must therefore show. Settled in design review
+(2026-08) after human playtesting found the Act 3 slice illegible: purpose
+unstated, actions buried, knowledge without consequence. This document is
+the survival revision — the premise the next fifty decisions inherit.*
+
+---
+
+## About this document
+
+The [vision](./vision.md) says what Holos is; this document revises how
+its purpose is *stated to the player* and extends
+[playstyles.md](./playstyles.md)'s neutrality rules with a shared floor.
+It binds [observatory-design.md](./observatory-design.md)'s source card to
+a new instrument ladder, gives [economy-design.md](./economy-design.md)'s
+Signature price its strategic payoff, and sets the Act 3 build order.
+Where this and the vision disagree on *mechanics*, the vision wins, as
+always; where they disagree on *framing* — on what the player is told the
+game is — this document is the correction, found in play.
+
+The review that settled these calls ran as an adversarial dialogue in four
+rounds. Its verdict on the pre-revision slice, kept here because it names
+the failure mode to never rebuild: the observatory produced knowledge, but
+knowledge is only interesting when being wrong costs something and being
+right earns something, and the slice had neither. The card was never the
+problem. The missing thing was consequence.
+
+---
+
+## The purpose, stated (settled)
+
+**You are trying to continue to exist.**
+
+That is the sentence a new player gets in minute one, and every surface
+serves it. The vision's deeper answer — exploring what it is like to
+*exist* as a civilization like yours — survives intact as the experience;
+survival is the goal that makes the experience graspable. A player who
+knows they are evaluating threats and finding opportunities in order to
+keep existing can then discover that *how* a civilization keeps existing
+is the whole flavor space. A player told only to explore existence puts
+the game down.
+
+This adds a floor to playstyle neutrality, and only a floor. Survival is
+the purpose every civilization shares; everything beyond it — what a
+civilization is *for* once it is safe — is where the flavors diverge, and
+the neutrality rules (prices, not verdicts) govern that space unchanged.
+The floor does not crown the Silence lean, because hiding is not a win
+condition (see *Discovery is inevitable*, below); it is one way of buying
+time, priced like every other.
+
+---
+
+## Death is real (settled)
+
+A civilization can be wiped out, and can wipe out another. Without that
+possibility the purpose is fake and every threat instrument is a
+horror-movie poster for a movie that never plays.
+
+Three rules shape it:
+
+- **The physics of attack is kept honest.** An interstellar first strike
+  is a relativistic object launched centuries ago, arriving just behind
+  its own light: near-zero warning. The game does not soften this with
+  detection magic or interception magic. A player can genuinely be killed
+  by a decision someone made three hundred years ago. That is chosen, not
+  inherited: it is the dread the whole knowledge layer exists to manage.
+- **Defense is dispersal, not shields.** The hedge against annihilation
+  is existing in more places than one strike can reach. Colonies are the
+  second-strike capability; the charter is the will. Detection investment
+  buys earlier warning of the *preparations* — the emissions of a
+  civilization tooling up — never of the bullet.
+- **First strike is gated by uncertainty, not by rules.** How do you know
+  you will win? Maybe the target is more dispersed than its light shows.
+  Maybe you draw the attention of watchers you have not found. Maybe the
+  blowback arrives from an ally you did not know it had. Striking from
+  ignorance is played as what it is: an enormous bet placed on stale
+  data. The game never forbids it and never needs to.
+
+Whether destruction is total or partial was reviewed in a second round
+and is settled: see *The mercy settlement*, next.
+
+---
+
+## The mercy settlement (settled)
+
+Settled in a second review round (2026-08). The question was whether the
+game needs a mercy mechanic; the answer is that the physics and the
+economics already built one, and the design accepts what they built.
+
+### Kills are campaigns, not shots
+
+One relativistic impactor is an extinction event for a planet — and a
+civilization is not a planet. Habitats, moons, outposts, and deep-space
+infrastructure spread across a system cannot be killed by any single
+projectile. A true kill requires saturation: many projectiles,
+coordinated arrival windows, then confirmation. The first strike
+cripples; the kill takes follow-through. No one-shot system-killer
+exists, and none gets invented — the constraints are real.
+
+### The attack menu
+
+Why an attacker attacks decides what the attack is, and the reasons
+split the verb permanently, because **you cannot loot a crater**.
+Whatever a target knew, built, and held burns with it; gaining anything
+requires the target to survive the taking.
+
+- **Strike.** Kill the threat. Gains nothing but safety. Cheapest, and
+  everything of value is destroyed with the danger.
+- **Raid.** Take something and leave. Requires presence — ships, agents,
+  action in local time — against resistance.
+- **Conquer.** Take and hold. The slowest, most visible, most expensive
+  verb on the menu.
+
+What is lootable, in hard terms: infrastructure (collectors, swarms, a
+black-hole tap), real estate, and whatever archives were not burned in
+time — a mind's knowledge lives in substrate, and substrate can
+self-destruct. The consequence is a gradient that does more for mercy
+than any shield could: **the more valuable a civilization, the more its
+enemies want it alive.** Pure annihilation is reserved for targets that
+are only dangerous, never rich.
+
+### The shield is the attacker's blindness
+
+A struck civilization goes dark — wounded or dead, diminished or
+regrouping, the light does not say. The attacker cannot confirm the kill
+for decades, and follow-through means a second campaign against a target
+it can no longer see, a target that now knows its return address. Mercy
+is not a timer the game grants the victim; it is the epistemic fog the
+physics grants automatically, and the victim plays inside it. Third
+parties are watching too: conflict has a recognizable pattern — the
+flash, the changed emissions — so a strike is also a public act.
+
+### Wounded is a played state
+
+The most common post-attack condition is neither dead nor whole, and it
+is playable — the wounded chapter is meant to be the most dramatic in
+the game. The wounded verbs, all existing design vocabulary: go fully
+dark; flee (a relativistic exodus that arrives somewhere else, centuries
+later, as someone new); beam an ally for help; scatter seedships as
+insurance; write a vengeance charter and launch it before the
+follow-through lands. And the escape hatch: a player with a colony may
+pivot the thread to it — instantly, blindly, even into a diverged child
+(see *The thread you play*) — and the wounded existence keeps running on
+its charter.
+
+The morning-after screen serves this state. The player wakes (288 game
+years pass in a real day; the strike landed while they slept), reviews
+what happened and what remains, and chooses from the verbs above. Only
+when a campaign truly finishes — last existence, no remnants — does the
+run end.
+
+### Shots are signed
+
+A relativistic projectile's trajectory back-computes: the vector points
+at the launcher, and the whole watching sky can do the arithmetic. An
+attack publishes its author's name at lightspeed, which is what makes
+deterrence, blowback, and reputation work without an invented rule. The
+exception is priced: a strike launched from a mission platform in deep
+space traces to the platform, so anonymity costs a mission — centuries
+of setup, an agent that can be disowned. Cheap attacks are attributable;
+anonymous attacks are premeditated and expensive.
+
+### Death, rebirth, and the cohort
+
+When the last existence dies, the run is over and the player joins a new
+cohort: fresh galaxy, fresh players, knowledge reset. Cohorts start
+simultaneously, which closes the bullying seam — there are no elder
+civilizations positioned to erase the newly seated.
+
+What, if anything, ends a cohort is **deliberately experimental**. Holos
+is not an elimination game: a cohort might collaborate into peaceful
+deep time, or burn itself down in total war, and both are the game
+working. The named risk of open-ended cohorts — that total death late in
+an old cohort is the harshest outcome in the design — is watched, not
+pre-solved, because the settled mechanics already lean against it: an
+old civilization is usually a dispersed one (dispersal is the hedge, and
+time buys colonies), and the loot gradient makes the rich worth more
+alive. If playtests show late death landing too hard, the cohort's arc
+is where the fix goes (see open questions).
+
+---
+
+## The visibility economy (settled)
+
+The review's central finding. Being seen must buy something, or Silence
+is the only rational play, the sky goes dark, and the game is boring one
+layer deeper. The physics hands over the answer:
+
+**Information travels at lightspeed. Weapons travel slower.**
+
+An alliance offer, a warning, a technology trade, a cultural archive
+crosses the gulf in years; a kill vehicle takes centuries. Cooperation is
+literally faster than aggression in this universe. That is the upside of
+brightness, stated without hand-waving: a civilization that can be found
+finds friends sooner than its enemies can reach it.
+
+### Tight beam and broadcast
+
+Two ways to speak, permanently different (the accepted hard-SF tightbeam:
+a collimated laser or maser link, receivable only inside a diffraction
+corridor a fraction of a system wide, eavesdroppable only from *inside*
+that corridor):
+
+- **Broadcast** reaches strangers and everyone else. It is how unknowns
+  find you — allies and predators alike. Wide, loud, unaddressed.
+- **Tightbeam** reaches one known place, near-privately. You can only
+  beam a place, not a stranger: aiming needs a target position, so
+  contact bootstraps as *eavesdrop or hear a broadcast, then whisper*.
+
+Receiving a tightbeam is therefore one of the game's signature beats. It
+carries two messages, and the second is the loud one: whatever they said,
+plus **"we see you."** A quiet civilization that gets beamed has just
+learned its hiding failed — without learning how, or who else knows. The
+response verbs are the front door of diplomacy: reply (confirming
+everything), stay silent (they still know), move what can move, or beam a
+third party about it.
+
+### Deterrence needs witnesses
+
+Dispersal only deters if the would-be attacker knows the second strike
+exists. A hidden colony is a real hedge that deters nobody; a revealed
+colony deters everyone and is now a target. So the deepest standing
+decision a player makes, per existence: **which of my existences do I
+show?** Show enough to make striking you irrational; hide what you cannot
+afford to lose. This is a first-class mechanic, surfaced per colony, not
+an emergent nicety.
+
+### The mirror
+
+A hiding game cannot be played without knowing how well hidden you are.
+The player's own signature — how visible am I, to whom, as of when — is
+an instrument on the dashboard, as important as any reading of another
+civilization. The emission history already modeled for every civilization
+(nothing can be unshone) is the data; the mirror is that data read from
+the outside in. Every visible action a player weighs carries its
+signature price on the label, per economy-design.md; the mirror is where
+the running total lives.
+
+### Discovery is inevitable
+
+Every civilization's bright years keep traveling outward. Probes will
+come. The strategic question is never *whether* you will be discovered
+but *what you have built by the time you are* — the alliances, the
+dispersal, the deterrent posture, the knowledge of who is out there. The
+game's tension is that clock, and the player should feel it as a clock.
+
+---
+
+## The prize is a beacon (settled)
+
+The scarce thing that forces civilizations to meet: **black holes**.
+Accretion and rotational extraction convert mass to energy at tens of
+percent efficiency against fusion's 0.7; a black hole is the best power
+source in the universe, and there are only so many nearby. Fixed, rare,
+supreme: contested real estate the physics genuinely supports.
+
+Two properties make it the thesis of the game in one mechanic:
+
+- **Holding it is legible.** A fed hole glows; tapping dims its natural
+  accretion; use radiates waste heat. Every mode of occupation is
+  detectable at range. The best energy source in the galaxy is also a
+  beacon that announces its owner. You cannot hold the prize quietly, so
+  taking the objective is a strategic coming-out — the visibility economy
+  wired into the map.
+- **The reward is a child, not a number.** Energy does not ship home
+  across light-years. Whoever taps the hole creates a colony *at* the
+  hole — the most energy-rich entity in the region, centuries of
+  divergence away from its parent. Winning the objective never makes a
+  number go up; it makes something that used to be you strong.
+
+The black hole is one entry on a larger map, settled in a fifth review
+round: see *The scarcity map*, next.
+
+---
+
+## The scarcity map (settled)
+
+Settled in a fifth review round (2026-08). What else is worth crossing
+the gulf for, generated from a law rather than listed from taste.
+
+### The two laws
+
+- **The map law.** Anything a civilization can build at home with enough
+  energy, raw material, and patience — ships, habitats, computers, even
+  megastructures — is never worth a centuries-long trip, because you
+  would build it instead of fetching it. The only things worth
+  traveling for are the **unrepeatable** (things that cannot be made at
+  any price) and the **positional** (value that is a location, which no
+  effort elsewhere can substitute). Nothing manufacturable goes on the
+  map.
+- **The economy law.** "Enough patience" is the catch. Waiting a
+  thousand years is fine if nobody is coming; if a rival might strike in
+  two hundred, speed matters. The home economy's scarce resource is not
+  energy but energy *per year* — build rate, research rate, answer
+  rate. Threats turn time into a resource, even for immortals.
+
+In one sentence: **you travel for what can't be made; you race for what
+can.**
+
+### The map, flavor by flavor
+
+The map is deliberately **flavor-differential** — every major flavor of
+civilization prizes at least one thing the others don't, which is a
+neutrality rule with teeth: two civilizations can meet over an asset and
+not be rivals, or better, each hold what the other wants more. **The
+scarcity map is the trade map**, and trade's true currency is
+information — locations, findings, archives.
+
+- **Black holes** — the energy climbers' prize (see *The prize is a
+  beacon*).
+- **Lens lines** — the watchers' prize. Gravity bends light: a heavy
+  dead star or black hole acts as a magnifying glass for whoever parks
+  an instrument at the right spot behind it, giving a view of a distant
+  system no ordinary telescope will ever match (real, current science —
+  missions to use our own Sun this way have been studied). The spot
+  works for **one target at a time**, because the lens and the target
+  must line up — so "the spot that watches you" is a specific,
+  occupiable place somewhere behind some dead star, and either nobody
+  is there, or a rival has quietly aimed the galaxy's best telescope at
+  your home for the last century. Passive, silent, and the discovery
+  that your line is occupied is a dossier entry of the first order.
+- **Rogue planets and the deep cold** — the integrators' and sleepers'
+  prize: matter platforms far from any star, where the dark is free and
+  computing runs cheapest. Homes for the quiet.
+- **Garden worlds** — the custodians' prize, and everyone's science: a
+  world where life arose on its own is an unrepeatable experiment,
+  priceless to study and impossible to remake once paved.
+- **Habitable worlds** — the biological Refusers' prize: the one flavor
+  that still needs real estate in the plain old sense.
+- **Ruins** — everyone's prize: information that exists exactly once
+  (see below).
+
+### Ruins: the game digs up its own dead
+
+No authored ancient ruins in v1. Two sources instead, both real:
+
+- **In-cohort:** deaths make dig sites. The civilization destroyed in
+  year 400 is a destination by year 900 — its half-burned archives, its
+  abandoned works, and above all the record of what killed it. The
+  attacker gains nothing (you cannot loot a crater), but the
+  archaeologists who arrive centuries later are another matter.
+- **Cross-cohort:** dead cohorts become the ancient strata of future
+  ones. When a cohort's galaxy goes quiet, its corpse — husks, orphans
+  that outlived their players, salted gardens — folds into the seeding
+  of later cohorts. The Fermi question's answer in any Holos galaxy is
+  literally previous players: every ruin was somebody's real run, and
+  no writer invented it.
+
+### The two-layer sky
+
+The galaxy is generated from our real current best map of the universe,
+then extrapolated — the same method the cradle catalog already uses with
+exoplanet statistics, extended galaxy-wide.
+
+- **The textbook sky:** real catalog stars and known objects, public
+  knowledge every player starts with, because any civilization has
+  astronomy. The real map is brutally asymmetric at scale — the nearest
+  *known* black hole is roughly 1,500 light-years out, an epic
+  months-long undertaking at the game clock — and the asymmetry is kept,
+  because the asymmetry is the drama.
+- **The dark sky:** the real map is radically incomplete, and statistics
+  say quiet black holes, rogue planets, and unclaimed gardens exist
+  unseen far closer than the known ones. These are seeded
+  statistically-honestly and exist only for whoever surveys them out.
+  **Prospecting is the early game**, and a found location is tradeable
+  information.
+
+### Salting is legal, loud, and remembered
+
+Denial is physically possible and no in-fiction rule forbids it: pave
+the garden, burn the archive, foul the lens corridor. The deterrent is
+the dossier, not a rule — destruction is visible and attributable, and
+"they burned the library" follows the salter forever. The galaxy's
+unrepeatable things can genuinely be lost to spite; that is what
+unrepeatable means.
+
+### The game teaches its physics
+
+None of this lands if only astronomers understand it. Every scarcity's
+surface carries a plain-language account of why it matters — what a
+lens line is, why a rogue planet is a home, what a garden world is
+worth — in the instrument register's clear voice or the mind's counsel,
+never in jargon. A player who has never heard of gravitational lensing
+learns it from the card, not from a wiki. The rule generalizes: whenever
+a mechanic leans on real physics, the surface that shows it explains
+it.
+
+---
+
+## The thread you play (settled)
+
+At a divergence, the player follows **one branch**. The player is not the
+homeworld; the player is a thread of continuity carried through a fork —
+a perspective, not an in-world object. Jumping is a camera move, never a
+transmission: nothing travels, nothing can be shot down in flight. What
+the physics governs instead is *knowledge* — whether the place you would
+land is still you — and that is where the whole design of the jump
+lives. Settled in a third review round (2026-08).
+
+- **Aligned family is one self.** While a colony still aligns with its
+  source, the thread moves freely among the branches, in any direction,
+  any number of times.
+- **Divergence is the colony's own stance, taken silently.** It is not a
+  meter and cannot be read directly. Every unplayed branch is run by the
+  game as an actor — playing its charter, its cradle, its local life —
+  and a colony can grow so independent it no longer wants to align. The
+  farther away and the longer untended, the likelier. It does not
+  announce the change. Nobody tells you your child has left; you infer
+  it, or you ask.
+- **Asking is light-bound.** The only test of alignment is a question,
+  and the answer takes the round trip. A jump initiated in health *is*
+  such a question: it resolves after the light-time there and back — you
+  move if the answer is yes, and if the answer is no, a refusal arrives
+  and you have learned the truth at the speed the universe allows. There
+  is no free oracle; the jump button cannot be ping-tested faster than
+  light.
+- **The membrane is one-way, not a wall.** A diverged colony can still
+  be entered — once. Entering is **emigration**: you bring no values and
+  impose nothing; you take up theirs, their dials, their environment,
+  and play forward as them. It rejected alignment; you accepted theirs.
+  There is no return, because to your old family you are now the
+  stranger.
+- **The wounded exception.** Gated to the wounded state, emigration is
+  instant and blind: no round trip, no question asked. You become the
+  colony as it truly is, sight unseen. The escape hatch is a leap of
+  faith by design — a wounded player jumping ship accepts whatever their
+  child has become.
+- **What you leave continues.** The source and every still-aligned
+  colony carry on as a single autonomous actor wearing your old
+  identity, and land on your threat board like anyone else. Late-game
+  contact is sometimes your own abandoned self, studied through
+  instruments, its forgiveness unreadable.
+- **One place at a time.** There is no steering both; the game's soul is
+  that you can't.
+
+### The family register
+
+Because divergence cannot be read, the player judges a colony by what
+can be: an instrument, per colony, holding the observable record. When
+it last beamed, what it said, and what it has stopped saying. What your
+instruments see it doing, graded against the charter it left with — it
+was chartered dark and it is building bright. And the same readings any
+source on the threat board gets — posture, capability, emissions —
+because past a certain distance, your own child is exactly that: a
+source, watched and uncertain.
+
+Whether a *healthy* civilization may deliberately emigrate into a
+diverged descendant — abandoning a thriving self for another life — is
+**deferred, not rejected**: the first slice gates emigration to the
+wounded (see open questions).
+
+---
+
+## The instruments (settled)
+
+The source card's original sin was vagueness; the proposed fix of a
+Drake-ladder card (chance of biological life, of intelligent life, of
+advanced technology, plus a threat level) was reviewed and refined into
+the instrument ladder this galaxy actually calls for:
+
+- **Presence.** Is anyone there? A range, starting unknown (0–100) and
+  collapsing as the player invests in the study.
+- **Capability.** How advanced? A range, read from emissions and
+  artifacts. The Drake rungs (biological, intelligent, technological)
+  live inside this range's low end, where — per the review — they stop
+  mattering: the less advanced are no threat at all.
+- **Posture.** Bright, dark, sleeping. Observable, with the standing
+  caveat that a sleeping civilization and an empty sky look alike by
+  design.
+- **Record.** The dossier: everything attributable to the source. What
+  it has done (strikes are signed, conflict is legible, an occupied
+  black hole glows), what it has said (beams received, broadcasts
+  caught, promises made), what it has kept and broken, and what your
+  agents found on-site. Investigation buys entries, never conclusions.
+
+**Intent is never shown.** A fourth review round (2026-08) removed it
+from the dashboard entirely: intent is a theory of mind about another
+player, the one thing no instrument can measure, and the game refusing
+to compute it is what makes the board a game of judgment. The
+instruments report what can be measured; the human judges what can't.
+(This also closes a leak: stated intent would converge cleanly on AI-run
+civilizations and stay slippery on human ones, and the instrument itself
+would betray which sources are people.)
+
+**Exposure is derived, never stored:** capability × proximity,
+explicitly disposition-free — what a source *could* do to you and how
+soon, never whether it would. And **every reading wears its age** — "as
+of 14 years ago" — because the map is the past and the instruments must
+say so on every line.
+
+### Two registers
+
+The same screen speaks twice, and the registers never blur:
+
+- **The instruments report.** Numbers, ranges, staleness stamps, costs.
+  Clear, concise, actionable — the dashboard the review found missing.
+  Numerals belong here. This register needs its own style rules (open
+  question below); prose-style.md's chronicle rules do not apply to it.
+- **The chronicle speaks.** The voice — prose-style.md, the style gate,
+  the banks — retreats to what it does best: the authored beats, the
+  chronicle lines, the mind's counsel. It stops carrying load the
+  instruments should carry. Mystery is a flavor, not an interface.
+
+---
+
+## Judging intent (settled)
+
+Settled in the fourth review round (2026-08). With intent off the
+dashboard, the machinery around it is about evidence: what exists, what
+it costs, and how a player is judged on theirs.
+
+### The evidence ladder is presence-gated
+
+At range, everything is dual-use: a mass driver launches cargo and kills
+planets; a propulsion laser is a weapon pointed politely; industry is
+armament with the safety on. Remote instruments narrow capability
+forever and barely touch behavior, so the dossier entries that matter
+most — what a civilization is actually doing inside its own system —
+come only from presence: an agent on-site, at mission prices, at
+centuries of lead time, at the risk of being caught and becoming an
+incident in someone else's dossier about *you*. Espionage is the most
+expensive and most consequential verb on the board, which is where a
+hard-SF game should put it.
+
+### Lying has three tenses
+
+- **The past is unfakeable.** Old light is archived in every observer's
+  instruments, published at lightspeed; a claim that contradicts your
+  own shone history can be checked by anyone with a long enough
+  baseline. Nothing can be unshone — the sky keeps receipts.
+- **The present is expensive.** Masking, shaping a signature, running a
+  false face: continuous upkeep in energy and compute, the
+  mask-versus-instrument contest already priced in economy-design.md.
+- **The future is free.** Promises are words. The whole trust problem
+  concentrates here, and the only cure is physical: a mission is sunk
+  and unrecallable at launch — commitment credible without enforcement
+  because it cannot be taken back.
+
+A lie caught is the loudest entry a dossier can hold.
+
+### Legibility is a verb set
+
+Intent is two-sided: while a player reads the sky, the sky reads them.
+Proving peace means deliberately feeding other players' dossiers on you,
+and the costly signals are first-class verbs: accept an observer (a
+standing foreign agent in your system, revocable and therefore only
+semi-credible); the joint mission under a co-written charter, the one
+co-authored object; the exchange of hostages in the Banks sense —
+something of real value physically placed in the other's reach. Costly
+to fake, therefore informative.
+
+### The record rots honestly
+
+Entries never vanish, and every one wears its age. A three-hundred-year
+kept promise weighs whatever the reader decides old promises weigh: the
+aging is displayed, the discounting is human. Trust is maintained, not
+banked.
+
+### False flags are permitted, never subsidized
+
+A strike launched from a platform positioned to implicate someone else
+is the darkest verb the system permits, and no rule forbids it. The
+mission system's economics carry the weight: centuries of setup, an
+agent that can be disowned, and discovery being the loudest possible
+tell about the framer.
+
+### The mind counsels; the instruments do not
+
+The civilization is a superintelligence and it has opinions. They arrive
+in the chronicle register, never the instrument register: counsel in a
+voice — "they have armed for a hundred years and speak only of peace" —
+that the player is free to weigh and disbelieve. This grows into a
+conversational surface: the player talks the sky through with the mind
+itself, a chat with the civilization. Two hard rules bind that surface.
+**The mind knows only what the civilization knows** — its knowledge is
+scoped to the knowledge layer, and it can no more read a stranger's
+present than the telescopes can, so counsel can never leak ground truth
+the instruments do not hold. And **the mind never states the number the
+instruments refuse to state**: it argues; it does not compute verdicts.
+
+---
+
+## The loop, the cadence, the build order (settled)
+
+The loop the whole game runs on:
+
+**detect → assess → invest → act → consequence → repeat**
+
+The review's map of the pre-revision slice, agreed: detect and assess
+half-exist, invest is thin, act barely, consequence not at all. Therefore
+the build order is **consequence first, dashboard last** — a dashboard
+displaying stakes that do not exist is the boredom already shipped, with
+cleaner typography.
+
+The cadence is already right and is hereby a commitment, not an accident.
+At 5 real minutes per game year (clock.ts), one real day is 288 game
+years. With civilizations seated a handful of light-years apart, a
+tightbeam exchange with a near neighbor round-trips in about a real-time
+session, and a 0.1c probe to that neighbor arrives overnight. Question
+anything in the evening, act on the answer in the morning: the check-in
+rhythm of the best slow-multiplayer games, produced by the physics with
+no fudging. The player's between-session texture is investments maturing
+and light arriving — a base always processing, for a hard-SF audience.
+
+Currency is the existing economy: Energy, Matter, Compute, real time,
+felt afterward in Signature and Coherence. The invest verbs the dashboard
+must make obvious, none new, all now load-bearing: better instruments
+(sharper ranges, sooner), better energy (more Compute, more of everything
+downstream), defense (earlier warning, dispersal), reach (probes, ships,
+colonies).
+
+### Inspirations on file
+
+Subterfuge (slow real-time deterrence and diplomacy under time-lag;
+players will check in twice a day for a decade-long knife fight),
+Neptune's Pride (travel-time dread; the attack launched while you slept),
+EVE Online's nullsec intel culture (player-produced threat information
+becomes the most valuable commodity in the game), Clash of Clans (the
+check-in loop; its shield's analog here is the attacker's blindness, see
+the mercy settlement).
+
+---
+
+## Open questions
+
+Named here so they are decided on purpose, not by default:
+
+1. **The cohort's arc.** Does anything end a cohort — a horizon, a
+   condition, nothing? Experimental by decision, not by neglect. The
+   pressure point to watch in playtests: the cost of total death late in
+   an old cohort.
+2. **Emigration in health.** May a thriving player deliberately defect
+   into a diverged descendant, making the orphans a menu of alternate
+   lives? Gated to the wounded for the first slice; loosening it later
+   is a real option, priced in identity.
+3. **The instrument register's style rules.** Units, range notation,
+   staleness stamps, and which audits apply to it. The chronicle's gates
+   must not bind it, and it must not leak into the chronicle's surfaces.
