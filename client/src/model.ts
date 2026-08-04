@@ -24,6 +24,11 @@
 // off the home planet (concepts/03-02) and dollies out — exponentially, over
 // six orders of magnitude — off-axis into the parallax volume (concepts/03-07).
 // It plays ONCE, on fresh placement; a resume drops straight into the volume.
+// That pull-back is one SCRIPTED CAMERA MOVE among however many a caller
+// scripts (dollyTo): one engine, one at a time, exponential in distance and
+// shortest-way in the angles. Only the act-opening one drives `pullT`, which
+// is what the HOME label's arrival is keyed to, so a later leg cannot make
+// the label fade in a second time.
 //
 // Behind all of that is THE COSMOS (cosmos.ts) — the Milky Way as a particle
 // disk we are standing inside, the Local Group at its real distances, and the
@@ -93,11 +98,20 @@ const PULLBACK_MS = 4200;
 /** Where the pull-back starts if the system somehow is not built yet (it
  *  always is — `enter` follows `setSky` — so this is belt and braces). */
 const PULLBACK_FALLBACK_AU = 3;
+/** And where the intro parks in the same case. A G star's `introAu`, because
+ *  G is the class `buildSystem` itself falls back to. */
+const INTRO_FALLBACK_AU = 0.00986;
+/** Floor under a scripted move's destination. The move is exponential, so a
+ *  destination of zero is not a short dolly, it is a logarithm of nothing. */
+const DOLLY_DIST_FLOOR = 1e-12;
 
 // The whole range the camera can reach: from a couple of AU off the home
 // star out to where the cosmic web is a texture. Zoom is multiplicative in
 // both gestures, so crossing thirteen orders of magnitude is a handful of
 // pinches rather than a scroll marathon.
+// A SCRIPTED MOVE IS NOT BOUND BY THESE. They are what a gesture may reach,
+// and the intro's opening frame stands closer to the star than any pinch is
+// allowed to take you.
 const DIST_MIN = 3e-5; // ~1.9 AU
 const DIST_MAX = 4e8;
 /** Wheel zoom rate — one notch (~100 deltaY) is about ×1.15. */
@@ -327,17 +341,48 @@ const SPECTRAL_TINT: Readonly<Record<Star["spectralClass"], number>> = {
 // voice, gold is the line-work you aim with, amber stays what it always was —
 // somebody else, seen late.
 export const COLOR_HOME = 0x5fe0e6; // cyan — you, the present tense
-const COLOR_SOURCE = 0xdf9b52; // amber — belief / other
+export const COLOR_SOURCE = 0xdf9b52; // amber — belief / other
 export const COLOR_SELECT = 0xb79b63; // gold hairline for a selected source
 /** The gold the orbit rings are drawn in — the one line-work color in the
  *  Model, shared with a selected source's hairline. */
-const COLOR_ORRERY = 0xb79b63;
+export const COLOR_ORRERY = 0xb79b63;
 /** The home world's atmosphere rim. Pale blue-white rather than cyan: the
  *  cyan ring around it is the game speaking, the rim is just air. */
 const COLOR_ATMOSPHERE = 0xbfe4ff;
 
 /** Callback fired on tap: the selected source, or null when tapping empty sky. */
 export type SelectSourceCallback = (source: DetectedSource | null) => void;
+
+/**
+ * How a view begins. "pullback" plays the act-opening dolly-out; "resume"
+ * drops straight into the volume; "intro" parks against the star's limb and
+ * moves nothing, leaving the sequence that asked for it to drive the camera
+ * itself (see dollyTo).
+ */
+export type EnterMode = "pullback" | "resume" | "intro";
+
+/** One scripted camera move. Exponential in distance, linear in the angles,
+ *  eased by the same smoothstep the arming ease uses. */
+interface DollyMove {
+  readonly start: number;
+  readonly ms: number;
+  readonly fromDist: number;
+  readonly toDist: number;
+  readonly fromAz: number;
+  readonly toAz: number;
+  readonly fromEl: number;
+  readonly toEl: number;
+  /** True for the act-opening pull-back and nothing else (see `pullT`). */
+  readonly drivesPullT: boolean;
+  readonly done: (() => void) | null;
+}
+
+/** The camera as a caller can read it back — enough to put it where it was. */
+export interface CameraView {
+  readonly distLy: number;
+  readonly az: number;
+  readonly el: number;
+}
 
 /** A projected point, as handed out to a ceremony renderer. VALID UNTIL THE
  *  NEXT `project` CALL — the Model reuses one scratch record per frame rather
@@ -801,11 +846,15 @@ export class Model {
   private target: Vec3Ly = { x: 0, y: 0, z: 0 };
   private homePos: Vec3Ly = { x: 0, y: 0, z: 0 };
 
-  // Pull-back animation. `pullT` is the eased progress, kept so the HOME
-  // label can arrive partway through rather than on the first frame.
-  private animating = false;
-  private animStart = 0;
-  private animFrom = DIST_VOLUME;
+  // SCRIPTED CAMERA MOVES. One at a time: a new one replaces whatever was
+  // running rather than fighting it, and the replaced move's `done` is then
+  // never called. While one is up the camera is not a control (onWheel,
+  // onPointerDown) and the gesture clamps do not apply.
+  private dolly: DollyMove | null = null;
+  /** The act-opening pull-back's eased progress, and ONLY that move's: the
+   *  HOME label arrives partway through it rather than on its first frame,
+   *  so a scripted leg that wound this back would play the fade again. The
+   *  binding is `drivesPullT`, set on that one move and nowhere else. */
   private pullT = 0;
 
   // A2.4's arming ease. Same shape as the pull-back's step (exponential in
@@ -826,7 +875,14 @@ export class Model {
 
   // Buffered calls that arrive before the async renderer is ready.
   private pendingSky: { self: SelfView; sources: readonly DetectedSource[] } | null = null;
-  private pendingEnter: "pullback" | "resume" | null = null;
+  private pendingEnter: EnterMode | null = null;
+
+  /** The detected sources' presence, 0..1. At zero they are not drawn AND
+   *  register no hit target, because a smudge nobody can see must not be a
+   *  thing a thumb can find. */
+  private sourceReveal = 1;
+  /** The home star's class tint, once the system under it is known. */
+  private homeStarTint: number | null = null;
 
   // Interaction.
   private readonly pointers = new Map<number, { x: number; y: number }>();
@@ -1165,15 +1221,99 @@ export class Model {
 
   /**
    * Begin the view. "pullback" plays the one-shot act-opening dolly-out from
-   * the home system; "resume" drops straight into the volume. Safe before
-   * ready.
+   * the home system; "resume" drops straight into the volume; "intro" parks
+   * a couple of star radii off the home star, at the pull-back's own target
+   * and angles, and animates nothing. Safe before ready.
    */
-  enter(mode: "pullback" | "resume"): void {
+  enter(mode: EnterMode): void {
     if (!this.ready) {
       this.pendingEnter = mode;
       return;
     }
     this.applyEnter(mode);
+  }
+
+  /**
+   * A SCRIPTED CAMERA MOVE, from wherever the camera is to (`distLy`, `az`,
+   * `el`) over `ms`. Distance runs exponentially and the angles take the
+   * short way round, which is the pull-back's own math; the DIST_MIN/DIST_MAX
+   * gesture clamps do not apply, because what a script may frame is not what
+   * a pinch may reach. Replaces any move already running, whose `done` then
+   * never fires.
+   *
+   * Does NOT touch `pullT`: the HOME label's fade-in belongs to the
+   * act-opening pull-back, and a sequence of legs must not replay it.
+   *
+   * Before the renderer exists there is no clock to run against, so the
+   * camera lands on the end pose at once and `done` fires there.
+   */
+  dollyTo(distLy: number, az: number, el: number, ms: number, done?: () => void): void {
+    this.startDolly(distLy, az, el, ms, false, done ?? null);
+  }
+
+  /**
+   * The detected sources' presence, 0..1. One at the shipped rendering, zero
+   * with the amber gone entirely — not drawn, and absent from the hit test,
+   * so nothing invisible answers a thumb. The cyan HOME mote is untouched:
+   * it is the one present-tense object and it never dims for staging.
+   */
+  setSourceReveal(t: number): void {
+    this.sourceReveal = clamp(t, 0, 1);
+  }
+
+  /**
+   * Take the DOM label layer off the screen, or give it back. Separate from
+   * the ceremony's dim (which lowers the same layer to a quarter) and stronger
+   * than it, for the case where a label would sit on top of the thing being
+   * staged rather than beside it. The two use different properties so neither
+   * one's restore clobbers the other's state.
+   */
+  setOverlayHidden(hidden: boolean): void {
+    this.overlay.style.visibility = hidden ? "hidden" : "";
+  }
+
+  /** The home star's true-color class tint, or null before the system under
+   *  it is known. The same number the sun's glow is drawn with, so anything
+   *  staging a limb stages this star and not a generic one. */
+  starTint(): number | null {
+    return this.homeStarTint;
+  }
+
+  /** The home star's physical radius in light-years — the Model's own unit,
+   *  so it projects through `project` like anything else. Null before the
+   *  system is known. */
+  starRadiusLy(): number | null {
+    return this.system === null ? null : this.system.starRadiusAu * AU_LY;
+  }
+
+  /** The camera as it stands. A fresh record: the caller keeps it across
+   *  frames (a replay saves the pose it interrupted and dollies back to it),
+   *  and the Model's own camera keeps moving. */
+  cameraView(): CameraView {
+    return { distLy: this.dist, az: this.az, el: this.el };
+  }
+
+  // The three poses the intro's dolly runs between, as records rather than
+  // exported constants, so the numbers stay single-sourced here: the limb
+  // frame, the pull-back's own opening frame, and the volume the sky rests
+  // in. Null while the system under the first two is not yet known.
+
+  /** The intro's beat-one pose: `enter("intro")`'s park, readable so a
+   *  replay can dolly to it instead of cutting. */
+  introPose(): CameraView | null {
+    if (this.system === null) return null;
+    return { distLy: this.system.introAu * AU_LY, az: HOME_AZ, el: HOME_EL };
+  }
+
+  /** Where the act-opening pull-back starts: the home world a few AU off. */
+  openingPose(): CameraView | null {
+    if (this.system === null) return null;
+    return { distLy: this.system.openingAu * AU_LY, az: HOME_AZ, el: HOME_EL };
+  }
+
+  /** The volume's resting pose: where "resume" drops and the pull-back ends. */
+  volumePose(): CameraView {
+    return { distLy: DIST_VOLUME, az: VOLUME_AZ, el: VOLUME_EL };
   }
 
   onSelectSource(cb: SelectSourceCallback): void {
@@ -1334,6 +1474,7 @@ export class Model {
 
   destroy(): void {
     this.destroyed = true;
+    this.dolly = null; // whatever was scripted, its `done` is not owed anything
     this.pullbackEndCb = null;
     this.selectHomeCb = null;
     this.ceremonyFrameCb = null;
@@ -1418,6 +1559,7 @@ export class Model {
     this.system = system;
 
     const tint = SPECTRAL_TINT[cls];
+    this.homeStarTint = tint;
     if (this.sunGlow !== null) this.sunGlow.tint = tint;
     if (this.sunCore !== null) this.sunCore.tint = tint;
 
@@ -1465,25 +1607,80 @@ export class Model {
       });
   }
 
-  private applyEnter(mode: "pullback" | "resume"): void {
+  private applyEnter(mode: EnterMode): void {
     if (mode === "pullback") {
-      this.animating = true;
-      this.animStart = performance.now();
       this.pullT = 0;
       this.az = HOME_AZ;
       this.el = HOME_EL;
       // Start a few AU off the home planet — close enough that it is a world
       // with an orbit and not a mote. How close depends on the star: an M
       // dwarf's habitable world is a tenth of an AU out, an F star's is two.
-      this.animFrom = (this.system?.openingAu ?? PULLBACK_FALLBACK_AU) * AU_LY;
-      this.dist = this.animFrom;
+      this.dist = (this.system?.openingAu ?? PULLBACK_FALLBACK_AU) * AU_LY;
+      // The one move that drives `pullT`, and the one that ends in
+      // onPullbackEnd. The callback is taken and cleared inside the `done`,
+      // so it fires once however the move was reached.
+      this.startDolly(DIST_VOLUME, VOLUME_AZ, VOLUME_EL, PULLBACK_MS, true, () => {
+        const cb = this.pullbackEndCb;
+        this.pullbackEndCb = null;
+        cb?.();
+      });
+    } else if (mode === "intro") {
+      // Parked, not animated: whatever asked for this mode drives the camera
+      // from here. `pullT` is left finished rather than reset, because the
+      // HOME label's fade is the act-opening pull-back's and no scripted leg
+      // gets to run it.
+      this.dolly = null;
+      this.pullT = 1;
+      this.az = HOME_AZ;
+      this.el = HOME_EL;
+      this.dist = (this.system?.introAu ?? INTRO_FALLBACK_AU) * AU_LY;
     } else {
-      this.animating = false;
+      this.dolly = null;
       this.pullT = 1;
       this.az = VOLUME_AZ;
       this.el = VOLUME_EL;
       this.dist = DIST_VOLUME;
     }
+  }
+
+  /** Arm a scripted move. `drivesPullT` is the pull-back's alone; everything
+   *  else about the two paths is the same move. */
+  private startDolly(
+    distLy: number,
+    az: number,
+    el: number,
+    ms: number,
+    drivesPullT: boolean,
+    done: (() => void) | null,
+  ): void {
+    // Shortest way round, so a script never spins the sky the long way — the
+    // same settle the arming ease makes on its own target.
+    const toAz = this.az + wrapPi(az - this.az);
+    const toEl = this.el + wrapPi(el - this.el);
+    const toDist = Math.max(distLy, DOLLY_DIST_FLOOR);
+    if (!this.ready) {
+      this.dolly = null;
+      this.dist = toDist;
+      this.az = toAz;
+      this.el = toEl;
+      if (drivesPullT) this.pullT = 1;
+      done?.();
+      return;
+    }
+    this.dolly = {
+      start: performance.now(),
+      // A zero-length move would divide the elapsed time by nothing and put
+      // NaN into the camera on the frame it was armed.
+      ms: Math.max(ms, 1),
+      fromDist: this.dist,
+      toDist,
+      fromAz: this.az,
+      toAz,
+      fromEl: this.el,
+      toEl,
+      drivesPullT,
+      done,
+    };
   }
 
   // ── Projection ────────────────────────────────────────────────────────
@@ -1531,7 +1728,7 @@ export class Model {
     const cy = h / 2;
     const focal = h * 0.5 / Math.tan(FOV / 2);
 
-    if (this.animating) this.stepPullback();
+    if (this.dolly !== null) this.stepDolly();
     if (this.framing !== null) this.stepFraming();
 
     // Proportional below five light-years, the old constant above it (see
@@ -1563,19 +1760,24 @@ export class Model {
     const nearAlpha = 1 - fadeIn(this.dist, NEAR_FADE_LO, NEAR_FADE_HI);
     const nearVisible = nearAlpha > 0.004;
 
+    // The amber's own dial, on the same terms as the fade above it: below the
+    // threshold the sources are neither drawn nor tappable. Nothing about the
+    // catalog or the cyan mote reads this.
+    const sourcesVisible = nearVisible && this.sourceReveal > 0.004;
+
     const starLayer = this.starLayer;
     const haloLayer = this.haloLayer;
     const sourceLayer = this.sourceLayer;
     if (starLayer !== null) starLayer.visible = nearVisible;
     if (haloLayer !== null) haloLayer.visible = nearVisible;
-    if (sourceLayer !== null) sourceLayer.visible = nearVisible;
+    if (sourceLayer !== null) sourceLayer.visible = sourcesVisible;
 
     if (!nearVisible) {
       this.sourceScreen.clear();
     } else {
       if (starLayer !== null) starLayer.alpha = nearAlpha;
       if (haloLayer !== null) haloLayer.alpha = nearAlpha;
-      if (sourceLayer !== null) sourceLayer.alpha = nearAlpha;
+      if (sourceLayer !== null) sourceLayer.alpha = nearAlpha * this.sourceReveal;
 
       // Catalog stars.
       for (const item of this.stars) {
@@ -1612,38 +1814,42 @@ export class Model {
         }
       }
 
-      // Detected sources — soft smudges; radius ∝ (1 − confidence).
+      // Detected sources — soft smudges; radius ∝ (1 − confidence). Left
+      // empty when the reveal has them off: an empty map is what the hit test
+      // and the selection ring both read, so neither can find one.
       this.sourceScreen.clear();
-      for (const item of this.sources) {
-        const p = item.pos;
-        this.projectInto(p.x, p.y, p.z, cx, cy, focal, sinAz, cosAz, sinEl, cosEl);
-        if (!this.proj.ok) {
-          item.sprite.visible = false;
-          continue;
+      if (sourcesVisible) {
+        for (const item of this.sources) {
+          const p = item.pos;
+          this.projectInto(p.x, p.y, p.z, cx, cy, focal, sinAz, cosAz, sinEl, cosEl);
+          if (!this.proj.ok) {
+            item.sprite.visible = false;
+            continue;
+          }
+          const conf = clamp(item.source.signal.confidence, 0, 1);
+          const radiusPx = clamp(
+            (SMUDGE_BASE_PX + (1 - conf) * SMUDGE_GROW_PX) * (DIST_VOLUME / this.proj.depth),
+            SMUDGE_MIN_PX,
+            SMUDGE_MAX_PX,
+          );
+          // Same cull as the catalog, at the smudge's own drawn radius — so a
+          // source whose center is just off the edge still shows the part of
+          // it that overlaps the screen, and still answers a thumb there.
+          if (this.offscreen(this.proj.x, this.proj.y, w, h, radiusPx + 8)) {
+            item.sprite.visible = false;
+            continue;
+          }
+          item.sprite.visible = true;
+          item.sprite.position.set(this.proj.x, this.proj.y);
+          item.sprite.scale.set(radiusPx / (GLOW_TEX_SIZE / 2));
+          item.sprite.alpha = 0.22 + conf * 0.5; // core brightens as belief firms
+          item.sprite.zIndex = -this.proj.depth;
+          this.sourceScreen.set(item.source.starId, {
+            x: this.proj.x,
+            y: this.proj.y,
+            r: radiusPx,
+          });
         }
-        const conf = clamp(item.source.signal.confidence, 0, 1);
-        const radiusPx = clamp(
-          (SMUDGE_BASE_PX + (1 - conf) * SMUDGE_GROW_PX) * (DIST_VOLUME / this.proj.depth),
-          SMUDGE_MIN_PX,
-          SMUDGE_MAX_PX,
-        );
-        // Same cull as the catalog, at the smudge's own drawn radius — so a
-        // source whose center is just off the edge still shows the part of it
-        // that overlaps the screen, and still answers a thumb there.
-        if (this.offscreen(this.proj.x, this.proj.y, w, h, radiusPx + 8)) {
-          item.sprite.visible = false;
-          continue;
-        }
-        item.sprite.visible = true;
-        item.sprite.position.set(this.proj.x, this.proj.y);
-        item.sprite.scale.set(radiusPx / (GLOW_TEX_SIZE / 2));
-        item.sprite.alpha = 0.22 + conf * 0.5; // core brightens as belief firms
-        item.sprite.zIndex = -this.proj.depth;
-        this.sourceScreen.set(item.source.starId, {
-          x: this.proj.x,
-          y: this.proj.y,
-          r: radiusPx,
-        });
       }
     }
 
@@ -2163,28 +2369,38 @@ export class Model {
   }
 
   /**
-   * The pull-back. `dist` moves EXPONENTIALLY, not linearly: the dolly runs
-   * from a couple of AU to sixty light-years, six orders of magnitude, and a
-   * linear lerp across that spends ninety-nine per cent of the animation
-   * inside the last decade — you would watch a still frame and then a jump.
-   * In log space each decade takes the same share of the run, which is what
-   * "pulling back" has always meant.
+   * A scripted move's step. `dist` moves EXPONENTIALLY, not linearly: the
+   * act-opening dolly runs from a couple of AU to sixty light-years, six
+   * orders of magnitude, and a linear lerp across that spends ninety-nine per
+   * cent of the animation inside the last decade — you would watch a still
+   * frame and then a jump. In log space each decade takes the same share of
+   * the run, which is what "pulling back" has always meant.
    */
-  private stepPullback(): void {
-    const t = (performance.now() - this.animStart) / PULLBACK_MS;
+  private stepDolly(): void {
+    const d = this.dolly;
+    if (d === null) return;
+    const t = (performance.now() - d.start) / d.ms;
     const p = smoothstep(t);
-    this.pullT = p;
-    this.dist = this.animFrom * Math.pow(DIST_VOLUME / this.animFrom, p);
-    this.az = lerp(HOME_AZ, VOLUME_AZ, p);
-    this.el = lerp(HOME_EL, VOLUME_EL, p);
+    if (d.drivesPullT) this.pullT = p;
+    this.dist = d.fromDist * Math.pow(d.toDist / d.fromDist, p);
+    this.az = lerp(d.fromAz, d.toAz, p);
+    this.el = lerp(d.fromEl, d.toEl, p);
     if (t >= 1) {
-      this.animating = false;
-      this.pullT = 1;
-      this.dist = DIST_VOLUME;
-      const cb = this.pullbackEndCb;
-      this.pullbackEndCb = null;
-      cb?.();
+      this.dist = d.toDist;
+      this.az = d.toAz;
+      this.el = d.toEl;
+      if (d.drivesPullT) this.pullT = 1;
+      // Cleared before the callback, so a `done` that starts the next leg
+      // finds the camera free rather than this move still standing on it.
+      this.dolly = null;
+      d.done?.();
     }
+  }
+
+  /** True while the act-opening pull-back specifically is running. A scripted
+   *  leg is not it, and the HOME label must tell them apart. */
+  private pullingBack(): boolean {
+    return this.dolly !== null && this.dolly.drivesPullT;
   }
 
   /**
@@ -2254,6 +2470,12 @@ export class Model {
     for (const item of this.planets) {
       const radiusPx = item.planet.aAu * pxPerAu;
       if (radiusPx < ORBIT_MIN_PX) continue;
+      // ...and past the reach bound it is not a ring either: from a hundredth
+      // of an AU off the star every sample of a one-AU orbit either clips or
+      // lands tens of thousands of pixels out, and the stroke is a
+      // tessellation of a shape nobody can see. One compare instead of
+      // fifty-seven projections and a break at each of them.
+      if (radiusPx > ORBIT_REACH_PX) continue;
       let drawing = false;
       let any = false;
       for (let i = 0; i <= ORBIT_SEGMENTS; i++) {
@@ -2432,7 +2654,7 @@ export class Model {
     // Track the DOM HOME label just to the right of the ring (arriving a
     // beat into the pull-back rather than on its first frame, and gone once
     // the neighborhood it names has faded out from under it).
-    const base = this.animating ? clamp((this.pullT - 0.12) / 0.4, 0, 1) * 0.75 : 0.75;
+    const base = this.pullingBack() ? clamp((this.pullT - 0.12) / 0.4, 0, 1) * 0.75 : 0.75;
     const labelAlpha = base * nearAlpha;
     this.homeLabel.style.opacity = String(labelAlpha);
     this.homeLabel.style.transform = `translate(${x + ringPx + 8}px, ${y - 8}px)`;
@@ -2481,7 +2703,7 @@ export class Model {
    *  Coma. deltaMode normalizes Firefox's line/page units to pixels. */
   private readonly onWheel = (e: WheelEvent): void => {
     e.preventDefault();
-    if (this.animating) return; // the pull-back is a cutscene, not a control
+    if (this.dolly !== null) return; // a scripted move is a cutscene, not a control
     if (this.ceremonyInput !== null) return; // the camera is frozen while armed
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
     this.dist = clamp(this.dist * Math.exp(e.deltaY * unit * WHEEL_K), DIST_MIN, DIST_MAX);
@@ -2493,9 +2715,12 @@ export class Model {
   }
 
   private readonly onPointerDown = (e: PointerEvent): void => {
-    if (this.animating) return; // the pull-back is a cutscene, not a control
     const pt = this.localPoint(e);
     const ceremony = this.ceremonyInput;
+    // A scripted move takes the CAMERA away, not the press: a sequence that
+    // stages beats over a dolly needs the thumb to still reach them, and a
+    // ceremony's press target was never a camera control to begin with. So
+    // the freeze below stands behind this branch rather than in front of it.
     if (ceremony !== null) {
       // A second finger is a release, exactly as it cancels a pending tap
       // below: two fingers have always meant "I am moving the camera", and
@@ -2509,6 +2734,7 @@ export class Model {
       ceremony.onPress();
       return;
     }
+    if (this.dolly !== null) return; // a scripted move is a cutscene, not a control
     this.pointers.set(e.pointerId, pt);
     if (this.pointers.size === 1) {
       this.lastOrbit = pt;
