@@ -39,7 +39,12 @@ const TAB_LABEL: Readonly<Record<RailTab, string>> = {
   // "Projects" over "Work" (designer call, 2026-08 phone check): the word
   // names what the page actually holds, where Work named a category.
   work: "Projects",
-  family: "Family",
+  // "Reach" over "Family" (designer call, 2026-08): the page is the outward
+  // register — the survey, voyages, forks, the Ledger, standing orders —
+  // and the word names the question it answers. The masthead moved to the
+  // Mind page's head in the same revision. The tab id keeps the name it
+  // shipped under.
+  family: "Reach",
   mind: "Mind",
 };
 
