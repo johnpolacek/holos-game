@@ -52,7 +52,7 @@ import {
   type VoyageCardState,
 } from "./sourcecard";
 import { Home } from "./home";
-import { setClockAnchor, formatEpochYear, nowYear } from "./clock";
+import { setClockAnchor, formatEpochYearPrecise, nowYear } from "./clock";
 import { VoiceBeat } from "./voicebeat";
 import { ContactCeremony } from "./contactceremony";
 import { Intro } from "./intro";
@@ -619,30 +619,37 @@ export class App {
     return true;
   }
 
-  /** S0.2: the HUD's year line, recovered byte-for-byte from the retired
-   *  masthead's standingLineText. Epoch-dated (R-33): the star's catalog
-   *  designation beside the civ's OWN count from its ascension, never the
-   *  cohort's absolute year. */
+  /** S0.2: the HUD's ticking year, at instrument precision — the civ's OWN
+   *  count from its ascension (R-33: never the cohort's absolute year), two
+   *  fixed decimals so the passage of game time is visible on the dial (a
+   *  hundredth of a year is three real seconds on the shipped clock). */
   private standingYearText(self: SelfView): string {
-    return `${self.designation} · YEAR ${formatEpochYear(nowYear(), self.seed.ascensionYear)}`;
+    return `YEAR ${formatEpochYearPrecise(nowYear(), self.seed.ascensionYear)}`;
   }
 
-  /** S0.2: the HUD's compute chip, recovered byte-for-byte from the retired
-   *  masthead's budgetLineText/currentFreeCompute — the same local accrual,
-   *  clamped at the attention ceiling like the server's own freeComputeAt. */
-  private standingComputeText(): string {
+  /** S0.2: the compute meter — the same local accrual the retired masthead
+   *  ran, clamped at the attention ceiling like the server's own
+   *  freeComputeAt; the bar carries the fullness, the label the number and
+   *  the rate. Null when there is no ceiling to draw against. */
+  private computeMeterState(): { readonly fill: number; readonly label: string } | null {
+    if (this.budget.cap <= 0) return null;
     const elapsedYears = Math.max(0, nowYear() - this.budget.asOfYear);
     const free = Math.min(this.budget.cap, this.budget.free + this.budget.ratePerYear * elapsedYears);
-    return `${Math.floor(free)} OF ${Math.floor(this.budget.cap)} COMPUTE UNCOMMITTED · +${this.budget.ratePerYear}/Y`;
+    return {
+      fill: free / this.budget.cap,
+      label: `COMPUTE ${Math.floor(free)} · +${this.budget.ratePerYear}/Y`,
+    };
   }
 
-  /** Renders both standing lines against the latest self/budget. A no-op
-   *  before the first sky (self null) or once the shell has torn down
-   *  (home null) — the 1s interval and the sky handler both call this
-   *  unconditionally rather than each guarding it themselves. */
+  /** Renders the standing lines and the meter against the latest
+   *  self/budget. A no-op before the first sky (self null) or once the
+   *  shell has torn down (home null) — the 1s interval and the sky handler
+   *  both call this unconditionally rather than each guarding it
+   *  themselves. */
   private refreshStanding(): void {
     if (this.self === null) return;
-    this.home?.setStanding(this.standingYearText(this.self), this.standingComputeText());
+    this.home?.setStanding(this.self.designation, this.standingYearText(this.self));
+    this.home?.setCompute(this.computeMeterState());
   }
 
   /** S0.2: the Report tab's badge — the count of entries not yet marked
@@ -743,7 +750,12 @@ export class App {
       home.setActiveTab("sky");
       home.setIdentity(self.seed.name);
       this.refreshReportBadge();
-      studyBoard.onViewChanged((tab, open) => home.setActiveTab(open ? tab : "sky"));
+      studyBoard.onViewChanged((tab, open) => {
+        home.setActiveTab(open ? tab : "sky");
+        // Floating chrome (the compute meter) stands down while a page
+        // covers the map it floats over.
+        home.setPageOpen(open);
+      });
       // A2.6: this board's very first render already knows — no waiting on
       // a welcome that, on a resume, already came and went.
       studyBoard.setHasAccount(this.hasAccount);

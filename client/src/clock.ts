@@ -82,6 +82,17 @@ export function formatEpochYear(year: number, ascensionYear: number): string {
   return `${Math.max(0, Math.round(year - ascensionYear))} AE`;
 }
 
+/**
+ * The same epoch count at instrument precision: "127.23 AE", two fixed
+ * decimals, for the one readout that watches the year PASS (the HUD). A
+ * hundredth of a year is three real seconds on the shipped clock, so the
+ * tail visibly ticks. Chronicle stamps and report annals keep the whole-year
+ * form above — a date is a year, not a moment; this is a dial, not a date.
+ */
+export function formatEpochYearPrecise(year: number, ascensionYear: number): string {
+  return `${Math.max(0, year - ascensionYear).toFixed(2)} AE`;
+}
+
 /** Compact game-time span: "20 y", "1,200 y". Whole years, thousands-separated. */
 export function formatGameYears(years: number): string {
   const rounded = Math.max(0, Math.round(years));
