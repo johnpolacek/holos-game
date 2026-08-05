@@ -1577,15 +1577,6 @@ export class StudyBoard {
     this.startTicking();
   }
 
-  /**
-   * TEMPORARY. The HOME mote's old target, kept only so the App's existing
-   * call site compiles while the Home shell's wiring lands; the shell calls
-   * openSkyPage directly and this goes with the last caller.
-   */
-  openHub(scrollTo?: "voice"): void {
-    this.openSkyPage(scrollTo);
-  }
-
   /** WORK's page: what this civilization can begin, over what it already has
    *  under way. One page, because a verb and its consequences are the same
    *  subject. */

@@ -51,7 +51,8 @@ import {
   type MissionCardState,
   type VoyageCardState,
 } from "./sourcecard";
-import { setClockAnchor } from "./clock";
+import { Home } from "./home";
+import { setClockAnchor, formatEpochYear, nowYear } from "./clock";
 import { VoiceBeat } from "./voicebeat";
 import { ContactCeremony } from "./contactceremony";
 import { Intro } from "./intro";
@@ -79,6 +80,42 @@ function isLiveVoyageState(state: VoyageWorkState): boolean {
   return state === "in-flight" || state === "beyond-horizon" || state === "awaiting-light";
 }
 
+/** S0.2: the Report tab's badge marker, one localStorage key per civ so a
+ *  reload does not reopen already-read arrivals as new. ReportEntry.id is
+ *  the honest thing to key on: it is the stable per-entry key report.ts
+ *  promises ("rendered once at materialization... byte-identical" on a
+ *  re-read), not a position in a list that reshuffles when a header
+ *  promotes an entry out of newest-first order. */
+function reportSeenKey(civId: string): string {
+  return `holos.reportSeen.${civId}`;
+}
+
+/** The ids already shown to this civ, or an empty set on first visit, a
+ *  corrupt value, or a storage read that throws (private browsing, a full
+ *  quota) — a badge that undercounts a returning reader is the safe
+ *  failure, not one that crashes the shell. */
+function loadSeenReportIds(civId: string): ReadonlySet<string> {
+  try {
+    const raw = window.localStorage.getItem(reportSeenKey(civId));
+    if (raw === null) return new Set();
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return new Set();
+    return new Set(parsed.filter((v): v is string => typeof v === "string"));
+  } catch {
+    return new Set();
+  }
+}
+
+/** Best-effort: a write that throws leaves the marker stale rather than
+ *  crashing the report open it is attached to. */
+function saveSeenReportIds(civId: string, ids: readonly string[]): void {
+  try {
+    window.localStorage.setItem(reportSeenKey(civId), JSON.stringify(ids));
+  } catch {
+    // Storage unavailable: the badge stops persisting across reloads, no more.
+  }
+}
+
 type ScreenCleanup = () => void;
 
 export class App {
@@ -99,6 +136,13 @@ export class App {
   private model: Model | null = null;
   private sourceCard: SourceCard | null = null;
   private studyBoard: StudyBoard | null = null;
+  // S0.2: the hybrid home shell — the HUD band and the five-tab rail.
+  // Mounted alongside the Model on the first sky, torn down with it.
+  private home: Home | null = null;
+  // S0.2: the HUD's standing lines tick on their own second, independent of
+  // any board render — started at sky mount, cleared in that screen's
+  // cleanup like every other per-mount handle here.
+  private standingInterval: number | null = null;
 
   // S0.1: the latest `sky`'s SelfView, from both branches of showSky — the
   // intro needs self.starId as its own seed (voicegen.ts's per-player seed
@@ -159,11 +203,10 @@ export class App {
   // same field-then-forward shape as `voice`'s lines, except the report
   // also always gets a *stored* copy here, because it can (and on
   // placement, always does) arrive before the board mounts; the first-sky
-  // mount closure hands this to the fresh board's setReport(). Session-open
-  // uses it too (maybeOpenReport): the panel opens once per session iff
-  // this has entries and the arrival beat is not in the way.
+  // mount closure hands this to the fresh board's setReport(). S0.2: the
+  // panel no longer opens itself (the report waits to be read); this is now
+  // also the source refreshReportBadge() counts against.
   private reportPayload: ReportPayload | null = null;
-  private reportOpened = false;
 
   // Set when the source card fires onStudyAction for a source with no study
   // yet: we've sent `openStudy` and are waiting for the confirming `sky` to
@@ -266,6 +309,10 @@ export class App {
         // combines it with what the browser says about this one.
         this.pushSubscribed = message.pushSubscribed;
         this.showSky(message.self, message.sources);
+        // S0.2: the HUD's standing lines read off fields just set above
+        // (self, budget); an immediate render on top of the 1s ticker so a
+        // fresh sky's numbers are never stale for up to a second.
+        this.refreshStanding();
         break;
       case "sourceNamed":
         if (message.name === "") this.localNames.delete(message.starId);
@@ -296,11 +343,13 @@ export class App {
         } else if (this.pendingIntroReplay) {
           this.pendingIntroReplay = false;
           this.studyBoard?.setChromeHidden(false);
+          this.home?.setHidden(false);
         }
         break;
       case "report":
         this.reportPayload = message.report;
         this.studyBoard?.setReport(message.report);
+        this.refreshReportBadge();
         break;
       case "accountKey":
         // A2.6: the ONLY message that carries a key. It only ever answers
@@ -533,6 +582,7 @@ export class App {
       onDone: () => {
         this.intro = null;
         studyBoard.setChromeHidden(false);
+        this.home?.setHidden(false);
       },
     });
   }
@@ -553,10 +603,10 @@ export class App {
    *  here — a crash mid-beat replays it next session, the friendlier
    *  failure. Safe to call more than once (double-mount guarded).
    *
-   *  AV2: returns whether a beat is up (just mounted, or already was) —
-   *  false only when there was no arrival line to show. Both call sites use
-   *  this to decide whether the report's session-open can fire right away
-   *  or must wait for the beat's onDismiss: the arrival beat always wins. */
+   *  Returns whether a beat is up (just mounted, or already was) — false
+   *  only when there was no arrival line to show. S0.2: the report used to
+   *  open itself once the beat closed; it no longer does (calm by design,
+   *  the report waits to be read), so this now only plays the beat. */
   private playArrival(): boolean {
     if (this.voiceBeat !== null) return true;
     const text = this.voiceLines["arrival"];
@@ -565,25 +615,48 @@ export class App {
     this.voiceBeat = new VoiceBeat(this.root, text, () => {
       this.socket.send({ type: "voiceSeen", key: "arrival" });
       this.voiceBeat = null;
-      this.maybeOpenReport();
     });
     return true;
   }
 
-  /** AV2: opens the report panel once per placed session — the arrival beat
-   *  always goes first (both call sites below call this only when
-   *  playArrival() reports nothing was mounted; the beat's own onDismiss
-   *  calls this too, once it closes). Requires the sky screen to actually
-   *  be mounted (studyBoard exists) and a stored payload with at least one
-   *  entry — an empty report is not worth interrupting arrival for. Never
-   *  called from the "later sky" branch of showSky or from the
-   *  visibilitychange refresh, so a reconnect never re-fires it. */
-  private maybeOpenReport(): void {
-    if (this.reportOpened) return;
-    if (this.reportPayload === null || this.reportPayload.entries.length === 0) return;
-    if (this.studyBoard === null) return;
-    this.reportOpened = true;
-    this.studyBoard.openReport();
+  /** S0.2: the HUD's year line, recovered byte-for-byte from the retired
+   *  masthead's standingLineText. Epoch-dated (R-33): the star's catalog
+   *  designation beside the civ's OWN count from its ascension, never the
+   *  cohort's absolute year. */
+  private standingYearText(self: SelfView): string {
+    return `${self.designation} · YEAR ${formatEpochYear(nowYear(), self.seed.ascensionYear)}`;
+  }
+
+  /** S0.2: the HUD's compute chip, recovered byte-for-byte from the retired
+   *  masthead's budgetLineText/currentFreeCompute — the same local accrual,
+   *  clamped at the attention ceiling like the server's own freeComputeAt. */
+  private standingComputeText(): string {
+    const elapsedYears = Math.max(0, nowYear() - this.budget.asOfYear);
+    const free = Math.min(this.budget.cap, this.budget.free + this.budget.ratePerYear * elapsedYears);
+    return `${Math.floor(free)} OF ${Math.floor(this.budget.cap)} COMPUTE UNCOMMITTED · +${this.budget.ratePerYear}/Y`;
+  }
+
+  /** Renders both standing lines against the latest self/budget. A no-op
+   *  before the first sky (self null) or once the shell has torn down
+   *  (home null) — the 1s interval and the sky handler both call this
+   *  unconditionally rather than each guarding it themselves. */
+  private refreshStanding(): void {
+    if (this.self === null) return;
+    this.home?.setStanding(this.standingYearText(this.self), this.standingComputeText());
+  }
+
+  /** S0.2: the Report tab's badge — the count of entries not yet marked
+   *  seen (studyBoard.onReportOpen's handler writes the marker on open).
+   *  Called on every `report` message and once at the first sky mount, from
+   *  whatever payload is already in hand (AV2: a `report` can arrive before
+   *  the board, and hence before `self`, has). */
+  private refreshReportBadge(): void {
+    const self = this.self;
+    const payload = this.reportPayload;
+    if (self === null || payload === null) return;
+    const seen = loadSeenReportIds(self.civId);
+    const unseen = payload.entries.filter((e) => !seen.has(e.id)).length;
+    this.home?.setReportBadge(unseen);
   }
 
   private showSky(self: SelfView, sources: readonly DetectedSource[]): void {
@@ -596,6 +669,9 @@ export class App {
       this.model.setContact(this.contact);
       this.contactCeremony?.setSky(sources);
       this.studyBoard?.setSelf(self);
+      // A rename cannot happen, but the field-driven idiom is the file's:
+      // re-set on every sky rather than assumed still correct from mount.
+      this.home?.setIdentity(self.seed.name);
       this.studyBoard?.setVoyages(this.voyages, this.survey);
       this.studyBoard?.setLedger(this.ledger);
       this.sourceCard?.setLocalNames(this.localNames);
@@ -653,10 +729,21 @@ export class App {
         this.catalog,
       );
       const contactCeremony = new ContactCeremony(this.root, model, this.socket);
+      // S0.2: the hybrid home shell. Constructed before the board's own
+      // wiring below so its rail can drive showTab() from the very first
+      // handler registered against it.
+      const home = new Home(this.root, { onTab: (tab) => studyBoard.showTab(tab) });
       this.model = model;
       this.sourceCard = sourceCard;
       this.studyBoard = studyBoard;
       this.contactCeremony = contactCeremony;
+      this.home = home;
+      // onViewChanged does not fire on registration, so the rail starts on
+      // Sky explicitly, matching the board's own initial view.
+      home.setActiveTab("sky");
+      home.setIdentity(self.seed.name);
+      this.refreshReportBadge();
+      studyBoard.onViewChanged((tab, open) => home.setActiveTab(open ? tab : "sky"));
       // A2.6: this board's very first render already knows — no waiting on
       // a welcome that, on a resume, already came and went.
       studyBoard.setHasAccount(this.hasAccount);
@@ -667,7 +754,10 @@ export class App {
       // While a ceremony is armed the sky belongs to it: the two standing
       // chips stand down, so the only things a thumb can reach are the
       // canvas (the press) and the one word that says no.
-      contactCeremony.onActive((active) => studyBoard.setChromeHidden(active));
+      contactCeremony.onActive((active) => {
+        studyBoard.setChromeHidden(active);
+        home.setHidden(active);
+      });
 
       /** Stage a ceremony. The three entry points all funnel through here so
        *  there is one place that closes what is open, drops the selection
@@ -762,7 +852,7 @@ export class App {
       model.onSelectHome(() => {
         sourceCard.close();
         model.clearSelection();
-        studyBoard.openHub("voice");
+        studyBoard.openSkyPage("voice");
       });
       sourceCard.onMissionAction((starId) => {
         const live = this.findLiveMission(starId);
@@ -784,11 +874,8 @@ export class App {
         studyBoard.openVoyageLaunch(starId);
       });
       // AV1: the mind's first line, at the end of the one-shot pull-back.
-      // AV2: the report's session-open rides this same beat — it only
-      // fires once the arrival beat has had its turn (see playArrival's
-      // and maybeOpenReport's comments).
       model.onPullbackEnd(() => {
-        if (!this.playArrival()) this.maybeOpenReport();
+        this.playArrival();
       });
       // AV1: at most one hub explainer per open — compute first, the clock
       // note on a later open (idempotent: takeVoice empties whichever it
@@ -798,9 +885,18 @@ export class App {
         if (lineText !== null) studyBoard.setHubExplainer(lineText);
       });
       // AV2: the epoch-dating explainer — shown once, on the first report
-      // open, because the report is where "year n AE" first appears.
+      // open, because the report is where "year n AE" first appears. S0.2:
+      // the same open writes the badge's seen marker and clears the count
+      // that brought the player here.
       studyBoard.onReportOpen(() => {
         studyBoard.setReportExplainer(this.takeVoice("epoch"));
+        if (this.reportPayload !== null) {
+          saveSeenReportIds(
+            self.civId,
+            this.reportPayload.entries.map((e) => e.id),
+          );
+        }
+        home.setReportBadge(0);
       });
       // S0.1: THE MIND's one row, replaying the intro. Guarded against a
       // double-arm the same way the ceremony's three entry points are
@@ -811,6 +907,7 @@ export class App {
         model.clearSelection();
         studyBoard.close();
         studyBoard.setChromeHidden(true);
+        home.setHidden(true);
         const lines = this.introLinesIfComplete();
         if (lines !== null) {
           this.startIntroReplay(lines);
@@ -851,6 +948,7 @@ export class App {
         // there), never fall back to a bare "resume". It only clears in
         // Intro's onDone below, once the beats are actually seen.
         studyBoard.setChromeHidden(true);
+        home.setHidden(true);
         this.intro = new Intro(this.root, model, {
           lines: introLines,
           seed: self.starId,
@@ -864,12 +962,13 @@ export class App {
             }
             clearPendingBecome();
             studyBoard.setChromeHidden(false);
+            home.setHidden(false);
             this.intro = null;
             // The arrival beat rides the resolve's tail, the "resume"
             // branch's own idiom below — a short beat so it doesn't land in
             // the same frame as the intro's teardown.
             window.setTimeout(() => {
-              if (!this.playArrival()) this.maybeOpenReport();
+              this.playArrival();
             }, 360);
           },
         });
@@ -883,15 +982,24 @@ export class App {
           // instead, after a short beat so it doesn't land in the same
           // frame as the sky mounting.
           window.setTimeout(() => {
-            if (!this.playArrival()) this.maybeOpenReport();
+            this.playArrival();
           }, 600);
         }
       }
+      // S0.2: the HUD's standing lines tick on their own second; the sky
+      // handler's immediate refreshStanding() covers the gap until the
+      // first tick.
+      this.standingInterval = window.setInterval(() => this.refreshStanding(), 1000);
       return () => {
         contactCeremony.destroy();
         model.destroy();
         sourceCard.destroy();
         studyBoard.destroy();
+        home.destroy();
+        if (this.standingInterval !== null) {
+          window.clearInterval(this.standingInterval);
+          this.standingInterval = null;
+        }
         this.voiceBeat?.destroy();
         this.voiceBeat = null;
         this.intro?.destroy();
@@ -900,6 +1008,7 @@ export class App {
         if (this.sourceCard === sourceCard) this.sourceCard = null;
         if (this.studyBoard === studyBoard) this.studyBoard = null;
         if (this.contactCeremony === contactCeremony) this.contactCeremony = null;
+        if (this.home === home) this.home = null;
       };
     });
   }
