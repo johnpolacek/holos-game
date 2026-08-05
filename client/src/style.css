@@ -57,6 +57,11 @@
   --holos-gold-dim: rgba(211, 185, 130, 0.55);
   --holos-amber: #f0ac66;
   --holos-amber-dim: rgba(240, 172, 102, 0.62);
+  /* Muted indigo — the compute meter's own color (designer call, 2026-08):
+     an instrument that is neither you (cyan), other (amber), nor the gold
+     chrome, so its readout does not borrow any of their meanings. */
+  --holos-indigo: #8087c0;
+  --holos-indigo-dim: rgba(128, 135, 192, 0.35);
   --holos-cyan: #7ee9ef;
   --holos-cyan-dim: rgba(126, 233, 239, 0.45);
   --holos-error: #f0836a;
@@ -2179,7 +2184,7 @@ body {
      below the reading floor, quieted a further step by opacity. */
   font-size: var(--holos-text-xxs);
   opacity: 0.8;
-  color: var(--holos-ink-faint);
+  color: var(--holos-indigo);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
@@ -2189,14 +2194,14 @@ body {
   width: 100%;
   height: 3px;
   border-radius: 999px;
-  background: var(--holos-gold-dim);
+  background: var(--holos-indigo-dim);
   overflow: hidden;
 }
 
 .home-meter-fill {
   height: 100%;
   border-radius: 999px;
-  background: var(--holos-gold);
+  background: var(--holos-indigo);
   transition: width 900ms linear;
 }
 
