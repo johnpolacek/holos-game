@@ -36,7 +36,9 @@ const TAB_ORDER: readonly RailTab[] = ["report", "sky", "work", "family", "mind"
 const TAB_LABEL: Readonly<Record<RailTab, string>> = {
   report: "Report",
   sky: "Sky",
-  work: "Work",
+  // "Projects" over "Work" (designer call, 2026-08 phone check): the word
+  // names what the page actually holds, where Work named a category.
+  work: "Projects",
   family: "Family",
   mind: "Mind",
 };
