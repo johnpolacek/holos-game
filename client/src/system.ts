@@ -77,6 +77,15 @@ export interface HomeSystem {
   /** Where the act-opening pull-back starts, in AU: close enough that the
    *  home planet is a world and not a pixel, whatever class the star is. */
   readonly openingAu: number;
+  /** The star's own radius, AU. Physical rather than stylized, unlike every
+   *  drawn size in the Model: a frame composed against a limb is a real
+   *  distance off a real disc, and there is nothing to compose against
+   *  otherwise. */
+  readonly starRadiusAu: number;
+  /** Where the intro's opening frame sits, in AU off the star. Close enough
+   *  that the disc is the frame and the rest of the system is behind the
+   *  camera. */
+  readonly introAu: number;
 }
 
 // ── The ecliptic ──────────────────────────────────────────────────────────
@@ -126,6 +135,34 @@ const HABITABLE_ZONE: Readonly<Record<Star["spectralClass"], readonly [number, n
   G: [0.8, 1.2],
   F: [1.2, 1.8],
 };
+
+/** The Sun's radius, AU. The other end of AU_LY's bridge: this file already
+ *  measures orbits in real AU, and a star has a real size in the same unit. */
+const R_SUN_AU = 0.00465;
+
+/**
+ * Main-sequence radius by spectral class, in solar radii. Keyed on the same
+ * four classes as HABITABLE_ZONE and answerable to the same thing: the
+ * ceremony already named the star the player woke under, so the disc they
+ * come out on has to be that star's. An M dwarf is a third of the Sun across;
+ * an F is half again wider. The two go together — the zone is close in
+ * BECAUSE the star is small — and neither may be retuned alone.
+ */
+const STAR_RADIUS_RSUN: Readonly<Record<Star["spectralClass"], number>> = {
+  M: 0.32,
+  K: 0.74,
+  G: 1,
+  F: 1.35,
+};
+
+/**
+ * How many star radii back a disc of that radius fills 0.92 of the screen's
+ * half-height. The half-height in world units at camera depth d is
+ * d·tan(FOV/2), so r / (d·tan(FOV/2)) = 0.92 solves to d = 2.12·r at the
+ * Model's FOV of 0.95 radians. That FOV lives in model.ts; move it and this
+ * number moves with it.
+ */
+const INTRO_RADII = 2.12;
 
 /** Hard limits on where a planet may sit. The general spread is the brief's
  *  0.25–20 AU; the inner limit only goes lower to let an M dwarf's habitable
@@ -205,6 +242,7 @@ export function buildHomeSystem(
   spectralClass: Star["spectralClass"],
 ): HomeSystem {
   const rnd = mulberry32(hashSeed(starId, cradleId));
+  const starRadiusAu = R_SUN_AU * STAR_RADIUS_RSUN[spectralClass];
   const zone = HABITABLE_ZONE[spectralClass];
   const aHome = zone[0] + (zone[1] - zone[0]) * rnd();
 
@@ -270,6 +308,8 @@ export function buildHomeSystem(
     // Far enough back that the home planet's orbit fills a good part of the
     // frame without leaving it, whatever class the star is.
     openingAu: clamp(aHome * 3.4, 2, 5),
+    starRadiusAu,
+    introAu: INTRO_RADII * starRadiusAu,
   };
 }
 

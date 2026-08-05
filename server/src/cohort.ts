@@ -149,7 +149,7 @@ import {
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
-import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine, silenceLine } from "./voice";
+import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine, silenceLine, introLine } from "./voice";
 import {
   buildStudySnapshot,
   hypothesisMenus,
@@ -873,6 +873,9 @@ export class Cohort extends Server<CohortEnv> {
       case "voiceSeen":
         await this.onVoiceSeen(conn, msg.key);
         return;
+      case "requestIntro":
+        await this.onRequestIntro(conn);
+        return;
       case "requestReport":
         await this.onRequestReport(conn);
         return;
@@ -1359,6 +1362,20 @@ export class Cohort extends Server<CohortEnv> {
       version: 1,
       seen: [...voiceState.seen, key],
     });
+  }
+
+  /**
+   * requestIntro: S0.1's replay entry, from the Mind page. Not placed →
+   * return silently, the onRequestSky/onVoiceSeen precedent (no error code
+   * for bookkeeping). `forceIntro: true` is the whole of the replay: the
+   * four beats go out regardless of `seen`, and nothing here writes to
+   * `voiceSeen` state, so a replay never disturbs whether the beats would
+   * still show unprompted to a player who has not asked.
+   */
+  private async onRequestIntro(conn: Connection): Promise<void> {
+    const state = this.conns.get(conn.id);
+    if (state === undefined || state.civId === null) return;
+    await this.sendVoice(conn, state.token, state.civId, { forceIntro: true });
   }
 
   /**
@@ -3507,15 +3524,29 @@ export class Cohort extends Server<CohortEnv> {
 
   /**
    * AV1: send the lines this player has not yet been shown — arrival (this
-   * civ's archetype), and the frame explainers (age chip, compute, clock,
-   * epoch, silence). Sent on placement only, right before that path's sendSky —
-   * never from sendSky itself, which repeats on every alarm-driven resend
-   * and every verb; the voice message would otherwise replay endlessly.
+   * civ's archetype), the frame explainers (age chip, compute, clock,
+   * epoch, silence), and S0.1's four intro beats. Sent on placement only,
+   * right before that path's sendSky — never from sendSky itself, which
+   * repeats on every alarm-driven resend and every verb; the voice message
+   * would otherwise replay endlessly. THE CLIENT'S INTRO AUTOPLAY DEPENDS
+   * ON THIS ORDERING: sendVoice must run before sendSky on every placement
+   * path (it already does, everywhere sendVoice is called), because the
+   * intro is what the client stages while the first sky is still arriving.
    * Sends `{ type: "voice", lines }` even when `lines` is empty: one
    * deterministic contract, the payload always REPLACES what the client
    * holds rather than patching it.
+   *
+   * `forceIntro`: the Mind page's replay entry (`requestIntro`) wants the
+   * four beats regardless of `seen` — see `onRequestIntro`. Every other
+   * caller takes the default (unseen-only), the discipline every other key
+   * here already follows.
    */
-  private async sendVoice(conn: Connection, token: string, civId: string): Promise<void> {
+  private async sendVoice(
+    conn: Connection,
+    token: string,
+    civId: string,
+    opts: { readonly forceIntro: boolean } = { forceIntro: false },
+  ): Promise<void> {
     const galaxy = this.requireGalaxy();
     const selfCiv = civById(galaxy, civId);
     const voiceState = await this.loadVoiceState(token);
@@ -3531,6 +3562,14 @@ export class Cohort extends Server<CohortEnv> {
     // The Fermi stance — shown once, on a source card, after the age-chip
     // line has been taken (act3-design.md, *The silence, kept*).
     if (!seen.has("silence")) lines.silence = silenceLine();
+    // S0.1: the four beats. `forceIntro` bypasses `seen` entirely — the
+    // Mind page's replay path re-requests lines this player already
+    // dismissed, and the replace-not-patch contract above is what makes
+    // that safe: this call's payload still replaces the client's whole set.
+    if (opts.forceIntro || !seen.has("intro1")) lines.intro1 = introLine("intro1");
+    if (opts.forceIntro || !seen.has("intro2")) lines.intro2 = introLine("intro2");
+    if (opts.forceIntro || !seen.has("intro3")) lines.intro3 = introLine("intro3");
+    if (opts.forceIntro || !seen.has("intro4")) lines.intro4 = introLine("intro4");
     this.sendMsg(conn, { type: "voice", lines });
   }
 

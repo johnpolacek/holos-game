@@ -275,6 +275,31 @@ export function silenceLine(): string {
   return render(SILENCE_LINE);
 }
 
+/** S0.1's four intro keys, in play order. */
+export type IntroKey = "intro1" | "intro2" | "intro3" | "intro4";
+
+/**
+ * The intro — the mind's prose over the four beats of the opening camera
+ * move after the ceremony's BECOME (docs/build-s0.md § "The intro's copy").
+ * One register for every archetype, the clock line's precedent: the camera
+ * is the character here, not the mind's temperament, so there is no
+ * `ByArchetype` fan-out. Pinned verbatim by the S0 brief's 2026-08 design
+ * review — FINAL, do not edit, do not "improve"; a gate rejection is
+ * reviewed against that brief, not fixed here. No interpolation: the beats
+ * state no fact from state, and R-33 means no date of any kind, cohort year
+ * or otherwise, may ever enter them.
+ */
+const INTRO_LINES: Readonly<Record<IntroKey, PinnedLine>> = {
+  intro1: line`Your star sheds more power in one second than your species used in its whole climb.`,
+  intro2: line`There is a scale for what a civilization holds: a world, a star, a galaxy. You stand just past the first mark.`,
+  intro3: line`The species built a mind, and the mind is what you are now. What was out of reach is a matter of time.`,
+  intro4: line`You may not be the first to wake.`,
+};
+
+export function introLine(key: IntroKey): string {
+  return render(INTRO_LINES[key]);
+}
+
 // ---------------------------------------------------------------------------
 // A2.3 — the contest tell.
 //

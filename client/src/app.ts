@@ -3,9 +3,10 @@
 //
 // The Model mounts on the first `sky` message (which carries the SelfView and
 // the detected sources); the star catalog is retained from `welcome`. The
-// pull-back-vs-resume decision lives here: a `sky` that arrives while a
-// `become` this session is still pending → the one-shot "pullback"; any other
-// placed sky (a reconnect/resume) → "resume".
+// opening-beat decision lives here: a `sky` that arrives while a `become`
+// this session is still pending plays the four-beat intro (S0.1) if the
+// server actually served its lines, else the one-shot "pullback" fallback;
+// any other placed sky (a reconnect/resume) → "resume".
 
 import type {
   CohortServerMessage,
@@ -53,6 +54,7 @@ import {
 import { setClockAnchor } from "./clock";
 import { VoiceBeat } from "./voicebeat";
 import { ContactCeremony } from "./contactceremony";
+import { Intro } from "./intro";
 // A5: the boot re-sync, and nothing else from here. The row, the sheet and
 // the ask all live in the study board.
 import { resyncWatch } from "./push";
@@ -98,6 +100,12 @@ export class App {
   private sourceCard: SourceCard | null = null;
   private studyBoard: StudyBoard | null = null;
 
+  // S0.1: the latest `sky`'s SelfView, from both branches of showSky — the
+  // intro needs self.starId as its own seed (voicegen.ts's per-player seed
+  // contract), and the replay entry can fire long after the mount closure
+  // that first had `self` as a parameter.
+  private self: SelfView | null = null;
+
   // Latest `sky` payload's studies/sources, kept for the observatory (mounted
   // separately from the Model/SourceCard's own copies) and for looking up a
   // source's study by starId (setStudyStatus, the pending-focus handoff).
@@ -137,6 +145,15 @@ export class App {
   // locally by takeVoice/playArrival, never re-added).
   private voiceLines: VoiceLines = {};
   private voiceBeat: VoiceBeat | null = null;
+
+  // S0.1: the intro. Non-null exactly while it owns the sky screen — either
+  // the fresh path (mounted from showSky's "intro" enter mode) or a replay
+  // (mounted from the Mind page's row, IntroOptions.replay true).
+  // `pendingIntroReplay` covers the gap in the replay path between
+  // requestIntro going out and its answering `voice` landing with all four
+  // lines confirmed present.
+  private intro: Intro | null = null;
+  private pendingIntroReplay = false;
 
   // AV2: the latest report, wholesale-replaced on every `report` message —
   // same field-then-forward shape as `voice`'s lines, except the report
@@ -262,6 +279,24 @@ export class App {
         break;
       case "voice":
         this.voiceLines = message.lines;
+        // S0.1: a replay staged before the round trip landed (onReplayIntro's
+        // requestIntro branch, below) starts now, if the four lines are
+        // actually here and the sky screen it was staged on is still up. If
+        // the screen moved on instead, the wait ends here rather than
+        // outliving its own board — drop the flag and best-effort restore
+        // the chrome onReplayIntro hid (a no-op if the board is already
+        // gone). A genuinely dropped reply on a still-live screen just
+        // leaves the flag pending for the next voice message.
+        if (this.pendingIntroReplay && this.mountedScreen === "sky") {
+          const lines = this.introLinesIfComplete();
+          if (lines !== null) {
+            this.pendingIntroReplay = false;
+            this.startIntroReplay(lines);
+          }
+        } else if (this.pendingIntroReplay) {
+          this.pendingIntroReplay = false;
+          this.studyBoard?.setChromeHidden(false);
+        }
         break;
       case "report":
         this.reportPayload = message.report;
@@ -457,6 +492,51 @@ export class App {
     return text;
   }
 
+  /** S0.1: the four intro beats, in the pinned order, or null if the server
+   *  has not (or no longer) served all four. VOICE_KEYS tracks each beat's
+   *  seen state independently (protocol.ts's comment on the four keys), so
+   *  partial presence is a real state — a client that dismissed beat three
+   *  but dropped before beat four — and partial is not complete. Presence
+   *  is also the autoplay gate's whole contract: a key present means unseen
+   *  server-side, so "all four present" is the only signal that says a
+   *  fresh player has not been shown the intro yet. */
+  private introLinesIfComplete(): readonly [string, string, string, string] | null {
+    const { intro1, intro2, intro3, intro4 } = this.voiceLines;
+    if (
+      intro1 === undefined ||
+      intro2 === undefined ||
+      intro3 === undefined ||
+      intro4 === undefined
+    ) {
+      return null;
+    }
+    return [intro1, intro2, intro3, intro4];
+  }
+
+  /** S0.1: starts the intro's replay. The two ways in (immediate, or after
+   *  requestIntro's round trip in the "voice" case above) both funnel
+   *  through here so the start contract cannot drift between them: seeded
+   *  off the latest self, `replay: true` (no voiceSeen, no
+   *  clearPendingBecome, no arrival beat — those belong only to the fresh
+   *  path in showSky's mount). Silently does nothing if the sky screen (or
+   *  self) is not there to replay against — the screen-swap bail in the
+   *  "voice" case above is the only caller that can race this. */
+  private startIntroReplay(lines: readonly [string, string, string, string]): void {
+    const model = this.model;
+    const studyBoard = this.studyBoard;
+    const self = this.self;
+    if (model === null || studyBoard === null || self === null) return;
+    this.intro = new Intro(this.root, model, {
+      lines,
+      seed: self.starId,
+      replay: true,
+      onDone: () => {
+        this.intro = null;
+        studyBoard.setChromeHidden(false);
+      },
+    });
+  }
+
   /** At most one source-card explainer per open — the age chip first, the
    *  silence note on a later open (the hub's compute-then-clock idiom,
    *  applied to the sky's reading surface). The silence line states the
@@ -507,6 +587,8 @@ export class App {
   }
 
   private showSky(self: SelfView, sources: readonly DetectedSource[]): void {
+    // S0.1: kept for the intro's seed regardless of which branch below runs.
+    this.self = self;
     // Later sky messages (another civ joined, or the calm-cadence refresh)
     // just update the Model and, if a card is open, its live source data.
     if (this.mountedScreen === "sky" && this.model !== null) {
@@ -549,7 +631,15 @@ export class App {
 
     // First sky this session: decide the opening beat before clearing the
     // marker, then mount the Model + its source card + the observatory.
-    const mode: "pullback" | "resume" = hasPendingBecome() ? "pullback" : "resume";
+    // "intro" iff a fresh BECOME is still pending AND the server actually
+    // served all four beats (their presence is the autoplay contract — a
+    // veteran's resume never autoplays, seen or not, because pendingBecome
+    // is never set on a resume in the first place); "pullback" is the
+    // shipped fallback for a fresh player whose voice message somehow
+    // lacked the beats.
+    const introLines = hasPendingBecome() ? this.introLinesIfComplete() : null;
+    const mode: "intro" | "pullback" | "resume" =
+      introLines !== null ? "intro" : hasPendingBecome() ? "pullback" : "resume";
     this.mountedScreen = "sky";
     this.mount(() => {
       const model = new Model(this.root, this.catalog);
@@ -712,6 +802,23 @@ export class App {
       studyBoard.onReportOpen(() => {
         studyBoard.setReportExplainer(this.takeVoice("epoch"));
       });
+      // S0.1: THE MIND's one row, replaying the intro. Guarded against a
+      // double-arm the same way the ceremony's three entry points are
+      // guarded by having only one live thing to stage at a time.
+      studyBoard.onReplayIntro(() => {
+        if (this.intro !== null) return;
+        sourceCard.close();
+        model.clearSelection();
+        studyBoard.close();
+        studyBoard.setChromeHidden(true);
+        const lines = this.introLinesIfComplete();
+        if (lines !== null) {
+          this.startIntroReplay(lines);
+        } else {
+          this.socket.send({ type: "requestIntro" });
+          this.pendingIntroReplay = true;
+        }
+      });
 
       model.setSky(self, sources);
       model.setContact(this.contact);
@@ -737,17 +844,48 @@ export class App {
       // beat as the update() call just above.
       if (this.reportPayload !== null) studyBoard.setReport(this.reportPayload);
       model.enter(mode);
-      clearPendingBecome();
-      if (mode === "resume") {
-        // clearPendingBecome() (above) runs at pull-back START, not end — so
-        // a reload mid-dolly resumes straight into "resume" mode with no
-        // pull-back at all, and onPullbackEnd above will never fire. The
-        // arrival line is still unseen server-side, so play it here instead,
-        // after a short beat so it doesn't land in the same frame as the
-        // sky mounting.
-        window.setTimeout(() => {
-          if (!this.playArrival()) this.maybeOpenReport();
-        }, 600);
+      if (introLines !== null) {
+        // S0.1: pendingBecome stays SET through the whole sequence — a
+        // reload mid-intro must come back through this same branch (the
+        // beats are still unseen server-side and the marker is still
+        // there), never fall back to a bare "resume". It only clears in
+        // Intro's onDone below, once the beats are actually seen.
+        studyBoard.setChromeHidden(true);
+        this.intro = new Intro(this.root, model, {
+          lines: introLines,
+          seed: self.starId,
+          replay: false,
+          onDone: (_outcome) => {
+            // AV1: seen either way — finishing the sequence and skipping it
+            // both count as having been shown it once.
+            for (const key of ["intro1", "intro2", "intro3", "intro4"] as const) {
+              this.socket.send({ type: "voiceSeen", key });
+              this.voiceLines = { ...this.voiceLines, [key]: undefined };
+            }
+            clearPendingBecome();
+            studyBoard.setChromeHidden(false);
+            this.intro = null;
+            // The arrival beat rides the resolve's tail, the "resume"
+            // branch's own idiom below — a short beat so it doesn't land in
+            // the same frame as the intro's teardown.
+            window.setTimeout(() => {
+              if (!this.playArrival()) this.maybeOpenReport();
+            }, 360);
+          },
+        });
+      } else {
+        clearPendingBecome();
+        if (mode === "resume") {
+          // clearPendingBecome() (above) runs at pull-back START, not end —
+          // so a reload mid-dolly resumes straight into "resume" mode with
+          // no pull-back at all, and onPullbackEnd above will never fire.
+          // The arrival line is still unseen server-side, so play it here
+          // instead, after a short beat so it doesn't land in the same
+          // frame as the sky mounting.
+          window.setTimeout(() => {
+            if (!this.playArrival()) this.maybeOpenReport();
+          }, 600);
+        }
       }
       return () => {
         contactCeremony.destroy();
@@ -756,6 +894,8 @@ export class App {
         studyBoard.destroy();
         this.voiceBeat?.destroy();
         this.voiceBeat = null;
+        this.intro?.destroy();
+        this.intro = null;
         if (this.model === model) this.model = null;
         if (this.sourceCard === sourceCard) this.sourceCard = null;
         if (this.studyBoard === studyBoard) this.studyBoard = null;

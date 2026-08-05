@@ -76,6 +76,12 @@ function check(label, strings, limits) {
 }
 
 const arrivals = tagged(block("const ARRIVAL_LINES: ByArchetype<PinnedLine> = {"));
+// S0.1's intro beats. Fact-free by construction (they state nothing from
+// state, R-33's no-date rule included) and one register for every
+// archetype, so they are checked at arrival size like the arrival lines
+// themselves — four short beats, the same length ceiling the ceremony's
+// own first words sit under.
+const intros = tagged(block("const INTRO_LINES: Readonly<Record<IntroKey, PinnedLine>> = {"));
 const remarks = quoted(block("export const REPORT_REMARKS: ByArchetype<"));
 // A2.3's contest tell. It is fact-free by construction (nothing in it may be
 // particular to a source, or it would name which target is masking), so it is
@@ -111,6 +117,7 @@ const accordClauses = quoted(block("export const ACCORD_CLAUSE: Readonly<"));
 const bandLines = quoted(block("export const LEDGER_BAND_LINES: Readonly<"));
 
 const arrivalCount = check("arrival line", arrivals, LIMITS.arrival);
+const introCount = check("intro beat", intros, LIMITS.arrival);
 const remarkCount = check("report remark", remarks, LIMITS.remark);
 const contestCount = check("contest line", contest, LIMITS.remark);
 const resistanceCount = check("resistance line", resistance, LIMITS.remark);
@@ -159,6 +166,7 @@ const invented = gateFactCarrying(
 if (invented.ok) fail("fact-carrying gate accepted an unpinned figure in the residue");
 
 console.log(`arrival lines   ${arrivalCount}`);
+console.log(`intro beats     ${introCount}`);
 console.log(`report remarks  ${remarkCount}`);
 console.log(`contest lines   ${contestCount}`);
 console.log(`resistance      ${resistanceCount}`);
