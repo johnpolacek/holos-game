@@ -99,10 +99,10 @@ export class Home {
     this.hud.append(identity, this.standing);
 
     // ── The compute meter ────────────────────────────────────────────────
-    // Bottom right, mirroring the Model's scale readout bottom left: a thin
-    // bar and a tiny label, both fed by the caller. Hidden while a board
-    // page is open (setPageOpen) — floating chrome does not sit on top of a
-    // page a player is reading.
+    // In the HUD band, under the name (moved from bottom right, 2026-08:
+    // down there it shared the counsel strip's zone and overlapped TALK).
+    // A thin bar and a tiny label, both fed by the caller; part of the band,
+    // so it stays up whenever the HUD does.
     this.meter = document.createElement("div");
     this.meter.className = "home-meter";
     this.meterLabel = document.createElement("div");
@@ -142,7 +142,8 @@ export class Home {
     }
     this.tabButtons = buttons as Readonly<Record<RailTab, HTMLButtonElement>>;
 
-    this.root.append(this.hud, this.seam, this.meter, this.rail);
+    this.hud.append(this.meter);
+    this.root.append(this.hud, this.seam, this.rail);
     container.append(this.root);
   }
 
@@ -265,10 +266,10 @@ export class Home {
   /** A board page covers the map; floating chrome stands down while one is
    *  up so it never sits over the page a player is reading. The seam sits
    *  above the board's own z-index (style.css's stacking note), so it needs
-   *  the same explicit standing-down the meter gets rather than relying on
-   *  being painted over. */
+   *  this explicit standing-down rather than relying on being painted over.
+   *  The meter no longer joins it: it lives in the HUD band now, which stays
+   *  up over every page by design. */
   setPageOpen(open: boolean): void {
-    this.meter.classList.toggle("home-meter--paged", open);
     this.seam.classList.toggle("counsel-seam--paged", open);
   }
 
