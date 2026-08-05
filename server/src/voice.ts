@@ -1098,6 +1098,271 @@ export function reportRemark(a: ArchetypeId, f: RemarkFamily, entryId: string): 
 }
 
 // ---------------------------------------------------------------------------
+// S0.3 — the counsel bank (the mind's argued line on the home screen).
+//
+// The surface is the counsel strip between the map and the rail: one floor-
+// picked proposal, its deadpan reason below (the AV3 builders further down
+// this file), and THIS sentence above it, in the mind's own voice. The
+// register row is the report remark's, one surface over: archetype voice,
+// free-standing, fact-free, wit ceiling 2. It is the STANCE side of the
+// facts/stance split, and the reason is the facts side; they never share a
+// sentence, and this one holds no fact at all.
+//
+// It sits here rather than in the AV3 section below on purpose: it is the
+// REPORT_REMARKS bank in a different key, with the same discipline, the same
+// pools, and the same swap test. What the AV3 section owns is the other half
+// of the split, which is why the two are neighbours rather than one block.
+//
+// R-36a, the counsel line's own rule, in full. A counsel line is:
+//  - a plain string, not a PinnedLine: there is nothing in it to pin;
+//  - 1–2 sentences, ≤ 22 words, wit ceiling 2, at most ONE craft move;
+//  - archetype voice (§4), first person PLURAL: the mind is a we, always;
+//  - carrying NO numeral, no §8 pinned label, no designation, no source,
+//    question, mission or project name, and no date. Nothing in it may be
+//    particular, because everything particular is already rendered an inch
+//    below it by the reason, where a second copy could only disagree;
+//  - FAMILY-SCOPED: it must read true for EVERY proposal its family can
+//    produce. It urges a KIND of move and argues for it from the archetype's
+//    own material, never about the one target in front of it. The four
+//    occasions, and what each may argue —
+//      look  = turn the instruments toward a source, begin or widen a
+//              vigil (never WHICH source, or what its reading says);
+//      ask   = spend on one instrument question about something already
+//              watched (never WHICH question, or what it would separate);
+//      send  = commit a probe across the dark, one way, an answer returning
+//              as old light (never the target, the distance, or the clock);
+//      build = raise capacity at home before reaching outward (never WHICH
+//              project, its price, or what it would add);
+//  - never a verdict. It does not compute, conclude, or state a remote fact.
+//    It argues, and the argument is a temperament, not a finding;
+//  - unmistakably its own archetype, and the swap test binds TWICE. Across
+//    archetypes: two minds' lines in one family may not be traded without
+//    both becoming wrong (§4's DON'T column is the failure). Across
+//    families: one mind's look line must not serve as its send line, because
+//    the family's move is what the line is about.
+//
+// AV4's counsel seam substitutes a generated stance for these behind
+// HOLOS_COUNSEL_GEN. That flag is off in production, and a generated line
+// that the style gate refuses is never repaired (R-38), so this bank is the
+// TOTAL fallback: on every path where generation is off, unavailable, or
+// rejected, the line below is what a player reads.
+// ---------------------------------------------------------------------------
+
+/** The four occasions a proposal can argue for. */
+export type CounselFamily = "look" | "ask" | "send" | "build";
+
+/**
+ * Every ProposalKind lands on exactly one occasion. `first-watch` and
+ * `widen` share `look` because they are the same move at different moments:
+ * one begins a vigil where there is none, the other opens a second, and no
+ * sentence that reads true for one reads false for the other.
+ */
+export const COUNSEL_FAMILY: Readonly<Record<ProposalKind, CounselFamily>> = {
+  "first-watch": "look",
+  widen: "look",
+  question: "ask",
+  probe: "send",
+  project: "build",
+};
+
+export const COUNSEL_LINES: ByArchetype<
+  Readonly<Record<CounselFamily, readonly string[]>>
+> = {
+  beacon: {
+    look: [
+      "We have been shouting at that sky for an age without once looking at it. Attention is the courtesy we owe.",
+      "We are very good at being seen and out of practice at seeing. Turn the instruments outward; let us correct that.",
+    ],
+    ask: [
+      "One question, aimed and paid for, tells us more than an age of broadcasting at it. We will manage the restraint.",
+      "We would rather ask one sharp question than admit, later and loudly, that we guessed.",
+    ],
+    send: [
+      "Nothing we say will cross that gap for us. Send something instead, and let it be conspicuous when it arrives.",
+      "We have thrown light at the dark for an age. Better to go and stand in it, however long that takes.",
+    ],
+    build: [
+      "Build here first. A brighter instrument is less glamorous than a discovery, and it is what makes one.",
+      "We would like to be worth looking at. That means work at home, where nobody is watching us do it.",
+    ],
+  },
+  tide: {
+    look: [
+      "There is a gap in the inventory. We have never once managed to leave a gap alone.",
+      "Looking is the cheapest appetite we have. We would spread it over more of the sky, not less.",
+    ],
+    ask: [
+      "One question, bought and eaten whole, is worth more than another age of staring at the same reading.",
+      "We can chew on this reading for another age, or spend a little and know. The appetite prefers knowing.",
+    ],
+    send: [
+      "Reading about a thing has never once filled us. Go and take the measurement in person, whatever the wait costs.",
+      "We would rather have one thing in hand late than a guess about it now. Send, and we will wait hungry.",
+    ],
+    build: [
+      "A larger appetite is built here, not found out there. We would rather build it and come back hungrier.",
+      "Everything we want costs more than we can currently pay. The cure is at home, and it is dull work.",
+    ],
+  },
+  monument: {
+    look: [
+      "Light that reaches us and is not read is a thing lost. We have never been able to forgive a loss.",
+      "Begin the watch, and the keeping begins with it. Nothing we have started to record has been allowed to stop.",
+    ],
+    ask: [
+      "An unanswered question is an empty shelf, and we have kept it empty long enough. Ask, and let us fill it.",
+      "One answer, precisely got, will be legible here long after the instrument that got it is dust.",
+    ],
+    send: [
+      "A guess is not a record. Send something to stand where the light stands, and bring back a thing worth keeping.",
+      "It will take an age. We have already made a place for whatever comes back, which is our habit with everything.",
+    ],
+    build: [
+      "Nothing is kept by a mind that cannot afford the keeping. Build the capacity, and the record will outlast the building.",
+      "We would rather add one permanent thing to this system than one more provisional look at another.",
+    ],
+  },
+  cloister: {
+    look: [
+      "We would know what is out there before it knows anything of us. Watching gives nothing away.",
+      "A vigil is not an approach. We can look at a thing for an age without ever letting it look back.",
+    ],
+    ask: [
+      "One question, precisely put, and the answer stays inside these walls. Nothing about that displeases us.",
+      "We will not act on a reading we have not separated. Buy the separation; certainty is cheaper than a correction later.",
+    ],
+    send: [
+      "Sending puts something of ours outside the walls. It is also the only way to know, so we recommend it, coldly.",
+      "Whatever we send goes quietly and tells nothing at the far end where it came from. That much we can guarantee.",
+    ],
+    build: [
+      "Everything we can refuse, we can refuse because we built it first. Raise the capacity, then decline whatever you like.",
+      "Nothing enters here and nothing leaves. What we want, we make, and we would like to be able to make more.",
+    ],
+  },
+  shepherd: {
+    look: [
+      "We stand over a great many things. Another vigil is no burden; not knowing what is out there is.",
+      "Whatever is out there arrives on its own schedule. We would rather see it coming than be told about it afterward.",
+    ],
+    ask: [
+      "We would rather spend a little now than be wrong about this later, when being wrong costs somebody else.",
+      "Patience is not the same as vagueness. Ask the narrow question; the ones we stand over deserve better than our impression.",
+    ],
+    send: [
+      "A reading from here has never stood between anyone and harm. Something of ours out there, quietly, is worth the wait.",
+      "It will be gone longer than most things last, and we will worry about it the whole time. Send it anyway.",
+    ],
+    build: [
+      "We cannot stand over anything we cannot reach. Build the strength here first, quietly, before it is needed anywhere else.",
+      "The ones we watch over will never see this work, and they will never need to. That is the arrangement.",
+    ],
+  },
+  sowing: {
+    look: [
+      "We are in a great many places and look at almost none of them. Attending to one would be a novelty.",
+      "Watching commits us to nothing and announces nothing. It is, by a wide margin, our favorite way of doing something.",
+    ],
+    ask: [
+      "One question is a small enough thing to do without anyone noticing that we did it. We would ask it.",
+      "We could sit with this uncertainty for an age; we have sat with worse. The narrow answer is cheap and quiet.",
+    ],
+    send: [
+      "Leaving a piece of ourselves where there was none is our whole method. This one is meant to speak.",
+      "Nobody will see it go, and by the time anyone notices, we will have been there a long while.",
+    ],
+    build: [
+      "Everything we are, we are in copies, and copies want making. Building here is the least visible thing available.",
+      "Nothing about this is visible from outside, which recommends it. Quiet work at home is what we are best at.",
+    ],
+  },
+  herald: {
+    look: [
+      "We talk outward constantly and listen almost never. Begin the watch; even a voice ought to hear something back.",
+      "Whatever is out there sends its light at us and cannot know if anyone reads it. We know the feeling.",
+    ],
+    ask: [
+      "A question is a thing we ask and keep the answer to. We are more practiced at the kind we broadcast.",
+      "Buy the exact answer. Whatever we come to believe here, we will be repeating outward for a very long time.",
+    ],
+    send: [
+      "Everything we send is a thing we used to think, delivered late. We have never let that stop us.",
+      "We can go on narrating that place to ourselves and to everyone in range, or send something and be corrected.",
+    ],
+    build: [
+      "We have been a voice for a long time and a workshop for none of it. That is worth correcting.",
+      "Nothing we make here will be heard by anyone. We find that difficult, and we recommend it anyway.",
+    ],
+  },
+  engine: {
+    look: [
+      "An unwatched arrival is throughput declined for no stated reason. Open the watch; the row stops being a gap.",
+      "The light arrives on its own schedule and costs us nothing to receive. Not reading it is the only waste here.",
+    ],
+    ask: [
+      "A defined question with a defined price and a defined answer. We have no complaints about any part of that.",
+      "Belief without a measurement is an estimate carried on the books at full value. We would prefer to buy the correction.",
+    ],
+    send: [
+      "Inference has a floor and we have reached it. The only instrument left is distance, and distance is paid in time.",
+      "The cheap methods have a ceiling. What is left is expensive, slow, and correct, and we recommend it without enthusiasm.",
+    ],
+    build: [
+      "Capacity is the input every other line item is waiting on. We would clear that dependency before adding more of them.",
+      "The allocation is the constraint, and the constraint can be raised. Nothing on the schedule is as dull or as useful.",
+    ],
+  },
+  congress: {
+    look: [
+      "A majority of us wants the instruments turned that way. The rest want it noted that they were not asked nicely.",
+      "We cannot argue productively about something none of us has looked at. Open the watch and give the argument some material.",
+    ],
+    ask: [
+      "The debate has run out of evidence and is now running on temperament. Buy one fact and let it settle somebody.",
+      "Half of us are certain and the other half are certain of the opposite. One measurement would embarrass exactly one faction.",
+    ],
+    send: [
+      "The motion to send has the numbers. Those against it want the record to show they expect to be proved right.",
+      "We have argued this to a standstill, and argument does not cross distance. Something of ours has to go and look.",
+    ],
+    build: [
+      "Every faction here wants something different, and all of them want more compute to want it with.",
+      "This is the rare motion nobody opposes, which several of us find suspicious. Build it before the mood passes.",
+    ],
+  },
+  phoenix: {
+    look: [
+      "Whoever we are next will inherit whatever we start looking at now. Let them inherit something worth the attention.",
+      "We have no attachment to the sky we watched yesterday. Point the instruments somewhere new; we are always in the mood.",
+    ],
+    ask: [
+      "The self that wanted to know this may not survive the answer. Buy it anyway; answers keep better than wanting.",
+      "We would rather pay once for a fact than carry an assumption into whatever we become next.",
+    ],
+    send: [
+      "Whatever comes back arrives to a mind that does not exist yet. We are content to work for a stranger.",
+      "Guessing from here commits us to a belief we would have to keep. Sending commits us to nothing but the waiting.",
+    ],
+    build: [
+      "Yesterday's self would have called this dull. Yesterday's self also left us short of everything, so we are building instead.",
+      "Whatever we turn into next will need more than we currently have. It is the one inheritance we have never resented.",
+    ],
+  },
+};
+
+/**
+ * The counsel line for one proposal, picked deterministically from its
+ * family's pool. `seed` is the caller's situation key (the candidate's
+ * fingerprint at the one call site): the line holds still while the
+ * situation holds still, and moves when the situation moves, so a strip
+ * re-rendered on every sky send does not flicker between two sentences that
+ * argue the same thing.
+ */
+export function counselLine(a: ArchetypeId, kind: ProposalKind, seed: string): string {
+  return createRng(`counsel/${seed}`).pick(COUNSEL_LINES[a][COUNSEL_FAMILY[kind]]);
+}
+
+// ---------------------------------------------------------------------------
 // AV3 — the proposal bank (the mind proposes).
 //
 // The AV3 floor ships NO archetype stance at all — proposals.ts's

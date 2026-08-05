@@ -149,7 +149,7 @@ import {
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
-import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine, silenceLine, introLine } from "./voice";
+import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine, silenceLine, introLine, counselLine } from "./voice";
 import {
   buildStudySnapshot,
   hypothesisMenus,
@@ -3953,6 +3953,24 @@ export class Cohort extends Server<CohortEnv> {
         )
       : { proposals, kick: (): void => undefined };
 
+    // AV4's home-strip line, one edit past the counsel block above and
+    // riding what it produced: the lead SERVED proposal (`counsel.proposals[0]`,
+    // never `proposals[0]` — the AV4 stance may already have replaced that
+    // row) paired with its own ranked candidate, looked up by id, for the
+    // `kind`/`fingerprint` a counsel line is drawn from. The two can never
+    // disagree with what the Mind page shows, because both read the same
+    // served row: the AV4 stance substitutes when present (flag on and an
+    // accepted record), the bank line is the total fallback (R-38's
+    // reject-then-template, one surface up from where AV4 applies it to a
+    // single row).
+    const leadProposal = counsel.proposals[0];
+    const leadCandidate = ranked.find((c) => c.id === leadProposal?.id);
+    const counselText =
+      leadProposal === undefined || leadCandidate === undefined
+        ? null
+        : (leadProposal.stance ??
+          counselLine(self.seed.archetype, leadCandidate.kind, leadCandidate.fingerprint));
+
     await this.materializeReport(token, civId, nowYear, {
       studies,
       missions,
@@ -3978,6 +3996,7 @@ export class Cohort extends Server<CohortEnv> {
       tend,
       probeFlightYearsPerLy,
       proposals: counsel.proposals,
+      counsel: counselText,
       contact,
       voyages,
       survey,

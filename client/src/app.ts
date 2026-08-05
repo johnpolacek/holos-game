@@ -53,7 +53,6 @@ import {
 } from "./sourcecard";
 import { Home } from "./home";
 import { setClockAnchor, formatEpochYearPrecise, nowYear } from "./clock";
-import { VoiceBeat } from "./voicebeat";
 import { ContactCeremony } from "./contactceremony";
 import { Intro } from "./intro";
 // A5: the boot re-sync, and nothing else from here. The row, the sheet and
@@ -186,9 +185,14 @@ export class App {
   // AV1: one-time lines the mind speaks. A key present means unseen — the
   // payload's whole shape carries no-replay, so this is just the latest
   // `voice` wholesale-replaced (a key already taken this session is dropped
-  // locally by takeVoice/playArrival, never re-added).
+  // locally by takeVoice, never re-added).
   private voiceLines: VoiceLines = {};
-  private voiceBeat: VoiceBeat | null = null;
+
+  // S0.3: the counsel strip's one argued line, from the latest `sky`. Never
+  // taken (unlike voiceLines): the mind's stance persists until it changes,
+  // it is not a one-shot beat. refreshCounsel() is what actually decides
+  // what the strip shows — see its own comment for the sticky-arrival rule.
+  private counsel: string | null = null;
 
   // S0.1: the intro. Non-null exactly while it owns the sky screen — either
   // the fresh path (mounted from showSky's "intro" enter mode) or a replay
@@ -226,9 +230,10 @@ export class App {
   // knows.
   private hasAccount = false;
   // The re-onboard sheet: a sibling overlay appended directly to `this.root`
-  // (the voicebeat.ts mold), NOT torn down by `mount()` — `token-claimed`
-  // can arrive before any screen has mounted at all (the very first hello
-  // on a dead token), so this cannot depend on a screen existing to sit on.
+  // (the same sibling-overlay pattern the retired voice beat used), NOT torn
+  // down by `mount()` — `token-claimed` can arrive before any screen has
+  // mounted at all (the very first hello on a dead token), so this cannot
+  // depend on a screen existing to sit on.
   private reclaimRoot: HTMLDivElement | null = null;
   private reclaimSignIn: SignInMount | null = null;
 
@@ -308,11 +313,15 @@ export class App {
         // A5: whether the SEAT holds a subscription on any device. The board
         // combines it with what the browser says about this one.
         this.pushSubscribed = message.pushSubscribed;
+        // S0.3: the mind's current stance for the counsel strip.
+        this.counsel = message.counsel;
         this.showSky(message.self, message.sources);
         // S0.2: the HUD's standing lines read off fields just set above
         // (self, budget); an immediate render on top of the 1s ticker so a
         // fresh sky's numbers are never stale for up to a second.
         this.refreshStanding();
+        // S0.3: every sky is a candidate to change what the strip shows.
+        this.refreshCounsel();
         break;
       case "sourceNamed":
         if (message.name === "") this.localNames.delete(message.starId);
@@ -326,6 +335,9 @@ export class App {
         break;
       case "voice":
         this.voiceLines = message.lines;
+        // S0.3: a fresh `arrival` line (or its absence) can change what the
+        // strip shows; the sticky-arrival rule lives in refreshCounsel.
+        this.refreshCounsel();
         // S0.1: a replay staged before the round trip landed (onReplayIntro's
         // requestIntro branch, below) starts now, if the four lines are
         // actually here and the sky screen it was staged on is still up. If
@@ -598,25 +610,15 @@ export class App {
     return this.takeVoice("age") ?? this.takeVoice("silence");
   }
 
-  /** The arrival beat is the exception to takeVoice's report-on-take: the
-   *  tap is the acknowledgement, so `voiceSeen` is reported ON DISMISS, not
-   *  here — a crash mid-beat replays it next session, the friendlier
-   *  failure. Safe to call more than once (double-mount guarded).
-   *
-   *  Returns whether a beat is up (just mounted, or already was) — false
-   *  only when there was no arrival line to show. S0.2: the report used to
-   *  open itself once the beat closed; it no longer does (calm by design,
-   *  the report waits to be read), so this now only plays the beat. */
-  private playArrival(): boolean {
-    if (this.voiceBeat !== null) return true;
-    const text = this.voiceLines["arrival"];
-    if (text === undefined) return false;
-    this.voiceLines = { ...this.voiceLines, arrival: undefined };
-    this.voiceBeat = new VoiceBeat(this.root, text, () => {
-      this.socket.send({ type: "voiceSeen", key: "arrival" });
-      this.voiceBeat = null;
-    });
-    return true;
+  /** S0.3: what the counsel strip shows — the arrival line, STICKY (checked,
+   *  never taken by takeVoice's report-on-read) until home.onTalk's tap
+   *  acknowledges it, else the mind's latest general stance from `sky`. A
+   *  reload before that tap simply replays the arrival next session, the
+   *  same friendlier-failure the old voice beat had. Called on every `sky`,
+   *  after the intro's onDone, and on a `voice` message landing (its own
+   *  call sites say why each matters). */
+  private refreshCounsel(): void {
+    this.home?.setCounsel(this.voiceLines["arrival"] ?? this.counsel);
   }
 
   /** S0.2: the HUD's ticking year, at instrument precision — the civ's OWN
@@ -750,6 +752,19 @@ export class App {
       home.setActiveTab("sky");
       home.setIdentity(self.seed.name);
       this.refreshReportBadge();
+      // S0.3: TALK opens the Mind page through the same funnel the rail's own
+      // tab uses. If the strip's current line is the sticky arrival, the tap
+      // is also its acknowledgement (the retired voice beat's own contract,
+      // moved here): report it seen, drop it locally, and let refreshCounsel
+      // hand the strip to whatever the mind's general stance is underneath.
+      home.onTalk(() => {
+        studyBoard.showTab("mind");
+        if (this.voiceLines["arrival"] !== undefined) {
+          this.socket.send({ type: "voiceSeen", key: "arrival" });
+          this.voiceLines = { ...this.voiceLines, arrival: undefined };
+          this.refreshCounsel();
+        }
+      });
       studyBoard.onViewChanged((tab, open) => {
         home.setActiveTab(open ? tab : "sky");
         // Floating chrome (the compute meter) stands down while a page
@@ -885,10 +900,6 @@ export class App {
         model.clearSelection();
         studyBoard.openVoyageLaunch(starId);
       });
-      // AV1: the mind's first line, at the end of the one-shot pull-back.
-      model.onPullbackEnd(() => {
-        this.playArrival();
-      });
       // AV1: at most one hub explainer per open — compute first, the clock
       // note on a later open (idempotent: takeVoice empties whichever it
       // returns, so a second call in the same session yields the next one).
@@ -976,27 +987,20 @@ export class App {
             studyBoard.setChromeHidden(false);
             home.setHidden(false);
             this.intro = null;
-            // The arrival beat rides the resolve's tail, the "resume"
-            // branch's own idiom below — a short beat so it doesn't land in
-            // the same frame as the intro's teardown.
-            window.setTimeout(() => {
-              this.playArrival();
-            }, 360);
+            // S0.3: the strip is chrome, already live under the intro's own
+            // fade (setHidden(false) just above brings it back with the rest
+            // of the shell) — no separate beat needed, just make sure it
+            // shows whatever is current now that the beats above are seen.
+            this.refreshCounsel();
           },
         });
       } else {
         clearPendingBecome();
-        if (mode === "resume") {
-          // clearPendingBecome() (above) runs at pull-back START, not end —
-          // so a reload mid-dolly resumes straight into "resume" mode with
-          // no pull-back at all, and onPullbackEnd above will never fire.
-          // The arrival line is still unseen server-side, so play it here
-          // instead, after a short beat so it doesn't land in the same
-          // frame as the sky mounting.
-          window.setTimeout(() => {
-            this.playArrival();
-          }, 600);
-        }
+        // S0.3: mode === "resume" needed its own arrival timer here once
+        // (onPullbackEnd, above, never fires for a reload mid-dolly straight
+        // into resume) — refreshCounsel's unconditional call in the `sky`
+        // handler already covers every mode, resume included, so nothing
+        // extra is needed in this branch now.
       }
       // S0.2: the HUD's standing lines tick on their own second; the sky
       // handler's immediate refreshStanding() covers the gap until the
@@ -1012,8 +1016,6 @@ export class App {
           window.clearInterval(this.standingInterval);
           this.standingInterval = null;
         }
-        this.voiceBeat?.destroy();
-        this.voiceBeat = null;
         this.intro?.destroy();
         this.intro = null;
         if (this.model === model) this.model = null;

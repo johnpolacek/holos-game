@@ -1326,6 +1326,17 @@ export type CohortServerMessage =
       probeFlightYearsPerLy: number;
       // ── AV3 ──
       proposals: readonly Proposal[];
+      /**
+       * AV4: the mind's one argued line for the home screen's strip, riding
+       * the lead proposal (`proposals[0]`) rather than standing apart from
+       * it — the strip is the STANCE side of the facts/stance split
+       * (prose-style.md §2's new row, recorded in S0.4); `proposals[0].line`
+       * stays the deadpan facts side, untouched. Composed server-side
+       * (voice.ts's counsel bank, or the AV4 stance when the flag is on) so
+       * no bank ships to the client. Null when there is no lead proposal —
+       * an empty strip is the honest answer, never a placeholder sentence.
+       */
+      counsel: string | null;
       // ── A2.4 ──
       contact: ContactWire;
       // ── A4 ──
@@ -2087,7 +2098,16 @@ export function parseCohortServerMessage(raw: string): CohortServerMessage | nul
     case "sky": {
       const proposals = parseProposals((data as { proposals?: unknown }).proposals);
       if (proposals === null) return null;
-      return { ...(data as Record<string, unknown>), proposals } as unknown as CohortServerMessage;
+      // AV4: the strip's line, guarded beside `proposals` for the same
+      // reason — a client that renders it should never render a value that
+      // was not really a string or null.
+      const counsel = (data as { counsel?: unknown }).counsel;
+      if (!isStringOrNull(counsel)) return null;
+      return {
+        ...(data as Record<string, unknown>),
+        proposals,
+        counsel,
+      } as unknown as CohortServerMessage;
     }
     // AV1: unlike the cases above, validate `lines` field-by-field rather
     // than trusting the shape wholesale — the payload's whole contract is
