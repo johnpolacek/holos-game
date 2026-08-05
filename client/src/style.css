@@ -2174,7 +2174,11 @@ body {
 .home-meter-label {
   font-family: var(--holos-font-mono);
   letter-spacing: 0;
-  font-size: var(--holos-text-xs);
+  /* xxs by designer call (2026-08 phone check): the label rides its own bar
+     the way a badge rides its tab, so it takes the enclosed-classifier step
+     below the reading floor, quieted a further step by opacity. */
+  font-size: var(--holos-text-xxs);
+  opacity: 0.8;
   color: var(--holos-ink-faint);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
