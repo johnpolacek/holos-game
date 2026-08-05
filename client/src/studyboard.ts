@@ -2167,11 +2167,12 @@ export class StudyBoard {
   // subject; no page here invents a header it does not need.
 
   /**
-   * THE MASTHEAD, at the head of the register. The ceremony hands a player a
-   * named civilization standing on a rendered world, and its own record is
-   * where that world and the words it was founded on belong. Nothing here is
-   * new on the wire — `SelfView.seed` is the whole record, already in hand —
-   * so it costs one image and no protocol at all.
+   * THE MASTHEAD, at the head of the Mind page (moved from the register's
+   * head when Family became Reach, 2026-08): the mind's page opens with who
+   * the civilization is — the world it stands on and the words it was
+   * founded on — before anything it proposes. Nothing here is new on the
+   * wire — `SelfView.seed` is the whole record, already in hand — so it
+   * costs one image and no protocol at all.
    *
    * The name, the designation, the year and the compute ledger are NOT here.
    * They stand over every page in the HUD instead of being buried in one, and
@@ -2180,7 +2181,7 @@ export class StudyBoard {
    * Null before the first sky. No page can be opened before one lands, so
    * that is belt and braces; the caller simply renders the rows.
    */
-  private buildFamilyMasthead(): HTMLElement | null {
+  private buildMasthead(): HTMLElement | null {
     const self = this.self;
     if (self === null) return null;
 
@@ -2385,8 +2386,10 @@ export class StudyBoard {
   }
 
   /**
-   * FAMILY's page: the civilization's own record at the head, then the
-   * register of what it has sent out and what became of it.
+   * REACH's page (the rail label; the tab id keeps the family name it
+   * shipped under): the register of what this civilization has sent out and
+   * what became of it — the outward half of the self, while the masthead
+   * and the mind's own voice live on the Mind page (2026-08 revision).
    *
    * A4's four rules run through THE LEDGER unchanged and are the reason it
    * renders so little — no cyan, nothing claimed that the wire did not send,
@@ -2397,17 +2400,13 @@ export class StudyBoard {
   private renderFamily(): void {
     this.body.innerHTML = "";
 
-    const masthead = this.buildFamilyMasthead();
-    if (masthead !== null) this.body.append(masthead);
-
     // Each of the three is hidden until a sky has carried one: a row pointing
     // at an empty list is noise, and a header over three absences is worse.
+    // In practice the survey rides every sky, so the page is never bare.
     const hasSurvey = this.survey.length > 0;
     const hasOrders = this.ledger.orders.length > 0;
     const hasForks = this.ledger.rows.length > 0;
     if (!hasSurvey && !hasOrders && !hasForks) return;
-
-    if (masthead !== null) this.body.append(this.hairline());
 
     const ledgerHeader = document.createElement("div");
     ledgerHeader.className = "study-section-header holos-caps";
@@ -3108,6 +3107,14 @@ export class StudyBoard {
     this.body.append(header);
 
     this.body.append(this.hairline());
+
+    // The masthead heads the self's page (2026-08: moved here when Family
+    // became Reach): who the civilization is, before anything it proposes.
+    const masthead = this.buildMasthead();
+    if (masthead !== null) {
+      this.body.append(masthead);
+      this.body.append(this.hairline());
+    }
 
     // AV3: the mind's proposals — a live, present-tense block that renders
     // only when there is something to say. See buildProposalRow's comment

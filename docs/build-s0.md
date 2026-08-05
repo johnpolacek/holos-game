@@ -52,6 +52,20 @@ S0 makes four things true, one stage each:
   above the map, the bottom rail below — **Report · Sky · Work · Family ·
   Mind** — with Sky as the landing tab. Every shipped surface re-homes
   under a rail tab; the most important verbs surface within two taps.
+  *(Amended 2026-08, on the S0.2 phone check: the rail shipped as
+  **Report · Sky · Projects · Reach · Mind**. Work was renamed Projects,
+  the word for what the page holds. Family became Reach, the outward
+  register — the survey, voyages, forks, the Ledger, standing orders —
+  and its masthead (world plate + charter) re-homed to the Mind page's
+  head, so Mind opens with who the civilization is before what it
+  proposes; Reach is also where S2's reach-arc exposure readout and the
+  family register naturally land. The HUD ships the name, the
+  designation and a two-decimal epoch year that visibly ticks; the
+  resource chip became the compute meter, a thin bar bottom right. The
+  rail and name wear the titling face, the rail in amber; instrument
+  readouts wear a self-hosted mono face. The report's session auto-open
+  was retired for a calm unread badge on the Report tab. ui-design.md's
+  S0.4 revision records the shipped layout in full.)*
 - **S0.3 — The counsel strip.** One argued line from the mind between map
   and rail, with **Talk** opening the Mind page. Floor-picked counsel
   (AV3's deterministic enumerator) serves the line; the AV4 seam renders
