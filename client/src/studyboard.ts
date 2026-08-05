@@ -16,14 +16,22 @@
 //     denominated in compute since — see projects.ts) is A2.2 entirely and
 //     does not appear here.
 //
+// S0.2: this panel is the PAGE half of the Home shell. Five landings, one
+// per rail tab (Report, Sky, Work, Family, Mind), and every other view is a
+// drill-in owned by exactly one of them — VIEW_TAB below is that ownership
+// and the rail's highlight is derived from it and from nothing else. A
+// landing has no back leg (the rail is the way out) and dims nothing behind
+// it; a scrim belongs to the two true overlays and to them only. The civ
+// name, the year and the compute ledger are the HUD's, not this panel's.
+//
 // Register: observatory deadpan, wit 0, no exclamation marks. Soft past
 // tense for remote facts — every one wears its light-age. NEVER cyan inside
 // the panel: cyan is the present tense and your own works, and everything
 // this surface shows is remote and old, so it is all amber/ink.
 //
 // Three exceptions, and they prove the rule — every one of them is
-// present-tense and yours. The Tend chip out on the sky is chrome, not panel,
-// and what it opens is the list of YOUR work. The HOME end of the briefing's
+// present-tense and yours. The rail out on the shell is chrome, not panel,
+// and what WORK opens is the list of YOUR work. The HOME end of the briefing's
 // starmap is your own star, charted so the source's distance reads as
 // geometry; the deeper rule (cyan = you / amber = other) wins there, because
 // an amber HOME would say "someone else".
@@ -156,17 +164,11 @@ import {
   formatAbsoluteYear,
   formatClockPair,
   formatCountdown,
-  formatEpochYear,
   formatGameYears,
   formatRealDuration,
   nowYear,
   realMsForYears,
 } from "./clock";
-// Inlined at build time rather than fetched: one more request for a 400-byte
-// mark is a request the sky does not need, and the markup carries
-// fill="currentColor", so the icon takes the chip's ink — including the
-// glare-mode bump — without a second color declaration anywhere.
-import treeViewIcon from "@phosphor-icons/core/assets/light/tree-view-light.svg?raw";
 
 const SWIPE_CLOSE_PX = 56;
 
@@ -365,7 +367,7 @@ const ORDER_OUTCOME_LABEL: Record<OrderOutcome, string> = {
 };
 
 /**
- * A2.5: how a thread's state reads, on the hub row and again in the thread's
+ * A2.5: how a thread's state reads, on Sky's row and again in the thread's
  * own header. The chrome is the client's (the TRIPWIRE_LABEL precedent) —
  * the wire carries the state id and no wording.
  *
@@ -674,7 +676,7 @@ function hypothesisPercentages(
 }
 
 // ── A2.6: durable identity, as chrome ────────────────────────────────────
-// The hub row and the key sheet. Everything a claim/reveal needs beyond the
+// The Mind page's row and the key sheet. Everything a claim/reveal needs beyond the
 // wire's `key`/`fresh` pair is authored here — the client never imports
 // server/src/accounts.ts (CLAUDE.md's protocol-only boundary), so the display
 // grouping is a deliberate, small duplication rather than a shared import.
@@ -722,6 +724,90 @@ function copyAccountKey(text: string): void {
   copyAccountKeyFallback(text);
 }
 
+/** The Home shell's rail. Structurally identical to the shell's own export
+ *  and deliberately declared here as well: the shell composes this panel, so
+ *  the dependency may only ever run that way. */
+export type RailTab = "report" | "sky" | "work" | "family" | "mind";
+
+/**
+ * Every page this panel can show.
+ *
+ * Five of them are LANDINGS — one per rail tab — and the rest are drill-ins
+ * owned by exactly one landing. A landing carries no back leg (the rail is
+ * the way out); a drill-in always does, and it must come home inside its own
+ * tab, because a page whose tab is not lit is a page the player cannot
+ * explain being on.
+ */
+type View =
+  // The five landings.
+  | "sky"
+  | "work"
+  | "family"
+  | "mind"
+  | "report"
+  // Sky's drill-ins: the studies and the sources they are made of, plus the
+  // conversations — a conversation is with a source at a distance, and the
+  // map is the surface that addresses one.
+  | "list"
+  | "focused"
+  | "picker"
+  | "brief"
+  | "explore"
+  // A2.5: one thread, in full. Its own view rather than a fold inside a
+  // landing — a conversation is read top to bottom, and the composer needs
+  // the whole column.
+  | "thread"
+  // Work's drill-ins: what the observatory can build, and what is aimed.
+  | "projects"
+  | "project"
+  | "mission"
+  | "launch"
+  // ── A4 ──
+  // Family's. THE SURVEY (the nearest stars and what a ship would find),
+  // and the founding sheet aimed at one of them. Two views rather than a
+  // fold, for the thread view's reason: the sheet is read top to bottom and
+  // the charter needs the whole column.
+  | "survey"
+  | "voyage"
+  // ── A4, the aftermath ──
+  // One founding's whole record (the fork detail, opened from THE LEDGER or
+  // from a report entry), and the sheet where a standing order is armed. An
+  // order is the line's standing rule, so it rides the Ledger's own wire and
+  // belongs to the same tab as the record it writes itself into.
+  | "fork"
+  | "orders"
+  // The playtest reset's confirmation page, reached from the run's
+  // housekeeping at the foot of the Mind page.
+  | "startover";
+
+/**
+ * Which tab owns which page. Exhaustive by construction: a View with no
+ * entry here does not compile, so a page added later cannot reach a player
+ * with the rail lit somewhere else.
+ */
+const VIEW_TAB: Record<View, RailTab> = {
+  report: "report",
+  sky: "sky",
+  list: "sky",
+  focused: "sky",
+  picker: "sky",
+  brief: "sky",
+  explore: "sky",
+  thread: "sky",
+  work: "work",
+  projects: "work",
+  project: "work",
+  mission: "work",
+  launch: "work",
+  family: "family",
+  survey: "family",
+  voyage: "family",
+  fork: "family",
+  orders: "family",
+  mind: "mind",
+  startover: "mind",
+};
+
 export class StudyBoard {
   private readonly socket: CohortSocket;
   /** Opening menu labels per signal class, from `welcome` — the briefing's
@@ -740,11 +826,6 @@ export class StudyBoard {
   private readonly starsById: ReadonlyMap<string, Star>;
 
   private readonly root: HTMLDivElement;
-  private readonly chip: HTMLButtonElement;
-  /** The second standing chip, opposite + Start: everything already under
-   *  way. Hidden while there is nothing to tend — a chip pointing at an
-   *  empty list is noise. */
-  private readonly tendChip: HTMLButtonElement;
   private readonly backdrop: HTMLDivElement;
   private readonly sheet: HTMLDivElement;
   private readonly topbar: HTMLDivElement;
@@ -767,42 +848,7 @@ export class StudyBoard {
   private proposals: readonly Proposal[] = [];
 
   private openFlag = false;
-  private view:
-    | "hub"
-    | "list"
-    | "focused"
-    | "picker"
-    | "brief"
-    | "explore"
-    | "projects"
-    | "project"
-    | "tend"
-    | "mission"
-    | "launch"
-    // ── A4 ──
-    // THE SURVEY (the nearest stars and what a ship would find), and the
-    // founding sheet aimed at one of them. Two views rather than a fold,
-    // for the thread view's reason: the sheet is read top to bottom and the
-    // charter needs the whole column.
-    | "survey"
-    | "voyage"
-    // ── A4, the aftermath ──
-    // One founding's whole record (the fork detail, opened from THE LEDGER's
-    // hub section or from a report entry), and the sheet where a standing
-    // order is armed. Neither is a list: the Ledger itself is a hub section,
-    // because a child is a relationship and not an undertaking.
-    | "fork"
-    | "orders"
-    | "startover"
-    // S0.1: the Mind page's stub — a title and the intro's replay entry.
-    // Its own view, the startover/report precedent: nothing here reads a
-    // `sky` either.
-    | "mind"
-    | "report"
-    // A2.5: one thread, in full. Its own view rather than a fold inside the
-    // hub — a conversation is read top to bottom, and the composer needs the
-    // whole column.
-    | "thread" = "list";
+  private view: View = "list";
   private focusedStarId: string | null = null;
   private briefStarId: string | null = null;
   private focusedMissionId: string | null = null;
@@ -810,13 +856,15 @@ export class StudyBoard {
   // came from — the back button returns there, so Tend, Projects and the
   // Report each get their own way in without the sheet forking.
   private focusedProjectId: string | null = null;
-  // AV3: "hub" joins the return set — a proposal's `project` route opens the
-  // detail sheet from the hub, so its back button must come home there.
-  private projectReturn: "tend" | "projects" | "report" | "hub" = "projects";
+  // AV3: "mind" joins the return set — a proposal's `project` route opens the
+  // detail sheet from the page the proposal was read on, so its back button
+  // must come home there. "work" is the work list, which is the Work
+  // landing's lower half.
+  private projectReturn: "work" | "projects" | "report" | "mind" = "projects";
   // AV3: same rule for the brief — a proposal's `study-brief` route opens it
-  // from the hub, and backing out must come home there, not to a picker the
-  // player never visited.
-  private briefReturn: "picker" | "hub" = "picker";
+  // from the Mind page, and backing out must come home there, not to a picker
+  // the player never visited.
+  private briefReturn: "picker" | "mind" = "picker";
   private openStudyCount = 0;
 
   // The reset's two transient bits. `pending` disables the verb for the one
@@ -858,9 +906,10 @@ export class StudyBoard {
    *  charter that says "carry on as we are". */
   private voyageDials = new Map<DialAxisId, { position: number; pinned: boolean }>();
   private voyageName = "";
-  /** Where BACK goes: the survey row it was opened from, or the hub (the
-   *  source card's affordance closes the card and leaves nothing behind). */
-  private voyageReturn: "survey" | "hub" = "hub";
+  /** Where BACK goes: the survey row it was opened from, or the Family
+   *  landing that owns the founding side (the source card's affordance closes
+   *  the card and leaves nothing behind). */
+  private voyageReturn: "survey" | "family" = "family";
 
   // A launchVoyage in flight, on the launchMission trio's exact shape: the
   // star plus the voyage ids already on the wire at send time, so the
@@ -888,10 +937,14 @@ export class StudyBoard {
   private voyageCommitRefresh: (() => void) | null = null;
   /** The commit control's row, so the bloom has somewhere to mount. */
   private voyageVerbRow: HTMLDivElement | null = null;
-  /** A one-shot: the next renderTend scrolls this voyage's row into view and
+  /** A one-shot: the next work list scrolls this voyage's row into view and
    *  clears it (highlightQuestionId's mold). Set by a launch's handoff and by
    *  a report entry's `voyage` route. */
   private highlightVoyageId: string | null = null;
+  /** WORK's page holds its list in its own container so the 1s ticker can
+   *  replace only that: the verb above it counts down nothing, and a rebuild
+   *  under a thumb is a tap lost. Null whenever the page is not on screen. */
+  private workListEl: HTMLDivElement | null = null;
 
   // ── A4: the aftermath ────────────────────────────────────────────────
   // THE LEDGER as the latest sky sent it: what became of the foundings, and
@@ -902,10 +955,10 @@ export class StudyBoard {
 
   /** Which fork's record is on screen, and where BACK goes — the report can
    *  open one directly (a `ledger` route), so its own back leg has to come
-   *  home there rather than to a hub the player never passed through
+   *  home there rather than to a register the player never passed through
    *  (projectReturn's precedent). */
   private forkVoyageId: string | null = null;
-  private forkReturn: "hub" | "report" = "hub";
+  private forkReturn: "family" | "report" = "family";
 
   /** The arming sheet's in-progress charter — cleared each time openOrders
    *  opens fresh (the launch sheet's rule: a half-written charter never
@@ -974,18 +1027,11 @@ export class StudyBoard {
   // landed by then) and on any server error.
   private pendingTripwireKeys = new Set<string>();
 
-  // A single 1s ticker, live while the panel is open, so the hub's compute
-  // allocation line and any running project's countdown stay current without
-  // a new `sky` message — both derive from clock.ts's locally-interpolated
+  // A single 1s ticker, live while the panel is open, so the projects panel's
+  // allocation line and any running work's countdown stay current without a
+  // new `sky` message — both derive from clock.ts's locally-interpolated
   // nowYear(), never from server polling.
   private tickHandle: number | null = null;
-
-  // AV3: the hub's budget line element, set by buildBudgetLine() whenever
-  // the hub is the caller. The ticker's hub branch updates only this
-  // element's textContent instead of re-rendering the whole hub — a tick
-  // landing between finger-down and finger-up on a proposal row must never
-  // eat the tap (see refreshHubBudget()).
-  private hubBudgetEl: HTMLDivElement | null = null;
 
   private onInspectCb: ((starId: string) => void) | null = null;
 
@@ -1005,9 +1051,19 @@ export class StudyBoard {
   // S0.1: the Mind page's one action — fired on tap, staged by the App
   // (closing the board, arming Intro) like every other ceremony entry.
   private onReplayIntroCb: (() => void) | null = null;
-  // A one-shot: openHub("voice") scrolls the section into view on the render
-  // that follows, and clears itself. The HOME mote's tap is the only caller.
-  private hubScrollToVoice = false;
+  // A one-shot: openSkyPage("voice") scrolls the section into view on the
+  // render that follows, and clears itself. The HOME mote's tap is the only
+  // caller.
+  private skyScrollToVoice = false;
+
+  // S0.2: which tab the open page belongs to, as last announced. The rail
+  // draws its own highlight from this and from nothing else, so every path
+  // that moves the view — an open* method, a back leg, a sky's fallback —
+  // reaches the rail through one diffing choke point (announceTab), exactly
+  // as the selection ring reaches the sky through announceViewedStar.
+  private onViewChangedCb: ((tab: RailTab, viewOpen: boolean) => void) | null = null;
+  private announcedTab: RailTab = "sky";
+  private announcedViewOpen = false;
 
   // ── A2.5: the thread view ────────────────────────────────────────────
   // Which thread is on screen. Also the client half of a PER-CONNECTION
@@ -1045,7 +1101,7 @@ export class StudyBoard {
   private floorNotice = false;
   private floorNoticeHandle: number | null = null;
 
-  // A one-shot, the hubScrollToVoice mold: a thread opened fresh lands on
+  // A one-shot, the skyScrollToVoice mold: a thread opened fresh lands on
   // its newest signal and the composer, not on a hail sent an age ago. Every
   // later render leaves the scroll exactly where the reader put it.
   private threadScrollToEnd = false;
@@ -1056,12 +1112,11 @@ export class StudyBoard {
   // finger-down and finger-up (or inside a keystroke).
   private liveClocks: { readonly el: HTMLElement; readonly text: () => string }[] = [];
 
-  // AV1: the one-time hub explainer (compute, then later the clock note).
-  // renderHub() re-runs on every openHub() and on every sky (the 1s ticker
-  // no longer re-runs it in full — see refreshHubBudget/AV3), so nothing
-  // one-shot can live inside it directly — the App sets this field once
-  // per hub open via setHubExplainer, and every render after that just
-  // reads it back, stable for the life of the panel session.
+  // AV1: Sky's one-time explainer (compute, then later the clock note).
+  // renderSky() re-runs on every openSkyPage() and on every sky, so nothing
+  // one-shot can live inside it directly — the App sets this field once per
+  // open via setHubExplainer, and every render after that just reads it
+  // back, stable for the life of the panel session.
   private explainerText: string | null = null;
   private onHubOpenCb: (() => void) | null = null;
 
@@ -1083,7 +1138,7 @@ export class StudyBoard {
 
   // ── A2.6: durable identity ────────────────────────────────────────────
   // Whether THIS SEAT has an account, from `welcome.account` (App forwards
-  // it via setHasAccount) — decides which of the two hub rows renders. A
+  // it via setHasAccount) — decides which of the two Mind rows renders. A
   // successful claim also flips this locally the moment the key comes back
   // (showAccountKey below), so the row updates without waiting on a fresh
   // welcome that will never arrive on this same connection.
@@ -1092,7 +1147,7 @@ export class StudyBoard {
   // released by the confirming `accountKey` or by handleServerError.
   private pendingAccountAction: "claim" | "reveal" | null = null;
   // The key sheet: a child of the SHEET, not of the body (the composer's own
-  // precedent) — renderHub() rebuilds the body on every sky and must not
+  // precedent) — a landing page rebuilds the body on every sky and must not
   // tear this down while it is up. Null whenever no key is on screen.
   private accountSheetEl: HTMLDivElement | null = null;
   private accountKeyValue: string | null = null;
@@ -1115,7 +1170,7 @@ export class StudyBoard {
   // A subscribe/unsubscribe in flight: guards a double tap, released when the
   // device state is re-read.
   private pushBusy = false;
-  // The ask sheet, a child of the SHEET like the key sheet, so renderHub()
+  // The ask sheet, a child of the SHEET like the key sheet, so a page
   // rebuilding the body underneath cannot tear it down mid-ask.
   private watchSheetEl: HTMLDivElement | null = null;
 
@@ -1138,40 +1193,15 @@ export class StudyBoard {
 
     this.root = document.createElement("div");
     this.root.className = "study-board-root";
+    // S0.2: this panel is a PAGE under the Home shell's rail, never a sheet
+    // that floats over the whole sky on its own account. Unconditional: there
+    // is no un-railed way to reach it any more, and a modifier that only
+    // sometimes applied would be a second layout to keep true.
+    this.root.classList.add("study-board--railed");
 
-    this.chip = document.createElement("button");
-    this.chip.type = "button";
-    // Not holos-caps: this is the one standing invitation on the sky, not a
-    // label, so it wears the display face at reading size. Cinzel's lowercase
-    // are small caps, so "Start" sets as a titled word without shouting.
-    this.chip.className = "study-chip";
-    this.chip.textContent = "+ Start";
-    this.chip.addEventListener("click", () => this.openHub());
-
-    // The pair: + Start begins something, Tend checks on what is already
-    // going. Same pill, other corner, cyan rather than amber, and the same
-    // travelling glint at half the rate — a slower pulse for the chip you
-    // return to rather than the one that invites you in.
-    // The mark is Phosphor's tree-view at light weight — a trunk with things
-    // branching off it, which is the shape of the panel it opens: missions
-    // with their children indented under them. It is decoration for the word
-    // beside it, so it is hidden from the accessibility tree; "Tend" is the
-    // accessible name on its own.
-    this.tendChip = document.createElement("button");
-    this.tendChip.type = "button";
-    this.tendChip.className = "study-chip study-chip--tend";
-    const tendIcon = document.createElement("span");
-    tendIcon.className = "study-chip-icon";
-    tendIcon.setAttribute("aria-hidden", "true");
-    // A build-time constant from node_modules, not anything a player or the
-    // server can reach — the one place innerHTML is safe.
-    tendIcon.innerHTML = treeViewIcon;
-    const tendLabel = document.createElement("span");
-    tendLabel.textContent = "Tend";
-    this.tendChip.append(tendIcon, tendLabel);
-    this.tendChip.hidden = true;
-    this.tendChip.addEventListener("click", () => this.openTend());
-
+    // The scrim. Lit only while a true overlay is up (the key sheet, the
+    // watch ask) — a landing page and a drill-in are the shell's own content
+    // and dim nothing behind them.
     this.backdrop = document.createElement("div");
     this.backdrop.className = "study-board-backdrop";
     this.backdrop.addEventListener("click", () => this.close());
@@ -1204,7 +1234,7 @@ export class StudyBoard {
     this.body.className = "study-board-body";
 
     this.sheet.append(this.topbar, this.body);
-    this.root.append(this.chip, this.tendChip, this.backdrop, this.sheet);
+    this.root.append(this.backdrop, this.sheet);
     container.append(this.root);
 
     this.attachSwipe();
@@ -1248,15 +1278,16 @@ export class StudyBoard {
     this.pushSubscribedOnSeat = subscribed;
   }
 
-  /** Re-read what the BROWSER says about this device and repaint the hub if it
-   *  is what is on screen. The subscription lives outside this panel's state,
-   *  so it is asked rather than assumed. */
+  /** Re-read what the BROWSER says about this device and repaint the Mind
+   *  page if it is what is on screen — that is where the watch row lives. The
+   *  subscription lives outside this panel's state, so it is asked rather
+   *  than assumed. */
   private async refreshWatchState(): Promise<void> {
     const on = await watchOnThisDevice();
     if (on === this.pushOnThisDevice && !this.pushBusy) return;
     this.pushOnThisDevice = on;
     this.pushBusy = false;
-    if (this.view === "hub") this.renderHub();
+    if (this.view === "mind") this.renderMind();
   }
 
   update(
@@ -1282,7 +1313,7 @@ export class StudyBoard {
     this.probeFlightYearsPerLy = probeFlightYearsPerLy;
     this.proposals = proposals;
     this.contact = contact;
-    this.updateChip();
+    this.updateStudyCount();
 
     // A2.5: a signal in flight is released by any sky at all — onSendSignal
     // appends and answers with a fresh sky, and a refusal comes back as an
@@ -1314,13 +1345,14 @@ export class StudyBoard {
       const starId = this.threadStarId;
       const known = (contact?.threads ?? []).some((t) => t.starId === starId);
       if (!known) {
-        // The thread vanished from this payload — fall back to the hub the
-        // way a vanished study falls back to the list, by swapping the view
-        // and NOT by opening the panel: this can land while a ceremony has
-        // the sky, and a sheet that opened itself then would be a disaster.
+        // The thread vanished from this payload — fall back to the page that
+        // owns it, the way a vanished study falls back to the list, by
+        // swapping the view and NOT by opening the panel: this can land while
+        // a ceremony has the sky, and a sheet that opened itself then would
+        // be a disaster.
         this.leaveThread();
-        this.view = "hub";
-        this.renderHub();
+        this.view = "sky";
+        this.renderSky();
         this.announceViewedStar();
         return;
       }
@@ -1438,24 +1470,27 @@ export class StudyBoard {
       this.renderPicker();
     } else if (this.view === "brief") {
       this.renderBrief();
-    } else if (this.view === "hub") {
-      this.renderHub();
+    } else if (this.view === "sky") {
+      this.renderSky();
     } else if (this.view === "explore") {
       this.renderExplore();
     } else if (this.view === "projects") {
       this.renderProjects();
     } else if (this.view === "project") {
       this.renderProjectDetail();
-    } else if (this.view === "tend") {
-      this.renderTend();
+    } else if (this.view === "work") {
+      this.renderWork();
+    } else if (this.view === "family") {
+      this.renderFamily();
     } else if (this.view === "mission") {
       if (this.focusedMissionId !== null && this.missionsById.has(this.focusedMissionId)) {
         this.renderMissionDetail();
       } else {
-        // The focused mission vanished from this payload — fall back to the Tend.
-        this.view = "tend";
+        // The focused mission vanished from this payload — fall back to the
+        // work list, which is the lower half of the page that owns it.
+        this.view = "work";
         this.focusedMissionId = null;
-        this.renderTend();
+        this.renderWork();
       }
     } else if (this.view === "launch") {
       this.renderLaunch();
@@ -1474,13 +1509,14 @@ export class StudyBoard {
       // A4: a Ledger row is NEVER deleted (the record outlives the colony and
       // every source it was ever visible as), so a row that has gone missing
       // means the sky itself has changed under this panel — fall back to the
-      // hub rather than render about nothing, the focused view's precedent.
+      // register rather than render about nothing, the focused view's
+      // precedent.
       if (this.forkVoyageId !== null && this.ledgerRowsById.has(this.forkVoyageId)) {
         this.renderFork();
       } else {
-        this.view = "hub";
+        this.view = "family";
         this.forkVoyageId = null;
-        this.renderHub();
+        this.renderFamily();
       }
     } else if (this.view === "orders") {
       this.renderOrders();
@@ -1492,11 +1528,11 @@ export class StudyBoard {
       // player out of a confirmation they are mid-way through reading.
       this.renderStartOver();
     } else if (this.view === "mind") {
-      // Nothing on this stub reads a `sky` either — the startover branch's
-      // reason, above.
+      // The proposals block DOES read a `sky` (they are replaced wholesale on
+      // every one), so this branch is load-bearing and not defensive.
       this.renderMind();
     } else if (this.view === "report") {
-      // Defensive consistency only, the `tend`/`projects` precedent — a
+      // Defensive consistency only, the `work`/`projects` precedent — a
       // `sky` carries none of the report's own data, so this just re-runs
       // the render against whatever `this.report` already holds. It is NOT
       // how the report refreshes; see openReport()/setReport().
@@ -1510,6 +1546,7 @@ export class StudyBoard {
     // returns above either changed nothing or handed off through an open*
     // method, and the ticker backstops the rest.
     this.announceViewedStar();
+    this.announceTab();
   }
 
   openBoard(): void {
@@ -1521,17 +1558,74 @@ export class StudyBoard {
     this.startTicking();
   }
 
-  openHub(scrollTo?: "voice"): void {
-    // Fires first, before renderHub(), so the App's setHubExplainer() (if it
+  /**
+   * SKY's page. The tab itself lands on the bare map with this panel shut —
+   * the sky is the thing, and a page over it is the second tap, not the
+   * first. This is that second tap: re-tapping Sky, the HOME mote, and every
+   * back leg out of a Sky-owned drill-in all arrive here.
+   */
+  openSkyPage(scrollTo?: "voice"): void {
+    // Fires first, before renderSky(), so the App's setHubExplainer() (if it
     // calls one) is already in `explainerText` for the very first render.
     this.onHubOpenCb?.();
-    this.hubScrollToVoice = scrollTo === "voice";
-    this.view = "hub";
+    this.skyScrollToVoice = scrollTo === "voice";
+    this.view = "sky";
     this.focusedStarId = null;
-    this.renderHub();
+    this.renderSky();
     this.openFlag = true;
     this.root.classList.add("open");
     this.startTicking();
+  }
+
+  /** WORK's page: what this civilization can begin, over what it already has
+   *  under way. One page, because a verb and its consequences are the same
+   *  subject. */
+  openWork(): void {
+    this.view = "work";
+    this.focusedStarId = null;
+    this.renderWork();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
+  /** FAMILY's page: this civilization's own record at the head, then the
+   *  register of what it has sent out and what became of it. */
+  openFamily(): void {
+    this.view = "family";
+    this.focusedStarId = null;
+    this.renderFamily();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
+  /**
+   * The rail's one entry point. Every tab but Sky opens its landing page;
+   * SKY TOGGLES, because Sky's landing is the map with nothing over it — the
+   * first tap from anywhere else shuts the panel, and a second tap on a shut
+   * panel opens Sky's own page. The toggle lives here so the shell can stay
+   * a set of five identical buttons.
+   */
+  showTab(tab: RailTab): void {
+    switch (tab) {
+      case "report":
+        this.openReport();
+        break;
+      case "sky":
+        if (this.openFlag) this.close();
+        else this.openSkyPage();
+        break;
+      case "work":
+        this.openWork();
+        break;
+      case "family":
+        this.openFamily();
+        break;
+      case "mind":
+        this.openMind();
+        break;
+    }
   }
 
   openPicker(): void {
@@ -1552,6 +1646,16 @@ export class StudyBoard {
     this.startTicking();
   }
 
+  /** Everything the instruments can see. Sky's, like the picker beside it. */
+  private openExplore(): void {
+    this.view = "explore";
+    this.focusedStarId = null;
+    this.renderExplore();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
   focusStudy(starId: string): void {
     this.view = "focused";
     this.focusedStarId = starId;
@@ -1565,16 +1669,7 @@ export class StudyBoard {
     this.startTicking();
   }
 
-  openTend(): void {
-    this.view = "tend";
-    this.focusedStarId = null;
-    this.renderTend();
-    this.openFlag = true;
-    this.root.classList.add("open");
-    this.startTicking();
-  }
-
-  focusProject(projectId: string, from: "tend" | "projects" | "report" | "hub"): void {
+  focusProject(projectId: string, from: "work" | "projects" | "report" | "mind"): void {
     this.view = "project";
     this.focusedProjectId = projectId;
     this.projectReturn = from;
@@ -1621,9 +1716,8 @@ export class StudyBoard {
     this.startTicking();
   }
 
-  /** S0.1: the Mind page's stub. A title and one row (the intro's replay);
-   *  S0.3 grows this into the real page. Nothing here reads a `sky`, the
-   *  startover/report precedent. */
+  /** MIND's page: what the mind would do next, the opening it can play
+   *  again, and the run's own housekeeping under a hairline at the foot. */
   openMind(): void {
     this.view = "mind";
     this.focusedStarId = null;
@@ -1712,7 +1806,7 @@ export class StudyBoard {
    * charter never survives a close/reopen (openLaunch's rule), and the dials
    * come back up on the parent's own positions.
    */
-  openVoyageLaunch(starId: string, from: "survey" | "hub" = "hub"): void {
+  openVoyageLaunch(starId: string, from: "survey" | "family" = "family"): void {
     this.cancelVoyageHold();
     this.view = "voyage";
     this.voyageStarId = starId;
@@ -1734,12 +1828,13 @@ export class StudyBoard {
   /** AV3: a proposal's `question` route — focuses the study and scrolls its
    *  matching OPEN QUESTIONS row into view. Guards on the study still being
    *  in this session's sky (the AV3 design's "target fades mid-session"
-   *  edge case) and falls back to the hub rather than opening a focus view
+   *  edge case) and falls back to the page it was proposed on rather than
+   *  opening a focus view
    *  for a study that no longer exists. The scroll itself is one-shot: see
    *  `highlightQuestionId` and renderFocused's oqSection loop. */
   private focusStudyQuestion(starId: string, questionId: string): void {
     if (!this.studiesByStarId.has(starId)) {
-      this.openHub();
+      this.openMind();
       return;
     }
     this.view = "focused";
@@ -1761,6 +1856,8 @@ export class StudyBoard {
     this.stopTicking();
     // A closed panel is about nothing; the ring it was holding lets go.
     this.announceViewedStar();
+    // A closed panel IS Sky's landing: the map, bare. The rail says so.
+    this.announceTab();
     // A4: a press that loses its surface is a press that ended. The sheet
     // going away is a release, and a release is silent.
     this.cancelVoyageHold();
@@ -1816,6 +1913,18 @@ export class StudyBoard {
     this.onViewedStarCb?.(starId);
   }
 
+  /** S0.2: announceViewedStar's twin for the rail. A shut panel is Sky's own
+   *  landing, so it reports Sky with the page closed rather than reporting
+   *  nothing — the rail always has exactly one tab lit. Diffed and
+   *  idempotent, and called from the same choke points. */
+  private announceTab(): void {
+    const tab: RailTab = this.openFlag ? VIEW_TAB[this.view] : "sky";
+    if (tab === this.announcedTab && this.openFlag === this.announcedViewOpen) return;
+    this.announcedTab = tab;
+    this.announcedViewOpen = this.openFlag;
+    this.onViewChangedCb?.(tab, this.openFlag);
+  }
+
   destroy(): void {
     this.stopTicking();
     this.cancelVoyageHold();
@@ -1833,20 +1942,23 @@ export class StudyBoard {
     // each deliberate view change (the idempotent guard below must not skip
     // it: "already ticking" does not mean "same view").
     this.announceViewedStar();
+    this.announceTab();
     if (this.tickHandle !== null) return;
     this.tickHandle = window.setInterval(() => {
       this.announceViewedStar();
-      // AV3: the hub's only time-varying content is the budget line — a
-      // full renderHub() every second would wipe the body between
-      // finger-down and finger-up on a proposal's accept/decline buttons.
-      // Update just that element's text; fall back to a full render if it
-      // has fallen out of the document (defensive only).
-      if (this.view === "hub") this.refreshHubBudget();
+      this.announceTab();
+      // Sky's page holds no clock of its own; what moves on it is THE VOICE's
+      // thread rows, and they are refreshed in place. THE MIND and FAMILY are
+      // absent from this chain deliberately and must stay absent: a tick that
+      // rebuilt the Mind page would wipe the body between finger-down and
+      // finger-up on a proposal's accept/decline buttons, and nothing on
+      // either page counts anything down.
+      if (this.view === "sky") this.refreshLiveClocks();
       else if (this.view === "projects") this.renderProjects();
       else if (this.view === "project") this.renderProjectDetail();
       else if (this.view === "focused" && this.focusedStarId !== null) {
         this.renderFocused(this.focusedStarId);
-      } else if (this.view === "tend") this.renderTend();
+      } else if (this.view === "work") this.refreshWorkList();
       else if (this.view === "mission") this.renderMissionDetail();
       // A4: the survey and the founding sheet state DURATIONS (a crossing
       // takes what it takes), so nothing on either counts down. What does
@@ -1874,8 +1986,8 @@ export class StudyBoard {
   }
 
   /** Uncommitted compute right now: the last snapshot plus what has accrued
-   * since, derived locally from clock.ts's nowYear() so the hub and projects
-   * panel read live without waiting on a new `sky`. */
+   * since, derived locally from clock.ts's nowYear() so the projects panel
+   * reads live without waiting on a new `sky`. */
   private currentFreeCompute(): number {
     const elapsedYears = Math.max(0, nowYear() - this.budget.asOfYear);
     // Local accrual clamps at the attention ceiling, mirroring the
@@ -1898,29 +2010,14 @@ export class StudyBoard {
     return `${Math.floor(this.currentFreeCompute())} OF ${Math.floor(this.budget.cap)} COMPUTE UNCOMMITTED · +${this.budget.ratePerYear}/Y`;
   }
 
+  /** The allocation line, on the surfaces that spend it. The standing
+   *  readout of compute is the HUD's now; this is the line a page shows
+   *  beside the thing being priced. */
   private buildBudgetLine(): HTMLDivElement {
     const line = document.createElement("div");
     line.className = "study-budget-line holos-caps";
     line.textContent = this.budgetLineText();
-    // AV3: the hub's copy is the one the 1s ticker updates in place
-    // (refreshHubBudget) rather than through a full renderHub().
-    if (this.view === "hub") this.hubBudgetEl = line;
     return line;
-  }
-
-  /** AV3: the ticker's hub branch — updates only the budget line's text,
-   *  never the whole hub body, so a tick cannot land between finger-down
-   *  and finger-up on a proposal row. Falls back to a full renderHub() if
-   *  the element has fallen out of the document. */
-  private refreshHubBudget(): void {
-    if (this.hubBudgetEl !== null && this.hubBudgetEl.isConnected) {
-      this.hubBudgetEl.textContent = this.budgetLineText();
-      // A2.5: THE VOICE's thread rows carry countdowns of their own, and
-      // they are refreshed the same way and for the same reason.
-      this.refreshLiveClocks();
-    } else {
-      this.renderHub();
-    }
   }
 
   /** A2.5: every element whose text is locally-derived clock arithmetic —
@@ -1980,23 +2077,39 @@ export class StudyBoard {
     this.onReplayIntroCb = cb;
   }
 
-  /** A2.4: hide the two standing chips while a ceremony is armed. They opt
-   *  themselves into pointer-events even though their root does not, so a
-   *  ceremony overlay cannot cover them — they have to stand down. */
+  /** S0.2: fired whenever the open page changes tab, and whenever the panel
+   *  opens or shuts. `viewOpen` false means no page is up at all, which is
+   *  Sky's own landing — the bare map — and the tab is Sky. The rail draws
+   *  its highlight from this and never from its own last tap, so a deep link,
+   *  a back leg and a sky's fallback all move it. */
+  onViewChanged(cb: (tab: RailTab, viewOpen: boolean) => void): void {
+    this.onViewChangedCb = cb;
+  }
+
+  /**
+   * A2.4: stand the board's own chrome down while a ceremony is armed. The
+   * two standing chips it was written for are gone, and what it covers now is
+   * whatever of this panel remains visible over the sky — the class is the
+   * one hook the stylesheet has for that. The App hides the Home shell (HUD
+   * and rail) separately: the shell is not this panel's to hide.
+   *
+   * Kept as a method because every ceremony entry point calls it, and because
+   * the panel must still have a way to get out of the sky's light.
+   */
   setChromeHidden(hidden: boolean): void {
     this.root.classList.toggle("chrome-hidden", hidden);
   }
 
-  /** Registers the callback fired as the FIRST step of every openHub(),
-   *  before that call's renderHub() — so a setHubExplainer() the callback
+  /** Registers the callback fired as the FIRST step of every openSkyPage(),
+   *  before that call's renderSky() — so a setHubExplainer() the callback
    *  makes is already in `explainerText` for the very first render. */
   onHubOpen(cb: () => void): void {
     this.onHubOpenCb = cb;
   }
 
-  /** AV1: the hub's one-time explainer line (compute, then later the
-   *  clock), or null for none. The App drives this via takeVoice — stable
-   *  across the panel's re-renders because renderHub() only reads it back. */
+  /** AV1: Sky's page carries a one-time explainer line (compute, then later
+   *  the clock), or null for none. The App drives this via takeVoice — stable
+   *  across the panel's re-renders because renderSky() only reads it back. */
   setHubExplainer(text: string | null): void {
     this.explainerText = text;
   }
@@ -2031,16 +2144,13 @@ export class StudyBoard {
 
   // ── Render: chrome ──────────────────────────────────────────────────
 
-  /** The Start chip's text never changes; this keeps the open-study count
-   * fresh for the hub's "Your studies · n" row, and shows or hides the Tend
-   * chip — which exists only while there is something to tend. */
-  private updateChip(): void {
+  /** Keeps the open-study count fresh for Sky's "Your studies" row. */
+  private updateStudyCount(): void {
     let n = 0;
     for (const s of this.studiesByStarId.values()) {
       if (s.status === "open") n++;
     }
     this.openStudyCount = n;
-    this.tendChip.hidden = this.tend.length === 0;
   }
 
   private hairline(): HTMLHRElement {
@@ -2049,37 +2159,28 @@ export class StudyBoard {
     return hr;
   }
 
-  // ── Render: hub view ──────────────────────────────────────────────────
-
-  /** The masthead's standing line: where this civilization is, and when it is
-   *  by its own count. The star wears its catalog designation because that is
-   *  what the sky calls it, and the year is EPOCH-DATED (R-33) — the cohort's
-   *  absolute year is the clock this panel's chrome stamps elsewhere, and it
-   *  is not what a civilization calls the year it is living in. */
-  private standingLineText(self: SelfView): string {
-    return `${self.designation} · YEAR ${formatEpochYear(nowYear(), self.seed.ascensionYear)}`;
-  }
+  // ── Render: the landing pages ─────────────────────────────────────────
+  //
+  // Five pages, one per rail tab, and the rail is how a player leaves any of
+  // them: a landing carries no back leg. Each one is rows and section
+  // headers this panel already owns, gathered under the tab that owns the
+  // subject; no page here invents a header it does not need.
 
   /**
-   * THE MASTHEAD. This sheet used to open on the word START, a line saying
-   * what the sheet was for, and the compute ledger: three pieces of chrome,
-   * and not one of them said whose sheet it was. The ceremony hands a player
-   * a named civilization standing on a rendered world, and this is the very
-   * next surface they read — forgetting all of it here is what made the sheet
-   * read as a menu of verbs rather than as the front of a civilization.
+   * THE MASTHEAD, at the head of the register. The ceremony hands a player a
+   * named civilization standing on a rendered world, and its own record is
+   * where that world and the words it was founded on belong. Nothing here is
+   * new on the wire — `SelfView.seed` is the whole record, already in hand —
+   * so it costs one image and no protocol at all.
    *
-   * So it opens with the civilization instead: its world, its name, the
-   * charter it was founded on, and where and when it is standing. Nothing
-   * here is new on the wire — `SelfView.seed` is the whole record, already in
-   * hand — so the masthead costs one image and no protocol at all.
+   * The name, the designation, the year and the compute ledger are NOT here.
+   * They stand over every page in the HUD instead of being buried in one, and
+   * the year in particular is the HUD's to stamp (R-33).
    *
-   * The word START moves down to head the verbs as a section, beside THE
-   * VOICE and THE LEDGER, which is what it always was.
-   *
-   * Null before the first sky. The hub cannot be opened before one lands, so
-   * that is belt and braces; the caller falls back to the plain title.
+   * Null before the first sky. No page can be opened before one lands, so
+   * that is belt and braces; the caller simply renders the rows.
    */
-  private buildHubMasthead(): HTMLElement | null {
+  private buildFamilyMasthead(): HTMLElement | null {
     const self = this.self;
     if (self === null) return null;
 
@@ -2089,7 +2190,7 @@ export class StudyBoard {
     // The wide crop suits a band; the cradle gradient sits under it as the
     // fallback, so an unplated cradle or a plate that fails to load still
     // carries the world's own color rather than leaving a hole. Same two
-    // layers, same order, as the inheritance card one surface back.
+    // layers, same order, as the inheritance card.
     const plate = document.createElement("div");
     plate.className = "hub-masthead-plate";
     const url = worldArt(self.seed.cradleId, "wide");
@@ -2101,48 +2202,29 @@ export class StudyBoard {
     const body = document.createElement("div");
     body.className = "hub-masthead-body";
 
-    const name = document.createElement("div");
-    name.className = "hub-masthead-name holos-serif";
-    name.textContent = self.seed.name;
-    body.append(name);
-
     // The founding epigraph, in the register it was accepted in (the
     // ceremony's own .charter voice, a size down): the civilization's words
-    // about itself, which is the one line on this sheet nobody has to act on.
+    // about itself, which is the one line on this page nobody has to act on.
     const charter = document.createElement("p");
     charter.className = "hub-masthead-charter";
     charter.textContent = `"${self.seed.charter}"`;
     body.append(charter);
 
-    const standing = document.createElement("div");
-    standing.className = "hub-masthead-standing holos-caps";
-    standing.textContent = this.standingLineText(self);
-    // Ticked by the 1s clock like every other locally-derived time on this
-    // panel, so the year turns over under the reader's eye rather than only
-    // between opens. It is the sheet's one moving part and it should move.
-    this.liveClocks.push({ el: standing, text: () => this.standingLineText(self) });
-    body.append(standing);
-
-    body.append(this.buildBudgetLine());
-
     masthead.append(body);
     return masthead;
   }
 
-  private renderHub(): void {
+  /**
+   * SKY's page. The tab lands on the map with nothing over it; this is what
+   * the second tap puts there — the studies, the two ways into another one,
+   * and the voice.
+   *
+   * THE VOICE sits here because a conversation is with a source at a
+   * distance, and the map is the surface that addresses one.
+   */
+  private renderSky(): void {
     this.body.innerHTML = "";
     this.liveClocks = [];
-
-    const masthead = this.buildHubMasthead();
-    if (masthead !== null) {
-      this.body.append(masthead);
-    } else {
-      const header = document.createElement("div");
-      header.className = "study-board-header holos-caps";
-      header.textContent = "START";
-      this.body.append(header);
-      this.body.append(this.buildBudgetLine());
-    }
 
     if (this.explainerText !== null) {
       const note = document.createElement("div");
@@ -2151,37 +2233,16 @@ export class StudyBoard {
       this.body.append(note);
     }
 
-    this.body.append(this.hairline());
-
-    // AV3: the mind's proposals — a live, present-tense block that renders
-    // only when there is something to say. See buildProposalRow's comment
-    // for the row anatomy and why this is not another buildHubRow.
-    if (this.proposals.length > 0) {
-      const proposalHeader = document.createElement("div");
-      proposalHeader.className = "study-section-header holos-caps";
-      proposalHeader.textContent = "WHAT WE WOULD DO NEXT";
-      this.body.append(proposalHeader);
-
-      for (const proposal of this.proposals) {
-        this.body.append(this.buildProposalRow(proposal));
-      }
-
-      this.body.append(this.hairline());
+    if (this.studiesByStarId.size > 0) {
+      this.body.append(
+        this.buildHubRow(
+          `Your studies · ${this.openStudyCount}`,
+          "Open and shelved.",
+          true,
+          () => this.openBoard(),
+        ),
+      );
     }
-
-    // The verbs, under the word the chip out on the sky opens with. It heads a
-    // SECTION here rather than the whole sheet: the masthead above is the
-    // sheet's title now, and START is one of three things this panel offers
-    // beside THE VOICE and THE LEDGER, not the name of all of them.
-    const startHeader = document.createElement("div");
-    startHeader.className = "study-section-header holos-caps";
-    startHeader.textContent = "START";
-    this.body.append(startHeader);
-
-    const startSubtitle = document.createElement("div");
-    startSubtitle.className = "study-picker-subtitle";
-    startSubtitle.textContent = "What your civilization can begin now.";
-    this.body.append(startSubtitle);
 
     this.body.append(
       this.buildHubRow(
@@ -2193,60 +2254,19 @@ export class StudyBoard {
     );
     this.body.append(
       this.buildHubRow(
-        "Start a project",
-        "Build the instruments. Raise what you can think about.",
-        true,
-        () => this.openProjects(),
-      ),
-    );
-    this.body.append(
-      this.buildHubRow(
         "Explore the sky",
         "Everything your instruments can see.",
         true,
-        () => {
-          this.view = "explore";
-          this.renderExplore();
-        },
+        () => this.openExplore(),
       ),
     );
-    // A4: THE SURVEY. It sits beside "explore the sky" because it is the
-    // other way of reading the neighborhood — that one lists what is
-    // shining, this one lists where a ship could go, which is a different
-    // set of stars and a different question. Hidden until a sky has carried
-    // one: a row pointing at an empty list is noise (the Tend chip's rule).
-    if (this.survey.length > 0) {
-      this.body.append(
-        this.buildHubRow(
-          "The survey",
-          "The nearest stars, and what a ship would find there.",
-          true,
-          () => this.openSurvey(),
-        ),
-      );
-    }
-    // A4: THE STANDING ORDER. It belongs in START because it is something the
-    // civilization begins, even though what it begins is a rule rather than a
-    // work: arming is the consent, and consenting is done here, in the
-    // present, by a live hand. Hidden until a sky has carried the catalog —
-    // the survey row's rule, one row over.
-    if (this.ledger.orders.length > 0) {
-      this.body.append(
-        this.buildHubRow(
-          "Leave a standing order",
-          "What the mind may send while nobody is watching.",
-          true,
-          () => this.openOrders(),
-        ),
-      );
-    }
 
     this.body.append(this.hairline());
 
-    // A2.4: THE VOICE. Its own one-row section, because speaking is not one
-    // more thing to start — it is the only irreversible verb in the hub, and
-    // it does not belong in a browse list beside "explore the sky". The row
-    // stays ink like everything else in this sheet: the cyan exceptions are
+    // A2.4: THE VOICE. Its own section, because speaking is not one more
+    // thing to start — it is the only irreversible verb on this page, and it
+    // does not belong in a browse list beside "explore the sky". The row
+    // stays ink like everything else in this panel: the cyan exceptions are
     // named in this file's header and this is not one of them.
     const voiceHeader = document.createElement("div");
     voiceHeader.className = "study-section-header holos-caps";
@@ -2267,103 +2287,160 @@ export class StudyBoard {
     for (const starId of this.contact?.mutedStarIds ?? []) {
       this.body.append(this.buildMutedRow(starId));
     }
+  }
+
+  /**
+   * WORK's page: what this civilization can begin, over what it already has
+   * under way. One page rather than two, because a verb and its consequences
+   * are the same subject.
+   *
+   * A standing order is NOT here. It is a rule the line keeps rather than an
+   * undertaking that ends, so it rides the Ledger's wire and sits with the
+   * register on FAMILY.
+   */
+  private renderWork(): void {
+    this.body.innerHTML = "";
+
+    this.body.append(
+      this.buildHubRow(
+        "Start a project",
+        "Build the instruments. Raise what you can think about.",
+        true,
+        () => this.openProjects(),
+      ),
+    );
+
     this.body.append(this.hairline());
 
-    // A4: THE LEDGER. Its own section, under THE VOICE, and for the same
-    // reason that one exists: a child is not one more thing to start. It is a
-    // relationship, which is why it is a hub section and NOT a Tend row — the
-    // work list is for undertakings that end.
-    //
-    // Rendered only when there is a founding to name. NO UNREAD MARK, NO
-    // COUNT, NO FRESHNESS BAR anywhere in it (a4-ledger-note.md §7): the
-    // record is a thing you read when you want to, and a badge would make it
-    // a chore. One verb per row, and the row IS the verb.
-    if (this.ledger.rows.length > 0) {
-      const ledgerHeader = document.createElement("div");
-      ledgerHeader.className = "study-section-header holos-caps";
-      ledgerHeader.textContent = "THE LEDGER";
-      this.body.append(ledgerHeader);
+    // The list is its own container so the 1s ticker can replace IT rather
+    // than the page: the verb above counts down nothing, and a rebuild
+    // landing between finger-down and finger-up on it would eat the tap.
+    const list = document.createElement("div");
+    this.workListEl = list;
+    this.body.append(list);
+    this.fillWorkList(list);
+  }
 
-      for (const row of this.ledger.rows) {
-        this.body.append(this.buildLedgerRow(row));
-      }
-      this.body.append(this.hairline());
+  /** The ticker's work branch: the list alone. Falls back to a full render
+   *  if the container has fallen out of the document (defensive only). */
+  private refreshWorkList(): void {
+    const el = this.workListEl;
+    if (el === null || !el.isConnected) {
+      this.renderWork();
+      return;
+    }
+    this.fillWorkList(el);
+  }
+
+  private fillWorkList(list: HTMLElement): void {
+    list.innerHTML = "";
+
+    // The count beside the title in the display face — a reading of the
+    // list, set against its name rather than a second line under it. Empty is
+    // the one case it sits out: the body already says "Nothing under way."
+    // and would say it twice.
+    const titleRow = document.createElement("div");
+    titleRow.className = "tend-titlerow";
+
+    const header = document.createElement("div");
+    header.className = "study-section-header holos-caps";
+    header.textContent = "TEND";
+    titleRow.append(header);
+
+    if (this.tend.length > 0) {
+      const summary = document.createElement("div");
+      summary.className = "tend-summary holos-serif";
+      summary.textContent = this.tendSummaryLine();
+      titleRow.append(summary);
     }
 
-    if (this.studiesByStarId.size > 0) {
+    list.append(titleRow);
+
+    if (this.tend.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "study-board-empty";
+      empty.textContent = "Nothing under way.";
+      list.append(empty);
+      return;
+    }
+
+    // A4: a one-shot scroll to one founding's row — the launch's own handoff
+    // and a report entry's `voyage` route both land here (highlightQuestionId's
+    // mold: taken on the render that uses it, so the 1s ticker never
+    // re-scrolls the page under the player's thumb).
+    const wanted = this.highlightVoyageId;
+    this.highlightVoyageId = null;
+    let wantedEl: HTMLElement | null = null;
+
+    for (const row of this.tend) {
+      const el = this.buildTendRow(row);
+      if (wanted !== null && row.id === `voyage/${wanted}`) wantedEl = el;
+      list.append(el);
+    }
+
+    if (wantedEl !== null) {
+      const target = wantedEl;
+      requestAnimationFrame(() => target.scrollIntoView({ block: "center" }));
+    }
+  }
+
+  /**
+   * FAMILY's page: the civilization's own record at the head, then the
+   * register of what it has sent out and what became of it.
+   *
+   * A4's four rules run through THE LEDGER unchanged and are the reason it
+   * renders so little — no cyan, nothing claimed that the wire did not send,
+   * no unread mark or count or freshness bar, one verb per row. THE SURVEY
+   * heads the register because it is the same question asked before there is
+   * a record: where a child could stand.
+   */
+  private renderFamily(): void {
+    this.body.innerHTML = "";
+
+    const masthead = this.buildFamilyMasthead();
+    if (masthead !== null) this.body.append(masthead);
+
+    // Each of the three is hidden until a sky has carried one: a row pointing
+    // at an empty list is noise, and a header over three absences is worse.
+    const hasSurvey = this.survey.length > 0;
+    const hasOrders = this.ledger.orders.length > 0;
+    const hasForks = this.ledger.rows.length > 0;
+    if (!hasSurvey && !hasOrders && !hasForks) return;
+
+    if (masthead !== null) this.body.append(this.hairline());
+
+    const ledgerHeader = document.createElement("div");
+    ledgerHeader.className = "study-section-header holos-caps";
+    ledgerHeader.textContent = "THE LEDGER";
+    this.body.append(ledgerHeader);
+
+    if (hasSurvey) {
       this.body.append(
         this.buildHubRow(
-          `Your studies · ${this.openStudyCount}`,
-          "Open and shelved.",
+          "The survey",
+          "The nearest stars, and what a ship would find there.",
           true,
-          () => this.openBoard(),
+          () => this.openSurvey(),
+        ),
+      );
+    }
+    // A4: THE STANDING ORDER. Arming is the consent, and consenting is done
+    // in the present by a live hand — but what is consented to is a rule the
+    // line keeps while nobody is watching, which is this register's business.
+    if (hasOrders) {
+      this.body.append(
+        this.buildHubRow(
+          "Leave a standing order",
+          "What the mind may send while nobody is watching.",
+          true,
+          () => this.openOrders(),
         ),
       );
     }
 
-    // AV2: always present, quiet — no count, no dot, no conditional
-    // visibility. A show/hide affordance here would read as an unread
-    // badge, and the report carries none.
-    this.body.append(
-      this.buildHubRow(
-        "The report",
-        "What the light brought while you were away.",
-        true,
-        () => this.openReport(),
-      ),
-    );
-
-    // S0.1: THE MIND. Its stub sits under the report for the same reason
-    // the watch does one row down — all three are about what happened
-    // while the player was not looking, or (here) what they have not yet
-    // seen at all.
-    this.body.append(this.buildMindRow());
-
-    // A5: the watch. It belongs here, under the report, because it is about
-    // the same thing the report is about: what happened while you were not
-    // looking. Absent entirely when the deployment has no VAPID keypair.
-    const watchRow = this.buildWatchRow();
-    if (watchRow !== null) this.body.append(watchRow);
-
-    // A2.6: durable identity. Unclaimed offers the verb; claimed offers the
-    // re-read — never both, the same either/or the hub's other rows never
-    // need because nothing else here has two faces.
-    this.body.append(
-      this.hasAccount
-        ? this.buildHubRow(
-            "Your account",
-            "Show the key that carries this run.",
-            true,
-            () => this.requestAccountKey(),
-          )
-        : this.buildHubRow(
-            "Keep this run",
-            "Save it to an account so you can come back on another device.",
-            true,
-            () => this.claimAccount(),
-          ),
-    );
-
-    // The playtest reset. Below its own hairline and in faint ink rather
-    // than the rows' amber, because it is not one of the verbs the panel
-    // exists to offer: everything above is something the CIVILIZATION can
-    // begin, and this is something the PLAYER does to the run. It never
-    // fires from here — the tap opens the consequences first.
-    //
-    // It renders LAST in the hub, and it must stay inside renderHub(): it
-    // spent a slice stranded after the `return` in buildMutedRow(), where
-    // it typechecked, audited and shipped as unreachable code — so the
-    // panel offered no way to start over at all.
-    this.body.append(this.hairline());
-    this.body.append(
-      this.buildHubRow(
-        "Start over",
-        "Give up this civilization and inherit again.",
-        true,
-        () => this.openStartOver(),
-        "aside",
-      ),
-    );
+    for (const row of this.ledger.rows) {
+      this.body.append(this.buildLedgerRow(row));
+    }
   }
 
   /** From App, on every `welcome` — the one fact this panel needs about
@@ -2388,7 +2465,7 @@ export class StudyBoard {
    * From App, on the one message that ever carries a key. `fresh` is the
    * claim ceremony: mandatory write-it-down, no tap-outside dismiss (there
    * is no backdrop on this overlay to tap in the first place). A claim also
-   * means this seat now HAS an account, so the hub row behind the sheet
+   * means this seat now HAS an account, so the row behind the sheet
    * flips the moment it next renders.
    */
   showAccountKey(key: string, fresh: boolean): void {
@@ -2405,7 +2482,7 @@ export class StudyBoard {
    *
    * IT SPEAKS ABOUT THIS DEVICE, and only about this device. Subscriptions are
    * per-browser-per-device and several may hang off one seat; inventing a
-   * device roster in a hub row is a feature this slice does not ship, so the
+   * device roster in one row is a feature this slice does not ship, so the
    * row promises exactly what it can deliver. The three inert states use the
    * existing --inert treatment (the closed study's tripwire row, one panel
    * over): visible, legible, not tappable, and each one names the actual
@@ -2421,6 +2498,7 @@ export class StudyBoard {
         "This browser does not carry notifications. The watch still trips.",
         false,
         () => undefined,
+        "aside",
       );
     }
     if (capability === "ios-not-installed") {
@@ -2429,6 +2507,7 @@ export class StudyBoard {
         "On this phone, notifications need Holos on the Home Screen.",
         false,
         () => undefined,
+        "aside",
       );
     }
     if (capability === "blocked") {
@@ -2437,6 +2516,7 @@ export class StudyBoard {
         "This device is blocking notifications. Only its own settings can undo that.",
         false,
         () => undefined,
+        "aside",
       );
     }
     if (this.pushOnThisDevice) {
@@ -2445,6 +2525,7 @@ export class StudyBoard {
         "Stop the notifications, on this device only.",
         !this.pushBusy,
         () => void this.turnWatchOff(),
+        "aside",
       );
     }
     return this.buildHubRow(
@@ -2452,6 +2533,7 @@ export class StudyBoard {
       "Let this device tell you when a watch trips.",
       !this.pushBusy,
       () => void this.turnWatchOn(),
+      "aside",
     );
   }
 
@@ -2464,7 +2546,7 @@ export class StudyBoard {
     await enableWatch(publicKey, (message) => this.socket.send(message));
     await this.refreshWatchState();
     this.pushBusy = false;
-    if (this.view === "hub") this.renderHub();
+    if (this.view === "mind") this.renderMind();
   }
 
   private async turnWatchOff(): Promise<void> {
@@ -2473,7 +2555,7 @@ export class StudyBoard {
     await disableWatch((message) => this.socket.send(message));
     await this.refreshWatchState();
     this.pushBusy = false;
-    if (this.view === "hub") this.renderHub();
+    if (this.view === "mind") this.renderMind();
   }
 
   /**
@@ -2509,6 +2591,7 @@ export class StudyBoard {
       el.className = "study-account-sheet study-watch-sheet";
       this.sheet.append(el);
       this.watchSheetEl = el;
+      this.syncScrim();
     }
     el.innerHTML = "";
 
@@ -2561,9 +2644,22 @@ export class StudyBoard {
   private closeWatchSheet(): void {
     this.watchSheetEl?.remove();
     this.watchSheetEl = null;
+    this.syncScrim();
   }
 
-  /** A child of the SHEET (the composer's own mold): survives renderHub()
+  /**
+   * S0.2: the scrim, lit only while a TRUE OVERLAY is up — the key sheet and
+   * the watch ask, the two surfaces that take the panel away from whatever
+   * was underneath and must be answered. A landing page and a drill-in are
+   * the shell's own content: they dim nothing, because there is nothing they
+   * are covering that the player did not ask them to cover.
+   */
+  private syncScrim(): void {
+    const overlay = this.accountSheetEl !== null || this.watchSheetEl !== null;
+    this.root.classList.toggle("scrim", overlay);
+  }
+
+  /** A child of the SHEET (the composer's own mold): survives a page
    *  rebuilding the body underneath it, on every sky and every tick. */
   private renderAccountSheet(): void {
     if (this.accountKeyValue === null) return;
@@ -2573,6 +2669,7 @@ export class StudyBoard {
       el.className = "study-account-sheet";
       this.sheet.append(el);
       this.accountSheetEl = el;
+      this.syncScrim();
     }
     el.innerHTML = "";
 
@@ -2645,11 +2742,12 @@ export class StudyBoard {
     this.accountSheetEl?.remove();
     this.accountSheetEl = null;
     this.accountKeyValue = null;
+    this.syncScrim();
     // A claim flips `hasAccount` the moment the key comes back (showAccountKey
-    // above), but the hub body underneath this overlay was rendered before
+    // above), but the Mind page underneath this overlay was rendered before
     // that — refresh it now so "Keep this run" does not linger under the row
     // that just replaced it.
-    if (wasShowing && this.view === "hub") this.renderHub();
+    if (wasShowing && this.view === "mind") this.renderMind();
   }
 
   /**
@@ -2679,30 +2777,11 @@ export class StudyBoard {
       btn.textContent = "SPEAK TO EVERYONE";
       btn.addEventListener("click", () => this.onVoiceActionCb?.());
     }
-    if (this.hubScrollToVoice) {
-      this.hubScrollToVoice = false;
+    if (this.skyScrollToVoice) {
+      this.skyScrollToVoice = false;
       // One frame later: the body is still being assembled right now.
       requestAnimationFrame(() => btn.scrollIntoView({ block: "center" }));
     }
-    return btn;
-  }
-
-  /** S0.1: THE MIND's row on the hub — the only way back into the intro
-   *  once its one autoplay has been spent (a returning player never sees it
-   *  uninvited). Built directly on the `study-hub-row` chassis rather than
-   *  through `buildHubRow`: that helper's second line is prose, and this
-   *  stub page has none to add. */
-  private buildMindRow(): HTMLButtonElement {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "study-hub-row";
-    btn.addEventListener("click", () => this.openMind());
-
-    const labelEl = document.createElement("div");
-    labelEl.className = "study-hub-label";
-    labelEl.textContent = "The mind";
-
-    btn.append(labelEl);
     return btn;
   }
 
@@ -2734,7 +2813,7 @@ export class StudyBoard {
     return base;
   }
 
-  /** One thread on the hub: what you call them, and where the thread stands.
+  /** One thread on Sky's page: what you call them, and where it stands.
    *  The tap says which thread is open and switches the view; the detail
    *  arrives on the sky that answers (openThread). */
   private buildThreadRow(t: ThreadSummary): HTMLButtonElement {
@@ -2872,7 +2951,7 @@ export class StudyBoard {
       // dropped the proposal simply returns on the next `sky`.
       this.socket.send({ type: "declineProposal", id: p.id });
       this.proposals = this.proposals.filter((x) => x.id !== p.id);
-      this.renderHub();
+      this.renderMind();
     });
 
     actions.append(accept, decline);
@@ -2889,7 +2968,7 @@ export class StudyBoard {
   private followProposalRoute(route: ProposalRoute): void {
     switch (route.kind) {
       case "study-brief":
-        this.openBrief(route.starId, "hub");
+        this.openBrief(route.starId, "mind");
         break;
       case "question":
         this.focusStudyQuestion(route.starId, route.questionId);
@@ -2898,7 +2977,7 @@ export class StudyBoard {
         this.openLaunch(route.starId);
         break;
       case "project":
-        this.focusProject(route.projectId, "hub");
+        this.focusProject(route.projectId, "mind");
         break;
     }
   }
@@ -2924,7 +3003,7 @@ export class StudyBoard {
 
   /**
    * What starting over actually costs, then the verb. The page exists
-   * because the hub row must not be a one-tap erase, and because the honest
+   * because the Mind page's row must not be a one-tap erase, and because the honest
    * description of the reset is three sentences long: this is the one place
    * in the UI that admits the game is being played on a test cohort.
    *
@@ -2940,7 +3019,7 @@ export class StudyBoard {
     back.type = "button";
     back.className = "study-back holos-caps";
     back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openHub());
+    back.addEventListener("click", () => this.openMind());
     this.body.append(back);
 
     const header = document.createElement("div");
@@ -3009,19 +3088,19 @@ export class StudyBoard {
     }
   }
 
-  /** S0.1: THE MIND's stub page — a title and the one row this slice ships,
-   *  the intro's replay. `study-verb-row`/`study-verb-btn` rather than
-   *  `buildHubRow`: that helper's second line is prose this stub has none
-   *  of, the startover confirm button's own reason for the same choice. */
+  /**
+   * MIND's page. What the mind would do next comes first, because the mind is
+   * who proposes; then the opening it can play again; then, under a hairline
+   * and in the aside tone, the housekeeping that belongs to the PLAYER rather
+   * than to the civilization — the account, the watch, the reset.
+   *
+   * THE 1s TICKER MUST NEVER RE-RENDER THIS PAGE. A proposal's accept and
+   * decline are two small buttons on one row, and a rebuild landing between
+   * finger-down and finger-up eats the tap. The guard is the tick chain's own
+   * shape (see startTicking) and it has to stay that way.
+   */
   private renderMind(): void {
     this.body.innerHTML = "";
-
-    const back = document.createElement("button");
-    back.type = "button";
-    back.className = "study-back holos-caps";
-    back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openHub());
-    this.body.append(back);
 
     const header = document.createElement("div");
     header.className = "study-board-header holos-caps";
@@ -3030,6 +3109,24 @@ export class StudyBoard {
 
     this.body.append(this.hairline());
 
+    // AV3: the mind's proposals — a live, present-tense block that renders
+    // only when there is something to say. See buildProposalRow's comment
+    // for the row anatomy and why this is not another buildHubRow.
+    if (this.proposals.length > 0) {
+      const proposalHeader = document.createElement("div");
+      proposalHeader.className = "study-section-header holos-caps";
+      proposalHeader.textContent = "WHAT WE WOULD DO NEXT";
+      this.body.append(proposalHeader);
+
+      for (const proposal of this.proposals) {
+        this.body.append(this.buildProposalRow(proposal));
+      }
+
+      this.body.append(this.hairline());
+    }
+
+    // S0.1: the only way back into the intro once its one autoplay has been
+    // spent (a returning player never sees it uninvited).
     const row = document.createElement("div");
     row.className = "study-verb-row";
     const btn = document.createElement("button");
@@ -3039,6 +3136,48 @@ export class StudyBoard {
     btn.addEventListener("click", () => this.onReplayIntroCb?.());
     row.append(btn);
     this.body.append(row);
+
+    this.body.append(this.hairline());
+
+    // A2.6: durable identity. Unclaimed offers the verb; claimed offers the
+    // re-read — never both, the same either/or the other rows never need
+    // because nothing else here has two faces.
+    this.body.append(
+      this.hasAccount
+        ? this.buildHubRow(
+            "Your account",
+            "Show the key that carries this run.",
+            true,
+            () => this.requestAccountKey(),
+            "aside",
+          )
+        : this.buildHubRow(
+            "Keep this run",
+            "Save it to an account so you can come back on another device.",
+            true,
+            () => this.claimAccount(),
+            "aside",
+          ),
+    );
+
+    // A5: the watch, about what happens while the player is not looking.
+    // Absent entirely when the deployment has no VAPID keypair.
+    const watchRow = this.buildWatchRow();
+    if (watchRow !== null) this.body.append(watchRow);
+
+    // The playtest reset, in faint ink like the two rows above it: everything
+    // on the other pages is something the CIVILIZATION can begin, and this is
+    // something the PLAYER does to the run. It never fires from here — the
+    // tap opens the consequences first.
+    this.body.append(
+      this.buildHubRow(
+        "Start over",
+        "Give up this civilization and inherit again.",
+        true,
+        () => this.openStartOver(),
+        "aside",
+      ),
+    );
   }
 
   // ── Render: explore view ─────────────────────────────────────────────
@@ -3050,7 +3189,7 @@ export class StudyBoard {
     back.type = "button";
     back.className = "study-back holos-caps";
     back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openHub());
+    back.addEventListener("click", () => this.openSkyPage());
     this.body.append(back);
 
     const header = document.createElement("div");
@@ -3350,7 +3489,7 @@ export class StudyBoard {
     back.type = "button";
     back.className = "study-back holos-caps";
     back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openHub());
+    back.addEventListener("click", () => this.openSkyPage());
     this.body.append(back);
 
     const header = document.createElement("div");
@@ -3398,7 +3537,7 @@ export class StudyBoard {
   /** AV3: public — a proposal's `study-brief` route (followProposalRoute)
    *  is the mind's own affordance for opening this same brief, alongside
    *  the picker row's tap. */
-  openBrief(starId: string, from: "picker" | "hub" = "picker"): void {
+  openBrief(starId: string, from: "picker" | "mind" = "picker"): void {
     this.view = "brief";
     this.briefStarId = starId;
     this.briefReturn = from;
@@ -3422,9 +3561,9 @@ export class StudyBoard {
     // brief, so fall back rather than render a card about nothing.
     if (starId === null || source === undefined) {
       this.briefStarId = null;
-      if (this.briefReturn === "hub") {
-        this.view = "hub";
-        this.renderHub();
+      if (this.briefReturn === "mind") {
+        this.view = "mind";
+        this.renderMind();
       } else {
         this.view = "picker";
         this.renderPicker();
@@ -3437,7 +3576,7 @@ export class StudyBoard {
     back.className = "study-back holos-caps";
     back.textContent = "‹ BACK";
     back.addEventListener("click", () => {
-      if (this.briefReturn === "hub") this.openHub();
+      if (this.briefReturn === "mind") this.openMind();
       else this.openPicker();
     });
     this.body.append(back);
@@ -3817,7 +3956,7 @@ export class StudyBoard {
     // A2.6: a claim/reveal in flight is released the same silent way as
     // everything above. `already-claimed` is the one live race worth naming
     // (two devices tapping "Keep this run" on the same seat) and it answers
-    // exactly like the rest — no toast, the hub row simply stays as it was
+    // exactly like the rest — no toast, the row simply stays as it was
     // and the next open reads it fresh.
     if (
       this.pendingAccountAction !== null &&
@@ -3850,7 +3989,7 @@ export class StudyBoard {
     back.type = "button";
     back.className = "study-back holos-caps";
     back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openHub());
+    back.addEventListener("click", () => this.openWork());
     this.body.append(back);
 
     const header = document.createElement("div");
@@ -3941,15 +4080,15 @@ export class StudyBoard {
     // — fall back to wherever the tap came from.
     if (p === undefined) {
       this.focusedProjectId = null;
-      if (this.projectReturn === "tend") {
-        this.view = "tend";
-        this.renderTend();
+      if (this.projectReturn === "work") {
+        this.view = "work";
+        this.renderWork();
       } else if (this.projectReturn === "report") {
         this.view = "report";
         this.renderReport();
-      } else if (this.projectReturn === "hub") {
-        this.view = "hub";
-        this.renderHub();
+      } else if (this.projectReturn === "mind") {
+        this.view = "mind";
+        this.renderMind();
       } else {
         this.view = "projects";
         this.renderProjects();
@@ -3962,9 +4101,9 @@ export class StudyBoard {
     back.className = "study-back holos-caps";
     back.textContent = "‹ BACK";
     back.addEventListener("click", () => {
-      if (this.projectReturn === "tend") this.openTend();
+      if (this.projectReturn === "work") this.openWork();
       else if (this.projectReturn === "report") this.openReport();
-      else if (this.projectReturn === "hub") this.openHub();
+      else if (this.projectReturn === "mind") this.openMind();
       else this.openProjects();
     });
     this.body.append(back);
@@ -4026,7 +4165,7 @@ export class StudyBoard {
 
     this.body.append(this.hairline());
 
-    // The economy the decision is made against — same line the hub carries.
+    // The economy the decision is made against — the projects panel's line.
     this.body.append(this.buildBudgetLine());
 
     if (p.status === "available") {
@@ -4266,70 +4405,9 @@ export class StudyBoard {
     return row;
   }
 
-  // ── Render: the Tend ──────────────────────────────────────────────
+  // ── Render: the work list (the lower half of WORK's page) ───────────
   // One row per TendRow, in the SERVER's order (tend.ts's sortTendRows
   // — soonest-thing-first, parent then children) — the client never re-sorts.
-
-  private renderTend(): void {
-    this.body.innerHTML = "";
-
-    const back = document.createElement("button");
-    back.type = "button";
-    back.className = "study-back holos-caps";
-    back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openHub());
-    this.body.append(back);
-
-    // The count the hub row used to carry, now beside the title in the
-    // display face — a reading of the list, set against its name rather
-    // than a second line under it. Empty is the one case it sits out: the
-    // body already says "Nothing under way." and would say it twice.
-    const titleRow = document.createElement("div");
-    titleRow.className = "tend-titlerow";
-
-    const header = document.createElement("div");
-    header.className = "study-board-header holos-caps";
-    header.textContent = "TEND";
-    titleRow.append(header);
-
-    if (this.tend.length > 0) {
-      const summary = document.createElement("div");
-      summary.className = "tend-summary holos-serif";
-      summary.textContent = this.tendSummaryLine();
-      titleRow.append(summary);
-    }
-
-    this.body.append(titleRow);
-
-    if (this.tend.length === 0) {
-      const empty = document.createElement("div");
-      empty.className = "study-board-empty";
-      empty.textContent = "Nothing under way.";
-      this.body.append(empty);
-      return;
-    }
-
-    this.body.append(this.hairline());
-
-    // A4: a one-shot scroll to one founding's row — the launch's own handoff
-    // and a report entry's `voyage` route both land here (highlightQuestionId's
-    // mold: taken on the render that uses it, so the 1s ticker never
-    // re-scrolls the sheet under the player's thumb).
-    const wanted = this.highlightVoyageId;
-    this.highlightVoyageId = null;
-    let wantedEl: HTMLElement | null = null;
-
-    for (const row of this.tend) {
-      const el = this.buildTendRow(row);
-      if (wanted !== null && row.id === `voyage/${wanted}`) wantedEl = el;
-      this.body.append(el);
-    }
-
-    if (wantedEl !== null) {
-      const target = wantedEl;
-      requestAnimationFrame(() => target.scrollIntoView({ block: "center" }));
-    }
-  }
 
   /** A mission row opens the mission detail; a project row opens the
    *  project detail; any other row with a starId inspects the source (the
@@ -4364,7 +4442,7 @@ export class StudyBoard {
           this.focusMission(missionId);
         } else if (isProject) {
           const projectId = row.id.startsWith("project/") ? row.id.slice("project/".length) : row.id;
-          this.focusProject(projectId, "tend");
+          this.focusProject(projectId, "work");
         } else if (row.starId !== null) {
           this.onInspectCb?.(row.starId);
           this.close();
@@ -4551,13 +4629,6 @@ export class StudyBoard {
   private renderReport(): void {
     this.body.innerHTML = "";
 
-    const back = document.createElement("button");
-    back.type = "button";
-    back.className = "study-back holos-caps";
-    back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openHub());
-    this.body.append(back);
-
     const header = document.createElement("div");
     header.className = "study-board-header holos-caps";
     header.textContent = "THE REPORT";
@@ -4655,7 +4726,7 @@ export class StudyBoard {
         break;
       // A4, the aftermath: a child, by the voyage that made it — the same key
       // the row itself carries, and for the same reason. The record's back
-      // button comes home to the report rather than the hub.
+      // button comes home to the report rather than the register.
       case "ledger":
         this.focusFork(route.voyageId, "report");
         break;
@@ -4688,15 +4759,15 @@ export class StudyBoard {
     back.textContent = "‹ BACK";
     back.addEventListener("click", () => {
       this.leaveThread();
-      this.openHub("voice");
+      this.openSkyPage("voice");
     });
     this.body.append(back);
 
     if (starId === null) {
       // Defensive only: the view cannot be entered without a star.
-      this.view = "hub";
+      this.view = "sky";
       this.closeComposer();
-      this.renderHub();
+      this.renderSky();
       return;
     }
 
@@ -4739,7 +4810,7 @@ export class StudyBoard {
     if (chips.childElementCount > 0) this.body.append(chips);
 
     // A2.6: going dark to one thread. Quiet, unadorned, and no confirm step —
-    // it is reversible from the hub, it notifies nobody, and it changes
+    // it is reversible from Sky's page, it notifies nobody, and it changes
     // nothing on the sender's side (their beam still lands; they simply have
     // no way to learn that it landed in a room with the lights off).
     this.body.append(this.buildMuteRow(starId));
@@ -4809,7 +4880,7 @@ export class StudyBoard {
    * absent from `threads` entirely, so an open one is normally unmuted and
    * this is normally the verb. The unmute case is reachable here only for the
    * instant between the tap and the confirming sky; the standing way back is
-   * the hub's own row (see renderHub).
+   * Sky's own muted row (see renderSky).
    */
   private buildMuteRow(starId: string): HTMLDivElement {
     const row = document.createElement("div");
@@ -6267,9 +6338,9 @@ export class StudyBoard {
     this.body.innerHTML = "";
     if (missionId === null || m === undefined) {
       // The mission vanished between the tap and this render — see update().
-      this.view = "tend";
+      this.view = "work";
       this.focusedMissionId = null;
-      this.renderTend();
+      this.renderWork();
       return;
     }
 
@@ -6277,7 +6348,7 @@ export class StudyBoard {
     back.type = "button";
     back.className = "study-back holos-caps";
     back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openTend());
+    back.addEventListener("click", () => this.openWork());
     this.body.append(back);
 
     // Header: the mission's kind, then the target — same anatomy as the
@@ -6484,9 +6555,9 @@ export class StudyBoard {
     // is nothing to launch at, so fall back rather than render about nothing
     // (renderBrief's precedent).
     if (starId === null || source === undefined) {
-      this.view = "hub";
+      this.view = "work";
       this.launchStarId = null;
-      this.renderHub();
+      this.renderWork();
       return;
     }
 
@@ -6494,7 +6565,7 @@ export class StudyBoard {
     back.type = "button";
     back.className = "study-back holos-caps";
     back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openHub());
+    back.addEventListener("click", () => this.openWork());
     this.body.append(back);
 
     const header = document.createElement("div");
@@ -6746,7 +6817,7 @@ export class StudyBoard {
     back.type = "button";
     back.className = "study-back holos-caps";
     back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openHub());
+    back.addEventListener("click", () => this.openFamily());
     this.body.append(back);
 
     const header = document.createElement("div");
@@ -6849,9 +6920,9 @@ export class StudyBoard {
     // nothing to aim at, so fall back rather than render about nothing
     // (renderLaunch's precedent).
     if (starId === null || target === null) {
-      this.view = "hub";
+      this.view = "family";
       this.voyageStarId = null;
-      this.renderHub();
+      this.renderFamily();
       return;
     }
 
@@ -6861,7 +6932,7 @@ export class StudyBoard {
     back.textContent = "‹ BACK";
     back.addEventListener("click", () => {
       if (this.voyageReturn === "survey") this.openSurvey();
-      else this.openHub();
+      else this.openFamily();
     });
     this.body.append(back);
 
@@ -7518,7 +7589,7 @@ export class StudyBoard {
     this.launchedVoyageId = null;
     this.voyageStarId = null;
     this.highlightVoyageId = id;
-    this.openTend();
+    this.openWork();
   }
 
   /** A report entry's `voyage` route, and the launch handoff: the work list,
@@ -7527,7 +7598,7 @@ export class StudyBoard {
    *  was aimed at. */
   private focusVoyageRow(voyageId: string): void {
     this.highlightVoyageId = voyageId;
-    this.openTend();
+    this.openWork();
   }
 
   // ── Render: THE LEDGER and the standing order (A4, the aftermath) ────
@@ -7548,7 +7619,7 @@ export class StudyBoard {
   //  • NO CHORE SURFACE. No unread mark, no count, no freshness bar. The AS OF
   //    chip renders as NOTHING when the wire sends null: before anything has
   //    come back there is no reading to date, and a zero would be a claim.
-  //  • ONE VERB PER SURFACE. The hub row's verb is the record; the record's
+  //  • ONE VERB PER SURFACE. The register row's verb is the record; the record's
   //    verb is the thread. The mute is stated on both and toggled on neither
   //    (THE VOICE's muted row already owns the undo).
 
@@ -7582,7 +7653,7 @@ export class StudyBoard {
   }
 
   /**
-   * One founding on the hub. The name, where it stands, the band as a word,
+   * One founding in the register. The name, where it stands, the band as a word,
    * the staleness chip when there is one, and where the conversation stands.
    * The whole row is the verb (it opens the record) — there is no second
    * control on it, and no badge that would make it a thing to clear.
@@ -7591,7 +7662,7 @@ export class StudyBoard {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "ledger-row";
-    btn.addEventListener("click", () => this.focusFork(row.voyageId, "hub"));
+    btn.addEventListener("click", () => this.focusFork(row.voyageId, "family"));
 
     const top = document.createElement("div");
     top.className = "ledger-row-top";
@@ -7647,7 +7718,7 @@ export class StudyBoard {
   /** THE FORK: one founding's whole record. Opened by a Ledger row or by a
    *  report entry's `ledger` route, which is keyed on the voyage for the row's
    *  own reason — a child outlives every source it was ever visible as. */
-  private focusFork(voyageId: string, from: "hub" | "report"): void {
+  private focusFork(voyageId: string, from: "family" | "report"): void {
     this.view = "fork";
     this.forkVoyageId = voyageId;
     this.forkReturn = from;
@@ -7663,9 +7734,9 @@ export class StudyBoard {
     this.body.innerHTML = "";
     if (voyageId === null || row === undefined) {
       // The row vanished between the tap and this render — see update().
-      this.view = "hub";
+      this.view = "family";
       this.forkVoyageId = null;
-      this.renderHub();
+      this.renderFamily();
       return;
     }
 
@@ -7675,7 +7746,7 @@ export class StudyBoard {
     back.textContent = "‹ BACK";
     back.addEventListener("click", () => {
       if (this.forkReturn === "report") this.openReport();
-      else this.openHub();
+      else this.openFamily();
     });
     this.body.append(back);
 
@@ -7916,7 +7987,7 @@ export class StudyBoard {
     back.type = "button";
     back.className = "study-back holos-caps";
     back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openHub());
+    back.addEventListener("click", () => this.openFamily());
     this.body.append(back);
 
     const header = document.createElement("div");
