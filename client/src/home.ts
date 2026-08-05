@@ -9,7 +9,9 @@
 // Three fixed, safe-area-aware siblings, appended directly to the App's own
 // root the way .model-root / .source-card-root / .study-board-root are:
 //   - .home-hud    — the civ's name beside the cyan mark, and the standing
-//                    lines (year, compute), all text the CALLER formats.
+//                    lines (designation, the ticking year), all text the
+//                    CALLER formats. The compute meter is a fourth sibling,
+//                    bottom right: a thin bar + tiny label (setCompute).
 //   - .counsel-seam — empty in S0.2. S0.3 fills it; this slice only reserves
 //                    the zero-height slot between the map and the rail.
 //   - .home-rail   — Report · Sky · Work · Family · Mind, five equal tabs.
@@ -44,8 +46,11 @@ export class Home {
   private readonly hud: HTMLDivElement;
   private readonly nameEl: HTMLSpanElement;
   private readonly standing: HTMLDivElement;
+  private designationEl: HTMLSpanElement | null = null;
   private yearEl: HTMLSpanElement | null = null;
-  private computeEl: HTMLSpanElement | null = null;
+  private readonly meter: HTMLDivElement;
+  private readonly meterLabel: HTMLDivElement;
+  private readonly meterFill: HTMLDivElement;
   private readonly rail: HTMLDivElement;
   private readonly tabButtons: Readonly<Record<RailTab, HTMLButtonElement>>;
   private badgeEl: HTMLSpanElement | null = null;
@@ -74,6 +79,22 @@ export class Home {
 
     this.hud.append(identity, this.standing);
 
+    // ── The compute meter ────────────────────────────────────────────────
+    // Bottom right, mirroring the Model's scale readout bottom left: a thin
+    // bar and a tiny label, both fed by the caller. Hidden while a board
+    // page is open (setPageOpen) — floating chrome does not sit on top of a
+    // page a player is reading.
+    this.meter = document.createElement("div");
+    this.meter.className = "home-meter";
+    this.meterLabel = document.createElement("div");
+    this.meterLabel.className = "home-meter-label";
+    const track = document.createElement("div");
+    track.className = "home-meter-track";
+    this.meterFill = document.createElement("div");
+    this.meterFill.className = "home-meter-fill";
+    track.append(this.meterFill);
+    this.meter.append(this.meterLabel, track);
+
     // ── The counsel seam (S0.3 fills it; empty here by contract) ─────────
     const seam = document.createElement("div");
     seam.className = "counsel-seam";
@@ -98,7 +119,7 @@ export class Home {
     }
     this.tabButtons = buttons as Readonly<Record<RailTab, HTMLButtonElement>>;
 
-    this.root.append(this.hud, seam, this.rail);
+    this.root.append(this.hud, seam, this.meter, this.rail);
     container.append(this.root);
   }
 
@@ -131,9 +152,22 @@ export class Home {
     this.nameEl.textContent = name;
   }
 
-  /** The year line and the compute chip. Both pre-formatted by the caller;
-   *  either one null hides that line rather than rendering it empty. */
-  setStanding(year: string | null, compute: string | null): void {
+  /** The two right-hand standing lines: the star's designation over the
+   *  ticking year. Both pre-formatted by the caller; either one null hides
+   *  that line rather than rendering it empty. */
+  setStanding(designation: string | null, year: string | null): void {
+    if (designation === null) {
+      this.designationEl?.remove();
+      this.designationEl = null;
+    } else {
+      if (this.designationEl === null) {
+        this.designationEl = document.createElement("span");
+        this.designationEl.className = "home-standing-designation";
+        this.standing.prepend(this.designationEl);
+      }
+      this.designationEl.textContent = designation;
+    }
+
     if (year === null) {
       this.yearEl?.remove();
       this.yearEl = null;
@@ -145,18 +179,25 @@ export class Home {
       }
       this.yearEl.textContent = year;
     }
+  }
 
-    if (compute === null) {
-      this.computeEl?.remove();
-      this.computeEl = null;
-    } else {
-      if (this.computeEl === null) {
-        this.computeEl = document.createElement("span");
-        this.computeEl.className = "home-standing-compute";
-        this.standing.append(this.computeEl);
-      }
-      this.computeEl.textContent = compute;
+  /** The compute meter: a 0..1 fill and its tiny label, both the caller's.
+   *  Null hides the meter whole (no budget to draw is not an empty bar). */
+  setCompute(state: { readonly fill: number; readonly label: string } | null): void {
+    if (state === null) {
+      this.meter.classList.add("home-meter--empty");
+      return;
     }
+    this.meter.classList.remove("home-meter--empty");
+    this.meterLabel.textContent = state.label;
+    const pct = Math.min(1, Math.max(0, state.fill)) * 100;
+    this.meterFill.style.width = `${pct}%`;
+  }
+
+  /** A board page covers the map; floating chrome stands down while one is
+   *  up so it never sits over the page a player is reading. */
+  setPageOpen(open: boolean): void {
+    this.meter.classList.toggle("home-meter--paged", open);
   }
 
   /** Ceremonies and the intro take the whole shell off screen. */

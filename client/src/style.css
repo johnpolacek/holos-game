@@ -147,8 +147,8 @@ body {
    reading one list. Mono runs wide, so nothing here gains letterspacing. */
 .model-scale,
 .source-card-age,
+.home-standing-designation,
 .home-standing-year,
-.home-standing-compute,
 .rail-badge,
 .study-focus-designation {
   font-family: var(--holos-font-mono);
@@ -2121,15 +2121,15 @@ body {
   text-overflow: ellipsis;
 }
 
-/* The year line and the compute chip place themselves on the grid: the
-   wrapper dissolves (display: contents) so its two children are the grid
-   items, which is what lets the year share the name's row and baseline
-   while the chip takes the whole second row. */
+/* The standing lines place themselves on the grid: the wrapper dissolves
+   (display: contents) so its two children are the grid items — the star's
+   designation shares the name's row and baseline, the ticking year takes
+   the second row's right margin under it. */
 .home-standing {
   display: contents;
 }
 
-.home-standing-year {
+.home-standing-designation {
   grid-column: 2;
   grid-row: 1;
   justify-self: end;
@@ -2139,23 +2139,61 @@ body {
   white-space: nowrap;
 }
 
-.home-standing-compute {
-  grid-column: 1 / -1;
+.home-standing-year {
+  grid-column: 2;
   grid-row: 2;
   justify-self: end;
-  /* The chip may not push the band wider than the screen; on the narrowest
-     phones it trims its tail rather than reflowing anything above it. */
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-size: var(--holos-text-xs);
   color: var(--holos-ink-dim);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  padding: 0.1rem 0.5rem;
-  border: 1px solid var(--holos-gold-dim);
+}
+
+/* The compute meter — bottom right, mirroring the scale readout bottom
+   left: a tiny label over a thin bar. The bar is the reading (how much of
+   the attention ceiling is uncommitted); the label carries the number and
+   the rate. Fill eases so the accrual creeps instead of stepping. */
+.home-meter {
+  position: fixed;
+  right: max(0.9rem, env(safe-area-inset-right));
+  bottom: calc(var(--home-rail-h) + 0.7rem);
+  z-index: 4; /* the shell's own slot; see .home-hud */
+  width: clamp(7.5rem, 24vw, 11rem);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  pointer-events: none;
+}
+
+.home-meter--empty,
+.home-meter--paged {
+  display: none;
+}
+
+.home-meter-label {
+  font-family: var(--holos-font-mono);
+  letter-spacing: 0;
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.home-meter-track {
+  width: 100%;
+  height: 3px;
   border-radius: 999px;
-  background: var(--holos-bg-raised);
+  background: var(--holos-gold-dim);
+  overflow: hidden;
+}
+
+.home-meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--holos-gold);
+  transition: width 900ms linear;
 }
 
 /* S0.3 fills this. Zero height, no border, no background, no text: a page
