@@ -2048,7 +2048,11 @@ body {
  * below all four of those, which are heavier interruptions than a persistent
  * chrome band ever is. */
 :root {
-  --home-hud-h: calc(env(safe-area-inset-top) + 3.4rem);
+  /* Two grid rows at every width: top padding + the name row (md line) + the
+     row gap + the chip row. 3.9rem is that sum with breathing room — the old
+     3.4rem was sized to the flex layout's shorter right-hand column and
+     clipped the chip once the band wrapped. */
+  --home-hud-h: calc(env(safe-area-inset-top) + 3.9rem);
   --home-rail-h: calc(env(safe-area-inset-bottom) + 3.6rem);
 }
 
@@ -2070,11 +2074,18 @@ body {
   padding: calc(env(safe-area-inset-top) + 0.5rem)
     max(0.9rem, env(safe-area-inset-right)) 0
     max(0.9rem, env(safe-area-inset-left));
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.2rem 0.75rem;
+  /* ONE layout at every width — a fixed two-row grid, never a wrap. Row one:
+     the name (ellipsizing, never pushing) with the year line pinned to the
+     right margin on the same baseline. Row two: the compute chip alone on
+     the right margin. A narrow screen shortens the name; it never reflows
+     the band (the 2026-08 phone check found the wrap reading as two
+     different navs). */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 0.75rem;
+  row-gap: 0.3rem;
+  align-content: start;
   overflow: hidden;
   /* Nothing in the band is interactive in S0.2 — a thumb reaches straight
      through it to the map underneath, everywhere the band covers. */
@@ -2082,6 +2093,8 @@ body {
 }
 
 .home-identity {
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -2108,21 +2121,18 @@ body {
   text-overflow: ellipsis;
 }
 
-/* The year line and the compute chip. Flex-wrap on .home-hud (above) is what
-   sends this whole group under the name on a narrow screen — there is no
-   separate breakpoint, the row simply runs out of space and wraps like any
-   other flex row, landing at the block's own start (left) on its own line
-   the same way a name wrapping in a paragraph would. */
+/* The year line and the compute chip place themselves on the grid: the
+   wrapper dissolves (display: contents) so its two children are the grid
+   items, which is what lets the year share the name's row and baseline
+   while the chip takes the whole second row. */
 .home-standing {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.15rem;
-  flex-shrink: 0;
-  text-align: right;
+  display: contents;
 }
 
 .home-standing-year {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
   font-size: var(--holos-text-xs);
   color: var(--holos-ink-faint);
   font-variant-numeric: tabular-nums;
@@ -2130,6 +2140,14 @@ body {
 }
 
 .home-standing-compute {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  justify-self: end;
+  /* The chip may not push the band wider than the screen; on the narrowest
+     phones it trims its tail rather than reflowing anything above it. */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: var(--holos-text-xs);
   color: var(--holos-ink-dim);
   font-variant-numeric: tabular-nums;
