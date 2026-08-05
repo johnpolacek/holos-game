@@ -794,14 +794,18 @@ const VIEW_TAB: Record<View, RailTab> = {
   brief: "sky",
   explore: "sky",
   thread: "sky",
+  // The survey and the founding sheet are Sky's (2026-08 revision): the
+  // nearest stars are sky whether or not anyone stands on them, and the act
+  // of sending is aimed at a place. What the sending BECAME is Reach's — the
+  // register below.
+  survey: "sky",
+  voyage: "sky",
   work: "work",
   projects: "work",
   project: "work",
   mission: "work",
   launch: "work",
   family: "family",
-  survey: "family",
-  voyage: "family",
   fork: "family",
   orders: "family",
   mind: "mind",
@@ -909,7 +913,7 @@ export class StudyBoard {
   /** Where BACK goes: the survey row it was opened from, or the Family
    *  landing that owns the founding side (the source card's affordance closes
    *  the card and leaves nothing behind). */
-  private voyageReturn: "survey" | "family" = "family";
+  private voyageReturn: "survey" | "sky" = "sky";
 
   // A launchVoyage in flight, on the launchMission trio's exact shape: the
   // star plus the voyage ids already on the wire at send time, so the
@@ -1806,7 +1810,7 @@ export class StudyBoard {
    * charter never survives a close/reopen (openLaunch's rule), and the dials
    * come back up on the parent's own positions.
    */
-  openVoyageLaunch(starId: string, from: "survey" | "family" = "family"): void {
+  openVoyageLaunch(starId: string, from: "survey" | "sky" = "sky"): void {
     this.cancelVoyageHold();
     this.view = "voyage";
     this.voyageStarId = starId;
@@ -2261,6 +2265,20 @@ export class StudyBoard {
         () => this.openExplore(),
       ),
     );
+    // 2026-08: the survey is Sky's, not Reach's — the nearest stars are sky
+    // whether or not anyone stands on them, and this page is where a player
+    // looks outward. Hidden until a sky has carried rows, like everything
+    // else here.
+    if (this.survey.length > 0) {
+      this.body.append(
+        this.buildHubRow(
+          "The survey",
+          "The nearest stars, and what a ship would find there.",
+          true,
+          () => this.openSurvey(),
+        ),
+      );
+    }
 
     this.body.append(this.hairline());
 
@@ -2393,36 +2411,24 @@ export class StudyBoard {
    *
    * A4's four rules run through THE LEDGER unchanged and are the reason it
    * renders so little — no cyan, nothing claimed that the wire did not send,
-   * no unread mark or count or freshness bar, one verb per row. THE SURVEY
-   * heads the register because it is the same question asked before there is
-   * a record: where a child could stand.
+   * no unread mark or count or freshness bar, one verb per row.
    */
   private renderFamily(): void {
     this.body.innerHTML = "";
 
-    // Each of the three is hidden until a sky has carried one: a row pointing
-    // at an empty list is noise, and a header over three absences is worse.
-    // In practice the survey rides every sky, so the page is never bare.
-    const hasSurvey = this.survey.length > 0;
+    // 2026-08: the survey left for the Sky page, and nothing here pads the
+    // absence. Before the first sending this page is EMPTY BY DESIGN: Reach
+    // is what the civilization has spread beyond its own system, and at the
+    // start that is honestly nothing — the blank page is the tab teaching
+    // what it will become. Rows appear only once a sky has carried them.
     const hasOrders = this.ledger.orders.length > 0;
     const hasForks = this.ledger.rows.length > 0;
-    if (!hasSurvey && !hasOrders && !hasForks) return;
+    if (!hasOrders && !hasForks) return;
 
     const ledgerHeader = document.createElement("div");
     ledgerHeader.className = "study-section-header holos-caps";
     ledgerHeader.textContent = "THE LEDGER";
     this.body.append(ledgerHeader);
-
-    if (hasSurvey) {
-      this.body.append(
-        this.buildHubRow(
-          "The survey",
-          "The nearest stars, and what a ship would find there.",
-          true,
-          () => this.openSurvey(),
-        ),
-      );
-    }
     // A4: THE STANDING ORDER. Arming is the consent, and consenting is done
     // in the present by a live hand — but what is consented to is a rule the
     // line keeps while nobody is watching, which is this register's business.
@@ -6824,7 +6830,7 @@ export class StudyBoard {
     back.type = "button";
     back.className = "study-back holos-caps";
     back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openFamily());
+    back.addEventListener("click", () => this.openSkyPage());
     this.body.append(back);
 
     const header = document.createElement("div");
@@ -6939,7 +6945,7 @@ export class StudyBoard {
     back.textContent = "‹ BACK";
     back.addEventListener("click", () => {
       if (this.voyageReturn === "survey") this.openSurvey();
-      else this.openFamily();
+      else this.openSkyPage();
     });
     this.body.append(back);
 

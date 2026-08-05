@@ -54,14 +54,19 @@ S0 makes four things true, one stage each:
   under a rail tab; the most important verbs surface within two taps.
   *(Amended 2026-08, on the S0.2 phone check: the rail shipped as
   **Report · Sky · Projects · Reach · Mind**. Work was renamed Projects,
-  the word for what the page holds. Family became Reach, the outward
-  register — the survey, voyages, forks, the Ledger, standing orders —
-  and its masthead (world plate + charter) re-homed to the Mind page's
-  head, so Mind opens with who the civilization is before what it
-  proposes; Reach is also where S2's reach-arc exposure readout and the
-  family register naturally land. The HUD ships the name, the
-  designation and a two-decimal epoch year that visibly ticks; the
-  resource chip became the compute meter, a thin bar bottom right. The
+  the word for what the page holds. Family became Reach: what the
+  civilization has actually spread beyond its own system — the Ledger,
+  forks, standing orders — which is honestly NOTHING at the start, and
+  the blank page is the tab teaching what it will become. The survey
+  lives on the Sky page (the nearest stars are sky whether or not
+  anyone stands on them; the founding sheet opens from there and from
+  the source card). The masthead (world plate + charter) re-homed to
+  the Mind page's head, so Mind opens with who the civilization is
+  before what it proposes; Reach is also where S2's reach-arc exposure
+  readout and the family register naturally land. The HUD ships the
+  name, the designation and a two-decimal epoch year that visibly
+  ticks; the resource chip became the compute meter, a thin bar in the
+  HUD under the name. The
   rail and name wear the titling face, the rail in amber; instrument
   readouts wear a self-hosted mono face. The report's session auto-open
   was retired for a calm unread badge on the Report tab. ui-design.md's
