@@ -316,8 +316,10 @@ body {
 .tend-row-sub,
 .name-hint,
 .source-card-name-hint,
-.voice-beat-line,
 .voice-note,
+/* S0.3: the counsel strip's one argued line. A sentence, spoken over the
+   sky the way the intro's beats and the voice beat's line once were. */
+.counsel-line,
 /* AV2: the report — a triage header, a record sentence, an archetype
    remark. All running prose. */
 .report-header,
@@ -2045,13 +2047,15 @@ body {
  * ancestor is the only way two siblings can agree on one number.
  *
  * Stacking: z-index 4 is a new slot, above .study-board-root (3, the board
- * and the map beneath it) and below .voice-beat-root. Slotting it in pushed
- * every root above the board up by one — voice-beat-root 4→5, contact-
+ * and the map beneath it) and below what was .voice-beat-root. Slotting it in
+ * pushed every root above the board up by one — voice-beat-root 4→5, contact-
  * ceremony-root 5→6, reclaim-root 6→7, intro-root 7→8 (each still comments
  * its own place in the stack); nothing between .study-board-root and
  * .voice-beat-root existed for the shell to reuse, and the shell must sit
  * below all four of those, which are heavier interruptions than a persistent
- * chrome band ever is. */
+ * chrome band ever is. S0.3 retired the voice beat (its line now lives in the
+ * counsel seam below); slot 5 is unused, kept open rather than renumbering
+ * everything that was stacked above it for a beat that no longer exists. */
 :root {
   /* Two grid rows at every width: top padding + the name row (md line) + the
      row gap + the chip row. 3.9rem is that sum with breathing room — the old
@@ -2074,7 +2078,8 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 4; /* above .study-board-root (3), below .voice-beat-root (5) */
+  z-index: 4; /* above .study-board-root (3); 5, once .voice-beat-root,
+                 is unused since S0.3 retired the voice beat */
   height: var(--home-hud-h);
   padding: calc(env(safe-area-inset-top) + 0.5rem)
     max(0.9rem, env(safe-area-inset-right)) 0
@@ -2205,18 +2210,68 @@ body {
   transition: width 900ms linear;
 }
 
-/* S0.3 fills this. Zero height, no border, no background, no text: a page
-   docked above it (.study-board--railed, below) reads as touching the rail
-   directly until S0.3 gives this a line and a Talk affordance. */
+/* S0.3: the counsel strip. One flex row, full width, sitting directly above
+   the rail — the seam S0.2 reserved at zero height. `--empty` (no children,
+   home.ts's own contract) and `--paged` (a board page covers the map) both
+   collapse it back to that same zero height, so a page docked above it
+   still reads as touching the rail directly, exactly as it did before this
+   line existed.
+   The container itself is pointer-events: none — a thumb reaches through it
+   to the map everywhere except the line and the Talk button, which opt back
+   in below. The scrim is a raised surface (--holos-bg-raised, translucent)
+   rather than the rail's near-opaque one: subtle enough that it reads as a
+   ledge, not a second bar, over a sky that can be bright. Calm by design: no
+   transition on the content swap, only the two boolean modifiers below. */
 .counsel-seam {
   position: fixed;
   left: 0;
   right: 0;
   bottom: var(--home-rail-h);
-  height: 0;
+  z-index: 4; /* the shell's own slot; see .home-hud */
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.5rem max(0.9rem, env(safe-area-inset-right)) 0.5rem
+    max(0.9rem, env(safe-area-inset-left));
   margin: 0;
   border: 0;
+  background: rgba(16, 13, 21, 0.55);
   pointer-events: none;
+}
+
+.counsel-seam--empty,
+.counsel-seam--paged {
+  height: 0;
+  padding: 0;
+  background: none;
+  overflow: hidden;
+}
+
+.counsel-line {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-dim);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.counsel-talk {
+  flex: 0 0 auto;
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--holos-amber);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
 }
 
 .home-rail {
@@ -2292,97 +2347,15 @@ body {
   line-height: 1;
 }
 
-/* ── Voice beat / inline explainers (AV1) ─────────────────────────────────
- * The arrival beat is a sibling overlay root, NOT inside .model-overlay
- * (that layer is pointer-events: none by contract and carries the HOME/
- * landmark labels). z-index 5 (S0.2 bumped this from 4 to make room for the
- * home shell's own slot, 4) is deliberate: it must sit above .study-chip —
- * which opts itself into pointer-events even while its .study-board-root
- * parent (z-index 3) is inert — and above the shell's HUD/rail, so no
- * explainer can ever stack over the beat, and the hub chip and canvas stay
- * untappable while it is up. */
-.voice-beat-root {
-  position: absolute;
-  inset: 0;
-  z-index: 5; /* above .home-hud/.home-rail (4), above .study-board-root (3) */
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding:
-    max(1.5rem, env(safe-area-inset-top))
-    max(1.5rem, env(safe-area-inset-right))
-    max(1.5rem, env(safe-area-inset-bottom))
-    max(1.5rem, env(safe-area-inset-left));
-}
-
-.voice-beat-root.open {
-  pointer-events: auto;
-}
-
-/* A LIGHT wash — the pulled-back sky is what the line is spoken over, so
- * this never blacks it out, only quiets it. */
-.voice-beat-scrim {
-  position: absolute;
-  inset: 0;
-  background: rgba(239, 233, 219, 0.08);
-  opacity: 0;
-  transition: opacity 320ms ease;
-}
-
-.voice-beat-root.open .voice-beat-scrim {
-  opacity: 1;
-}
-
-/* position: relative (rather than static) so this paints above the
- * absolutely-positioned scrim despite coming first in the root's flex
- * layout — both become "positioned" boxes painted in DOM order. The
- * vignette quiets what sits directly behind the words (the beat lands at
- * viewport center, exactly where the HOME label lives after the
- * pull-back) without darkening the sky the line is spoken over — caught
- * on the phone check, where HOME's cyan read through the text. */
-.voice-beat {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  max-width: 24em;
-  padding: 2.5rem 1.5rem;
-  background: radial-gradient(
-    closest-side,
-    rgba(9, 11, 16, 0.82),
-    rgba(9, 11, 16, 0)
-  );
-  text-align: center;
-  opacity: 0;
-  transform: translateY(0.5rem);
-  transition:
-    opacity 320ms ease,
-    transform 320ms ease;
-}
-
-.voice-beat-root.open .voice-beat {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.voice-beat-line {
-  font-size: var(--holos-text-lg);
-  color: var(--holos-ink);
-}
-
-.voice-beat-dismiss {
-  background: transparent;
-  border: 1px solid var(--holos-gold-dim);
-  border-radius: 999px;
-  padding: 0.55rem 1.4rem;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* The inline one-time explainer note (sourcecard's age chip, studyboard's
- * hub) — a step quieter than surrounding prose, never below the ink floor. */
+/* ── Inline explainers (AV1) ───────────────────────────────────────────────
+ * S0.3 retired the arrival beat that once lived here (voicebeat.ts, and the
+ * .voice-beat-root/.voice-beat-scrim/.voice-beat/.voice-beat-line/
+ * .voice-beat-dismiss rules that styled it): the arrival line now lands in
+ * the counsel seam (above, in the home shell block) instead of its own
+ * overlay. z-index 5 is unused, not reclaimed (the home shell block's own
+ * header comment says why). What remains is the inline one-time explainer
+ * note (sourcecard's age chip, studyboard's hub) — a step quieter than
+ * surrounding prose, never below the ink floor. */
 .voice-note {
   font-size: var(--holos-text-xs);
   color: var(--holos-ink-dim);
@@ -4597,11 +4570,12 @@ body {
  *
  * z-index 6 (S0.2 bumped this from 5, along with the voice beat's and the
  * re-onboard sheet's/intro's, to make room for the home shell's slot, 4)
- * puts it over the voice beat's 5, which is over the home shell's 4, which
- * is over the board page's 3. The board is also hidden outright while a
- * ceremony is armed (.chrome-hidden below) — belt and braces, since the
- * staging funnel closes it before arming — and this layer is deliberately
- * transparent to a thumb so the canvas underneath can be the press target.
+ * puts it over the unused 5 (once the voice beat's, retired in S0.3), which
+ * is over the home shell's 4, which is over the board page's 3. The board is
+ * also hidden outright while a ceremony is armed (.chrome-hidden below) —
+ * belt and braces, since the staging funnel closes it before arming — and
+ * this layer is deliberately transparent to a thumb so the canvas underneath
+ * can be the press target.
  *
  * EVERYTHING HERE IS POINTER-TRANSPARENT except the one word that refuses. */
 .contact-ceremony-root {
@@ -4843,9 +4817,10 @@ body {
 
 /* The words: bottom third, and FIXED there. One node carries all four beats,
  * so the lines replace each other in place and the eye never chases them. The
- * vignette is .voice-beat's, for the same reason it exists there — it quiets
- * whatever is directly behind the text without darkening the sky the line is
- * spoken over. */
+ * vignette is the same one the retired voice beat used (S0.3 removed that
+ * class; this copy of the gradient outlives it), for the same reason it
+ * existed there — it quiets whatever is directly behind the text without
+ * darkening the sky the line is spoken over. */
 .intro-line {
   position: absolute;
   left: max(1.2rem, env(safe-area-inset-left));
