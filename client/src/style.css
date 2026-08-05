@@ -243,6 +243,14 @@ body {
    and because a two-word label that broke in half would read as a fault. */
 .intro-skip,
 .intro-begin,
+/* S0.2: the hybrid home shell. The civ's name beside the cyan mark, the
+   standing lines beside it, and a rail tab's own word: every one a short
+   label line, never prose, same reasoning as the pairs above it. */
+.home-name,
+.home-standing-year,
+.home-standing-compute,
+.rail-tab,
+.rail-badge,
 /* S0.1: the beat lines too, though they are sentences — the one place prose
    takes balance. Each shows alone, centered, two or three rows on a phone,
    and a widowed last word under a centered block reads as a fault where a
@@ -960,6 +968,27 @@ body {
     width: 28rem;
     max-width: 28rem;
   }
+}
+
+/* S0.2: the home shell's rail. When the board's root carries this class
+ * (studyboard.ts's call — a page is open under a lit rail tab) the sheet
+ * docks between the HUD and the rail instead of covering the full height:
+ * only the two insets this changes, everything else about the sheet
+ * (background, blur, slide) is untouched.
+ *
+ * The same top/bottom pair covers both breakpoints, because neither the
+ * shell's HUD nor its rail changes shape at 720px — the existing media query
+ * above only narrows the sheet into the docked column, and this rule's own
+ * top/bottom carry over unchanged into that column, stopping it short of the
+ * rail the way the brief calls for ("its bottom edge above the rail"). On a
+ * phone the same two insets are what make the sheet "a page between the HUD
+ * and the rail" rather than the old full-height bottom sheet: the map is
+ * still fully covered, because the HUD and rail bands (each opaque, each
+ * above this sheet's z-index-3 layer) already own the strips this leaves
+ * bare. */
+.study-board-root.study-board--railed .study-board-sheet {
+  top: var(--home-hud-h);
+  bottom: var(--home-rail-h);
 }
 
 /* Top bar: the swipe grabber centered, the explicit exit at the right.
@@ -1969,17 +1998,213 @@ body {
   padding-top: 0.4rem;
 }
 
+/* ── The hybrid home shell (S0.2) ──────────────────────────────────────────
+ * The HUD band above the map, the counsel seam, and the five-tab rail below
+ * (home.ts). All three are `position: fixed`, safe-area aware, and siblings
+ * of .model-root / .source-card-root / .study-board-root on the App's own
+ * root — chrome only, nothing here originates a gameplay value.
+ *
+ * The two custom properties below size the HUD and rail bands. They live in
+ * :root, not scoped to .home-hud/.home-rail, because .study-board--railed
+ * (this file's .study-board-sheet block) is a SIBLING, not a descendant, and
+ * needs the same numbers to dock a page between the two without covering
+ * either — a custom property only inherits down the tree, so a shared
+ * ancestor is the only way two siblings can agree on one number.
+ *
+ * Stacking: z-index 4 is a new slot, above .study-board-root (3, the board
+ * and the map beneath it) and below .voice-beat-root. Slotting it in pushed
+ * every root above the board up by one — voice-beat-root 4→5, contact-
+ * ceremony-root 5→6, reclaim-root 6→7, intro-root 7→8 (each still comments
+ * its own place in the stack); nothing between .study-board-root and
+ * .voice-beat-root existed for the shell to reuse, and the shell must sit
+ * below all four of those, which are heavier interruptions than a persistent
+ * chrome band ever is. */
+:root {
+  --home-hud-h: calc(env(safe-area-inset-top) + 3.4rem);
+  --home-rail-h: calc(env(safe-area-inset-bottom) + 3.6rem);
+}
+
+/* No box of its own: the three children below are all `position: fixed` and
+   sit outside normal flow regardless of this element's own layout. It exists
+   only so setHidden() has one node to hide — a fixed descendant still honors
+   an ancestor's `visibility`, even though it never honors its `display`. */
+.home-root--hidden {
+  visibility: hidden;
+}
+
+.home-hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 4; /* above .study-board-root (3), below .voice-beat-root (5) */
+  height: var(--home-hud-h);
+  padding: calc(env(safe-area-inset-top) + 0.5rem)
+    max(0.9rem, env(safe-area-inset-right)) 0
+    max(0.9rem, env(safe-area-inset-left));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.2rem 0.75rem;
+  overflow: hidden;
+  /* Nothing in the band is interactive in S0.2 — a thumb reaches straight
+     through it to the map underneath, everywhere the band covers. */
+  pointer-events: none;
+}
+
+.home-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.home-mark {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 999px;
+  background: var(--holos-cyan);
+  box-shadow: 0 0 0 2px var(--holos-cyan-dim);
+  flex-shrink: 0;
+}
+
+.home-name {
+  font-size: var(--holos-text-md);
+  color: var(--holos-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The year line and the compute chip. Flex-wrap on .home-hud (above) is what
+   sends this whole group under the name on a narrow screen — there is no
+   separate breakpoint, the row simply runs out of space and wraps like any
+   other flex row, landing at the block's own start (left) on its own line
+   the same way a name wrapping in a paragraph would. */
+.home-standing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.home-standing-year {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.home-standing-compute {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  background: var(--holos-bg-raised);
+}
+
+/* S0.3 fills this. Zero height, no border, no background, no text: a page
+   docked above it (.study-board--railed, below) reads as touching the rail
+   directly until S0.3 gives this a line and a Talk affordance. */
+.counsel-seam {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--home-rail-h);
+  height: 0;
+  margin: 0;
+  border: 0;
+  pointer-events: none;
+}
+
+.home-rail {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4; /* the HUD's own slot; see the block header above */
+  height: var(--home-rail-h);
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: max(0.5rem, env(safe-area-inset-left));
+  padding-right: max(0.5rem, env(safe-area-inset-right));
+  background: rgba(7, 6, 10, 0.86);
+  border-top: 1px solid var(--holos-gold-dim);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  /* The rail stays this same full-width bar at the desktop breakpoint too —
+     .study-board--railed (below) is what stops short of it, not the other
+     way around, so there is no 720px override here. */
+}
+
+.rail-tab {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  /* xs, never xxs — a rail label is a lone unenclosed word, not the enclosed
+     classifier xxs is for (this file's own token comment, top of file). */
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-dim);
+  padding: 0.3rem 0.2rem;
+  position: relative;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Calm by design: a tab switch eases only its own ink, never the rail's
+     shape, position, or the badge beside it. */
+  transition: color 240ms ease;
+}
+
+.rail-tab--active {
+  color: var(--holos-ink);
+}
+
+.rail-badge {
+  position: absolute;
+  top: 0.05rem;
+  right: 22%;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--holos-bg-raised);
+  border: 1px solid var(--holos-gold-dim);
+  color: var(--holos-gold);
+  /* Enclosed and short (a bare count), so xxs is this file's own exception
+     for a classifier a thumb reads by shape, not letter by letter. */
+  font-size: var(--holos-text-xxs);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
 /* ── Voice beat / inline explainers (AV1) ─────────────────────────────────
  * The arrival beat is a sibling overlay root, NOT inside .model-overlay
  * (that layer is pointer-events: none by contract and carries the HOME/
- * landmark labels). z-index 4 is deliberate: it must sit above .study-chip
- * — which opts itself into pointer-events even while its .study-board-root
- * parent (z-index 3) is inert — so no explainer can ever stack over the
- * beat, and the hub chip and canvas stay untappable while it is up. */
+ * landmark labels). z-index 5 (S0.2 bumped this from 4 to make room for the
+ * home shell's own slot, 4) is deliberate: it must sit above .study-chip —
+ * which opts itself into pointer-events even while its .study-board-root
+ * parent (z-index 3) is inert — and above the shell's HUD/rail, so no
+ * explainer can ever stack over the beat, and the hub chip and canvas stay
+ * untappable while it is up. */
 .voice-beat-root {
   position: absolute;
   inset: 0;
-  z-index: 4; /* above .study-chip inside .study-board-root (z-index 3) */
+  z-index: 5; /* above .home-hud/.home-rail (4), above .study-board-root (3) */
   pointer-events: none;
   display: flex;
   align-items: center;
@@ -3989,14 +4214,16 @@ body {
 }
 
 /* ── A2.6: durable identity — the re-onboard sheet ─────────────────────────
- * A sibling overlay on the App's own root, the voicebeat.ts mold: z-index 6
- * puts it over everything else this file stacks (the contact ceremony's 5
- * is the highest below it). No ambient dismiss — [Sign in] or [Begin again]
+ * A sibling overlay on the App's own root, the voicebeat.ts mold: z-index 7
+ * (S0.2 bumped this from 6, along with the contact ceremony's and the
+ * intro's, to make room for the home shell's slot, 4) puts it over
+ * everything else this file stacks (the contact ceremony's 6 is the highest
+ * below it). No ambient dismiss — [Sign in] or [Begin again]
  * is the only way down, so there is no scrim click handler here at all. */
 .reclaim-root {
   position: absolute;
   inset: 0;
-  z-index: 6;
+  z-index: 7;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4268,17 +4495,20 @@ body {
  * the same reason: .model-overlay is pointer-events: none by contract and
  * carries the HOME/landmark labels, which this dims rather than joins.
  *
- * z-index 5 puts it over the voice beat's 4, which is over the standing
- * chips' 3. The two chips are also hidden outright while a ceremony is armed
- * (.chrome-hidden below) — they opt themselves into pointer-events even
- * though their root does not, and this layer is deliberately transparent to
- * a thumb so the canvas underneath can be the press target.
+ * z-index 6 (S0.2 bumped this from 5, along with the voice beat's and the
+ * re-onboard sheet's/intro's, to make room for the home shell's slot, 4)
+ * puts it over the voice beat's 5, which is over the home shell's 4, which
+ * is over the standing chips' 3. The two chips are also hidden outright
+ * while a ceremony is armed (.chrome-hidden below) — they opt themselves
+ * into pointer-events even though their root does not, and this layer is
+ * deliberately transparent to a thumb so the canvas underneath can be the
+ * press target.
  *
  * EVERYTHING HERE IS POINTER-TRANSPARENT except the one word that refuses. */
 .contact-ceremony-root {
   position: absolute;
   inset: 0;
-  z-index: 5;
+  z-index: 6;
   pointer-events: none;
 }
 
@@ -4494,16 +4724,17 @@ body {
  * contract and carries the HOME/landmark labels, which the intro takes off
  * the screen outright (setOverlayHidden) rather than drawing over.
  *
- * z-index 7 is the top of this file's stack — the re-onboard sheet's 6 is the
- * highest below it. The intro runs alone, before any other surface is up, and
- * nothing may stack over the four lines.
+ * z-index 8 (S0.2 bumped this from 7, along with the three below it, to make
+ * room for the home shell's slot, 4) is the top of this file's stack — the
+ * re-onboard sheet's 7 is the highest below it. The intro runs alone, before
+ * any other surface is up, and nothing may stack over the four lines.
  *
  * EVERYTHING HERE IS POINTER-TRANSPARENT except the two chrome words: the
  * canvas underneath is the press target, and a tap on it advances a beat. */
 .intro-root {
   position: absolute;
   inset: 0;
-  z-index: 7;
+  z-index: 8;
   pointer-events: none;
   /* How long the prose takes to leave. 220ms between beats; each exit sets
      its own from intro.ts (700ms at Begin, 400ms at a skip), so the fade the
