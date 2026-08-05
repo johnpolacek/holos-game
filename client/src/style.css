@@ -30,6 +30,15 @@
   font-display: swap;
   src: url("/fonts/source-sans-3-italic.woff2") format("woff2");
 }
+/* JetBrains Mono — the instrument face (S0.2 type pass). Machine readouts
+   only: scale, clocks, chips, designations. Variable weight, latin subset. */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url("/fonts/jetbrains-mono.woff2") format("woff2");
+}
 
 :root {
   --holos-bg: #07060a;
@@ -47,6 +56,7 @@
   --holos-gold: #d3b982;
   --holos-gold-dim: rgba(211, 185, 130, 0.55);
   --holos-amber: #f0ac66;
+  --holos-amber-dim: rgba(240, 172, 102, 0.62);
   --holos-cyan: #7ee9ef;
   --holos-cyan-dim: rgba(126, 233, 239, 0.45);
   --holos-error: #f0836a;
@@ -55,6 +65,9 @@
      headings; run all prose (incl. the italic charter) in Source Sans. */
   --holos-font-display: "Cinzel", Georgia, "Palatino Linotype", serif;
   --holos-font-body: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  /* The instrument register's own voice: numbers a player watches tick.
+     Mono keeps a changing digit from shifting its neighbors. */
+  --holos-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* Type scale. One ladder for the whole UI — never hard-code a font-size in
      a component rule.
@@ -125,6 +138,21 @@ body {
 
 .holos-serif {
   font-family: var(--holos-font-display);
+}
+
+/* The mono sprinkle (S0.2 type pass): machine readouts wear the instrument
+   face. A readout is a value an instrument produced — a distance, a clock, a
+   count, a machine ID — never a sentence; prose and labels stay in the body
+   and display faces. Grouped here so "what is a readout?" is answerable by
+   reading one list. Mono runs wide, so nothing here gains letterspacing. */
+.model-scale,
+.source-card-age,
+.home-standing-year,
+.home-standing-compute,
+.rail-badge,
+.study-focus-designation {
+  font-family: var(--holos-font-mono);
+  letter-spacing: 0;
 }
 
 /* ── Wrapping ─────────────────────────────────────────────────────────────
@@ -2070,6 +2098,9 @@ body {
 }
 
 .home-name {
+  /* The titling face: the name over the sky is the same face the ceremony
+     crowned it in (S0.2 type pass). */
+  font-family: var(--holos-font-display);
   font-size: var(--holos-text-md);
   color: var(--holos-ink);
   white-space: nowrap;
@@ -2151,11 +2182,15 @@ body {
   min-width: 0;
   background: none;
   border: none;
-  font-family: inherit;
+  /* The titling face in light amber (S0.2 type pass): the rail is the home's
+     own chrome, warm against the sky, and Cinzel's caps carry a one-word
+     label without needing letterspacing. */
+  font-family: var(--holos-font-display);
+  font-weight: 550;
   /* xs, never xxs — a rail label is a lone unenclosed word, not the enclosed
      classifier xxs is for (this file's own token comment, top of file). */
   font-size: var(--holos-text-xs);
-  color: var(--holos-ink-dim);
+  color: var(--holos-amber-dim);
   padding: 0.3rem 0.2rem;
   position: relative;
   cursor: pointer;
@@ -2168,7 +2203,7 @@ body {
 }
 
 .rail-tab--active {
-  color: var(--holos-ink);
+  color: var(--holos-amber);
 }
 
 .rail-badge {
