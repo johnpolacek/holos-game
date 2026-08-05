@@ -115,6 +115,13 @@ const accordClauses = quoted(block("export const ACCORD_CLAUSE: Readonly<"));
 // a band line that recited it would be the same claim twice in a voice that
 // cannot be checked. Checked at remark size like every other fact-free bank.
 const bandLines = quoted(block("export const LEDGER_BAND_LINES: Readonly<"));
+// AV4's counsel bank. Fact-free by construction (R-36a: a counsel line names
+// no source, no number, no date, only the shape of the move), so it is
+// checked here like every other bank. It is checked at STANCE size, not
+// remark size, because the AV4 stance (protocol.ts's Proposal.stance)
+// substitutes for it behind the counsel flag and the two must fit the same
+// home-strip row.
+const counselLines = quoted(block("export const COUNSEL_LINES: ByArchetype<"));
 
 const arrivalCount = check("arrival line", arrivals, LIMITS.arrival);
 const introCount = check("intro beat", intros, LIMITS.arrival);
@@ -126,6 +133,7 @@ const signalVoiceCount = check("signal voice", signalVoice, LIMITS.remark);
 const toneCount = check("tone clause", toneClauses, LIMITS.remark);
 const accordCount = check("accord clause", accordClauses, LIMITS.remark);
 const bandCount = check("ledger band line", bandLines, LIMITS.remark);
+const counselCount = check("counsel line", counselLines, LIMITS.stance);
 
 // The composition is what actually ships, so prove it fits: every opening
 // against every voice clause would be the exhaustive test, but the bound is
@@ -175,6 +183,7 @@ console.log(`signal voice    ${signalVoiceCount}`);
 console.log(`tone clauses    ${toneCount}`);
 console.log(`accord clauses  ${accordCount}`);
 console.log(`band lines      ${bandCount}`);
+console.log(`counsel lines   ${counselCount}`);
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} failure(s):`);
