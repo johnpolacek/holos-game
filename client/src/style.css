@@ -2159,25 +2159,25 @@ body {
   white-space: nowrap;
 }
 
-/* The compute meter — bottom right, mirroring the scale readout bottom
-   left: a tiny label over a thin bar. The bar is the reading (how much of
-   the attention ceiling is uncommitted); the label carries the number and
-   the rate. Fill eases so the accrual creeps instead of stepping. */
+/* The compute meter — in the HUD band, under the name (moved from bottom
+   right, 2026-08: down there it shared the counsel strip's zone and
+   overlapped TALK). A tiny label over a thin bar: the bar is the reading
+   (how much of the attention ceiling is uncommitted); the label carries the
+   number and the rate. Fill eases so the accrual creeps instead of
+   stepping. */
 .home-meter {
-  position: fixed;
-  right: max(0.9rem, env(safe-area-inset-right));
-  bottom: calc(var(--home-rail-h) + 0.7rem);
-  z-index: 4; /* the shell's own slot; see .home-hud */
-  width: clamp(7.5rem, 24vw, 11rem);
+  grid-column: 1;
+  grid-row: 2;
+  justify-self: start;
+  width: clamp(6.5rem, 22vw, 9.5rem);
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 0.3rem;
+  align-items: flex-start;
+  gap: 0.25rem;
   pointer-events: none;
 }
 
-.home-meter--empty,
-.home-meter--paged {
+.home-meter--empty {
   display: none;
 }
 
