@@ -4498,11 +4498,10 @@ body {
  * z-index 6 (S0.2 bumped this from 5, along with the voice beat's and the
  * re-onboard sheet's/intro's, to make room for the home shell's slot, 4)
  * puts it over the voice beat's 5, which is over the home shell's 4, which
- * is over the standing chips' 3. The two chips are also hidden outright
- * while a ceremony is armed (.chrome-hidden below) — they opt themselves
- * into pointer-events even though their root does not, and this layer is
- * deliberately transparent to a thumb so the canvas underneath can be the
- * press target.
+ * is over the board page's 3. The board is also hidden outright while a
+ * ceremony is armed (.chrome-hidden below) — belt and braces, since the
+ * staging funnel closes it before arming — and this layer is deliberately
+ * transparent to a thumb so the canvas underneath can be the press target.
  *
  * EVERYTHING HERE IS POINTER-TRANSPARENT except the one word that refuses. */
 .contact-ceremony-root {
@@ -4512,7 +4511,7 @@ body {
   pointer-events: none;
 }
 
-.study-board-root.chrome-hidden .study-chip {
+.study-board-root.chrome-hidden .study-board-sheet {
   display: none;
 }
 
