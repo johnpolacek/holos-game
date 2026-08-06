@@ -618,7 +618,22 @@ gets priced risky besides).
       black holes as the far tier), and the self-signature mirror drawn
       as geometry. Completes a loop from shipped parts: survey → find →
       seedship (A4) → charter a child at the prize (A4) → Ledger drift
-      (A4).
+      (A4). *(Amended 2026-08, S0 phone-check review — S1's frame is
+      settled: **the baseline is the Fermi paradox.** A civilization at
+      current-Earth-grade equipment detects no technosignatures at all,
+      because receiver sensitivity is the binding constraint and the
+      rule is real physics: nature is loud, civilization is quiet —
+      stars, planets and transits stay detectable at baseline, while
+      beams, leakage and works sit below the receiver floor. Finding
+      others IS the invest loop: better receivers and instruments,
+      probes, missions, projects. Seeded civilizations' transmissions
+      are therefore invisible without upgraded comms equipment,
+      including hails: a beam aimed at you goes unread until your floor
+      drops, and landing the upgrade resolves the accumulated backlog
+      at once — "they spoke first" arrives as a discovery you earned,
+      not an inbox you were assigned. Until S1 lands, the shipped sky's
+      visible seeded sources and threads are a known interim artifact
+      that S1 retires.)*
 - [ ] **S2 — Exposure and the thread.** The exposure readout
       (capability × proximity, drawn as reach), the record as a
       ship-log-style dossier surface, the jump/membrane/emigration
