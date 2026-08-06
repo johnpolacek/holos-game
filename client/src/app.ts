@@ -821,6 +821,10 @@ export class App {
         if (viewed !== null) model.selectStar(viewed);
         else model.clearSelection();
       });
+      // S0.3: the strip and the card both live at the bottom of the sky;
+      // the card's own transition reporter is what stands the strip down,
+      // whatever path opened or closed it.
+      sourceCard.onOpenChange((open) => home.setCardOpen(open));
       // The board is a partial-width panel on desktop, so the sky stays
       // visible beside it: the selection ring tracks whichever system the
       // open view is about. On a null the ring is only dropped when no card

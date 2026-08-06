@@ -2240,7 +2240,9 @@ body {
 }
 
 .counsel-seam--empty,
-.counsel-seam--paged {
+.counsel-seam--paged,
+/* The source card rises into the strip's zone; they never share pixels. */
+.counsel-seam--carded {
   height: 0;
   padding: 0;
   background: none;
