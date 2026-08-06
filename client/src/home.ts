@@ -273,6 +273,14 @@ export class Home {
     this.seam.classList.toggle("counsel-seam--paged", open);
   }
 
+  /** The source card rises over the strip's own zone (both live at the
+   *  bottom of the sky), so the strip stands down while one is up — the
+   *  card's content and TALK must never share pixels. Driven by the card's
+   *  own onOpenChange, the one reporter that cannot miss a close path. */
+  setCardOpen(open: boolean): void {
+    this.seam.classList.toggle("counsel-seam--carded", open);
+  }
+
   /** Ceremonies and the intro take the whole shell off screen. The seam is a
    *  fixed descendant of `this.root` too, so `visibility: hidden` on the
    *  root already reaches it (style.css's home-root--hidden comment); no
