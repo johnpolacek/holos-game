@@ -3,20 +3,36 @@
 
 *What is actually on the screen. Every other doc describes systems,
 fiction, or experience; this one specifies the surfaces the player
-touches: the screens per act, the components they share, and the rules
-that keep the interface honest about lightspeed, uncertainty, and the
-player's altitude.*
+touches: the home screen as it shipped, the screens per act, the
+components they share, and the rules that keep the interface honest
+about lightspeed, uncertainty, and the player's altitude.*
 
 ---
 
 ## About this document
 
-The [walkthrough](./walkthrough.md) plays a season of the designed
-experience in day-by-day detail — but it *implies* an interface without
-specifying one. This document is that specification. The walkthrough
-scenes double as its acceptance tests: every scene in Theo's season must
-be assemblable from the screens and components below. Where this document and the vision or a
-design doc disagree, they win and this document is what needs fixing.
+Two halves, and they are read differently.
+
+**The shipped half** — the home screen, its rail, the pages under it, the
+intro, and the type system — is a *record*, revised in S0.4 (2026-08)
+against what Phase S's S0 slice actually built. Here **the code is the
+spec**: `client/src/home.ts`, `client/src/studyboard.ts`,
+`client/src/app.ts`, `client/src/intro.ts` and `client/src/style.css`
+are the authority, and if this document disagrees with them about a
+shipped surface, this document is what needs fixing.
+
+**The specified half** — session zero, Act 1's beat frame, the pivot,
+Act 2's loop surfaces, sleep and tripwires — is still a design
+specification for screens nobody has built. There the
+[walkthrough](./walkthrough.md) scenes remain the acceptance tests, and
+where this document and the vision or a design doc disagree, they win.
+
+The 2026-08 playtest condemned the shipped desk-and-panel presentation
+(roadmap.md § The UX reboot): the server systems beneath it survived
+untouched and the client half was replaced by the **hybrid home** below.
+The launch brief that settled the layout and the copy is
+[build-s0.md](./build-s0.md), and it stays the record of *why* each
+decision reads the way it does.
 
 **Inherited constraints**, from the stack and the design:
 
@@ -40,6 +56,11 @@ design doc disagree, they win and this document is what needs fixing.
   status, no chat, no delivery receipts beyond physics**. The sky is the
   only multiplayer surface. This is the single most unusual constraint
   and most of the Act 3 UI falls out of it.
+- **Drawn over stated** (roadmap.md § The UX reboot): a physical quantity
+  is drawn on the map, not written in a panel. S0 draws nothing new under
+  this rule — the mirror, exposure arcs and trajectory labels are S1/S2
+  — but it is the reason S0 built no prose surface where geometry is
+  going to go.
 
 ---
 
@@ -57,6 +78,10 @@ life — because there is no mind yet to speak. The reveal beat is also the
 moment the interface *changes narrator*, which is the cheapest way ever
 invented to dramatize a singularity.
 
+*As shipped:* the counsel strip is this principle's permanent seat. One
+argued line from the mind sits between the map and the rail on every
+session, and the Mind page is where it is answered.
+
 ### 2. Canvas for places, prose for the will
 
 The Pixi canvas renders what exists: the cradle, the home system, the
@@ -70,21 +95,21 @@ go quiet; you never click a collector.
 ### 3. Every fact wears its age
 
 Any datum about anything beyond the home system carries a **light-age
-chip**: `as of 31 y ago`. The rule extends to grammar: the interface uses
-**present tense only for the home system**; everything else is rendered
-in a soft past — *"the Chorister was building"*, never *"is building"*.
-No screen anywhere displays an unaged remote fact. This one rule, applied
-everywhere, teaches temporal fog better than any tutorial could
-(act3-design.md, *The Sky*).
+chip**: `AS OF n Y AGO` (§8-pinned). The rule extends to grammar: the
+interface uses **present tense only for the home system**; everything
+else is rendered in a soft past — *"the Chorister was building"*, never
+*"is building"*. No screen anywhere displays an unaged remote fact. This
+one rule, applied everywhere, teaches temporal fog better than any
+tutorial could (act3-design.md, *The Sky*).
 
 ### 4. Beliefs, not facts
 
-Remote knowledge renders as **classification, with confidence** — `Dark
-Node · 71%` — never as a resolved icon. The observatory outputs beliefs
-(act3-design.md); the UI must refuse false certainty even in its
-iconography: an unclassified source is a smudge, not a question-mark
-badge, and it sharpens visually as confidence rises. Sharpening the
-image *is* the progress bar of the inference game.
+Remote knowledge renders as **classification, with confidence** — a
+signal-class label and a percentage — never as a resolved icon. The
+observatory outputs beliefs (act3-design.md); the UI must refuse false
+certainty even in its iconography: an unclassified source is a smudge,
+not a question-mark badge, and it sharpens visually as confidence rises.
+Sharpening the image *is* the progress bar of the inference game.
 
 ### 5. Reversible is a tap; irreversible is a ceremony
 
@@ -97,6 +122,11 @@ broadcast drawn across *your actual sky*, with the sources it will reach
 lighting up in order of arrival). No "Are you sure?" text ever appears;
 the render of the consequence is the question.
 
+*As shipped:* a ceremony takes the whole screen. The home shell hides
+itself and the board's chrome stands down while one is armed, so the
+only things a thumb can reach are the canvas and the one word that
+refuses.
+
 ### 6. Calm by design
 
 No spinning timers, no red badges, no daily-streak mechanics, no unread
@@ -106,9 +136,13 @@ that anything else waits quietly in the next report. Absence is fiction,
 not neglect (act3-design.md, *Sleep and tripwires*), and the UI's job is
 to make closing the tab feel like a move, not a lapse.
 
+*As shipped, S0 made this mechanical.* See § Calm, as shipped: the
+report's session auto-open is dead, the badge is a count and not an
+alarm, and no surface on the home screen pulses.
+
 ### 7. You name what you see
 
-Remote sources have catalog designations (`IR-2214`); the player may
+Remote sources have catalog designations (`HOL-nnnn-i`); the player may
 assign a local name ("Ember"). Names are **local knowledge**: they exist
 only in your interface, are never transmitted, and two civilizations'
 names for each other never sync. Even a counterpart is known by the
@@ -118,32 +152,403 @@ event.
 
 ---
 
-## The shell
+## The home screen (shipped, S0, 2026-08)
 
-One canvas, three surfaces, and almost no chrome. On a phone the
-surfaces are full-screen and swipe between; on desktop the Stage holds
-the center with the Voice and Desk docked beside it.
+The desk is gone. There is no Stage/Voice/Desk triptych and no swipe
+between three surfaces: there is **one home screen**, and it is the
+Model with a band of chrome above it, a strip of counsel below it, and a
+five-tab rail at the bottom. Everything else in the game is a **page**
+that docks into that frame under exactly one of the five tabs.
 
-- **The Stage** (canvas): where you are. Act 1: the living world. Act 2:
-  the system map. Act 3: the sky. Pinch/scroll to move between these
-  scales in Act 3 — home system zooms out into the sky, seamlessly, so
-  the player *feels* the scale change rather than switching modes.
-- **The Voice** (overlay): the reading surface — reports, beats,
-  signals. Typographic, vertical, one-thumb. This is where a phone
-  session mostly lives.
-- **The Desk** (panels): the reference surfaces — character sheet,
-  ladders and projects, the work list (the work graph of undertakings —
-  missions-design.md), the Ledger, the observatory catalog, the Vault.
-  Dense, glanceable, and *never required mid-beat*: any number a
-  decision needs is embedded in the decision's own card.
+The kept ingredient, and the reason the map is the heart rather than a
+panel among panels, is *the spatial feeling of having a place in a real
+sky* — the one thing the failed playtest liked. Every layout decision
+below protects it.
 
-Persistent chrome is a single thin strip: where you are (Stage scale),
-what's cooking (project clocks), and the session's one ambient stat
-(below). Nothing else is permanent.
+*A reading note for the older docs.* act3-map.md and the A-phase build
+briefs call the canvas **the Stage**, the reading overlay **the Voice**
+and the reference panels **the Desk**. Those three words are retired.
+Read the Stage as the Model, the Voice as the counsel strip plus the
+report, and the Desk as the pages under the rail; nothing those docs say
+about *content* changed, only where it lives.
+
+### Anatomy
+
+Four fixed, safe-area-aware siblings over the canvas, in this order down
+the screen:
+
+**The Model (the centerpiece).** The 3D sky
+([act3-map.md](./act3-map.md)) fills the screen edge to edge and is
+never a thumbnail. Its own DOM overlay is pointer-transparent and carries
+the `HOME` label on the player's own star, the backdrop landmark names,
+the scale readout, and the tracking label on an outbound act still
+crossing. §8 also pins `THE MODEL · WHAT WE BELIEVE` as a Model caption;
+it is *not* on the shipped home screen, and the belief framing is carried
+instead by what the map draws (smudges and confidences, never resolved
+icons). Tapping a source opens its source card; tapping `HOME` opens
+Sky's page scrolled to the voice section.
+
+**The HUD band (top).** Two fixed rows at every width, never a wrap:
+
+- Row one, left: the **cyan mark** and the civilization's **name** in the
+  titling face — the same face the inheritance ceremony crowned it in.
+  The name ellipsizes; it never pushes anything.
+- Row one, right: the star's **designation** (`HOL-nnnn-i`), in the mono
+  instrument face.
+- Row two, right: the **epoch year**, mono and tabular, shaped
+  `YEAR <n.nn> AE` — the civilization's own count from its own ascension
+  (R-33: the cohort's absolute year never reaches a surface), carried to
+  two decimals so it visibly ticks. A hundredth of a year is a few real
+  seconds on the shipped clock, which is the whole point: game time is
+  *watched* moving rather than inferred between sessions.
+- Row two, left: the **compute meter** — a thin bar in muted indigo with
+  a tiny mono label over it, shaped `COMPUTE <n> · +<rate>/Y`. The bar is
+  the reading (how much of the attention ceiling is uncommitted); the
+  label carries the number and the rate. Indigo is deliberate: an
+  instrument that is neither you (cyan) nor other (amber) nor the gold
+  chrome, so its readout borrows none of their meanings. The meter hides
+  whole when there is no ceiling to draw against; an empty bar would be a
+  claim.
+
+Nothing in the band is interactive. A thumb reaches straight through it
+to the map underneath, everywhere the band covers.
+
+**The counsel strip (between map and rail).** One argued line from the
+mind, with a **TALK** affordance beside it (the label string is `Talk`,
+set in the caps utility, so it reads as TALK). Both the line and the button
+go to the same place: the Mind page. The strip is the *stance* side of
+the facts/stance split — the deadpan proposal line stays on the Mind
+page, and this is the mind arguing for it. It is empty until there is
+something to say (no lead proposal means no line, never a placeholder
+sentence), and empty collapses to zero height, so filling it moves
+nothing else in the shell. Its container is pointer-transparent except
+for the line and the button.
+
+*The arrival line lands here.* After the intro's last beat, the mind's
+per-archetype first read is the strip's first line, and it is **sticky**:
+it stays until a TALK tap acknowledges it, at which point the strip falls
+back to the mind's current stance. A reload before that tap simply
+replays the arrival next session.
+
+**The rail (bottom).** Five equal tabs, always visible, in this pinned
+order:
+
+> **Report · Sky · Projects · Reach · Mind**
+
+Labels are the titling face at the reading floor (`--holos-text-xs`,
+never xxs — a rail label is a lone unenclosed word), in light amber, with
+the lit tab at full amber. A tab switch eases that ink and nothing else:
+the rail never moves, resizes, or animates its badge. Exactly one tab is
+lit at all times.
+
+The internal tab ids are `report`, `sky`, `work`, `family`, `mind` —
+`work` is labelled Projects and `family` is labelled Reach. The ids kept
+the names they shipped under; only the words changed. Anyone wiring a new
+page reads `VIEW_TAB` in `studyboard.ts` for the mapping and never
+re-derives it.
+
+**Stacking.** The shell's three chrome bands share one z-slot, above the
+map and above any open page, and below the four heavier interruptions:
+the contact ceremony, the reclaim sheet, the intro, and the slot the
+retired voice beat left open. A page docks *between* the HUD and the
+rail; a ceremony or the intro takes the whole screen and hides the shell
+outright.
+
+### What each tab owns
+
+| Tab | Landing | Owns (drill-ins) |
+|---|---|---|
+| **Report** | The report: a header sentence in the mind's register, then entries, newest first. Each entry is a stamp, a record sentence, an optional remark, and a route. | Routes out of an entry (a study, a mission, a source, a project, a founding, a Ledger record) open the target page. |
+| **Sky** | **The bare map.** The tab lands on the Model with no page over it. | The source card and the contact ceremonies; the study list, the picker, the briefing, and explore; threads and `THE VOICE`; the survey; the founding sheet. |
+| **Projects** | `Start a project`, over `TEND` — the work list of everything under way. | The project catalog, a project's detail sheet, a mission's detail, the launch sheet. |
+| **Reach** | What the civilization has spread beyond its own system: `THE LEDGER`, its forks, and the standing order. **Empty by design before the first sending.** | A fork's whole record; the sheet where a standing order is armed. |
+| **Mind** | The masthead at its head (world plate, name, charter), then the proposals block, then the intro replay, then housekeeping below a hairline. | The start-over confirmation page. |
+
+Detail worth having in front of you when building:
+
+- **Sky's landing is the map, not a page.** Tapping Sky from anywhere
+  else shuts the open page; tapping it again on a shut panel opens Sky's
+  own page. That page carries the studies row (`Your studies · <count>`
+  over `Open and shelved.`), `Start a study`, `Explore the sky`, the
+  survey row when a sky has carried survey rows, a hairline, then
+  `THE VOICE` with one row per thread beneath it and a row for any
+  thread gone dark. Rows that have nothing behind them are absent, not
+  greyed.
+- **The survey is Sky's**, and so is the founding sheet it opens: the
+  nearest stars are sky whether or not anyone stands on them, and the
+  act of sending is aimed at a place. The same sheet also opens from a
+  source card. What a sending *became* is Reach's.
+- **Reach's blank page is the feature.** Before the first ship leaves,
+  Reach renders nothing at all: no placeholder, no explainer, no
+  encouraging empty state. The tab's word plus its blankness is what
+  teaches that the civilization has not yet reached anywhere, and the
+  page fills itself the first time that stops being true. S2's
+  reach-arc exposure readout and the family register land here.
+- **Mind opens with who you are before what you propose.** The masthead
+  moved here when Family became Reach. Below it, `WHAT WE WOULD DO NEXT`
+  renders the mind's ranked proposals in the server's order (never
+  re-sorted client-side), each with an accept verb and a `Leave It`
+  beside it. Then `PLAY THE OPENING AGAIN`. Then, under a hairline and
+  in the aside tone, the housekeeping that belongs to the *player*
+  rather than to the civilization: the account, the watch, and
+  `Start over` / `Give up this civilization and inherit again.`
+
+### The deciding test
+
+When a new surface arrives, one question decides its tab: **what is this
+page about?** Not which system produced it, not which module it lives in.
+The survey is about the sky, so it is Sky's even though voyages built it;
+a standing order is a rule the line keeps rather than an undertaking that
+ends, so it is Reach's even though it rides the same machinery as a
+launch; the start-over page is about the player's run, so it is Mind's.
+
+The check on the answer is a player sentence: **a page whose tab is not
+lit is a page the player cannot explain being on.**
+
+### Deep links and back legs
+
+- Every `open*` on the board lights its owning tab. The rail's highlight
+  is derived from the current view through `VIEW_TAB` and from nothing
+  else, so a page opened from a report route, a proposal, a source card
+  or the map lights the same tab as the same page reached by tapping the
+  rail. `VIEW_TAB` is exhaustive by construction: a page added later
+  without an entry does not compile.
+- A **landing has no back leg** — the rail is the way out — and dims
+  nothing behind it. A **drill-in always has one**, labelled `‹ BACK`.
+- A back leg comes home somewhere the player can explain. Normally that
+  is the owning tab's landing (explore, the picker, the survey and the
+  briefing all return to Sky's page). The routed exceptions return to
+  where the tap came from instead: a project sheet opened from a report
+  entry backs out to the report, and one opened from a proposal backs
+  out to the Mind page. In those cases the rail lights the page's own
+  owner while the back leg points at the page the player came from —
+  the rail answers "where am I", the back leg answers "how do I undo
+  this tap", and they are allowed to be different answers.
+- A page never dims the map behind it into a modal. The two true
+  overlays (the ceremonies and the intro) are the only surfaces that
+  take the screen.
+
+### Calm, as shipped
+
+S0 turned principle 6 into mechanics, and these are load-bearing:
+
+- **The report's session auto-open is dead.** No session opens on a
+  wall of text; the report waits to be read.
+- **The badge is a count of unread entries**, and nothing else. It is
+  derived by diffing the report's entry ids against a per-civ
+  `localStorage` marker keyed on each entry's stable id, so a reload
+  does not re-announce arrivals already read. A storage failure
+  undercounts rather than crashing the shell — the safe direction.
+- **It clears on a chosen open.** Opening the Report tab writes the
+  marker and drops the count to zero. Nothing else clears it, and it is
+  never cleared on the player's behalf.
+- **Zero removes the badge entirely.** It is never shown resting on
+  zero.
+- **Nothing pulses.** No animation, no push, no nag. The badge does not
+  bounce and the rail does not move under it.
+- **The counsel strip changes wholesale and never animates.** Re-sending
+  the line already showing is a no-op, so a thumb mid-gesture on TALK
+  never has the tap target rebuilt under it, and the swap between two
+  different lines is instant rather than a transition.
+
+### Desktop
+
+Desktop is the same surfaces given room, not a different design. Past the
+wide breakpoint a page **docks as a column** against one side with the
+Model beside it, over a light scrim that says the sky is still there and
+tapping it returns you. The rail stays a full-width bottom bar at every
+width — it is the page that stops short of the rail, never the other way
+round.
+
+The consequence is a rule to build to: **on desktop the map is never
+fully covered.** A page that needs the whole screen on desktop is a page
+that has been designed wrong. Selection stays coherent across the split:
+the ring on the map tracks whichever system the open page is about, and
+falls back to the page's system when a card is dismissed.
+
+### Still open: overflow detail (S0.4)
+
+The one UX call the reboot deferred to S0 is where **overflow detail**
+lives: on map-anchored cards, or on dashboard pages. Both were
+prototyped and the call is decided by thumb, on a phone; it is recorded
+in roadmap.md § The UX reboot when it lands.
+
+Nothing above depends on the answer. The frame is settled either way —
+the Model is the centerpiece, the rail owns navigation, the deciding
+test assigns tabs, and every drill-in lights its owner. What the call
+settles is only the *shape of the third level*: whether the detail below
+a card's summary expands in place against the map, or opens as another
+page in the tab that owns it. Whichever wins, it inherits the deep-link
+rule and the back-leg rule unchanged.
+
+### Interim: the seeded sky
+
+The sources visible on the map at the start of a run, and the threads
+already listed under `THE VOICE`, are **seeded by the A-phase
+generation** and predate the detection gating S1 brings with the
+two-layer sky (roadmap.md § Phase S, S1). They are the reason a fresh
+civilization can see neighbours at minute one, and they contradict the
+Fermi-honest baseline the two-layer sky establishes, in which an early
+sky is empty until instruments earn something out of it.
+
+Treat them as scaffolding: **S1 retires them.** Do not build a surface
+that assumes a populated opening sky, and do not "fix" the emptiness
+that arrives when S1 lands by seeding it again.
 
 ---
 
-## Act by act
+## The intro (shipped, S0.1)
+
+Four beats between the inheritance ceremony's BECOME and the home screen,
+staged as **one continuous camera move on the Model** — not a slideshow
+bolted in front of a game. The camera recedes at a constant rate of
+distance per second and rests four times: the star's limb filling the
+frame, the scale rail, the waking rings at the first light-year, and the
+ambiguous sky of the wider volume. Scale is *felt as travel* rather than
+read off a caption.
+
+- **Tap to advance.** Nothing auto-advances; a tap launches the next leg,
+  and the canvas underneath is the tap target. Each line fades in while
+  the camera is still moving, so words always arrive mid-flight and never
+  sit on a static frame.
+- **Two chrome words, and no more.** A faint `Skip`, offered from the
+  first beat and placed out of the thumb's path, and `Begin` at the end.
+  A skip is never a cut: the camera makes the whole journey, faster.
+- **The purpose is shown, never stated.** The four served lines are the
+  only prose on screen. There is no banner and no tutorial sentence
+  saying what the player is for; the banner was mocked and cut in review
+  and does not return. Beat four's silence before `Begin` is deliberate
+  and is not filled.
+- **The copy is pinned** in build-s0.md § "The intro's copy" and is not
+  restated here: one source, byte-exact, and a gate rejection is reviewed
+  against that brief rather than fixed in place. The beats carry no dates
+  at all (R-33) and beat two shows the scale without naming it.
+- **Beat four may not assert a neighbour.** Its smudges are deliberately
+  outside the shipped detection grammar — no core, breathing down to
+  nothing — and the Model's own amber is held at zero for the whole
+  sequence and eased back in at `Begin`. What resolves at the end is the
+  instrument, not a sky that moved. The art may not claim what no
+  instrument could.
+- **Played once, server-tracked.** The intro autoplays only when a fresh
+  BECOME is pending *and* the server actually served all four lines;
+  their presence is the contract, because a served line means unseen. A
+  returning player never sees it uninvited, and a reload mid-sequence
+  comes back into the sequence rather than falling through to a bare
+  resume. Finishing and skipping both count as having seen it.
+- **Replayable from the Mind page**, through `PLAY THE OPENING AGAIN`. A
+  replay saves the camera, dollies in, plays, and dollies back out; it
+  marks nothing as seen and fires no arrival beat.
+
+---
+
+## Type, ink and wrapping
+
+Three faces, one ladder, three ink tiers. All of it lives in
+`client/src/style.css`; **never hard-code a size or a raw ink color in a
+component rule.**
+
+**The three faces.**
+
+- **Cinzel, the titling face.** Caps only, no italic. Headings, the rail
+  labels, the civilization's name over the sky, panel titles, place
+  names. It is the face the ceremony crowns a civilization in, which is
+  why the HUD wears it: the name over the sky is the same name.
+- **Source Sans 3, the text face.** Everything that is a sentence,
+  upright and italic, including the charter.
+- **JetBrains Mono, the instrument face.** Machine readouts *only* — a
+  value an instrument produced: a distance, a clock, a count, a machine
+  ID. The shipped set is a single grouped selector list in style.css: the
+  scale readout, the HUD's designation and year, the rail badge, the
+  source card whole (its designation, its belief line, and the light
+  history's year axis — a class and the confidence in it are one reading,
+  so the face never splits across them), the same reading at list scale,
+  the stamps and prices outside the board, and **`study-tabular`**, the
+  hook the board already applies wherever it prints a figure. That last
+  one is why the list stays short: a surface that adopts the hook is
+  covered without an edit. **When a new readout ships outside it, it
+  joins the list**, so "what is a readout?" stays answerable by reading
+  one place. Mono runs wide, so nothing in it takes letterspacing.
+  Prose and labels never wear it, and neither does the name a *player*
+  gave a source: a name is not a readout.
+
+**The ladder.** One `--holos-text-*` scale for the whole UI. The floor
+for anything a player *reads* is `--holos-text-xs`: prose, sub-lines and
+label lines bottom out there, and something that wants to feel quieter
+does it with color or letterspacing, not by going smaller.
+`--holos-text-xxs` sits below that floor and is **not reading type** — it
+is for short, repeated, *enclosed* classifiers a thumb recognises by
+shape and position (the Tend row badges, the rail's count badge, the
+compute meter's label riding its own bar). Two conditions travel with it:
+the mark must be short and repeated often enough to be learned, and it
+must be enclosed or otherwise separated from the prose around it. **A
+sentence at xxs is a bug, and so is a lone unenclosed label** — which is
+why rail labels are xs.
+
+**The ink tiers.** `--holos-ink`, `--holos-ink-dim`, `--holos-ink-faint`,
+tuned for the worst case: a phone screen outdoors, where glare lifts the
+black floor and low-alpha text disappears. They still read as a
+hierarchy; the dim and faint steps just never fall below what sunlight
+leaves resolvable. **Do not push them down for mood** — the mood is the
+near-black stage and the gold hairlines, not dim prose.
+
+**The color invariants.** Cyan = you (present tense, your own works,
+`HOME`, the HUD's mark); amber = other (belief, old light, a detected
+source). Those two are SEMANTIC and carry meaning on the map and in
+prose; prose must never call `HOME` amber or a source cyan. The rail's
+light-amber labels are a chrome tint, not a claim — a designer call for
+warmth against the sky that deliberately carries none of amber's
+belief meaning, the same way gold hairlines, pill borders and the
+badge's rim are chrome rather than statements. Muted indigo belongs to
+the compute meter alone.
+
+**Wrapping is a policy, not a per-component decision.** The Wrapping
+block near the top of style.css owns it: titles, subtitles, headers and
+short label lines get `text-wrap: balance`; running prose gets
+`text-wrap: pretty`, inherited from `body`, so it is the default. A new
+heading or prose class joins the matching selector list **in that
+block** — never a `text-wrap` declaration in a component rule. The block
+sits above every component so a later `white-space: nowrap` still wins.
+
+**No em dash reaches a player surface** (prose-style.md R-8): not in
+prose, not in a chrome label, not as a missing-value glyph (the clock
+pair's is an en dash), and not disguised as a double hyphen.
+`npm run audit:dashes` draws the line mechanically over string literals,
+and `stylegate.ts` enforces it on lines generated at runtime.
+
+---
+
+## Two registers on one screen
+
+The presentation doctrine, from stakes-design.md § Two registers: **the
+instruments report, and the mind argues.** The same screen speaks twice
+and the registers never blur.
+
+- **The instruments report.** Numbers, ranges, staleness stamps, costs.
+  Clear, concise, actionable. Numerals belong here, and so does the mono
+  face. On the home screen this register is the HUD band (designation,
+  ticking year, compute meter), the map's own scale and labels, the
+  report's stamps, and every clock pair and age chip on a page.
+- **The mind argues.** The voice — the banks, the style gate,
+  prose-style.md — carries the authored beats, the chronicle lines and
+  the mind's counsel, and stops carrying load the instruments should
+  carry. On the home screen this register is the counsel strip, the
+  report's header sentence and each entry's remark, and the Mind page's
+  proposals and stances.
+
+Two consequences a builder should hold on to. **A numeral in the mind's
+prose is a register leak** (the mind spells its numbers; numerals belong
+to the instrument register). And **intent is never a readout** — not on
+the strip, not on a card, not ever: the instruments report what can be
+measured and the human judges what cannot, and the counsel argues without
+ever computing a verdict.
+
+---
+
+## Act by act (still specification)
+
+Everything in this section is designed and unbuilt except where noted.
+The Act 3 entries name which rail tab already owns each surface, so an
+implementation slice re-homes rather than re-invents.
 
 ### Session zero — the world reveal
 
@@ -161,7 +566,7 @@ not a settings screen.
 The whole act is one repeating screen, the **beat frame**, in three
 movements (vision.md § The arc, Act 1 — scene, decision, roll):
 
-1. **Vignette** — full-bleed scene on the Stage with sparse caption
+1. **Vignette** — full-bleed scene on the map surface with sparse caption
    prose. The world has changed since last beat; the render shows it.
 2. **Decision** — 2–4 **choice cards** slide up over the vignette. Each
    card carries its framing in the world's terms, its *kind* — **garden**
@@ -174,7 +579,7 @@ movements (vision.md § The arc, Act 1 — scene, decision, roll):
    the act's signature interaction and it should have the weight of a
    die hitting felt.
 
-The Desk in Act 1 holds one panel: **the History spine** — a vertical
+Act 1's one reference surface is **the History spine** — a vertical
 timeline of every beat taken, branch chosen, roll survived. It is the
 causal chain the pivot will read back to the player, so the UI treats it
 as sacred from the first beat: nothing in it is ever edited or hidden.
@@ -192,141 +597,138 @@ allowed to be this theatrical.
 
 ### Act 2 — the loop surfaces
 
-- **The report** opens every session in the Voice: scenes generated from
-  state deltas, in the mind's register, each scene tappable to jump to
-  the thing it describes on the Stage. Reading the report *is* the
-  session's onboarding; there is no "what's new" panel besides it.
-- **The system map** (Stage) transforms as the ladders climb — swarm
-  filling in, or star dimming as the Vault deepens. Per playstyles.md's
-  parity requirement, the dark path's transformation is rendered with
-  the same fidelity as the bright path's: quieting is *drawn*, not
-  implied by falling numbers.
-- **The dial sheet** (Desk): drag the notch within the band. Dragging
-  *outside* the comfort band doesn't snap back or refuse — it shows the
-  Coherence price inline and the mind's objection as a one-line dilemma
-  preview. Forcing is a ceremony (§ principle 5).
+- **The report** is the Report tab's landing: scenes generated from state
+  deltas, in the mind's register, each entry routed to the thing it
+  describes. Reading the report *is* the session's onboarding; there is
+  no "what's new" panel besides it. It waits to be read (§ Calm, as
+  shipped).
+- **The system map** transforms as the ladders climb — swarm filling in,
+  or star dimming as the Vault deepens. Per playstyles.md's parity
+  requirement, the dark path's transformation is rendered with the same
+  fidelity as the bright path's: quieting is *drawn*, not implied by
+  falling numbers.
+- **The dial sheet**: drag the notch within the band. Dragging *outside*
+  the comfort band doesn't snap back or refuse — it shows the Coherence
+  price inline and the mind's objection as a one-line dilemma preview.
+  Forcing is a ceremony (§ principle 5). It belongs to Mind: the sheet is
+  about who the civilization is, which is that page's subject.
 - **Ladders and projects**: two opposing columns (bright / dark) whose
   stages light as thresholds cross; project cards carry the **clock
-  pair** — real time and game time together (`31 h · ≈370 y`) — so deep
-  time stays legible without a tutorial.
+  pair** — game time and real time together — so deep time stays legible
+  without a tutorial. Projects' tab, beside the catalog already there.
 - **The quiet number**: Signature is deliberately *not* a stat panel
-  (act2-design.md). It renders ambiently — the home system's halo on the
-  Stage brightens as Signature climbs. Players who notice, notice; the
-  exact number exists one tap deep for those who go looking. The UI
-  honors the design's intent that ignoring it is a legitimate (and
-  consequential) way to play.
+  (act2-design.md). It renders ambiently — the home system's halo
+  brightens as Signature climbs. Players who notice, notice; the exact
+  number exists one tap deep for those who go looking. The UI honors the
+  design's intent that ignoring it is a legitimate (and consequential)
+  way to play.
 
-### Act 3 — the sky and its desk
+### Act 3 — the sky and the pages under it
 
-- **The Sky / the Model** (Stage, zoomed out): the act's centerpiece
-  and wow factor — a fully 3D volumetric star chart, specified in
-  [act3-map.md](./act3-map.md). The home system recedes to a mote, the
-  sky acquires depth off-axis, and the map renders *belief*, never
-  truth: light-age ghosting, uncertainty as literal fuzz, the player's
-  own light echo as an orbitable expanding shell. Sources render as what
-  they optically are — smudges, warmths, shadows — not as gameplay
-  icons. Selecting one opens its **source card**:
-  designation, your name for it, light-age chip, classification beliefs
-  with confidence, and its **light archive** — a scrubbable history of
-  everything your instruments have ever received from it. Scrubbing a
-  source's past is how "the map is the past" becomes something the
-  player's fingers know.
-- **The observatory** (Desk): the inference workbench. Active vigils as
-  studies: hypotheses with confidence shares, buyable questions priced
-  in compute (a purpose-level choice — *which question*, never
-  *which telescope setting*), answers that sharpen, plateau, or
-  regress, and per-study tripwires
-  ([observatory-design.md](./observatory-design.md) is the spec). This
-  is Silence's verb set (playstyles.md) given a surface.
+- **The Sky / the Model** — shipped, and the home screen's centerpiece
+  (above). Specified in [act3-map.md](./act3-map.md): the home system
+  recedes to a mote, the sky acquires depth off-axis, and the map renders
+  *belief*, never truth — light-age ghosting, uncertainty as literal
+  fuzz, the player's own light echo as an orbitable expanding shell.
+  Sources render as what they optically are: smudges, warmths, shadows,
+  not gameplay icons. Selecting one opens its **source card**:
+  designation, a pen to name it by, the light-age chip, the belief line
+  (class and confidence, with an info toggle whose five pinned texts say
+  what that *class* means and never what *this source* is), and the
+  **light history** — a step chart of what the source has been emitting
+  across the span of light that has reached you, its right edge the
+  newest light held and nothing ever drawn past it. The chart is a glance
+  by default and expands in place on a tap, gridlined, with its axis
+  density derived from what the width can hold. Beneath it the four verbs
+  are lit buttons, each in its own semantic color: gold for the study,
+  amber for the probe and the ship, cyan for the beam. Time-scrubbing is
+  a later slice; the archive is read, not yet scrubbed. Sky's.
+- **The observatory** — the inference workbench, shipped in its
+  read-first form as Sky's studies, picker and briefing. Active vigils as
+  studies: hypotheses with confidence shares, buyable questions priced in
+  compute (a purpose-level choice — *which question*, never *which
+  telescope setting*), answers that sharpen, plateau, or regress, and
+  per-study tripwires
+  ([observatory-design.md](./observatory-design.md) is the spec). This is
+  Silence's verb set (playstyles.md) given a surface. Sky's.
 - **The choice screen**: contact's irreversible stage gets the full
   ceremony — hail renders a thread of light to one source; broadcast
   renders the expanding shell touching source after source with arrival
-  dates; stay dark simply returns you to the vigil, the only option
-  that is a tap.
-- **Signals** (Voice): traffic as threads, one thread per tight-beam
-  channel. An in-flight signal renders on the Stage as a moving point on
-  a line between stars — the wait made visible — and the thread shows
-  both clocks (`arrives in 37 min · 7.3 y`). Every received signal wears
-  its physics: transit years, distance, received strength, relay path,
-  degradation — set as an instrument's measurements attached to the
-  payload, in the observatory's register. The texture is astronomy,
-  never mail. Composition UI is deliberately unspecified here
-  pending the player-language decision (vision, § Still open); the
-  thread and flight rendering hold regardless of what fills them.
-- **The work list** (Desk): the work graph — every undertaking, project or
+  dates; stay dark simply returns you to the map, the only option that is
+  a tap. Armed from the source card or from `THE VOICE`; it takes the
+  whole screen and the shell stands down under it. Sky's.
+- **Signals**: traffic as threads, one thread per tight-beam channel. An
+  in-flight signal renders on the map as a moving point on a line between
+  stars — the wait made visible — and the thread shows both clocks. Every
+  received signal wears its physics: transit years, distance, received
+  strength, relay path, degradation — set as an instrument's measurements
+  attached to the payload, in the observatory's register. The texture is
+  astronomy, never mail. Sky's, under `THE VOICE`.
+- **The work list**: the work graph — every undertaking, project or
   mission, as a row with its class chip, clock pair, physics-derived
   state, and one level of nesting; a node awaiting light shows its
   countdown, and a `silent` node fires a beat, never a badge
   (missions-design.md, § The work list). Purpose altitude throughout: the
-  smallest visible unit is a thing worth deciding.
-- **The Ledger** (Desk): the lineage as a tree. Each fork's row shows
-  its charter, last-known state, staleness chip, and its dial sheet
-  **ghosted against yours** — your notches faint behind theirs, so
-  drift is read as two overlaid characters diverging, not as a number.
-  An independent fork's row changes tone (its ghost notches drop away):
-  it is no longer measured against you.
-- **Sleep**: entering it visibly dims the whole interface to embers.
-  The tripwire editor speaks the design's own grammar — *wake me if
-  anything warm moves within N light-years; if a beam touches us; if a
-  fork misses two scheduled reports; after T years regardless* — as
-  composable plain-language rows, not a settings form. The **wake
-  report** is a distinct triaged layout (the walkthrough's Week 6):
-  bombshells first, then the sky digest, then the queue — built for the
-  jackpot moment the engagement model banks on.
+  smallest visible unit is a thing worth deciding. Projects', shipped as
+  `TEND` under `Start a project`.
+- **The Ledger**: the lineage as a tree. Each fork's row shows its
+  charter, last-known state, staleness chip, and its dial sheet **ghosted
+  against yours** — your notches faint behind theirs, so drift is read as
+  two overlaid characters diverging, not as a number. An independent
+  fork's row changes tone (its ghost notches drop away): it is no longer
+  measured against you. Reach's.
+- **Sleep**: entering it visibly dims the whole interface to embers. The
+  tripwire editor speaks the design's own grammar — *wake me if anything
+  warm moves within N light-years; if a beam touches us; if a fork misses
+  two scheduled reports; after T years regardless* — as composable
+  plain-language rows, not a settings form. The **wake report** is a
+  distinct triaged layout (the walkthrough's Week 6): bombshells first,
+  then the sky digest, then the queue — built for the jackpot moment the
+  engagement model banks on. Report's, with the standing order that
+  governs it on Reach.
 
 ---
 
 ## The component library
 
 The small set of parts everything above is assembled from — each built
-once, used everywhere:
+once, used everywhere. The first four shipped in S0.
 
 | Component | Contract |
 |---|---|
+| **HUD band** | cyan mark + name (titling face) left, designation over ticking epoch year (mono) right, compute meter under the name; two fixed rows, never a wrap, never interactive |
+| **Counsel strip** | one argued line from the mind + TALK, both opening the Mind page; empty collapses to nothing; the arrival line is sticky until acknowledged; no animation |
+| **Rail** | five equal tabs, pinned words and order, titling face at xs in amber with the lit tab full amber; exactly one lit, derived from the view through `VIEW_TAB` |
+| **Page** | docks between HUD and rail; a landing has no back leg and dims nothing, a drill-in carries `‹ BACK`; never a modal over the map |
+| **Hub row** | a verb line over one sentence of what it is for; absent entirely when it has nothing behind it, never greyed |
+| **Tend row** | name, clock pair, physics-derived state badge (an enclosed xxs classifier); one row per undertaking |
+| **Report row** | stamp + record sentence + optional remark + route; inert when the route is none |
 | **Beat frame** | vignette → choice cards → consequence; identical anatomy in all acts; Act 1 adds the roll, Act 2+ replaces it with the cost line (the dice die at the pivot, visibly) |
-| **Light-age chip** | mandatory on every remote fact; tap = "light left in [year]" detail |
+| **Light-age chip** | mandatory on every remote fact; `AS OF n Y AGO`, mono |
 | **Confidence render** | belief + %, visual sharpness ∝ confidence; never a resolved icon below a confidence threshold |
-| **Dial band** | range band + position notch; ghostable (Ledger); price-on-drag; used for reveal, sheet, charters, drift; poles render as **in-world labels** — Reach·Depth, Voice·Silence, Garden·Forge, Monolith·Chorus, Memory·Renewal (act2-design.md § In-world labels), never the design vocabulary |
-| **Clock pair** | real time + game time, always together, everywhere a duration appears |
-| **Hold-to-commit** | the irreversibility ceremony; consequence renders during the hold; releasing early cancels silently |
-| **Source card** | designation + local name + age + beliefs + light archive scrubber |
-| **The strip** | scale, cooking clocks, ambient Signature halo; the only persistent chrome |
+| **Dial band** | range band + position notch; ghostable (Ledger); price-on-drag; used for reveal, sheet, charters, drift; poles render as **in-world labels** — Reach · Depth, Voice · Silence, Garden · Forge, Monolith · Chorus, Memory · Renewal (act2-design.md § In-world labels), never the design vocabulary |
+| **Clock pair** | game time + real time, always together, everywhere a duration appears; an en dash stands in for a missing half |
+| **Hold-to-commit** | the irreversibility ceremony; consequence renders during the hold; releasing early cancels silently; the shell hides under it |
+| **Source card** | designation + pen-to-name + age chip + belief line with a class explainer + the light history (small, tap to expand) + four lit verb buttons; opened from the map, and the way into a sending |
+
+---
 
 ## Mobile first
 
 **The portrait phone is the canonical device.** Every screen in this
-document is designed at phone width first — one column, one thumb,
-bottom-sheet decisions, the Voice as the primary surface — and must be
-complete there: no decision, reading, or ceremony may require a larger
-screen. The typical session (5–20 min: read the report, resolve beats,
-answer signals, tap a vigil's new light) is a phone session by default.
+document is designed at phone width first — one column, one thumb, pages
+docked between HUD and rail — and must be complete there: no decision,
+reading, or ceremony may require a larger screen. The typical session
+(5–20 min: read the report, answer the mind, tap a vigil's new light) is
+a phone session by default.
 
-Desktop is the same surfaces given room, not a different design: the
-Stage becomes a place to *dwell* — survey the sky, scrub light archives,
-read the Ledger wide — with the Voice and Desk docked beside it. Nothing
-is desktop-only; the split is cadence, not capability. Notifications are
-OS-level push, tripwire-authored only, and each deep-links to its wake
-report.
+Desktop is the same surfaces given room (§ Desktop above): the map
+becomes a place to *dwell* while a page reads beside it. Nothing is
+desktop-only; the split is cadence, not capability. Notifications are
+OS-level push, tripwire-authored only, and each deep-links to what
+tripped.
 
 ---
-
-## v1 slice
-
-Matching the design docs' v1 scope: the beat frame with roll; the world
-reveal; the History spine; the reveal sequence; report, system map with
-both transformations, dial sheet, ladder/project columns with clock
-pairs; the Sky as the 3D Model in its v1 form (continuous camera, pull-back
-beat, point-cloud backdrop, the player's own echo shell — act3-map.md
-§ Scope) with source cards and the five signal classes; the
-observatory (observatory-design.md — hypotheses, questions, allocation,
-and the grounded exit, which moved into A2 with the Assay); the choice
-ceremony; signal
-threads with flight rendering; the work list in list form with
-probe-mission rows
-(missions-design.md, § v1 slice); the Ledger with basic drift ghosts;
-sleep, tripwires, wake
-report, push. Deferred with their systems: the mask/performance surfaces,
-strike ceremonies, seat-transfer UI, the intelligence-brokering desk.
 
 ## Two registers of art
 
@@ -367,8 +769,12 @@ The full shot lists live in the content-art briefs:
 [worlds](./content-art-worlds.md) · [species](./content-art-species.md) ·
 [technology](./content-art-technology.md).
 
+---
+
 ## Open questions
 
+- **Overflow detail: cards or pages** (S0.4) — being decided by thumb;
+  see § Still open above. The frame does not depend on the answer.
 - **Art direction (interface look)** — this doc specifies structure and
   rules, not look. A working proposal (dark astronomical matte,
   ember-warmth accents, editorial type) lives in
@@ -379,21 +785,26 @@ The full shot lists live in the content-art briefs:
   design forces on the interface either way: the sky must read as *dark and
   mostly empty*, because the Teeming Dark only lands if the screen itself
   is quiet.
+- **The instrument register's style rules.** prose-style.md governs the
+  mind's prose; the instruments have conventions (mono, tabular numerals,
+  the age chip, the clock pair) but no written rulebook and no audit.
+  S4 owns writing them down and wiring them in (stakes-design.md's own
+  open question).
 - **How much scene is rendered vs written?** Beat vignettes could be
   full Pixi scenes, styled stills, or prose-forward cards. Cost scales
   brutally with the first option; v1 likely ships prose-forward with a
-  rendered Stage behind it, upgrading signature beats (the reveal, first
+  rendered map behind it, upgrading signature beats (the reveal, first
   contact) only.
 - **Accessibility of the canvas.** The prose surfaces are DOM and
-  screen-reader-clean by construction; the Stage needs an audit — every
-  Stage-only signal (halo, quieting star, in-flight signals) must have a
-  Voice/Desk equivalent.
+  screen-reader-clean by construction; the map needs an audit — every
+  canvas-only signal (halo, quieting star, in-flight signals) must have a
+  page equivalent.
 - **Archetype names in-game** (open in act2-design.md) becomes a UI
   question here: the reveal sequence works with or without a name at the
   end; shipping v1 *without* naming keeps the question open cheaply.
 - **The signal composer** waits on the player-language decision; the
-  thread/flight rendering above is deliberately agnostic to it.
+  thread and flight rendering above are deliberately agnostic to it.
 - **Onboarding density.** The principles replace tutorials with rules
-  (tense, age chips, clock pairs) that teach by consistency. Whether
-  that carries a new player through the pivot without an explicit
-  tutorial is a playtest question, not a design argument.
+  (tense, age chips, clock pairs) that teach by consistency. S0's intro
+  and counsel strip are the first real test of whether that carries a new
+  player; the next playtest answers it.
