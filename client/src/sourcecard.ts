@@ -45,6 +45,44 @@ export const CLASS_LABEL: Readonly<Record<SignalClass, string>> = {
   biosignature: "LIVING WORLD",
 };
 
+/** What each signal CLASS means, in general — never a reading of the source
+ *  the card has open. Observatory register, wit 0 (prose-style.md §2's
+ *  frame-explainer family, the same register as the age-chip's AV1 note):
+ *  these are the info toggle's fixed text, keyed off the class the belief
+ *  row's label renders, and pinned byte-exact. */
+export const CLASS_EXPLAINER: Readonly<Record<SignalClass, string>> = {
+  "infrared-excess":
+    "Warmth without light: an infrared excess. A brown dwarf, a rogue world, or somebody's heart; watching narrows it, and only watching.",
+  "transit-shadows":
+    "Occlusions too regular to look natural: something crosses that star on a schedule. Construction under way is one reading; an odd family of worlds is another.",
+  "directed-beam":
+    "A signal aimed rather than spilled: tight, coherent, and pointed at this system when it left. It was meant to arrive here.",
+  "broadcast-leakage":
+    "Unaimed shine: the spill of a civilization that has not gone quiet. Young and sloppy is one reading; deliberate shine is another.",
+  biosignature:
+    "A biosphere's mark on the light: chemistry that does not stay out of balance on its own. Life, seen from outside, as it was when the light left.",
+};
+
+/** Inline pen/edit glyph — stroke only, no fill, so it reads in whatever ink
+ *  color the button around it is set to (faint idle, dim on hover/active).
+ *  ~16px glyph inside a ≥40px tap target; the button's own CSS pads it out. */
+const PEN_ICON_SVG =
+  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" ' +
+  'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>' +
+  "</svg>";
+
+/** Inline "i in a hairline circle" glyph, same anatomy and ink as the pen
+ *  above. The dot is a minimal fill (there is no hairline way to draw a
+ *  round dot of this size); everything else is stroke. */
+const INFO_ICON_SVG =
+  '<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" ' +
+  'stroke-width="1.4" aria-hidden="true">' +
+  '<circle cx="10" cy="10" r="7.25"/>' +
+  '<line x1="10" y1="9" x2="10" y2="13.5" stroke-linecap="round"/>' +
+  '<circle cx="10" cy="6.5" r="0.9" fill="currentColor" stroke="none"/>' +
+  "</svg>";
+
 /** The mission-affordance row's state, as App derives it from `sky.missions`
  *  for the currently open source: "live" (a mission still under way — the
  *  row focuses it), "inactive" (every mission on this star has returned or
@@ -64,10 +102,19 @@ export type ContactCardState = { readonly arrivesYear: number } | null;
 export type VoyageCardState = "none" | "live";
 
 const SWIPE_CLOSE_PX = 56;
-const CHART_H = 46; // css px, the light-history strip's height
+// The strip's default height was 46 (css px) before the tap-to-expand pass;
+// SMALL keeps roughly two thirds of that so the card reads as a glance, and
+// EXPANDED is roughly 2.2x SMALL, the room a denser reading needs.
+const CHART_H_SMALL = 30;
+const CHART_H_EXPANDED = 66;
 const CHART_PAD_TOP = 6;
 const CHART_PAD_BOTTOM = 4;
-const CHART_TICKS = 4; // intervals -> 5 axis labels, earliest..edge
+const CHART_TICKS = 4; // intervals -> 5 axis labels, earliest..edge, at SMALL
+const CHART_TICKS_EXPANDED = CHART_TICKS * 2; // roughly twice as many, EXPANDED
+// Faint horizontal gridlines, EXPANDED only, at even fractions of the max
+// level the strip is scaled to. Quarters read as a grid without competing
+// with the step line's own alpha.
+const CHART_GRID_FRACTIONS = [0.25, 0.5, 0.75] as const;
 
 function clamp01(v: number): number {
   return Math.min(1, Math.max(0, v));
@@ -84,12 +131,18 @@ interface AxisTick {
 }
 
 /** Evenly spaced PAST-ONLY labels, counting back from the right edge
- * (`asOfYear`, offset 0) to `earliest`. Never a positive offset. */
-function axisTicks(earliest: number, asOfYear: number): AxisTick[] {
+ * (`asOfYear`, offset 0) to `earliest`. Never a positive offset. `intervals`
+ * defaults to the small-chart density; the expanded chart passes roughly
+ * twice as many. */
+function axisTicks(
+  earliest: number,
+  asOfYear: number,
+  intervals: number = CHART_TICKS,
+): AxisTick[] {
   const span = Math.max(1, asOfYear - earliest);
   const ticks: AxisTick[] = [];
-  for (let i = 0; i <= CHART_TICKS; i++) {
-    const year = earliest + (span * i) / CHART_TICKS;
+  for (let i = 0; i <= intervals; i++) {
+    const year = earliest + (span * i) / intervals;
     const offset = Math.round(year - asOfYear);
     ticks.push({ label: offset === 0 ? "0 Y" : `${offset} Y` });
   }
@@ -117,6 +170,12 @@ export class SourceCard {
   private readonly thumb: HTMLDivElement;
   private readonly classEl: HTMLSpanElement;
   private readonly confEl: HTMLSpanElement;
+  private readonly classInfoBtn: HTMLButtonElement;
+  /** The class explainer, under the belief row: setExplainer's note anatomy
+   *  (`.voice-note`), always in the DOM and toggled by `hidden` (the accord
+   *  rail's own idiom), never rebuilt on every tap. */
+  private readonly classExplainerEl: HTMLDivElement;
+  private readonly chartWrap: HTMLDivElement;
   private readonly canvas: HTMLCanvasElement;
   private readonly axisEl: HTMLDivElement;
   private readonly studyBtn: HTMLButtonElement;
@@ -129,6 +188,10 @@ export class SourceCard {
   private readonly accordEl: HTMLDivElement;
 
   private onCloseCb: (() => void) | null = null;
+  private onOpenChangeCb: ((open: boolean) => void) | null = null;
+  /** The last state onOpenChange reported, so a re-open onto a new source
+   *  (still one open card) never double-fires. */
+  private notifiedOpen = false;
   private onStudyActionCb: ((starId: string) => void) | null = null;
   private onMissionActionCb: ((starId: string) => void) | null = null;
   private onContactActionCb: ((starId: string) => void) | null = null;
@@ -145,6 +208,13 @@ export class SourceCard {
   private voyageState: VoyageCardState | null = null;
   private accord: AccordRail | null = null;
   private explainerEl: HTMLDivElement | null = null;
+  /** Whether the class explainer is open for the currently open source. A
+   *  re-open (of this card or a different one) always starts closed. */
+  private classExplainerOpen = false;
+  /** Whether the light-history chart is showing its expanded, denser
+   *  rendering. A card re-open always starts small (renderChart's own
+   *  contract). */
+  private chartExpanded = false;
 
   private dragStartY: number | null = null;
   private dragDy = 0;
@@ -226,17 +296,44 @@ export class SourceCard {
     beliefSep.textContent = "·";
     this.confEl = document.createElement("span");
     this.confEl.className = "source-card-confidence";
-    belief.append(this.classEl, beliefSep, this.confEl);
+    this.classInfoBtn = document.createElement("button");
+    this.classInfoBtn.type = "button";
+    this.classInfoBtn.className = "source-card-icon-btn source-card-class-info";
+    this.classInfoBtn.setAttribute("aria-label", "What this class means");
+    this.classInfoBtn.innerHTML = INFO_ICON_SVG;
+    this.classInfoBtn.addEventListener("click", () => {
+      this.classExplainerOpen = !this.classExplainerOpen;
+      this.renderClassExplainer();
+    });
+    belief.append(this.classEl, beliefSep, this.confEl, this.classInfoBtn);
 
     beliefRow.append(this.thumb, belief);
 
-    const chartWrap = document.createElement("div");
-    chartWrap.className = "source-card-chart";
+    this.classExplainerEl = document.createElement("div");
+    this.classExplainerEl.className = "voice-note source-card-class-explainer";
+    this.classExplainerEl.hidden = true;
+
+    this.chartWrap = document.createElement("div");
+    this.chartWrap.className = "source-card-chart";
+    this.chartWrap.setAttribute("role", "button");
+    this.chartWrap.setAttribute("tabindex", "0");
+    this.chartWrap.setAttribute("aria-label", "Expand the light history");
     this.canvas = document.createElement("canvas");
     this.canvas.className = "source-card-canvas";
     this.axisEl = document.createElement("div");
     this.axisEl.className = "source-card-axis";
-    chartWrap.append(this.canvas, this.axisEl);
+    this.chartWrap.append(this.canvas, this.axisEl);
+    const toggleChart = (): void => {
+      this.chartExpanded = !this.chartExpanded;
+      this.renderChart();
+    };
+    this.chartWrap.addEventListener("click", toggleChart);
+    this.chartWrap.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleChart();
+      }
+    });
 
     const studyRow = document.createElement("div");
     studyRow.className = "source-card-study-row";
@@ -307,7 +404,8 @@ export class SourceCard {
       header,
       hr,
       beliefRow,
-      chartWrap,
+      this.classExplainerEl,
+      this.chartWrap,
       this.accordEl,
       studyRow,
       missionRow,
@@ -326,6 +424,15 @@ export class SourceCard {
    * a null-selection close (the caller already knows in that case). */
   onClose(cb: () => void): void {
     this.onCloseCb = cb;
+  }
+
+  /** S0.3: fired on EVERY open/close transition, however caused — self
+   *  dismiss, a caller's close(), a staging funnel. The shell's floating
+   *  chrome (the counsel strip) stands down while a card is up, and a
+   *  per-call-site sync in the App would miss a path; the card is the one
+   *  place that cannot. */
+  onOpenChange(cb: (open: boolean) => void): void {
+    this.onOpenChangeCb = cb;
   }
 
   /** Fired when the study-affordance row is tapped, with the open source's
@@ -381,14 +488,21 @@ export class SourceCard {
     this.contactState = null;
     this.voyageState = null;
     this.accord = null;
+    this.classExplainerOpen = false; // a re-open always starts with the note closed
+    this.chartExpanded = false; // a re-open always starts with the chart small
     this.setExplainer(null); // a second source never inherits the first's note
     this.renderAll();
+    this.renderClassExplainer();
     this.renderStudyRow();
     this.renderMissionRow();
     this.renderContactRow();
     this.renderVoyageRow();
     this.renderAccord();
     this.root.classList.add("open");
+    if (!this.notifiedOpen) {
+      this.notifiedOpen = true;
+      this.onOpenChangeCb?.(true);
+    }
   }
 
   /** AV1: the one-time age-chip explainer, shown at most once ever (App
@@ -454,6 +568,7 @@ export class SourceCard {
     this.source = source;
     this.renderAge();
     this.renderBelief();
+    this.renderClassExplainer();
     this.renderThumb();
     this.renderChart();
     if (!this.editing) this.renderName();
@@ -477,6 +592,12 @@ export class SourceCard {
     this.contactState = null;
     this.voyageState = null;
     this.accord = null;
+    this.classExplainerOpen = false;
+    this.chartExpanded = false;
+    if (this.notifiedOpen) {
+      this.notifiedOpen = false;
+      this.onOpenChangeCb?.(false);
+    }
   }
 
   /** Route sourceNamed/error while this card is open. `error` lacks a
@@ -536,6 +657,19 @@ export class SourceCard {
     const signal = this.source.signal;
     this.classEl.textContent = CLASS_LABEL[signal.classification];
     this.confEl.textContent = `${Math.round(signal.confidence * 100)}%`;
+  }
+
+  /** The info toggle's note, in setExplainer's own anatomy (`.voice-note`).
+   *  Reads CLASS_EXPLAINER off the class the belief row is currently
+   *  showing — never a reading of this particular source. */
+  private renderClassExplainer(): void {
+    if (this.source === null || !this.classExplainerOpen) {
+      this.classExplainerEl.hidden = true;
+      return;
+    }
+    this.classExplainerEl.textContent =
+      CLASS_EXPLAINER[this.source.signal.classification];
+    this.classExplainerEl.hidden = false;
   }
 
   private renderThumb(): void {
@@ -653,14 +787,18 @@ export class SourceCard {
       btn.textContent = display;
       btn.addEventListener("click", () => this.beginEdit(display));
       this.nameArea.append(btn);
-    } else {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "source-card-name-affordance";
-      btn.textContent = "name this source";
-      btn.addEventListener("click", () => this.beginEdit(""));
-      this.nameArea.append(btn);
     }
+
+    // The pen: the naming affordance itself, icon-only. With a name already
+    // showing it sits quietly beside it for renaming; with none it is the
+    // whole affordance — either way it opens the same edit flow.
+    const pen = document.createElement("button");
+    pen.type = "button";
+    pen.className = "source-card-icon-btn source-card-name-pen";
+    pen.setAttribute("aria-label", "Name this source");
+    pen.innerHTML = PEN_ICON_SVG;
+    pen.addEventListener("click", () => this.beginEdit(display));
+    this.nameArea.append(pen);
 
     const hint = document.createElement("div");
     hint.className = "source-card-name-hint";
@@ -673,23 +811,36 @@ export class SourceCard {
     const asOfYear = source.asOfYear;
     const sorted = sortEpochs(source.signal.lightHistory);
 
+    // Small by default (a glance); tapping the chart expands it in place —
+    // same step line and fill, denser ticks, and gridlines the small chart
+    // has no room for.
+    const chartH = this.chartExpanded ? CHART_H_EXPANDED : CHART_H_SMALL;
+
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const rect = this.canvas.getBoundingClientRect();
     const cssW = Math.max(1, rect.width || this.canvas.clientWidth || 280);
+
+    // The expanded density is what the width can HOLD, not a constant: a
+    // "-5632 Y" label is ~7 mono characters, and nine of them wrap on a
+    // phone. One label per ~58px keeps every label on its own line at any
+    // width, capped so a desktop card does not become a ruler.
+    const tickIntervals = this.chartExpanded
+      ? Math.min(CHART_TICKS_EXPANDED, Math.max(CHART_TICKS + 1, Math.floor(cssW / 58) - 1))
+      : CHART_TICKS;
     this.canvas.width = Math.round(cssW * dpr);
-    this.canvas.height = Math.round(CHART_H * dpr);
-    this.canvas.style.height = `${CHART_H}px`;
+    this.canvas.height = Math.round(chartH * dpr);
+    this.canvas.style.height = `${chartH}px`;
 
     const ctx = this.canvas.getContext("2d");
     if (ctx === null) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, cssW, CHART_H);
+    ctx.clearRect(0, 0, cssW, chartH);
 
     const first = sorted[0];
     if (first === undefined) {
       // No history reached us yet — still draw the NOW edge and a bare axis.
-      this.drawNowEdge(ctx, cssW);
-      this.renderAxisLabels(axisTicks(asOfYear - 100, asOfYear));
+      this.drawNowEdge(ctx, cssW, chartH);
+      this.renderAxisLabels(axisTicks(asOfYear - 100, asOfYear, tickIntervals));
       return;
     }
 
@@ -698,8 +849,8 @@ export class SourceCard {
     const x = (year: number): number => ((year - earliest) / span) * cssW;
 
     const maxLevel = Math.max(0.05, ...sorted.map((e) => e.level));
-    const baseline = CHART_H - CHART_PAD_BOTTOM;
-    const usableH = CHART_H - CHART_PAD_TOP - CHART_PAD_BOTTOM;
+    const baseline = chartH - CHART_PAD_BOTTOM;
+    const usableH = chartH - CHART_PAD_TOP - CHART_PAD_BOTTOM;
     const y = (level: number): number => baseline - clamp01(level / maxLevel) * usableH;
 
     // Step function vertices from the earliest epoch out to the right edge
@@ -715,6 +866,21 @@ export class SourceCard {
       prevLevel = epoch.level;
     }
     pts.push({ x: cssW, y: y(prevLevel) });
+
+    // Gridlines, expanded only, drawn before the fill and line so both sit
+    // on top of them — hairline and very low alpha, at even fractions of the
+    // max level the strip is scaled to.
+    if (this.chartExpanded) {
+      ctx.strokeStyle = "rgba(233, 228, 214, 0.1)";
+      ctx.lineWidth = 1;
+      for (const frac of CHART_GRID_FRACTIONS) {
+        const gy = y(maxLevel * frac);
+        ctx.beginPath();
+        ctx.moveTo(0, gy);
+        ctx.lineTo(cssW, gy);
+        ctx.stroke();
+      }
+    }
 
     // Soft area fill under the step line.
     ctx.beginPath();
@@ -734,18 +900,18 @@ export class SourceCard {
     ctx.lineWidth = 1.25;
     ctx.stroke();
 
-    this.drawNowEdge(ctx, cssW);
-    this.renderAxisLabels(axisTicks(earliest, asOfYear));
+    this.drawNowEdge(ctx, cssW, chartH);
+    this.renderAxisLabels(axisTicks(earliest, asOfYear, tickIntervals));
   }
 
   /** A hairline marking NOW at the strip's right edge — the newest light
    * held. The invariant made visible: nothing is drawn to its right. */
-  private drawNowEdge(ctx: CanvasRenderingContext2D, cssW: number): void {
+  private drawNowEdge(ctx: CanvasRenderingContext2D, cssW: number, chartH: number): void {
     ctx.strokeStyle = "rgba(233, 228, 214, 0.55)";
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(cssW - 0.5, CHART_PAD_TOP);
-    ctx.lineTo(cssW - 0.5, CHART_H - CHART_PAD_BOTTOM);
+    ctx.lineTo(cssW - 0.5, chartH - CHART_PAD_BOTTOM);
     ctx.stroke();
   }
 

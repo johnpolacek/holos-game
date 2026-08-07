@@ -62,6 +62,29 @@
      chrome, so its readout does not borrow any of their meanings. */
   --holos-indigo: #8087c0;
   --holos-indigo-dim: rgba(128, 135, 192, 0.35);
+
+  /* VERB SURFACES. A verb on a card is a thing a thumb presses, and it has
+     to look like one: a lit face rather than a line of text that happens to
+     be tappable. Each is mixed from the verb's OWN semantic color, so a
+     button can never invent a hue the color rules do not already own — gold
+     is chrome (the workbench verb), amber is the outward act, cyan is your
+     own voice leaving. Mixed rather than restated so the hex stays defined
+     exactly once, above. */
+  --holos-verb-gold: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--holos-gold) 24%, transparent),
+    color-mix(in srgb, var(--holos-gold) 8%, transparent)
+  );
+  --holos-verb-amber: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--holos-amber) 26%, transparent),
+    color-mix(in srgb, var(--holos-amber) 9%, transparent)
+  );
+  --holos-verb-cyan: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--holos-cyan) 22%, transparent),
+    color-mix(in srgb, var(--holos-cyan) 8%, transparent)
+  );
   --holos-cyan: #7ee9ef;
   --holos-cyan-dim: rgba(126, 233, 239, 0.45);
   --holos-error: #f0836a;
@@ -155,7 +178,34 @@ body {
 .home-standing-designation,
 .home-standing-year,
 .rail-badge,
-.study-focus-designation {
+.study-focus-designation,
+/* The source card is the observatory's own readout, so all of it wears the
+   instrument face: the catalog designation, the belief line (a class and the
+   confidence in it are one reading, and splitting the face across them would
+   read as two), and the light history's year axis. */
+.source-card-designation,
+.source-card-class,
+.source-card-confidence,
+.source-card-axis,
+/* The same reading at list scale. `study-row-name` is deliberately absent:
+   it shows the name a PLAYER gave the source when there is one, and a name
+   is not a readout. */
+.source-card-belief-sep,
+.study-row-age,
+.study-row-class,
+.study-row-conf,
+/* The board's own numeric hook, already applied wherever it prints a figure:
+   clocks, counts, spans, stamps, the account key. One selector rather than
+   thirty, and a surface that adopts it later is covered without an edit. */
+.study-tabular,
+/* The remaining instrument strings outside the board: a beam's stamps, a
+   send's price and physics, the label a probe wears in flight. */
+.contact-stamp,
+.contact-cost-chip,
+.thread-stamp,
+.thread-rail,
+.composer-send-physics,
+.model-outbound-label {
   font-family: var(--holos-font-mono);
   letter-spacing: 0;
 }
@@ -478,18 +528,24 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
-  /* Taller than the A1 sheet was: at the daylight type scale the header,
-     belief line and chart no longer fit in 42dvh on a short phone. The
-     overflow guard is a floor, not the plan — the sheet should still fit. */
-  max-height: 52vh;
-  max-height: 52dvh;
+  /* S0.2 put a rail under this card, and the rail paints over it: a sheet
+     bottomed at zero hides its own last verb behind the tabs. It stops at
+     the rail's top edge instead, and the rail owns the safe-area inset. */
+  bottom: var(--home-rail-h);
+  /* All the room there is between the HUD and the rail. The old cap was
+     52dvh, which cut the verb rows off the bottom of a card whose chart and
+     explainer had pushed them down — and a verb a thumb cannot see is a verb
+     that does not exist, however scrollable it is. Overflow is still allowed
+     (a long light history can outrun any screen), but the common card now
+     fits whole, which is the point. */
+  max-height: calc(100vh - var(--home-hud-h) - var(--home-rail-h) - 0.5rem);
+  max-height: calc(100dvh - var(--home-hud-h) - var(--home-rail-h) - 0.5rem);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
-  padding: 0.35rem 1.1rem max(1rem, env(safe-area-inset-bottom));
+  padding: 0.35rem 1.1rem 1rem;
   background: var(--holos-bg-raised);
   border-top: 1px solid var(--holos-gold-dim);
   border-radius: 1rem 1rem 0 0;
@@ -516,7 +572,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.25rem;
+  min-height: 1.8rem;
   margin-bottom: -0.35rem;
   flex-shrink: 0;
   touch-action: none;
@@ -558,8 +614,8 @@ body {
 
 .source-card-name-area {
   display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 0.15rem;
   min-width: 0;
 }
 
@@ -574,16 +630,31 @@ body {
   text-align: left;
 }
 
-.source-card-name-affordance {
+/* ── Small icon affordances (S0 card-polish) ──────────────────────────────
+ * The pen (rename) and info ("what this class means") buttons share one
+ * anatomy: an inline SVG glyph a few px across, sitting inside a tap target
+ * no smaller than 40px so a thumb never has to aim carefully for it. Faint
+ * ink at rest, one step dimmer on hover/active — the same two-tier idiom the
+ * rest of the card's ink already uses, never the bright ink itself (an icon
+ * this small stays quiet even when pressed). */
+.source-card-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0;
   background: none;
   border: none;
-  padding: 0;
-  font-family: var(--holos-font-body);
-  font-style: italic;
-  font-size: var(--holos-text-sm);
   color: var(--holos-ink-faint);
   cursor: pointer;
-  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 160ms ease;
+}
+
+.source-card-icon-btn:hover,
+.source-card-icon-btn:active {
+  color: var(--holos-ink-dim);
 }
 
 .source-card-name-input {
@@ -640,6 +711,10 @@ body {
 }
 
 .source-card-belief {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
   font-size: var(--holos-text-sm);
   letter-spacing: 0.08em;
 }
@@ -658,10 +733,30 @@ body {
   font-weight: 600;
 }
 
+/* The info toggle after the confidence: its own box is the tap target, so no
+   extra margin closes the gap on top of that padding. */
+.source-card-class-info {
+  margin-left: 0.1rem;
+}
+
+/* The class explainer: setExplainer's note anatomy (`.voice-note`), landing
+   under the belief row rather than the header. [hidden] is spelled out
+   rather than left to the UA default — the accord rail's own rule does the
+   same, for the same reason (a stray `display` elsewhere in the cascade
+   should never win over an explicit one here). */
+.source-card-class-explainer[hidden] {
+  display: none;
+}
+
+/* The chart block is a single tap target now (role="button" in sourcecard.ts):
+   small by default, roughly 2.2x taller when expanded. No chrome text says
+   so — the pointer cursor is the only affordance, same as the dial rows'. */
 .source-card-chart {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .source-card-canvas {
@@ -677,26 +772,60 @@ body {
   color: var(--holos-ink-faint);
 }
 
-.source-card-study-row {
+/* ── The card's verbs ─────────────────────────────────────────────────────
+ * All four rows share one anatomy, declared once here rather than four times
+ * apart: a full-width lit face, a thumb-sized target, the caps label. They
+ * were bare centered text and read as captions rather than as things to
+ * press (2026-08 phone check). Each keeps its own semantic color — gold for
+ * the workbench verb, amber for an outward act, cyan for the beam, which is
+ * the one cyan this card earns (sourcecard.ts's header says why). */
+.source-card-study-row,
+.source-card-mission-row,
+.source-card-contact-row,
+.source-card-voyage-row {
   display: flex;
-  justify-content: center;
-  padding-top: 0.15rem;
+  justify-content: stretch;
+  /* The verbs are one stack, so they sit tighter to each other than the
+     sheet's own rhythm: pulling the row up against the sheet's gap buys back
+     the height that pushed the last verb off a short screen, and reads as a
+     group besides. */
+  margin-top: -0.3rem;
 }
 
-.source-card-study-affordance {
-  background: none;
-  border: none;
-  padding: 0.3rem 0.6rem;
+.source-card-study-affordance,
+.source-card-mission-affordance,
+.source-card-contact-affordance,
+.source-card-voyage-affordance {
+  flex: 1 1 auto;
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid transparent;
   font-family: inherit;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: var(--holos-text-xs);
-  color: var(--holos-ink-faint);
+  font-weight: 600;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: filter 160ms ease;
+}
+
+.source-card-study-affordance:active,
+.source-card-mission-affordance:active,
+.source-card-contact-affordance:active,
+.source-card-voyage-affordance:active {
+  filter: brightness(1.25);
+}
+
+.source-card-study-affordance {
+  background: var(--holos-verb-gold);
+  border-color: var(--holos-gold-dim);
+  color: var(--holos-gold);
 }
 
 .source-card-study-affordance--active {
-  color: var(--holos-ink-dim);
+  color: var(--holos-ink);
 }
 
 /* ── The observatory (the inference workbench, a Desk panel, Act 3 A2.1) ─
@@ -2240,7 +2369,9 @@ body {
 }
 
 .counsel-seam--empty,
-.counsel-seam--paged {
+.counsel-seam--paged,
+/* The source card rises into the strip's zone; they never share pixels. */
+.counsel-seam--carded {
   height: 0;
   padding: 0;
   background: none;
@@ -3742,22 +3873,12 @@ body {
 }
 
 /* ── Source card — the mission (dispatch) affordance row ─────────────── */
-.source-card-mission-row {
-  display: flex;
-  justify-content: center;
-  padding-top: 0.15rem;
-}
-
+/* The row's own layout and the button anatomy live with the study row above;
+   only the color is this row's business. */
 .source-card-mission-affordance {
-  background: none;
-  border: none;
-  padding: 0.3rem 0.6rem;
-  font-family: inherit;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: var(--holos-text-xs);
+  background: var(--holos-verb-amber);
+  border-color: color-mix(in srgb, var(--holos-amber) 40%, transparent);
   color: var(--holos-amber);
-  cursor: pointer;
 }
 
 .source-card-mission-affordance--active {
@@ -3768,25 +3889,17 @@ body {
    sourcecard.ts's header for why it earns the exception the rest of the
    sheet does not get. The in-flight variant is a date rather than a verb,
    so it drops the pointer entirely. */
-.source-card-contact-row {
-  display: flex;
-  justify-content: center;
-  padding-top: 0.15rem;
-}
-
 .source-card-contact-affordance {
-  background: none;
-  border: none;
-  padding: 0.3rem 0.6rem;
-  font-family: inherit;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: var(--holos-text-xs);
+  background: var(--holos-verb-cyan);
+  border-color: var(--holos-cyan-dim);
   color: var(--holos-cyan);
-  cursor: pointer;
 }
 
+/* A beam already aimed is a DATE, not a verb: it drops the lit face along
+   with the pointer, because nothing here is pressable any more. */
 .source-card-contact-affordance--active {
+  background: none;
+  border-color: transparent;
   color: var(--holos-cyan-dim);
   cursor: default;
   font-variant-numeric: tabular-nums;
@@ -3796,25 +3909,17 @@ body {
    cyan exception on this card belongs to the beam alone (a beam is your voice
    leaving now; a ship is a century of somebody else's sky). The in-flight
    variant is a state rather than a verb, so it drops the pointer. */
-.source-card-voyage-row {
-  display: flex;
-  justify-content: center;
-  padding-top: 0.15rem;
-}
-
 .source-card-voyage-affordance {
-  background: none;
-  border: none;
-  padding: 0.3rem 0.6rem;
-  font-family: inherit;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: var(--holos-text-xs);
+  background: var(--holos-verb-amber);
+  border-color: color-mix(in srgb, var(--holos-amber) 40%, transparent);
   color: var(--holos-amber);
-  cursor: pointer;
 }
 
+/* A ship already crossing is a STATE, not a verb — same rule as the beam's
+   date above. */
 .source-card-voyage-affordance--active {
+  background: none;
+  border-color: transparent;
   color: var(--holos-ink-faint);
   cursor: default;
 }
