@@ -178,7 +178,34 @@ body {
 .home-standing-designation,
 .home-standing-year,
 .rail-badge,
-.study-focus-designation {
+.study-focus-designation,
+/* The source card is the observatory's own readout, so all of it wears the
+   instrument face: the catalog designation, the belief line (a class and the
+   confidence in it are one reading, and splitting the face across them would
+   read as two), and the light history's year axis. */
+.source-card-designation,
+.source-card-class,
+.source-card-confidence,
+.source-card-axis,
+/* The same reading at list scale. `study-row-name` is deliberately absent:
+   it shows the name a PLAYER gave the source when there is one, and a name
+   is not a readout. */
+.source-card-belief-sep,
+.study-row-age,
+.study-row-class,
+.study-row-conf,
+/* The board's own numeric hook, already applied wherever it prints a figure:
+   clocks, counts, spans, stamps, the account key. One selector rather than
+   thirty, and a surface that adopts it later is covered without an edit. */
+.study-tabular,
+/* The remaining instrument strings outside the board: a beam's stamps, a
+   send's price and physics, the label a probe wears in flight. */
+.contact-stamp,
+.contact-cost-chip,
+.thread-stamp,
+.thread-rail,
+.composer-send-physics,
+.model-outbound-label {
   font-family: var(--holos-font-mono);
   letter-spacing: 0;
 }
