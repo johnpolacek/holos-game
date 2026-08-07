@@ -457,12 +457,19 @@ component rule.**
   upright and italic, including the charter.
 - **JetBrains Mono, the instrument face.** Machine readouts *only* — a
   value an instrument produced: a distance, a clock, a count, a machine
-  ID. The shipped set is a single grouped selector list in style.css (the
-  scale readout, the source card's age chip, the HUD's designation and
-  year, the rail badge, a focused study's designation). **When a new
-  readout ships, it joins that list**, so "what is a readout?" stays
-  answerable by reading one place. Mono runs wide, so nothing in it takes
-  letterspacing. Prose and labels never wear it.
+  ID. The shipped set is a single grouped selector list in style.css: the
+  scale readout, the HUD's designation and year, the rail badge, the
+  source card whole (its designation, its belief line, and the light
+  history's year axis — a class and the confidence in it are one reading,
+  so the face never splits across them), the same reading at list scale,
+  the stamps and prices outside the board, and **`study-tabular`**, the
+  hook the board already applies wherever it prints a figure. That last
+  one is why the list stays short: a surface that adopts the hook is
+  covered without an edit. **When a new readout ships outside it, it
+  joins the list**, so "what is a readout?" stays answerable by reading
+  one place. Mono runs wide, so nothing in it takes letterspacing.
+  Prose and labels never wear it, and neither does the name a *player*
+  gave a source: a name is not a readout.
 
 **The ladder.** One `--holos-text-*` scale for the whole UI. The floor
 for anything a player *reads* is `--holos-text-xs`: prose, sub-lines and
@@ -625,11 +632,17 @@ allowed to be this theatrical.
   fuzz, the player's own light echo as an orbitable expanding shell.
   Sources render as what they optically are: smudges, warmths, shadows,
   not gameplay icons. Selecting one opens its **source card**:
-  designation, your name for it, light-age chip, classification beliefs
-  with confidence, and its **light archive** — a scrubbable history of
-  everything your instruments have ever received from it. Scrubbing a
-  source's past is how "the map is the past" becomes something the
-  player's fingers know. Sky's.
+  designation, a pen to name it by, the light-age chip, the belief line
+  (class and confidence, with an info toggle whose five pinned texts say
+  what that *class* means and never what *this source* is), and the
+  **light history** — a step chart of what the source has been emitting
+  across the span of light that has reached you, its right edge the
+  newest light held and nothing ever drawn past it. The chart is a glance
+  by default and expands in place on a tap, gridlined, with its axis
+  density derived from what the width can hold. Beneath it the four verbs
+  are lit buttons, each in its own semantic color: gold for the study,
+  amber for the probe and the ship, cyan for the beam. Time-scrubbing is
+  a later slice; the archive is read, not yet scrubbed. Sky's.
 - **The observatory** — the inference workbench, shipped in its
   read-first form as Sky's studies, picker and briefing. Active vigils as
   studies: hypotheses with confidence shares, buyable questions priced in
@@ -696,7 +709,7 @@ once, used everywhere. The first four shipped in S0.
 | **Dial band** | range band + position notch; ghostable (Ledger); price-on-drag; used for reveal, sheet, charters, drift; poles render as **in-world labels** — Reach · Depth, Voice · Silence, Garden · Forge, Monolith · Chorus, Memory · Renewal (act2-design.md § In-world labels), never the design vocabulary |
 | **Clock pair** | game time + real time, always together, everywhere a duration appears; an en dash stands in for a missing half |
 | **Hold-to-commit** | the irreversibility ceremony; consequence renders during the hold; releasing early cancels silently; the shell hides under it |
-| **Source card** | designation + local name + age + beliefs + light archive scrubber; opened from the map, and the way into a sending |
+| **Source card** | designation + pen-to-name + age chip + belief line with a class explainer + the light history (small, tap to expand) + four lit verb buttons; opened from the map, and the way into a sending |
 
 ---
 
