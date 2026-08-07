@@ -614,8 +614,8 @@ body {
 
 .source-card-name-area {
   display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 0.15rem;
   min-width: 0;
 }
 
@@ -630,16 +630,31 @@ body {
   text-align: left;
 }
 
-.source-card-name-affordance {
+/* ── Small icon affordances (S0 card-polish) ──────────────────────────────
+ * The pen (rename) and info ("what this class means") buttons share one
+ * anatomy: an inline SVG glyph a few px across, sitting inside a tap target
+ * no smaller than 40px so a thumb never has to aim carefully for it. Faint
+ * ink at rest, one step dimmer on hover/active — the same two-tier idiom the
+ * rest of the card's ink already uses, never the bright ink itself (an icon
+ * this small stays quiet even when pressed). */
+.source-card-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0;
   background: none;
   border: none;
-  padding: 0;
-  font-family: var(--holos-font-body);
-  font-style: italic;
-  font-size: var(--holos-text-sm);
   color: var(--holos-ink-faint);
   cursor: pointer;
-  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 160ms ease;
+}
+
+.source-card-icon-btn:hover,
+.source-card-icon-btn:active {
+  color: var(--holos-ink-dim);
 }
 
 .source-card-name-input {
@@ -696,6 +711,10 @@ body {
 }
 
 .source-card-belief {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
   font-size: var(--holos-text-sm);
   letter-spacing: 0.08em;
 }
@@ -714,10 +733,30 @@ body {
   font-weight: 600;
 }
 
+/* The info toggle after the confidence: its own box is the tap target, so no
+   extra margin closes the gap on top of that padding. */
+.source-card-class-info {
+  margin-left: 0.1rem;
+}
+
+/* The class explainer: setExplainer's note anatomy (`.voice-note`), landing
+   under the belief row rather than the header. [hidden] is spelled out
+   rather than left to the UA default — the accord rail's own rule does the
+   same, for the same reason (a stray `display` elsewhere in the cascade
+   should never win over an explicit one here). */
+.source-card-class-explainer[hidden] {
+  display: none;
+}
+
+/* The chart block is a single tap target now (role="button" in sourcecard.ts):
+   small by default, roughly 2.2x taller when expanded. No chrome text says
+   so — the pointer cursor is the only affordance, same as the dial rows'. */
 .source-card-chart {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .source-card-canvas {
