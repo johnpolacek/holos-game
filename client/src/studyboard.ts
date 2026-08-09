@@ -730,6 +730,23 @@ function copyAccountKey(text: string): void {
 export type RailTab = "report" | "sky" | "work" | "family" | "mind";
 
 /**
+ * S0.4, THE THUMB TEST. Somewhere else that will hold a focused study's
+ * detail — today the map-anchored source card, and nothing else. Registering
+ * one moves the focused view off this panel's docked page and onto whatever
+ * the host hands back; registering none is the shipped behaviour, unchanged.
+ *
+ * The board knows nothing about what the host is. It asks for an element on
+ * every render (once a second, so `acquire` must be cheap and idempotent and
+ * must return the same node each time) and says when it is done. Which
+ * surface the player is actually looking at, and how it got there, is the
+ * App's business.
+ */
+export interface FocusHost {
+  acquire(starId: string, source: DetectedSource): HTMLElement;
+  release(): void;
+}
+
+/**
  * Every page this panel can show.
  *
  * Five of them are LANDINGS — one per rail tab — and the rest are drill-ins
@@ -850,6 +867,11 @@ export class StudyBoard {
   // never appended, never re-sorted client-side (the server's ranked order
   // is load-bearing).
   private proposals: readonly Proposal[] = [];
+
+  /** S0.4: null in the shipped build, so the focused view renders into this
+   *  panel's own body exactly as it always has. Set by the App only when the
+   *  thumb test asked for the card. */
+  private focusHost: FocusHost | null = null;
 
   private openFlag = false;
   private view: View = "list";
@@ -1668,8 +1690,7 @@ export class StudyBoard {
     this.expandedQuestion = null;
     this.callConfirmStarId = null;
     this.renderFocused(starId);
-    this.openFlag = true;
-    this.root.classList.add("open");
+    this.showFocusedContainer();
     this.startTicking();
   }
 
@@ -1849,8 +1870,7 @@ export class StudyBoard {
     // spend still waits behind the spend button inside it.
     this.expandedQuestion = { starId, questionId };
     this.renderFocused(starId);
-    this.openFlag = true;
-    this.root.classList.add("open");
+    this.showFocusedContainer();
     this.startTicking();
   }
 
@@ -1858,6 +1878,10 @@ export class StudyBoard {
     this.openFlag = false;
     this.root.classList.remove("open");
     this.stopTicking();
+    // S0.4: in CARD mode the focused study is not on this panel at all, so
+    // shutting the panel has to reach over and take that surface down too.
+    // Nothing to do in the shipped build (there is no host).
+    this.focusHost?.release();
     // A closed panel is about nothing; the ring it was holding lets go.
     this.announceViewedStar();
     // A closed panel IS Sky's landing: the map, bare. The rail says so.
@@ -1874,6 +1898,31 @@ export class StudyBoard {
     // any time (accounts.ts's plaintext-storage reasoning), so this is not a
     // second, secret way past the mandatory tap — merely closing the panel.
     this.closeAccountSheet();
+  }
+
+  /** S0.4: hand the focused view somewhere else to live, or null for this
+   *  panel's own body. Boot-time only — overflow.ts freezes the mode for the
+   *  session, and a swap while a study is on screen would strand the detail
+   *  on a surface nothing is releasing any more. */
+  setFocusHost(host: FocusHost | null): void {
+    this.focusHost = host;
+  }
+
+  /** S0.4: the host's surface went away under the player (a swipe or a tap
+   *  on the sky behind the card), and the view has to follow it out. Without
+   *  this the panel is still on `focused` and the next tick renders the study
+   *  straight back onto a card that was just dismissed.
+   *
+   *  A no-op in PAGE mode by design: there the panel's own sheet IS the
+   *  surface, and its close paths already cover every way out. */
+  leaveFocusedCard(): void {
+    if (this.focusHost === null || this.view !== "focused") return;
+    // Sky's landing, which is what a dismissed drill-in falls back to
+    // everywhere else. It also stops update()'s focused branch from
+    // re-acquiring the card on the next arriving sky.
+    this.view = "sky";
+    this.focusedStarId = null;
+    this.close();
   }
 
   isOpen(): boolean {
@@ -1939,6 +1988,23 @@ export class StudyBoard {
     this.root.remove();
   }
 
+  /** S0.4: raise whatever the focused view's container is, for the two
+   *  methods that deliberately enter it. In PAGE mode that is this panel's
+   *  sheet, exactly as before. In CARD mode the card is the surface and the
+   *  sheet must stay DOWN — a docked page behind the card would be a second
+   *  copy of the same study, and the rail would light a tab for a page
+   *  nobody is looking at. A shut panel reports Sky (announceTab's rule), so
+   *  the rail says Sky, which is where the card is anchored. */
+  private showFocusedContainer(): void {
+    if (this.focusHost !== null) {
+      this.openFlag = false;
+      this.root.classList.remove("open");
+      return;
+    }
+    this.openFlag = true;
+    this.root.classList.add("open");
+  }
+
   /** Starts the 1s ticker if it is not already running. Idempotent — every
    * open* method calls this, so opening while already open is a no-op. */
   private startTicking(): void {
@@ -1947,10 +2013,19 @@ export class StudyBoard {
     // it: "already ticking" does not mean "same view").
     this.announceViewedStar();
     this.announceTab();
+    // S0.4: every deliberate move to another view passes through here, and a
+    // move away from the study is the host's cue to let its surface go. Above
+    // the idempotent guard, because "already ticking" does not mean "still
+    // focused" — that is the whole reason the guard cannot own this.
+    if (this.view !== "focused") this.focusHost?.release();
     if (this.tickHandle !== null) return;
     this.tickHandle = window.setInterval(() => {
       this.announceViewedStar();
       this.announceTab();
+      // The backstop for the ways the view moves without an open* call at
+      // all: update()'s vanished-study and vanished-mission fallbacks reach
+      // another view by rendering it, and never come past startTicking.
+      if (this.view !== "focused") this.focusHost?.release();
       // Sky's page holds no clock of its own; what moves on it is THE VOICE's
       // thread rows, and they are refreshed in place. THE MIND and FAMILY are
       // absent from this chain deliberately and must stay absent: a tick that
@@ -8301,21 +8376,33 @@ export class StudyBoard {
     const s = this.studiesByStarId.get(starId);
     const source = s === undefined ? undefined : this.sourcesByStarId.get(starId);
     this.body.innerHTML = "";
-    if (s === undefined || source === undefined) return; // defensive; see update()
+    if (s === undefined || source === undefined) {
+      // Defensive; see update(). A study that is not there any more has no
+      // detail to host either, so the host gets its surface back.
+      this.focusHost?.release();
+      return;
+    }
+
+    // S0.4: the one line the thumb test turns on. `this.body` is the docked
+    // page; a host hands back somewhere else. EVERYTHING below writes to
+    // `host` and nothing below writes to `this.body` — both are HTMLElement,
+    // so a missed site compiles clean and renders into an invisible panel.
+    const host = this.focusHost === null ? this.body : this.focusHost.acquire(starId, source);
+    host.innerHTML = "";
 
     const back = document.createElement("button");
     back.type = "button";
     back.className = "study-back holos-caps";
     back.textContent = "‹ STUDIES";
     back.addEventListener("click", () => this.openBoard());
-    this.body.append(back);
+    host.append(back);
 
     const leader = leadingHypothesis(s.hypotheses);
     const leaderShare = clamp01(leader?.share ?? 0);
     const smudge = document.createElement("div");
     smudge.className = "study-smudge";
     smudge.style.opacity = (0.3 + leaderShare * 0.6).toFixed(2);
-    this.body.append(smudge);
+    host.append(smudge);
 
     const header = document.createElement("div");
     header.className = "study-focus-header";
@@ -8331,14 +8418,14 @@ export class StudyBoard {
     nameEl.className = "study-focus-name holos-serif";
     nameEl.textContent = hasLocalName ? (localName as string) : source.designation;
     header.append(nameEl);
-    this.body.append(header);
+    host.append(header);
 
     const lightAgeLine = document.createElement("div");
     lightAgeLine.className = "study-focus-lightage";
     lightAgeLine.textContent = `The light you are reading left it ${source.lightAgeYears.toFixed(1)} years ago.`;
-    this.body.append(lightAgeLine);
+    host.append(lightAgeLine);
 
-    this.body.append(this.hairline());
+    host.append(this.hairline());
 
     // WHAT IT MIGHT BE
     const hypSection = document.createElement("div");
@@ -8383,12 +8470,12 @@ export class StudyBoard {
       row.append(labelCol, track, pct);
       hypSection.append(row);
     }
-    this.body.append(hypSection);
+    host.append(hypSection);
 
     const annotation = document.createElement("div");
     annotation.className = "study-annotation";
     annotation.textContent = s.annotationLine;
-    this.body.append(annotation);
+    host.append(annotation);
 
     // A2.3: the mind's one sentence about a study that has regressed at
     // least once — banked prose from the server (voice.ts), rendered
@@ -8400,10 +8487,10 @@ export class StudyBoard {
       const contestLine = document.createElement("div");
       contestLine.className = "study-contest-line";
       contestLine.textContent = s.contestLine;
-      this.body.append(contestLine);
+      host.append(contestLine);
     }
 
-    this.body.append(this.hairline());
+    host.append(this.hairline());
 
     // The menu's own wording, read by both the evidence tags below and an
     // expanded question's "what it can tell apart" list.
@@ -8466,7 +8553,7 @@ export class StudyBoard {
         archiveSection.append(row);
       }
     }
-    this.body.append(archiveSection);
+    host.append(archiveSection);
 
     // OPEN QUESTIONS — one row per OpenQuestion (questions.ts's catalog for
     // this study's signal class, always non-empty). Offered folds open into
@@ -8502,9 +8589,9 @@ export class StudyBoard {
       }
       oqSection.append(questionRow);
     }
-    this.body.append(oqSection);
+    host.append(oqSection);
 
-    this.body.append(this.hairline());
+    host.append(this.hairline());
 
     // TRIPWIRES — always all three kinds (protocol.ts's tripwires comment),
     // inert on a closed study exactly as OPEN QUESTIONS already is above:
@@ -8518,9 +8605,9 @@ export class StudyBoard {
     for (const tw of s.tripwires) {
       twSection.append(this.buildTripwireRow(starId, tw, !closed));
     }
-    this.body.append(twSection);
+    host.append(twSection);
 
-    this.body.append(this.hairline());
+    host.append(this.hairline());
 
     // Verb row — reversible, a tap, no confirmation.
     const verbRow = document.createElement("div");
@@ -8552,7 +8639,7 @@ export class StudyBoard {
       });
     }
     verbRow.append(verbBtn);
-    this.body.append(verbRow);
+    host.append(verbRow);
 
     // A2.3: CALL IT — legal from open or shelved (protocol.ts's callStudy
     // comment; a closed study cannot be closed again, "study-unavailable").
@@ -8579,7 +8666,7 @@ export class StudyBoard {
         callBtn.addEventListener("click", () => this.onCallItTap(starId));
       }
       callRow.append(callBtn);
-      this.body.append(callRow);
+      host.append(callRow);
     }
 
     // AV3: the one-shot scroll for a proposal's `question` route. Cleared

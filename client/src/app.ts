@@ -55,6 +55,8 @@ import { Home } from "./home";
 import { setClockAnchor, formatEpochYearPrecise, nowYear } from "./clock";
 import { ContactCeremony } from "./contactceremony";
 import { Intro } from "./intro";
+// S0.4: the thumb test's one switch, read once at boot.
+import { detailSkyRem, overflowMode } from "./overflow";
 // A5: the boot re-sync, and nothing else from here. The row, the sheet and
 // the ask all live in the study board.
 import { resyncWatch } from "./push";
@@ -244,6 +246,15 @@ export class App {
     this.root = root;
     this.socket = socket;
     this.socket.onMessage((message) => this.handleMessage(message));
+
+    // S0.4: `?sky=8` retunes how much map the detail card leaves above
+    // itself, live, so the height can be judged with a thumb on a phone
+    // instead of guessed at in a stylesheet. Absent or out of range, the
+    // stylesheet's own number stands.
+    const skyRem = detailSkyRem();
+    if (skyRem !== null) {
+      document.documentElement.style.setProperty("--card-detail-sky", `${skyRem}rem`);
+    }
 
     // Calm-cadence refresh: the phone slept and light moved on without us.
     document.addEventListener("visibilitychange", () => {
@@ -728,6 +739,22 @@ export class App {
       home.setActiveTab("sky");
       home.setIdentity(self.seed.name);
       this.refreshReportBadge();
+      // S0.4, THE THUMB TEST — the whole of the CARD variant's wiring, and
+      // the only place either build differs. PAGE registers no host and the
+      // board never asks, so the control path below this line is the one
+      // that shipped.
+      if (overflowMode() === "card") {
+        studyBoard.setFocusHost({
+          acquire: (starId, source) => {
+            // A fresh drill-in rather than the once-a-second rebuild. The
+            // board cannot light the ring itself here: with its own sheet
+            // down it reports no viewed star, by design.
+            if (sourceCard.currentStarId() !== starId) model.selectStar(starId);
+            return sourceCard.acquireDetail(source, this.localNames);
+          },
+          release: () => sourceCard.releaseDetail(),
+        });
+      }
       // The counsel strip's TALK tap used to hang here, and it carried the
       // `arrival` acknowledgement with it: tapping it reported the line seen
       // and dropped it locally. With the strip cut (2026-08) NOTHING reads or
@@ -782,6 +809,11 @@ export class App {
         }
       });
       sourceCard.onClose(() => {
+        // S0.4: in CARD mode this dismissal may have taken a focused study
+        // with it, and the board is still on that view with its sheet down.
+        // It has to be told, or the next tick puts the study back on a card
+        // the player just swiped away. A no-op in PAGE mode.
+        studyBoard.leaveFocusedCard();
         // The card's dismiss drops its ring, unless the board behind it is
         // still reading a system; then the ring falls back to that one.
         const viewed = studyBoard.viewedStarId();
@@ -797,6 +829,9 @@ export class App {
         else if (!sourceCard.isOpen()) model.clearSelection();
       });
       studyBoard.onInspect((starId) => {
+        // S0.4: this hands the card to a plain source, so whatever study was
+        // borrowing it lets go first. A no-op in PAGE mode.
+        studyBoard.leaveFocusedCard();
         const source = this.sources.find((s) => s.starId === starId);
         if (source === undefined) return;
         model.selectStar(starId);

@@ -162,6 +162,15 @@ export class SourceCard {
   private readonly backdrop: HTMLDivElement;
   private readonly sheet: HTMLDivElement;
   private readonly grabzone: HTMLDivElement;
+  /** S0.4: a wrapper around everything below the grab pill. It is
+   *  `display: contents` and therefore not a box at all in the shipped card
+   *  — it exists so the detail variant has one node to turn into a scroller
+   *  and one node to reset the scroll position on. */
+  private readonly scroll: HTMLDivElement;
+  /** S0.4: where the focused study's detail is rendered when this card is
+   *  carrying it instead of the board's docked page. Empty and hidden
+   *  otherwise, which is every load that did not ask for CARD mode. */
+  private readonly detailEl: HTMLDivElement;
 
   private readonly designationEl: HTMLSpanElement;
   private readonly nameArea: HTMLDivElement;
@@ -211,6 +220,8 @@ export class SourceCard {
    *  rendering. A card re-open always starts small (renderChart's own
    *  contract). */
   private chartExpanded = false;
+  /** S0.4: whether this card is currently the focused study's surface. */
+  private detailOpen = false;
 
   private dragStartY: number | null = null;
   private dragDy = 0;
@@ -241,6 +252,13 @@ export class SourceCard {
 
     this.sheet = document.createElement("div");
     this.sheet.className = "source-card-sheet";
+
+    this.scroll = document.createElement("div");
+    this.scroll.className = "source-card-scroll";
+
+    this.detailEl = document.createElement("div");
+    this.detailEl.className = "source-card-detail";
+    this.detailEl.hidden = true;
 
     // The pill is 4px tall; a thumb aiming at it mostly misses. The zone
     // around it is what the swipe actually listens on.
@@ -395,8 +413,12 @@ export class SourceCard {
     this.accordEl.className = "source-card-accord";
     this.accordEl.hidden = true;
 
-    this.sheet.append(
-      this.grabzone,
+    // The grab pill stays a direct child of the sheet: it is the one thing
+    // that must never scroll away from the thumb. Everything else goes
+    // through the wrapper, in the order it has always been in, because in
+    // PAGE mode the wrapper is `display: contents` and this is still the
+    // same flat flex column it was before.
+    this.scroll.append(
       header,
       hr,
       beliefRow,
@@ -407,7 +429,9 @@ export class SourceCard {
       missionRow,
       contactRow,
       voyageRow,
+      this.detailEl,
     );
+    this.sheet.append(this.grabzone, this.scroll);
     this.root.append(this.backdrop, this.sheet);
     container.append(this.root);
 
@@ -477,6 +501,7 @@ export class SourceCard {
     this.accord = null;
     this.classExplainerOpen = false; // a re-open always starts with the note closed
     this.chartExpanded = false; // a re-open always starts with the chart small
+    this.clearDetail(); // a re-open is a card again, whatever it was carrying
     this.setExplainer(null); // a second source never inherits the first's note
     this.renderAll();
     this.renderClassExplainer();
@@ -577,6 +602,50 @@ export class SourceCard {
     this.accord = null;
     this.classExplainerOpen = false;
     this.chartExpanded = false;
+    // Every way out of this card runs through here, so the detail collapses
+    // on all of them without a single new call site.
+    this.clearDetail();
+  }
+
+  /** S0.4: hand the focused study this card as its surface, and give it the
+   *  element to render into. Opens (or re-points) the card on `source`
+   *  first, so the thing under the detail is the thing the detail is about.
+   *
+   *  IDEMPOTENT BY CONTRACT: the study rebuilds itself once a second and
+   *  calls this every time, so the second call and the six-hundredth must
+   *  hand back the same element, untouched, and must not re-open the card,
+   *  reset the scroll, or restart the slide-up transition. */
+  acquireDetail(
+    source: DetectedSource,
+    localNames: ReadonlyMap<string, string>,
+  ): HTMLDivElement {
+    if (this.source === null || this.source.starId !== source.starId) {
+      this.open(source, localNames);
+    }
+    if (!this.detailOpen) {
+      this.detailOpen = true;
+      this.sheet.classList.add("source-card-sheet--detail");
+      this.detailEl.hidden = false;
+      // A drill-in starts at the top of what it is about. Only on the way
+      // in: doing it on every rebuild would drag the page back up under a
+      // thumb once a second.
+      this.scroll.scrollTop = 0;
+    }
+    return this.detailEl;
+  }
+
+  /** S0.4: the study is done with this card. The card goes with it — what
+   *  was on screen was the study, and leaving the source behind it standing
+   *  would read as a second dismissal the player did not ask for. */
+  releaseDetail(): void {
+    if (this.detailOpen) this.close();
+  }
+
+  private clearDetail(): void {
+    this.detailOpen = false;
+    this.sheet.classList.remove("source-card-sheet--detail");
+    this.detailEl.replaceChildren();
+    this.detailEl.hidden = true;
   }
 
   /** Route sourceNamed/error while this card is open. `error` lacks a

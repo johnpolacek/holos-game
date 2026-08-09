@@ -551,6 +551,62 @@ body {
   transition: transform 320ms cubic-bezier(0.22, 0.9, 0.32, 1);
 }
 
+/* S0.4, THE THUMB TEST. Everything below builds the card's second job — it
+   can carry a focused study's overflow detail instead of the docked board
+   page — without the control path noticing. `display: contents` is the whole
+   trick: in PAGE mode this wrapper is not a box at all, so the card's own
+   rows are still direct flex items of the sheet and inherit the sheet's
+   column, gap and scrolling exactly as they did before the wrapper existed
+   (the detail box is [hidden] there, so it is not even a flex item and
+   contributes no gap). Only the detail variant below turns the wrapper back
+   into a real element. */
+.source-card-scroll {
+  display: contents;
+}
+
+.source-card-sheet--detail {
+  /* `height`, NOT `max-height`. The focused study rebuilds itself every
+     second and its countdowns change width as they run ("in 9 years" ->
+     "in 10 years"), so a card sized to its contents would breathe under a
+     thumb that is trying to read it. A fixed frame with the scrolling on the
+     inside holds still while the numbers move. */
+  height: calc(100vh - var(--home-hud-h) - var(--home-rail-h) - var(--card-detail-sky));
+  height: calc(100dvh - var(--home-hud-h) - var(--home-rail-h) - var(--card-detail-sky));
+  overflow: hidden;
+}
+
+.source-card-sheet--detail .source-card-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* The card's own anatomy stands down while the detail has the surface: the
+   study's header already names the source, and two headers about the same
+   system is one more than the question needs. Hidden rather than unbuilt, so
+   releasing the detail restores the card without rebuilding anything. */
+.source-card-sheet--detail .source-card-scroll > *:not(.source-card-detail) {
+  display: none;
+}
+
+/* Block flow, not a flex column: the docked page renders these same children
+   inside .study-board-body, which is a plain block, and the point of the
+   test is that only the surface differs. [hidden] is spelled out for the
+   reason the class explainer's rule below gives. */
+.source-card-detail {
+  display: block;
+  min-width: 0;
+}
+
+.source-card-detail[hidden] {
+  display: none;
+}
+
 .source-card-root.open {
   pointer-events: auto;
 }
@@ -2191,6 +2247,11 @@ body {
      clipped the chip once the band wrapped. */
   --home-hud-h: calc(env(safe-area-inset-top) + 3.9rem);
   --home-rail-h: calc(env(safe-area-inset-bottom) + 3.6rem);
+  /* S0.4: the strip of map the source card leaves visible above itself when
+     it is carrying a focused study's detail. It lives beside the two numbers
+     it is subtracted from, for the reason this block's header gives, and
+     overflow.ts can retune it per load off a `sky` query param. */
+  --card-detail-sky: 5.5rem;
 }
 
 /* No box of its own: the three children below are all `position: fixed` and
