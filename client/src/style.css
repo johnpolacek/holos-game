@@ -367,9 +367,6 @@ body {
 .name-hint,
 .source-card-name-hint,
 .voice-note,
-/* S0.3: the counsel strip's one argued line. A sentence, spoken over the
-   sky the way the intro's beats and the voice beat's line once were. */
-.counsel-line,
 /* AV2: the report — a triage header, a record sentence, an archetype
    remark. All running prose. */
 .report-header,
@@ -2163,10 +2160,11 @@ body {
 }
 
 /* ── The hybrid home shell (S0.2) ──────────────────────────────────────────
- * The HUD band above the map, the counsel seam, and the five-tab rail below
- * (home.ts). All three are `position: fixed`, safe-area aware, and siblings
- * of .model-root / .source-card-root / .study-board-root on the App's own
- * root — chrome only, nothing here originates a gameplay value.
+ * The HUD band above the map and the five-tab rail below (home.ts). Both are
+ * `position: fixed`, safe-area aware, and siblings of .model-root /
+ * .source-card-root / .study-board-root on the App's own root — chrome only,
+ * nothing here originates a gameplay value. The counsel seam sat between them
+ * from S0.3 until it was cut in 2026-08; the sky has that height back.
  *
  * The two custom properties below size the HUD and rail bands. They live in
  * :root, not scoped to .home-hud/.home-rail, because .study-board--railed
@@ -2182,9 +2180,10 @@ body {
  * its own place in the stack); nothing between .study-board-root and
  * .voice-beat-root existed for the shell to reuse, and the shell must sit
  * below all four of those, which are heavier interruptions than a persistent
- * chrome band ever is. S0.3 retired the voice beat (its line now lives in the
- * counsel seam below); slot 5 is unused, kept open rather than renumbering
- * everything that was stacked above it for a beat that no longer exists. */
+ * chrome band ever is. S0.3 retired the voice beat and moved its line to the
+ * counsel seam; 2026-08 cut that seam too, so the arrival line currently has
+ * no surface at all. Slot 5 stays unused and unreclaimed, as it has been
+ * since the beat went — renumbering four roots to close a gap buys nothing. */
 :root {
   /* Two grid rows at every width: top padding + the name row (md line) + the
      row gap + the chip row. 3.9rem is that sum with breathing room — the old
@@ -2289,7 +2288,7 @@ body {
 }
 
 /* The compute meter — in the HUD band, under the name (moved from bottom
-   right, 2026-08: down there it shared the counsel strip's zone and
+   right, 2026-08: down there it shared the then-live counsel strip's zone and
    overlapped TALK). A tiny label over a thin bar: the bar is the reading
    (how much of the attention ceiling is uncommitted); the label carries the
    number and the rate. Fill eases so the accrual creeps instead of
@@ -2337,72 +2336,6 @@ body {
   border-radius: 999px;
   background: var(--holos-indigo);
   transition: width 900ms linear;
-}
-
-/* S0.3: the counsel strip. One flex row, full width, sitting directly above
-   the rail — the seam S0.2 reserved at zero height. `--empty` (no children,
-   home.ts's own contract) and `--paged` (a board page covers the map) both
-   collapse it back to that same zero height, so a page docked above it
-   still reads as touching the rail directly, exactly as it did before this
-   line existed.
-   The container itself is pointer-events: none — a thumb reaches through it
-   to the map everywhere except the line and the Talk button, which opt back
-   in below. The scrim is a raised surface (--holos-bg-raised, translucent)
-   rather than the rail's near-opaque one: subtle enough that it reads as a
-   ledge, not a second bar, over a sky that can be bright. Calm by design: no
-   transition on the content swap, only the two boolean modifiers below. */
-.counsel-seam {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: var(--home-rail-h);
-  z-index: 4; /* the shell's own slot; see .home-hud */
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-  padding: 0.5rem max(0.9rem, env(safe-area-inset-right)) 0.5rem
-    max(0.9rem, env(safe-area-inset-left));
-  margin: 0;
-  border: 0;
-  background: rgba(16, 13, 21, 0.55);
-  pointer-events: none;
-}
-
-.counsel-seam--empty,
-.counsel-seam--paged,
-/* The source card rises into the strip's zone; they never share pixels. */
-.counsel-seam--carded {
-  height: 0;
-  padding: 0;
-  background: none;
-  overflow: hidden;
-}
-
-.counsel-line {
-  flex: 1 1 auto;
-  min-width: 0;
-  margin: 0;
-  font-size: var(--holos-text-xs);
-  color: var(--holos-ink-dim);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
-  cursor: pointer;
-  pointer-events: auto;
-}
-
-.counsel-talk {
-  flex: 0 0 auto;
-  background: none;
-  border: 1px solid var(--holos-gold-dim);
-  border-radius: 999px;
-  padding: 0.4rem 0.9rem;
-  min-width: 44px;
-  min-height: 44px;
-  color: var(--holos-amber);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
-  white-space: nowrap;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  pointer-events: auto;
 }
 
 .home-rail {
@@ -2481,9 +2414,9 @@ body {
 /* ── Inline explainers (AV1) ───────────────────────────────────────────────
  * S0.3 retired the arrival beat that once lived here (voicebeat.ts, and the
  * .voice-beat-root/.voice-beat-scrim/.voice-beat/.voice-beat-line/
- * .voice-beat-dismiss rules that styled it): the arrival line now lands in
- * the counsel seam (above, in the home shell block) instead of its own
- * overlay. z-index 5 is unused, not reclaimed (the home shell block's own
+ * .voice-beat-dismiss rules that styled it) and moved the arrival line to the
+ * counsel seam; cutting that seam in 2026-08 left the line with nowhere to
+ * land. z-index 5 is unused, not reclaimed (the home shell block's own
  * header comment says why). What remains is the inline one-time explainer
  * note (sourcecard's age chip, studyboard's hub) — a step quieter than
  * surrounding prose, never below the ink floor. */

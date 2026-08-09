@@ -188,12 +188,6 @@ export class App {
   // locally by takeVoice, never re-added).
   private voiceLines: VoiceLines = {};
 
-  // S0.3: the counsel strip's one argued line, from the latest `sky`. Never
-  // taken (unlike voiceLines): the mind's stance persists until it changes,
-  // it is not a one-shot beat. refreshCounsel() is what actually decides
-  // what the strip shows — see its own comment for the sticky-arrival rule.
-  private counsel: string | null = null;
-
   // S0.1: the intro. Non-null exactly while it owns the sky screen — either
   // the fresh path (mounted from showSky's "intro" enter mode) or a replay
   // (mounted from the Mind page's row, IntroOptions.replay true).
@@ -313,15 +307,11 @@ export class App {
         // A5: whether the SEAT holds a subscription on any device. The board
         // combines it with what the browser says about this one.
         this.pushSubscribed = message.pushSubscribed;
-        // S0.3: the mind's current stance for the counsel strip.
-        this.counsel = message.counsel;
         this.showSky(message.self, message.sources);
         // S0.2: the HUD's standing lines read off fields just set above
         // (self, budget); an immediate render on top of the 1s ticker so a
         // fresh sky's numbers are never stale for up to a second.
         this.refreshStanding();
-        // S0.3: every sky is a candidate to change what the strip shows.
-        this.refreshCounsel();
         break;
       case "sourceNamed":
         if (message.name === "") this.localNames.delete(message.starId);
@@ -335,9 +325,6 @@ export class App {
         break;
       case "voice":
         this.voiceLines = message.lines;
-        // S0.3: a fresh `arrival` line (or its absence) can change what the
-        // strip shows; the sticky-arrival rule lives in refreshCounsel.
-        this.refreshCounsel();
         // S0.1: a replay staged before the round trip landed (onReplayIntro's
         // requestIntro branch, below) starts now, if the four lines are
         // actually here and the sky screen it was staged on is still up. If
@@ -610,17 +597,6 @@ export class App {
     return this.takeVoice("age") ?? this.takeVoice("silence");
   }
 
-  /** S0.3: what the counsel strip shows — the arrival line, STICKY (checked,
-   *  never taken by takeVoice's report-on-read) until home.onTalk's tap
-   *  acknowledges it, else the mind's latest general stance from `sky`. A
-   *  reload before that tap simply replays the arrival next session, the
-   *  same friendlier-failure the old voice beat had. Called on every `sky`,
-   *  after the intro's onDone, and on a `voice` message landing (its own
-   *  call sites say why each matters). */
-  private refreshCounsel(): void {
-    this.home?.setCounsel(this.voiceLines["arrival"] ?? this.counsel);
-  }
-
   /** S0.2: the HUD's ticking year, at instrument precision — the civ's OWN
    *  count from its ascension (R-33: never the cohort's absolute year), two
    *  fixed decimals so the passage of game time is visible on the dial (a
@@ -752,24 +728,15 @@ export class App {
       home.setActiveTab("sky");
       home.setIdentity(self.seed.name);
       this.refreshReportBadge();
-      // S0.3: TALK opens the Mind page through the same funnel the rail's own
-      // tab uses. If the strip's current line is the sticky arrival, the tap
-      // is also its acknowledgement (the retired voice beat's own contract,
-      // moved here): report it seen, drop it locally, and let refreshCounsel
-      // hand the strip to whatever the mind's general stance is underneath.
-      home.onTalk(() => {
-        studyBoard.showTab("mind");
-        if (this.voiceLines["arrival"] !== undefined) {
-          this.socket.send({ type: "voiceSeen", key: "arrival" });
-          this.voiceLines = { ...this.voiceLines, arrival: undefined };
-          this.refreshCounsel();
-        }
-      });
+      // The counsel strip's TALK tap used to hang here, and it carried the
+      // `arrival` acknowledgement with it: tapping it reported the line seen
+      // and dropped it locally. With the strip cut (2026-08) NOTHING reads or
+      // acknowledges `arrival` any more, so the server offers it again every
+      // session. That is inert rather than broken, and it is deliberate: the
+      // arrival line is the intro's own payoff and the next slice decides
+      // where it lands. Whatever surface takes it owes this `voiceSeen`.
       studyBoard.onViewChanged((tab, open) => {
         home.setActiveTab(open ? tab : "sky");
-        // Floating chrome (the compute meter) stands down while a page
-        // covers the map it floats over.
-        home.setPageOpen(open);
       });
       // A2.6: this board's very first render already knows — no waiting on
       // a welcome that, on a resume, already came and went.
@@ -821,10 +788,6 @@ export class App {
         if (viewed !== null) model.selectStar(viewed);
         else model.clearSelection();
       });
-      // S0.3: the strip and the card both live at the bottom of the sky;
-      // the card's own transition reporter is what stands the strip down,
-      // whatever path opened or closed it.
-      sourceCard.onOpenChange((open) => home.setCardOpen(open));
       // The board is a partial-width panel on desktop, so the sky stays
       // visible beside it: the selection ring tracks whichever system the
       // open view is about. On a null the ring is only dropped when no card
@@ -991,20 +954,15 @@ export class App {
             studyBoard.setChromeHidden(false);
             home.setHidden(false);
             this.intro = null;
-            // S0.3: the strip is chrome, already live under the intro's own
-            // fade (setHidden(false) just above brings it back with the rest
-            // of the shell) — no separate beat needed, just make sure it
-            // shows whatever is current now that the beats above are seen.
-            this.refreshCounsel();
+            // The intro used to hand off to the counsel strip here, so the
+            // mind's arrival read was the first thing standing after the four
+            // beats. With the strip cut the beats now end on the bare sky and
+            // the mind says nothing. That gap is known, and it is the whole
+            // subject of the next slice.
           },
         });
       } else {
         clearPendingBecome();
-        // S0.3: mode === "resume" needed its own arrival timer here once
-        // (onPullbackEnd, above, never fires for a reload mid-dolly straight
-        // into resume) — refreshCounsel's unconditional call in the `sky`
-        // handler already covers every mode, resume included, so nothing
-        // extra is needed in this branch now.
       }
       // S0.2: the HUD's standing lines tick on their own second; the sky
       // handler's immediate refreshStanding() covers the gap until the

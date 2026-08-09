@@ -94,7 +94,7 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | Ledger drift band | `voice.ts` LEDGER_BAND_LINES | Observatory deadpan; a graded reading, never a verdict | 0 |
 | Proposal stance (AV4) | `voicegen.ts` counsel seam when `HOLOS_COUNSEL_GEN=on`; otherwise `null` | Archetype voice, free-standing, fact-free | 2 |
 | Intro beat | `voice.ts` INTRO_LINES | The mind stating scale; shared across archetypes, the clock line's family; copy pinned by build-s0.md | 1 |
-| Counsel strip | `voice.ts` COUNSEL_LINES, or the AV4 stance when `HOLOS_COUNSEL_GEN=on` | Archetype voice, free-standing, fact-free (R-36a) | 2 |
+| Counsel line (served, no surface) | `voice.ts` COUNSEL_LINES, or the AV4 stance when `HOLOS_COUNSEL_GEN=on` | Archetype voice, free-standing, fact-free (R-36a) | 2 |
 | Home HUD / rail chrome | `home.ts` | Instrument register: labels and readouts, numerals from shipped formats | 0 |
 | Docs narration | `docs/*.md` prose | Essayist, analytical | 1 |
 | In-doc quoted interface prose | walkthrough scene quotes | The quoted archetype's own voice | 3 |
@@ -130,6 +130,15 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
   stance always `null`; AV4's counsel seam is the only thing that ever
   fills it. Neither surface ever appears on the other's — a proposal never
   rides the report, and a report entry never carries a verb.
+- **The counsel bank outlived its surface.** COUNSEL_LINES was written for
+  the home screen's counsel strip, and the strip was cut in 2026-08
+  (ui-design.md § Anatomy: a floor-picked line with no triggering event
+  behind it read as wallpaper). The bank did not go with it. The server
+  still picks the line and still puts it on the wire, `audit:voice` still
+  holds every string in it to R-36a, and nothing on the client reads the
+  field. The row stays at full strength rather than being retired,
+  because the rules are what the next surface to want this register will
+  inherit, and a bank left unaudited between surfaces rots.
 - **The report is the observatory's record, presented by the mind.** It is
   not the mind's diary. The entries are instrument output — dated, past
   tense, wit 0 — and the mind is only allowed a sentence *beside* them, so
@@ -309,23 +318,27 @@ Named mechanics of the register. Apply **at most one** per short string.
 - **R-36 Proposal stance carries nothing pinned** — R-29a, restated for the
   AV4 tenant, and trivially satisfied at the AV3 floor, where it is always
   `null`.
-- **R-36a Counsel line (the floor's stance).** The authored bank behind the
-  home screen's counsel strip (`voice.ts` COUNSEL_LINES) is the stance side
-  of the facts/stance split with no generation involved, so it carries the
-  stance's whole discipline in authored form: 1–2 sentences, ≤ 22 words,
-  wit ceiling 2, at most one craft move; first-person plural; no numeral,
-  no §8 pinned label, no designation, no source, question, mission or
-  project name, no date. It is **family-scoped** (look / ask / send /
-  build, the `COUNSEL_FAMILY` mapping over proposal kinds): the line must
-  read true for every proposal its family can produce, urging a kind of
-  move from the archetype's own material, never the particular target. The
-  swap test binds twice — across archetypes within a family (R-6), and
-  across families within an archetype (the family's move is what the line
-  is about). It never computes a verdict or states a remote fact. Checked
-  by `audit:voice` at the stance limits; family scope and the double swap
-  test stay a human read. The AV4 stance substitutes for these behind
-  `HOLOS_COUNSEL_GEN`, and this bank is the total fallback on every other
-  path, which is why the two share one rule.
+- **R-36a Counsel line (the floor's stance).** The authored bank written
+  for the home screen's counsel strip (`voice.ts` COUNSEL_LINES) is the
+  stance side of the facts/stance split with no generation involved, so it
+  carries the stance's whole discipline in authored form: 1–2 sentences,
+  ≤ 22 words, wit ceiling 2, at most one craft move; first-person plural;
+  no numeral, no §8 pinned label, no designation, no source, question,
+  mission or project name, no date. It is **family-scoped** (look / ask /
+  send / build, the `COUNSEL_FAMILY` mapping over proposal kinds): the
+  line must read true for every proposal its family can produce, urging a
+  kind of move from the archetype's own material, never the particular
+  target. The swap test binds twice — across archetypes within a family
+  (R-6), and across families within an archetype (the family's move is
+  what the line is about). It never computes a verdict or states a remote
+  fact. Checked by `audit:voice` at the stance limits; family scope and
+  the double swap test stay a human read. The AV4 stance substitutes for
+  these behind `HOLOS_COUNSEL_GEN`, and this bank is the total fallback on
+  every other path, which is why the two share one rule. **The strip is
+  gone and the rule is not.** Cutting it in 2026-08 (ui-design.md
+  § Anatomy) left the bank served on the wire and read by nothing; every
+  limit above still binds, because `audit:voice` still runs them and
+  because the line the next surface picks up will be one of these.
 
 **Wit discipline:**
 - **R-4 One wit-beat max per short string.** Two is trying too hard.
@@ -718,7 +731,7 @@ restyle that edits a bank without its doc sync is incomplete.
 | `voice.ts` SIGNAL_CLASS_LABEL | this guide, §8's signal-class row, and `client/src/sourcecard.ts` CLASS_LABEL | **Verbatim, three-way** |
 | `voicegen.ts` FAMILY_SURFACE (the prompt's occasion / "must not name" table) | `voice.ts` REPORT_REMARKS doc comment | **Verbatim** — the doc comment is the real spec for family scope, and the prompt must state the same referents in the same words or generated remarks and templated ones drift apart in scope while both look fine alone. Human read |
 | `voice.ts` INTRO_LINES | `build-s0.md` § "The intro's copy" | **Verbatim** — the brief pinned the four beats in design review; a gate rejection is reviewed against the brief, never fixed in place |
-| `voice.ts` COUNSEL_LINES | this guide, §2 counsel-strip row and §3 R-36a | Register and ceilings track; the mechanical gates are script-checked by `audit:voice` at stance size; family scope and the double swap test stay a human read |
+| `voice.ts` COUNSEL_LINES | this guide, §2 counsel-line row and §3 R-36a | Register and ceilings track; the mechanical gates are script-checked by `audit:voice` at stance size; family scope and the double swap test stay a human read. The obligation survives the counsel strip's removal — the bank still ships and is still served, so a doc sync is still owed on every edit to it |
 | `bannedterms.ts` | this guide, §6 (and §8's comms register) | **Generated, doc → code** — `npm run sync:banned` writes it, `npm run audit:banned` fails CI on any drift in either direction. This row RUNS BACKWARDS from the rule above it, and correctly: §6 is not a bank, it is a rule list whose canonical statement is this guide |
 
 **What R-8's audit does not cover, and why.** `npm run audit:dashes` reads

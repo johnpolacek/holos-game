@@ -610,7 +610,13 @@ gets priced risky besides).
       purpose line was mocked and cut in review — the purpose is shown by
       the intro's four beats, never stated. Launch brief:
       [build-s0.md](./build-s0.md), which records the mock's settled
-      layout and copy.)*
+      layout and copy. The counsel strip that carried "the mind's counsel
+      giving direction" shipped in S0.3 and was cut after the same phone
+      check: an argued line with no occasion behind it reads as wallpaper,
+      and its TALK was the third way to reach a Mind page the rail already
+      opens. The AV4 seam and its bank are untouched and still serve the
+      proposal stance; what is now open is where the mind speaks
+      unprompted, if it ever does, and where the arrival line lands.)*
 - [ ] **S1 — The prizes and the mirror.** The two-layer sky (real
       catalog as public knowledge, statistically-honest hidden objects
       to survey out), prospecting as the early game, the near scarcity

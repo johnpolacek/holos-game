@@ -188,10 +188,6 @@ export class SourceCard {
   private readonly accordEl: HTMLDivElement;
 
   private onCloseCb: (() => void) | null = null;
-  private onOpenChangeCb: ((open: boolean) => void) | null = null;
-  /** The last state onOpenChange reported, so a re-open onto a new source
-   *  (still one open card) never double-fires. */
-  private notifiedOpen = false;
   private onStudyActionCb: ((starId: string) => void) | null = null;
   private onMissionActionCb: ((starId: string) => void) | null = null;
   private onContactActionCb: ((starId: string) => void) | null = null;
@@ -426,15 +422,6 @@ export class SourceCard {
     this.onCloseCb = cb;
   }
 
-  /** S0.3: fired on EVERY open/close transition, however caused — self
-   *  dismiss, a caller's close(), a staging funnel. The shell's floating
-   *  chrome (the counsel strip) stands down while a card is up, and a
-   *  per-call-site sync in the App would miss a path; the card is the one
-   *  place that cannot. */
-  onOpenChange(cb: (open: boolean) => void): void {
-    this.onOpenChangeCb = cb;
-  }
-
   /** Fired when the study-affordance row is tapped, with the open source's
    * starId. The card does not send wire messages itself and does not know
    * what happens next — that is the App's call (open a study vs. focus the
@@ -499,10 +486,6 @@ export class SourceCard {
     this.renderVoyageRow();
     this.renderAccord();
     this.root.classList.add("open");
-    if (!this.notifiedOpen) {
-      this.notifiedOpen = true;
-      this.onOpenChangeCb?.(true);
-    }
   }
 
   /** AV1: the one-time age-chip explainer, shown at most once ever (App
@@ -594,10 +577,6 @@ export class SourceCard {
     this.accord = null;
     this.classExplainerOpen = false;
     this.chartExpanded = false;
-    if (this.notifiedOpen) {
-      this.notifiedOpen = false;
-      this.onOpenChangeCb?.(false);
-    }
   }
 
   /** Route sourceNamed/error while this card is open. `error` lacks a

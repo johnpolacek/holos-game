@@ -78,9 +78,13 @@ life — because there is no mind yet to speak. The reveal beat is also the
 moment the interface *changes narrator*, which is the cheapest way ever
 invented to dramatize a singularity.
 
-*As shipped:* the counsel strip is this principle's permanent seat. One
-argued line from the mind sits between the map and the rail on every
-session, and the Mind page is where it is answered.
+*As shipped:* the mind speaks in the report's header sentence, in the one
+remark that rides a report, and on the Mind page — the charter at its head
+and the stance beside a proposal. It has no seat where it speaks
+unprompted. The counsel strip was that seat for one slice and was cut
+(§ Anatomy, between map and rail): the narrator that changed at the pivot
+still owns every sentence on the screen, but a sentence with no occasion
+behind it reads as chrome whoever is speaking.
 
 ### 2. Canvas for places, prose for the will
 
@@ -156,9 +160,9 @@ event.
 
 The desk is gone. There is no Stage/Voice/Desk triptych and no swipe
 between three surfaces: there is **one home screen**, and it is the
-Model with a band of chrome above it, a strip of counsel below it, and a
-five-tab rail at the bottom. Everything else in the game is a **page**
-that docks into that frame under exactly one of the five tabs.
+Model with a band of chrome above it and a five-tab rail at the bottom.
+Everything else in the game is a **page** that docks into that frame under
+exactly one of the five tabs.
 
 The kept ingredient, and the reason the map is the heart rather than a
 panel among panels, is *the spatial feeling of having a place in a real
@@ -168,13 +172,13 @@ below protects it.
 *A reading note for the older docs.* act3-map.md and the A-phase build
 briefs call the canvas **the Stage**, the reading overlay **the Voice**
 and the reference panels **the Desk**. Those three words are retired.
-Read the Stage as the Model, the Voice as the counsel strip plus the
-report, and the Desk as the pages under the rail; nothing those docs say
+Read the Stage as the Model, the Voice as the report and the Mind page's
+stances, and the Desk as the pages under the rail; nothing those docs say
 about *content* changed, only where it lives.
 
 ### Anatomy
 
-Four fixed, safe-area-aware siblings over the canvas, in this order down
+Three fixed, safe-area-aware siblings over the canvas, in this order down
 the screen:
 
 **The Model (the centerpiece).** The 3D sky
@@ -213,22 +217,31 @@ Sky's page scrolled to the voice section.
 Nothing in the band is interactive. A thumb reaches straight through it
 to the map underneath, everywhere the band covers.
 
-**The counsel strip (between map and rail).** One argued line from the
-mind, with a **TALK** affordance beside it (the label string is `Talk`,
-set in the caps utility, so it reads as TALK). Both the line and the button
-go to the same place: the Mind page. The strip is the *stance* side of
-the facts/stance split — the deadpan proposal line stays on the Mind
-page, and this is the mind arguing for it. It is empty until there is
-something to say (no lead proposal means no line, never a placeholder
-sentence), and empty collapses to zero height, so filling it moves
-nothing else in the shell. Its container is pointer-transparent except
-for the line and the button.
+**Between map and rail: nothing.** The **counsel strip** shipped in that
+gap in S0.3 and was cut in 2026-08. It carried one argued line from the
+mind with a **TALK** affordance beside it, both opening the Mind page; it
+was the *stance* side of the facts/stance split, empty until there was
+something to say, and it collapsed to zero height when empty.
 
-*The arrival line lands here.* After the intro's last beat, the mind's
-per-archetype first read is the strip's first line, and it is **sticky**:
-it stays until a TALK tap acknowledges it, at which point the strip falls
-back to the mind's current stance. A reload before that tap simply
-replays the arrival next session.
+Three things killed it and they compound. The line was floor-picked
+ambient counsel with no triggering event behind it, so it spoke with
+nothing at stake and read as wallpaper however well the sentence was
+written. TALK was the third affordance to the Mind page inside sixty
+vertical pixels — the line was tappable, the button was tappable, and the
+MIND rail tab sits directly beneath both. And it charged real height on a
+phone, where the sky is the product. Two decisions in build-s0.md had
+already said as much and are worth reading as one rule: *S0's job is to
+not build prose surfaces where geometry will go*, and the purpose banner
+that was mocked and cut for stating rather than showing.
+
+*The arrival line now has nowhere to land.* The server still serves the
+mind's per-archetype first read after the intro's last beat, and no client
+surface displays or acknowledges it, so it is re-offered every session —
+the TALK tap was what reported it seen. The gap is deliberate rather than
+an oversight: the arrival line is the intro's payoff and deserves a
+surface chosen on purpose. Which surface takes it is open (§ Open
+questions), and whatever does owes the acknowledgement the strip used to
+send.
 
 **The rail (bottom).** Five equal tabs, always visible, in this pinned
 order:
@@ -247,7 +260,7 @@ the names they shipped under; only the words changed. Anyone wiring a new
 page reads `VIEW_TAB` in `studyboard.ts` for the mapping and never
 re-derives it.
 
-**Stacking.** The shell's three chrome bands share one z-slot, above the
+**Stacking.** The shell's two chrome bands share one z-slot, above the
 map and above any open page, and below the four heavier interruptions:
 the contact ceremony, the reclaim sheet, the intro, and the slot the
 retired voice beat left open. A page docks *between* the HUD and the
@@ -346,10 +359,11 @@ S0 turned principle 6 into mechanics, and these are load-bearing:
   zero.
 - **Nothing pulses.** No animation, no push, no nag. The badge does not
   bounce and the rail does not move under it.
-- **The counsel strip changes wholesale and never animates.** Re-sending
-  the line already showing is a no-op, so a thumb mid-gesture on TALK
-  never has the tap target rebuilt under it, and the swap between two
-  different lines is instant rather than a transition.
+- **The chrome holds still between renders.** The counsel strip was the
+  one band whose content turned over, and even it turned over wholesale
+  rather than by transition. With it cut, the only things on the home
+  screen that change on their own are the epoch year, which ticks, and
+  the badge, which counts.
 
 ### Desktop
 
@@ -531,15 +545,16 @@ and the registers never blur.
 - **The mind argues.** The voice — the banks, the style gate,
   prose-style.md — carries the authored beats, the chronicle lines and
   the mind's counsel, and stops carrying load the instruments should
-  carry. On the home screen this register is the counsel strip, the
-  report's header sentence and each entry's remark, and the Mind page's
-  proposals and stances.
+  carry. On the home screen this register is the report's header sentence
+  and the one remark that rides it, and the Mind page's proposals and
+  stances. It holds no band of its own: since the counsel strip was cut
+  the mind speaks beside something that happened, or it does not speak.
 
 Two consequences a builder should hold on to. **A numeral in the mind's
 prose is a register leak** (the mind spells its numbers; numerals belong
-to the instrument register). And **intent is never a readout** — not on
-the strip, not on a card, not ever: the instruments report what can be
-measured and the human judges what cannot, and the counsel argues without
+to the instrument register). And **intent is never a readout** — not in a
+remark, not on a card, not ever: the instruments report what can be
+measured and the human judges what cannot, and the mind argues without
 ever computing a verdict.
 
 ---
@@ -692,12 +707,14 @@ allowed to be this theatrical.
 ## The component library
 
 The small set of parts everything above is assembled from — each built
-once, used everywhere. The first four shipped in S0.
+once, used everywhere. The first four shipped in S0, and one of those four
+has since been cut; its row stays, because a part that was built and
+removed is worth knowing about.
 
 | Component | Contract |
 |---|---|
 | **HUD band** | cyan mark + name (titling face) left, designation over ticking epoch year (mono) right, compute meter under the name; two fixed rows, never a wrap, never interactive |
-| **Counsel strip** | one argued line from the mind + TALK, both opening the Mind page; empty collapses to nothing; the arrival line is sticky until acknowledged; no animation |
+| **Counsel strip** *(shipped S0.3, cut 2026-08)* | one argued line from the mind + TALK, both opening the Mind page; empty collapsed to nothing; the arrival line sticky until acknowledged; no animation. Removed when the line proved to be ambient counsel with nothing at stake, and TALK a third door to a page the rail already opens; § Anatomy holds the record |
 | **Rail** | five equal tabs, pinned words and order, titling face at xs in amber with the lit tab full amber; exactly one lit, derived from the view through `VIEW_TAB` |
 | **Page** | docks between HUD and rail; a landing has no back leg and dims nothing, a drill-in carries `‹ BACK`; never a modal over the map |
 | **Hub row** | a verb line over one sentence of what it is for; absent entirely when it has nothing behind it, never greyed |
@@ -775,6 +792,13 @@ The full shot lists live in the content-art briefs:
 
 - **Overflow detail: cards or pages** (S0.4) — being decided by thumb;
   see § Still open above. The frame does not depend on the answer.
+- **Where the arrival line lands, and whether the mind ever gets an
+  unprompted surface again.** Cutting the counsel strip (§ Anatomy) took
+  both with it: the server still serves the arrival line to a client that
+  ignores it, and the mind now speaks only beside a report entry or a
+  proposal. Whether that is the right resting state, and where the first
+  read goes if it is not, is the next slice's call. Nothing above depends
+  on it, and the strip is not the answer by default — it was tried.
 - **Art direction (interface look)** — this doc specifies structure and
   rules, not look. A working proposal (dark astronomical matte,
   ember-warmth accents, editorial type) lives in
@@ -805,6 +829,7 @@ The full shot lists live in the content-art briefs:
 - **The signal composer** waits on the player-language decision; the
   thread and flight rendering above are deliberately agnostic to it.
 - **Onboarding density.** The principles replace tutorials with rules
-  (tense, age chips, clock pairs) that teach by consistency. S0's intro
-  and counsel strip are the first real test of whether that carries a new
-  player; the next playtest answers it.
+  (tense, age chips, clock pairs) that teach by consistency. S0's intro is
+  now the whole of the first real test: the counsel strip that was meant to
+  share the load is cut, so the rules carry a new player unaided or they do
+  not. The next playtest answers it.

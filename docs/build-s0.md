@@ -77,6 +77,26 @@ S0 makes four things true, one stage each:
   it in voice behind the existing flags, template fallback always. The
   arrival line lands here: after beat four, the home screen's first
   counsel line is the mind's per-archetype first read.
+  *(Amended 2026-08: the strip shipped as written and was then cut from
+  the client. Floor-picked counsel has no triggering event behind it, so
+  the line spoke with nothing at stake and read as wallpaper however well
+  it was written; Talk was a third affordance to the Mind page within a
+  thumb's width of the MIND tab that already opens it; and the band
+  charged real height on a phone, where the sky is the product. That is
+  this slice's own "do not build prose surfaces where geometry will go"
+  arriving one stage late, and the same instinct that cut the purpose
+  banner for stating rather than showing. What was cut is the surface
+  only: the `voice.ts` COUNSEL_LINES bank still ships and still passes
+  `audit:voice`, the sky message still carries its `counsel` field, and
+  the AV4 seam behind `HOLOS_COUNSEL_GEN` is exactly as built — the client
+  now ignores the field the strip used to read, and nothing else changed.
+  A proposal's own stance still renders beside it on the Mind page: that
+  is the generation seam, which is a different thing from the strip and
+  did not move. The arrival line went with the strip, though: the server
+  still serves it after beat four and no surface displays or acknowledges
+  it, so it is re-offered every session. Where it lands is now an open
+  question, and the next slice answers it. ui-design.md § Anatomy carries
+  the record.)*
 - **S0.4 — The thumb test and the sync.** The one open UX call — overflow
   detail on map-anchored cards versus dashboard pages — prototyped both
   ways and decided on a phone. ui-design.md revised to the reboot's
