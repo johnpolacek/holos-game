@@ -101,6 +101,33 @@ S0 makes four things true, one stage each:
   detail on map-anchored cards versus dashboard pages — prototyped both
   ways and decided on a phone. ui-design.md revised to the reboot's
   layout; prose-style.md §2's register map gains the new surfaces.
+  *(Amended 2026-08: the test ran and **the card won.** The case was the
+  focused study reached from a source card — the deepest reach in the
+  game, the only card verb whose target is detail rather than a composer,
+  nesting a fold-open question row, rebuilding every second, ending in a
+  two-tap commit. The pre-commit brief was held out because no
+  source-card route reaches it and including it would have meant
+  inventing navigation to run the comparison. Both builds carried the
+  same DOM, the same strings and the same actions; only the container
+  differed, so the thumb was judging containment and nothing else. What
+  won it was the strip of map the card leaves above itself: without it
+  the two containers sat within eight pixels of the same height on a
+  phone and the sitting would have measured nothing, and with it the
+  detail is read at a place still on the screen. That band is now a
+  pinned token, `--card-detail-sky`. What the card gives up is that its
+  own summary and its four verb rows hide while the detail is up — the
+  study renders its own identity header, and two identity blocks about
+  one system restate each other in different words for about a hundred
+  and forty vertical pixels. That is a departure from ui-design.md's
+  earlier wording about detail expanding *below* a card's summary, and it
+  is recorded as one. The card stays opaque, as tested. Two gaps are
+  known and both are desktop: Escape does nothing in card mode, and the
+  card has no wide override, so it runs full width where the board page
+  narrowed to a column. The verdict covers reading surfaces; the launch
+  and voyage composers, which carry text input and a press-and-hold
+  commit, were out of the test and are a separate call. ui-design.md
+  § Settled: overflow detail holds the full record and roadmap.md § The
+  UX reboot carries the call.)*
 
 ### The intro's copy (settled 2026-08, design review)
 
@@ -178,7 +205,12 @@ ships whole.
    AV3 floor + AV4 seam.
 4. **S0.4** — the thumb test (both overflow prototypes on a phone, call
    recorded in roadmap.md § The UX reboot), ui-design.md revised, §2
-   register map synced.
+   register map synced. *(Done 2026-08: the card won; the record is the
+   S0.4 amendment above and ui-design.md § Settled: overflow detail. The
+   stage closes, S0 does not: the "Done when" playtest answer has not
+   been taken, the arrival line still has no surface, Reach renders a
+   standing-order row where the docs call for a blank page, and two AV1
+   explainers are effectively unreachable.)*
 
 ## Done when
 

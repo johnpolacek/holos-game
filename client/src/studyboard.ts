@@ -730,10 +730,9 @@ function copyAccountKey(text: string): void {
 export type RailTab = "report" | "sky" | "work" | "family" | "mind";
 
 /**
- * S0.4, THE THUMB TEST. Somewhere else that will hold a focused study's
- * detail — today the map-anchored source card, and nothing else. Registering
- * one moves the focused view off this panel's docked page and onto whatever
- * the host hands back; registering none is the shipped behaviour, unchanged.
+ * S0.4: where a focused study's detail lives. It is not this panel's docked
+ * page — a study is read at the star it is about, so the host hands back the
+ * map-anchored source card the drill-in came from.
  *
  * The board knows nothing about what the host is. It asks for an element on
  * every render (once a second, so `acquire` must be cheap and idempotent and
@@ -868,10 +867,11 @@ export class StudyBoard {
   // is load-bearing).
   private proposals: readonly Proposal[] = [];
 
-  /** S0.4: null in the shipped build, so the focused view renders into this
-   *  panel's own body exactly as it always has. Set by the App only when the
-   *  thumb test asked for the card. */
-  private focusHost: FocusHost | null = null;
+  /** S0.4: the focused study's surface, handed in at construction and never
+   *  swapped. A swap mid-session would move a study out from under the thumb
+   *  reading it and strand the detail on a surface nothing releases any
+   *  more, so there is no setter. */
+  private readonly focusHost: FocusHost;
 
   private openFlag = false;
   private view: View = "list";
@@ -1210,12 +1210,14 @@ export class StudyBoard {
     missionCatalog: MissionCatalog | null,
     voyageCatalog: VoyageCatalog | null,
     catalog: readonly Star[],
+    focusHost: FocusHost,
   ) {
     this.socket = socket;
     this.menus = menus;
     this.missionCatalog = missionCatalog;
     this.voyageCatalog = voyageCatalog;
     this.starsById = new Map(catalog.map((s) => [s.id, s] as const));
+    this.focusHost = focusHost;
 
     this.root = document.createElement("div");
     this.root.className = "study-board-root";
@@ -1690,7 +1692,7 @@ export class StudyBoard {
     this.expandedQuestion = null;
     this.callConfirmStarId = null;
     this.renderFocused(starId);
-    this.showFocusedContainer();
+    this.enterFocusedCard();
     this.startTicking();
   }
 
@@ -1870,7 +1872,7 @@ export class StudyBoard {
     // spend still waits behind the spend button inside it.
     this.expandedQuestion = { starId, questionId };
     this.renderFocused(starId);
-    this.showFocusedContainer();
+    this.enterFocusedCard();
     this.startTicking();
   }
 
@@ -1878,10 +1880,9 @@ export class StudyBoard {
     this.openFlag = false;
     this.root.classList.remove("open");
     this.stopTicking();
-    // S0.4: in CARD mode the focused study is not on this panel at all, so
-    // shutting the panel has to reach over and take that surface down too.
-    // Nothing to do in the shipped build (there is no host).
-    this.focusHost?.release();
+    // S0.4: the focused study is not on this panel at all, so shutting the
+    // panel has to reach over and take the card down with it.
+    this.focusHost.release();
     // A closed panel is about nothing; the ring it was holding lets go.
     this.announceViewedStar();
     // A closed panel IS Sky's landing: the map, bare. The rail says so.
@@ -1900,23 +1901,12 @@ export class StudyBoard {
     this.closeAccountSheet();
   }
 
-  /** S0.4: hand the focused view somewhere else to live, or null for this
-   *  panel's own body. Boot-time only — overflow.ts freezes the mode for the
-   *  session, and a swap while a study is on screen would strand the detail
-   *  on a surface nothing is releasing any more. */
-  setFocusHost(host: FocusHost | null): void {
-    this.focusHost = host;
-  }
-
-  /** S0.4: the host's surface went away under the player (a swipe or a tap
-   *  on the sky behind the card), and the view has to follow it out. Without
-   *  this the panel is still on `focused` and the next tick renders the study
-   *  straight back onto a card that was just dismissed.
-   *
-   *  A no-op in PAGE mode by design: there the panel's own sheet IS the
-   *  surface, and its close paths already cover every way out. */
+  /** S0.4: the card went away under the player (a swipe, or a tap on the sky
+   *  behind it), and the view has to follow it out. Without this the panel is
+   *  still on `focused` and the next tick renders the study straight back
+   *  onto a card that was just dismissed. */
   leaveFocusedCard(): void {
-    if (this.focusHost === null || this.view !== "focused") return;
+    if (this.view !== "focused") return;
     // Sky's landing, which is what a dismissed drill-in falls back to
     // everywhere else. It also stops update()'s focused branch from
     // re-acquiring the card on the next arriving sky.
@@ -1988,21 +1978,16 @@ export class StudyBoard {
     this.root.remove();
   }
 
-  /** S0.4: raise whatever the focused view's container is, for the two
-   *  methods that deliberately enter it. In PAGE mode that is this panel's
-   *  sheet, exactly as before. In CARD mode the card is the surface and the
-   *  sheet must stay DOWN — a docked page behind the card would be a second
-   *  copy of the same study, and the rail would light a tab for a page
-   *  nobody is looking at. A shut panel reports Sky (announceTab's rule), so
-   *  the rail says Sky, which is where the card is anchored. */
-  private showFocusedContainer(): void {
-    if (this.focusHost !== null) {
-      this.openFlag = false;
-      this.root.classList.remove("open");
-      return;
-    }
-    this.openFlag = true;
-    this.root.classList.add("open");
+  /** S0.4: entering the focused view puts this panel DOWN, which is the one
+   *  place in the class where that is what "enter" means. The card is the
+   *  surface, so a docked page behind it would be a second copy of the same
+   *  study, and the rail would light a tab for a page nobody is looking at. A
+   *  shut panel reports Sky (announceTab's rule), which is exactly where the
+   *  card is anchored. Named rather than inlined at its two call sites so
+   *  that reasoning has one place to sit. */
+  private enterFocusedCard(): void {
+    this.openFlag = false;
+    this.root.classList.remove("open");
   }
 
   /** Starts the 1s ticker if it is not already running. Idempotent — every
@@ -2014,10 +1999,10 @@ export class StudyBoard {
     this.announceViewedStar();
     this.announceTab();
     // S0.4: every deliberate move to another view passes through here, and a
-    // move away from the study is the host's cue to let its surface go. Above
-    // the idempotent guard, because "already ticking" does not mean "still
+    // move away from the study is the card's cue to let go. Above the
+    // idempotent guard, because "already ticking" does not mean "still
     // focused" — that is the whole reason the guard cannot own this.
-    if (this.view !== "focused") this.focusHost?.release();
+    if (this.view !== "focused") this.focusHost.release();
     if (this.tickHandle !== null) return;
     this.tickHandle = window.setInterval(() => {
       this.announceViewedStar();
@@ -2025,7 +2010,7 @@ export class StudyBoard {
       // The backstop for the ways the view moves without an open* call at
       // all: update()'s vanished-study and vanished-mission fallbacks reach
       // another view by rendering it, and never come past startTicking.
-      if (this.view !== "focused") this.focusHost?.release();
+      if (this.view !== "focused") this.focusHost.release();
       // Sky's page holds no clock of its own; what moves on it is THE VOICE's
       // thread rows, and they are refreshed in place. THE MIND and FAMILY are
       // absent from this chain deliberately and must stay absent: a tick that
@@ -8375,19 +8360,20 @@ export class StudyBoard {
   private renderFocused(starId: string): void {
     const s = this.studiesByStarId.get(starId);
     const source = s === undefined ? undefined : this.sourcesByStarId.get(starId);
-    this.body.innerHTML = "";
     if (s === undefined || source === undefined) {
       // Defensive; see update(). A study that is not there any more has no
-      // detail to host either, so the host gets its surface back.
-      this.focusHost?.release();
+      // detail to host either, so the card gets itself back.
+      this.focusHost.release();
       return;
     }
 
-    // S0.4: the one line the thumb test turns on. `this.body` is the docked
-    // page; a host hands back somewhere else. EVERYTHING below writes to
-    // `host` and nothing below writes to `this.body` — both are HTMLElement,
-    // so a missed site compiles clean and renders into an invisible panel.
-    const host = this.focusHost === null ? this.body : this.focusHost.acquire(starId, source);
+    // S0.4: this render is the one that never touches `this.body` — the study
+    // is on the card, and the panel's own page is whatever it was showing
+    // before the drill-in (hidden, and cleared by the next renderer to write
+    // into it, as every page here clears the body on its own way in).
+    // EVERYTHING below writes to `host`: both are HTMLElement, so a missed
+    // site would compile clean and render into a panel nobody can see.
+    const host = this.focusHost.acquire(starId, source);
     host.innerHTML = "";
 
     const back = document.createElement("button");

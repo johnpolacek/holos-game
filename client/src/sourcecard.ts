@@ -163,13 +163,13 @@ export class SourceCard {
   private readonly sheet: HTMLDivElement;
   private readonly grabzone: HTMLDivElement;
   /** S0.4: a wrapper around everything below the grab pill. It is
-   *  `display: contents` and therefore not a box at all in the shipped card
-   *  — it exists so the detail variant has one node to turn into a scroller
-   *  and one node to reset the scroll position on. */
+   *  `display: contents` and therefore not a box at all in a card with no
+   *  study on it — it exists so a card that IS carrying one has a single node
+   *  to turn into a scroller and a single node to reset the scroll on. */
   private readonly scroll: HTMLDivElement;
-  /** S0.4: where the focused study's detail is rendered when this card is
-   *  carrying it instead of the board's docked page. Empty and hidden
-   *  otherwise, which is every load that did not ask for CARD mode. */
+  /** S0.4: where the focused study's detail is rendered while this card is
+   *  its surface. Empty and hidden the rest of the time, which is every card
+   *  opened on a source the player is only looking at. */
   private readonly detailEl: HTMLDivElement;
 
   private readonly designationEl: HTMLSpanElement;
@@ -415,9 +415,9 @@ export class SourceCard {
 
     // The grab pill stays a direct child of the sheet: it is the one thing
     // that must never scroll away from the thumb. Everything else goes
-    // through the wrapper, in the order it has always been in, because in
-    // PAGE mode the wrapper is `display: contents` and this is still the
-    // same flat flex column it was before.
+    // through the wrapper, in the order it has always been in, because with
+    // no study on the card the wrapper is `display: contents` and this is
+    // still the same flat flex column it was before.
     this.scroll.append(
       header,
       hr,

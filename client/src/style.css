@@ -551,15 +551,15 @@ body {
   transition: transform 320ms cubic-bezier(0.22, 0.9, 0.32, 1);
 }
 
-/* S0.4, THE THUMB TEST. Everything below builds the card's second job — it
-   can carry a focused study's overflow detail instead of the docked board
-   page — without the control path noticing. `display: contents` is the whole
-   trick: in PAGE mode this wrapper is not a box at all, so the card's own
-   rows are still direct flex items of the sheet and inherit the sheet's
-   column, gap and scrolling exactly as they did before the wrapper existed
-   (the detail box is [hidden] there, so it is not even a flex item and
-   contributes no gap). Only the detail variant below turns the wrapper back
-   into a real element. */
+/* S0.4: the card's second job. It carries a focused study's detail, all of
+   it, because a study is read at the star it is about and the board's docked
+   page is nowhere near one. `display: contents` is what keeps that from
+   costing the plain card anything: in a card with no study on it this wrapper
+   is not a box at all, so the card's own rows are still direct flex items of
+   the sheet and inherit its column, gap and scrolling exactly as they did
+   before the wrapper existed (the detail box is [hidden] there, so it is not
+   even a flex item and contributes no gap). Only the detail rules below turn
+   the wrapper back into a real element. */
 .source-card-scroll {
   display: contents;
 }
@@ -594,10 +594,11 @@ body {
   display: none;
 }
 
-/* Block flow, not a flex column: the docked page renders these same children
-   inside .study-board-body, which is a plain block, and the point of the
-   test is that only the surface differs. [hidden] is spelled out for the
-   reason the class explainer's rule below gives. */
+/* Block flow, not a flex column: every other page the board draws sits inside
+   .study-board-body, which is a plain block, and the study's rows carry the
+   spacing they were authored with there. A flex column here would re-space
+   them for no reason but which surface they landed on. [hidden] is spelled
+   out for the reason the class explainer's rule below gives. */
 .source-card-detail {
   display: block;
   min-width: 0;
@@ -2247,10 +2248,15 @@ body {
      clipped the chip once the band wrapped. */
   --home-hud-h: calc(env(safe-area-inset-top) + 3.9rem);
   --home-rail-h: calc(env(safe-area-inset-bottom) + 3.6rem);
-  /* S0.4: the strip of map the source card leaves visible above itself when
+  /* S0.4: the strip of map the source card leaves visible above itself while
      it is carrying a focused study's detail. It lives beside the two numbers
-     it is subtracted from, for the reason this block's header gives, and
-     overflow.ts can retune it per load off a `sky` query param. */
+     it is subtracted from, for the reason this block's header gives.
+     5.5rem IS A DECIDED TRADE, not a spare number: it was turned by thumb on
+     a phone through 2026-08 and settled where the sky above the card is still
+     wide enough to read as the map the study is anchored to, and no wider,
+     because every rem of it is a row of the study the reader has to scroll
+     for. Taller is a page that has forgotten where it came from; shorter is a
+     study read through a slot. Anyone retuning it owes it the same thumb. */
   --card-detail-sky: 5.5rem;
 }
 

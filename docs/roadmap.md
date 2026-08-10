@@ -580,8 +580,20 @@ Ledger — survive untouched. The client is the replaceable half.
   fade. Prose belongs to the mind's counsel; numbers belong to the card
   the player opened on purpose. The echo shell was this rule's first
   instance — promoted from poster to paradigm.
-- **Open call (resolve in S0):** whether overflow detail lives on
-  map-anchored cards or dashboard pages. Prototype both; pick by thumb.
+- **Overflow detail lives on the card** *(decided 2026-08 in S0.4, by
+  thumb)*. Both were built and put on a phone carrying the same content:
+  the focused study reached from a source card, the deepest reach the
+  game has. The card won, and what won it is the strip of map it leaves
+  above itself. A detail page fills the frame between HUD and rail, and a
+  frame with no sky left in it has spent the kept ingredient to show a
+  list; the card stops short of the HUD, so the detail is read *at* a
+  place that is still on the screen. That strip is the trade the call was
+  actually about, and it is a pinned token now rather than a number
+  re-picked per surface. The verdict is for **reading** surfaces: the
+  launch and voyage composers carry text entry and a press-and-hold
+  commit, were out of the test, and are their own call. ui-design.md
+  § Settled: overflow detail is the record, including what the card
+  stands down to carry it.
 - **Inspirations, by role, Holos-flavored, never cloned:** Subterfuge
   (map-is-everything mobile interaction, drawn timers), Neptune's Pride
   (dread from arrival times on a bare map), Sins of a Solar Empire and

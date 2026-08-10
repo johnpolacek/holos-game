@@ -17,8 +17,8 @@ Two halves, and they are read differently.
 intro, and the type system — is a *record*, revised in S0.4 (2026-08)
 against what Phase S's S0 slice actually built. Here **the code is the
 spec**: `client/src/home.ts`, `client/src/studyboard.ts`,
-`client/src/app.ts`, `client/src/intro.ts` and `client/src/style.css`
-are the authority, and if this document disagrees with them about a
+`client/src/sourcecard.ts`, `client/src/app.ts`, `client/src/intro.ts`
+and `client/src/style.css` are the authority, and if this document disagrees with them about a
 shipped surface, this document is what needs fixing.
 
 **The specified half** — session zero, Act 1's beat frame, the pivot,
@@ -380,20 +380,79 @@ that has been designed wrong. Selection stays coherent across the split:
 the ring on the map tracks whichever system the open page is about, and
 falls back to the page's system when a card is dismissed.
 
-### Still open: overflow detail (S0.4)
+One shipped surface does not honor the column yet: a source card carrying
+a focused study has no wide override and runs full width past the
+breakpoint (§ Settled: overflow detail). It is a known gap left by a call
+made on a phone, not a second desktop pattern.
 
-The one UX call the reboot deferred to S0 is where **overflow detail**
-lives: on map-anchored cards, or on dashboard pages. Both were
-prototyped and the call is decided by thumb, on a phone; it is recorded
-in roadmap.md § The UX reboot when it lands.
+### Settled: overflow detail (S0.4, 2026-08)
 
-Nothing above depends on the answer. The frame is settled either way —
-the Model is the centerpiece, the rail owns navigation, the deciding
-test assigns tabs, and every drill-in lights its owner. What the call
-settles is only the *shape of the third level*: whether the detail below
-a card's summary expands in place against the map, or opens as another
-page in the tab that owns it. Whichever wins, it inherits the deep-link
-rule and the back-leg rule unchanged.
+The one UX call the reboot deferred to S0 was where **overflow detail**
+lives: on map-anchored cards, or on dashboard pages. Both were built and
+put on a phone. **The card carries it.**
+
+The case under test was the **focused study** reached from a source card:
+the deepest reach in the game, and the only card verb whose target is
+detail rather than a composer. It nests — a question row folds open
+inside it — it rebuilds every second, and it ends in a two-tap `call it`
+commit, so it leans on a container every way a phone can. The pre-commit
+brief was deliberately out of the test, because no source-card route
+reaches it and putting it in would have meant inventing navigation to run
+the comparison.
+
+As shipped, the focused study's DOM renders **inside the source card**.
+The card takes a fixed height rather than sizing to its contents (the
+study's countdowns change width as they run, and a card that breathes
+under a thumb cannot be read) and scrolls on the inside. The docked board
+page is no longer the container for it. Every other page under the rail
+is untouched: this is one surface's containment, not a new frame.
+
+**The strip of sky is what decided it.** The card stops short of the HUD
+and leaves a deliberate band of map visible above itself — five and a half
+rem of it, pinned as `--card-detail-sky` beside the two heights it is
+subtracted from. Without that band the two builds sat within eight pixels
+of the same height on a phone and the comparison would have measured
+nothing. With it, the detail is read *at* a place that is still on the
+screen, and the kept ingredient survives the deepest drill-in the game
+has. Everything else was held equal on purpose, which is why the strip is
+the trade the call was about. The card also stayed **opaque**, as tested:
+the page it beat was translucent over a three-pixel blur, and what shipped
+is the build the thumb judged.
+
+**What the card gives up, stated plainly.** While the detail is up, the
+card's own summary and its four verb rows are hidden. That is a departure
+from the literal phrasing this document carried before the build — that
+detail "expands in place *below* a card's summary" — which was written
+when nothing had been built yet. In practice the focused study renders its
+own identity header, so keeping the summary would put two identity blocks
+about one system on one screen, restating each other in different words
+and charging something like a hundred and forty vertical pixels of a phone
+for the restatement. The rows are hidden rather than torn down, so
+releasing the detail restores the card without rebuilding it.
+
+**Getting out** is four ways: the detail's own `‹ STUDIES` back leg, a
+swipe down on the grabber, a tap on the strip of sky or on the HUD band,
+and any rail tab. The rail lights **Sky** the whole time the
+detail is on the card, which is the deciding test's own answer — a study
+is about the sky. The deep-link rule and the back-leg rule above are
+inherited unchanged.
+
+**Two known gaps, both desktop, both deliberate.** Escape does nothing
+while the detail is on the card: the card has no global Escape handler and
+the board's requires the board's own open flag. And the card has no wide
+override, so past the wide breakpoint it renders full width where the
+board page narrowed to a column — § Desktop's column rule is unmet on this
+one surface. The call was made by thumb on a phone, which is what the
+method asked for; closing these two is a keyboard-and-desktop pass, not a
+reopening of the call.
+
+**The verdict is about reading, not composing.** The launch and voyage
+composers carry text input and a press-and-hold commit, were out of the
+test, and are a separate call (§ Open questions).
+
+The frame never depended on the answer and does not now: the Model is the
+centerpiece, the rail owns navigation, the deciding test assigns tabs, and
+every drill-in lights its owner.
 
 ### Interim: the seeded sky
 
@@ -656,7 +715,11 @@ allowed to be this theatrical.
   by default and expands in place on a tap, gridlined, with its axis
   density derived from what the width can hold. Beneath it the four verbs
   are lit buttons, each in its own semantic color: gold for the study,
-  amber for the probe and the ship, cyan for the beam. Time-scrubbing is
+  amber for the probe and the ship, cyan for the beam. The study verb's
+  target now renders **in the card itself** rather than on a docked page
+  (§ Settled: overflow detail), which is the card's second job: while a
+  focused study is up, the anatomy in this paragraph stands down and the
+  card is a fixed-height frame scrolling on the inside. Time-scrubbing is
   a later slice; the archive is read, not yet scrubbed. Sky's.
 - **The observatory** — the inference workbench, shipped in its
   read-first form as Sky's studies, picker and briefing. Active vigils as
@@ -726,7 +789,7 @@ removed is worth knowing about.
 | **Dial band** | range band + position notch; ghostable (Ledger); price-on-drag; used for reveal, sheet, charters, drift; poles render as **in-world labels** — Reach · Depth, Voice · Silence, Garden · Forge, Monolith · Chorus, Memory · Renewal (act2-design.md § In-world labels), never the design vocabulary |
 | **Clock pair** | game time + real time, always together, everywhere a duration appears; an en dash stands in for a missing half |
 | **Hold-to-commit** | the irreversibility ceremony; consequence renders during the hold; releasing early cancels silently; the shell hides under it |
-| **Source card** | designation + pen-to-name + age chip + belief line with a class explainer + the light history (small, tap to expand) + four lit verb buttons; opened from the map, and the way into a sending |
+| **Source card** | designation + pen-to-name + age chip + belief line with a class explainer + the light history (small, tap to expand) + four lit verb buttons; opened from the map, and the way into a sending. Also the container for a focused study's overflow detail (S0.4): a fixed height under a strip of sky, scrolling on the inside, with the summary and the verb rows hidden while the detail holds the surface |
 
 ---
 
@@ -790,8 +853,13 @@ The full shot lists live in the content-art briefs:
 
 ## Open questions
 
-- **Overflow detail: cards or pages** (S0.4) — being decided by thumb;
-  see § Still open above. The frame does not depend on the answer.
+- **Where a composer's overflow lives.** The cards-versus-pages call was
+  settled on the card (§ Settled: overflow detail), but it was decided on
+  a *reading* surface and generalizes no further than that. The launch
+  and voyage composers carry text input and a press-and-hold commit,
+  neither of which the tested surface had, and were out of the test.
+  Which container they take is the next call, and the answer is allowed
+  to differ from the reading surfaces'.
 - **Where the arrival line lands, and whether the mind ever gets an
   unprompted surface again.** Cutting the counsel strip (§ Anatomy) took
   both with it: the server still serves the arrival line to a client that
