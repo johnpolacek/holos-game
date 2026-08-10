@@ -1138,13 +1138,25 @@ export class StudyBoard {
   // finger-down and finger-up (or inside a keystroke).
   private liveClocks: { readonly el: HTMLElement; readonly text: () => string }[] = [];
 
-  // AV1: Sky's one-time explainer (compute, then later the clock note).
-  // renderSky() re-runs on every openSkyPage() and on every sky, so nothing
-  // one-shot can live inside it directly — the App sets this field once per
-  // open via setHubExplainer, and every render after that just reads it
-  // back, stable for the life of the panel session.
+  // AV1: Sky's one-time compute explainer. renderSky() re-runs on every
+  // openSkyPage() and on every sky, so nothing one-shot can live inside it
+  // directly — the App sets this field once per open via setHubExplainer,
+  // and every render after that just reads it back, stable for the life of
+  // the panel session. close() is what empties it again; the clearing there
+  // says why this field is the only one that needs emptying.
   private explainerText: string | null = null;
   private onHubOpenCb: (() => void) | null = null;
+
+  // AV1: Projects' one-time clock explainer, the same field-only contract
+  // (renderWork() only reads it back). The clock note lives on THIS page
+  // rather than behind Sky's compute note, where it used to wait for a
+  // second open the player often never made: Projects is the first surface
+  // that quotes durations in game years, so the line that converts a year
+  // of ours into minutes of yours lands where its own numbers are about to
+  // be read. The epoch note's precedent exactly — that one sits on the
+  // report because the report is where "year n AE" first appears.
+  private workExplainerText: string | null = null;
+  private onWorkOpenCb: (() => void) | null = null;
 
   // AV2: the report. `report` is the latest ReportPayload the App has
   // handed over (via setReport, mirroring `voice`'s field-then-forward
@@ -1607,8 +1619,13 @@ export class StudyBoard {
 
   /** WORK's page: what this civilization can begin, over what it already has
    *  under way. One page, because a verb and its consequences are the same
-   *  subject. */
+   *  subject.
+   *
+   *  `onWorkOpenCb` fires FIRST, before renderWork(), so a setWorkExplainer()
+   *  the callback makes is already in `workExplainerText` for the very first
+   *  render — the openSkyPage/openReport mold, and the same reason. */
   openWork(): void {
+    this.onWorkOpenCb?.();
     this.view = "work";
     this.focusedStarId = null;
     this.renderWork();
@@ -1899,6 +1916,19 @@ export class StudyBoard {
     // any time (accounts.ts's plaintext-storage reasoning), so this is not a
     // second, secret way past the mandatory tap — merely closing the panel.
     this.closeAccountSheet();
+    // AV1: a one-time note lives for exactly the open it was taken on. It
+    // cannot be cleared by the render that shows it (renderSky re-runs on
+    // every sky, and takeVoice has already spent the line, so the note would
+    // flicker out under a player still reading it) — a close is the event
+    // that ends the open, so a close is where it goes.
+    //
+    // Sky's field is the one that needs this. The App guards its hub handler
+    // (`if (lineText !== null)`) because openSkyPage() re-fires on every back
+    // leg out of a Sky-owned drill-in and the note has to survive the trip;
+    // that guard is also why nothing else would ever empty it. The work and
+    // report handlers write takeVoice's result through unguarded, so a later
+    // open sets those two to null of its own accord.
+    this.explainerText = null;
   }
 
   /** S0.4: the card went away under the player (a swipe, or a tap on the sky
@@ -2171,11 +2201,27 @@ export class StudyBoard {
     this.onHubOpenCb = cb;
   }
 
-  /** AV1: Sky's page carries a one-time explainer line (compute, then later
-   *  the clock), or null for none. The App drives this via takeVoice — stable
-   *  across the panel's re-renders because renderSky() only reads it back. */
+  /** AV1: Sky's page carries a one-time explainer line (the compute note),
+   *  or null for none. The App drives this via takeVoice — stable across the
+   *  panel's re-renders because renderSky() only reads it back, and emptied
+   *  by close() so it does not outlive the open that took it. */
   setHubExplainer(text: string | null): void {
     this.explainerText = text;
+  }
+
+  /** Registers the callback fired as the FIRST step of every openWork(),
+   *  before that call's renderWork() — the onHubOpen mold, so a
+   *  setWorkExplainer() the callback makes is already in `workExplainerText`
+   *  for the very first render. */
+  onWorkOpen(cb: () => void): void {
+    this.onWorkOpenCb = cb;
+  }
+
+  /** AV1: Projects' one-time clock explainer (why a year of ours is minutes
+   *  of yours), or null for none. Same field-only contract as
+   *  setHubExplainer — renderWork() only ever reads it back. */
+  setWorkExplainer(text: string | null): void {
+    this.workExplainerText = text;
   }
 
   /** AV2: the latest ReportPayload, forwarded by the App on every `report`
@@ -2376,9 +2422,19 @@ export class StudyBoard {
    * A standing order is NOT here. It is a rule the line keeps rather than an
    * undertaking that ends, so it rides the Ledger's wire and sits with the
    * register on FAMILY.
+   *
+   * The clock note opens the page when the player still holds it, because
+   * every duration below it is quoted in game years (`workExplainerText`).
    */
   private renderWork(): void {
     this.body.innerHTML = "";
+
+    if (this.workExplainerText !== null) {
+      const note = document.createElement("div");
+      note.className = "voice-note";
+      note.textContent = this.workExplainerText;
+      this.body.append(note);
+    }
 
     this.body.append(
       this.buildHubRow(
@@ -2477,10 +2533,19 @@ export class StudyBoard {
     this.body.innerHTML = "";
 
     // 2026-08: the survey left for the Sky page, and nothing here pads the
-    // absence. Before the first sending this page is EMPTY BY DESIGN: Reach
-    // is what the civilization has spread beyond its own system, and at the
-    // start that is honestly nothing — the blank page is the tab teaching
-    // what it will become. Rows appear only once a sky has carried them.
+    // absence. What stands at the start is the standing order and nothing
+    // else: `toWireOrders` sends every order class on every sky, armed or
+    // not, so THE LEDGER and the row that opens the arming page are here
+    // from the first tap. That is deliberate twice over — the warm movement
+    // order dispatches a Sentinel, an observatory instrument, so it has
+    // nothing to do with having spread beyond this system, and the row is
+    // the only route to the page an order is armed on.
+    //
+    // The fork list below is what is honestly empty until the first sending
+    // becomes something, and nothing pads THAT: rows appear only once a sky
+    // has carried them. The page grows as the civilization actually reaches.
+    // Both flags are still read because a wire with neither has nothing to
+    // head, and a section header over nothing is worse than no page.
     const hasOrders = this.ledger.orders.length > 0;
     const hasForks = this.ledger.rows.length > 0;
     if (!hasOrders && !hasForks) return;

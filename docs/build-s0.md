@@ -56,8 +56,12 @@ S0 makes four things true, one stage each:
   **Report · Sky · Projects · Reach · Mind**. Work was renamed Projects,
   the word for what the page holds. Family became Reach: what the
   civilization has actually spread beyond its own system — the Ledger,
-  forks, standing orders — which is honestly NOTHING at the start, and
-  the blank page is the tab teaching what it will become. The survey
+  forks, standing orders. The page opens on the Ledger and the
+  standing-order row, which stand there from the first tap (an order is
+  a rule about an instrument dispatch, leavable before anything has been
+  sent, and that row is the only route to the arming page); the fork
+  list beneath them is what is honestly empty at the start, and it fills
+  as the civilization actually reaches. The survey
   lives on the Sky page (the nearest stars are sky whether or not
   anyone stands on them; the founding sheet opens from there and from
   the source card). The masthead (world plate + charter) re-homed to
@@ -208,9 +212,12 @@ ships whole.
    register map synced. *(Done 2026-08: the card won; the record is the
    S0.4 amendment above and ui-design.md § Settled: overflow detail. The
    stage closes, S0 does not: the "Done when" playtest answer has not
-   been taken, the arrival line still has no surface, Reach renders a
-   standing-order row where the docs call for a blank page, and two AV1
-   explainers are effectively unreachable.)*
+   been taken, the arrival line still has no surface, and the silence
+   note still waits behind a second source-card open. The Reach page's
+   standing-order row and the stranded clock explainer were both settled
+   afterwards: the row is right and the docs describing a blank page were
+   wrong, and the clock note moved to the first open of Projects, where
+   the durations it converts are read.)*
 
 ## Done when
 

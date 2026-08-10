@@ -2485,8 +2485,8 @@ body {
  * counsel seam; cutting that seam in 2026-08 left the line with nowhere to
  * land. z-index 5 is unused, not reclaimed (the home shell block's own
  * header comment says why). What remains is the inline one-time explainer
- * note (sourcecard's age chip, studyboard's hub) — a step quieter than
- * surrounding prose, never below the ink floor. */
+ * note (sourcecard's age chip; studyboard's hub, Projects and report) — a
+ * step quieter than surrounding prose, never below the ink floor. */
 .voice-note {
   font-size: var(--holos-text-xs);
   color: var(--holos-ink-dim);

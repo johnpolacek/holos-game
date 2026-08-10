@@ -274,8 +274,8 @@ outright.
 | **Report** | The report: a header sentence in the mind's register, then entries, newest first. Each entry is a stamp, a record sentence, an optional remark, and a route. | Routes out of an entry (a study, a mission, a source, a project, a founding, a Ledger record) open the target page. |
 | **Sky** | **The bare map.** The tab lands on the Model with no page over it. | The source card and the contact ceremonies; the study list, the picker, the briefing, and explore; threads and `THE VOICE`; the survey; the founding sheet. |
 | **Projects** | `Start a project`, over `TEND` — the work list of everything under way. | The project catalog, a project's detail sheet, a mission's detail, the launch sheet. |
-| **Reach** | What the civilization has spread beyond its own system: `THE LEDGER`, its forks, and the standing order. **Empty by design before the first sending.** | A fork's whole record; the sheet where a standing order is armed. |
-| **Mind** | The masthead at its head (world plate, name, charter), then the proposals block, then the intro replay, then housekeeping below a hairline. | The start-over confirmation page. |
+| **Reach** | What the civilization has spread beyond its own system: `THE LEDGER`, the standing order under it from the first tap, then a row per fork. **The fork list is empty until the first sending.** | A fork's whole record; the sheet where a standing order is armed. |
+| **Mind** | The masthead at its head (world plate, charter; the name is the HUD's), then the proposals block, then the intro replay, then housekeeping below a hairline. | The start-over confirmation page. |
 
 Detail worth having in front of you when building:
 
@@ -291,14 +291,23 @@ Detail worth having in front of you when building:
   nearest stars are sky whether or not anyone stands on them, and the
   act of sending is aimed at a place. The same sheet also opens from a
   source card. What a sending *became* is Reach's.
-- **Reach's blank page is the feature.** Before the first ship leaves,
-  Reach renders nothing at all: no placeholder, no explainer, no
-  encouraging empty state. The tab's word plus its blankness is what
-  teaches that the civilization has not yet reached anywhere, and the
-  page fills itself the first time that stops being true. S2's
-  reach-arc exposure readout and the family register land here.
+- **Reach opens on the standing order and grows from there.** `THE
+  LEDGER`, the `Leave a standing order` row beneath it, then one row per
+  fork. The order row is there before anything has been sent, and that is
+  correct: the warm movement order dispatches a *Sentinel*, an
+  observatory instrument aimed at somebody else's system, so it has
+  nothing to do with having reached anywhere — and the row is the only
+  route to the page an order is armed on. What is honestly empty at the
+  start is the fork list, and nothing pads it: no placeholder, no
+  explainer, no encouraging empty state. The page fills as the
+  civilization actually reaches. S2's reach-arc exposure readout and the
+  family register land here.
 - **Mind opens with who you are before what you propose.** The masthead
-  moved here when Family became Reach. Below it, `WHAT WE WOULD DO NEXT`
+  moved here when Family became Reach: the world plate and the charter,
+  and **not the name**. The HUD carries the name over every page, a band
+  above, so putting it in the masthead too would be the same word twice
+  in one glance — the defect the source card's summary stands down to
+  avoid (§ Settled: overflow detail). Below it, `WHAT WE WOULD DO NEXT`
   renders the mind's ranked proposals in the server's order (never
   re-sorted client-side), each with an accept verb and a `Leave It`
   beside it. Then `PLAY THE OPENING AGAIN`. Then, under a hairline and

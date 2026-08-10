@@ -587,8 +587,10 @@ export class App {
   }
 
   /** At most one source-card explainer per open — the age chip first, the
-   *  silence note on a later open (the hub's compute-then-clock idiom,
-   *  applied to the sky's reading surface). The silence line states the
+   *  silence note on a later open. Two lines share one surface here, and a
+   *  card is opened often enough that the next open is a real event; the
+   *  clock note left Sky's page for Projects because a second open of THAT
+   *  page was not. The silence line states the
    *  Fermi stance once and nowhere else: it belongs here because this is
    *  where a class label is read, and it comes second because the age chip
    *  teaches the physics the stance then leans on (act3-design.md, *The
@@ -888,12 +890,24 @@ export class App {
         model.clearSelection();
         studyBoard.openVoyageLaunch(starId);
       });
-      // AV1: at most one hub explainer per open — compute first, the clock
-      // note on a later open (idempotent: takeVoice empties whichever it
-      // returns, so a second call in the same session yields the next one).
+      // AV1: the compute explainer, once, on the first open of Sky's page —
+      // the page whose rows spend the number. The guard is what keeps the
+      // note up across a drill-in and back (openSkyPage re-fires on every
+      // back leg out of a Sky-owned page, and takeVoice is idempotent, so
+      // the second call returns null); the panel's close() is what finally
+      // takes it down.
       studyBoard.onHubOpen(() => {
-        const lineText = this.takeVoice("compute") ?? this.takeVoice("clock");
+        const lineText = this.takeVoice("compute");
         if (lineText !== null) studyBoard.setHubExplainer(lineText);
+      });
+      // AV1: the clock explainer — shown once, on the first open of the
+      // Projects page, because Projects is the first surface that quotes
+      // durations in game years (a project runs 20 to 320 of them) and the
+      // note is what those years convert into. It used to sit behind the
+      // compute note on Sky, reachable only on a second open of that page,
+      // which most players never made.
+      studyBoard.onWorkOpen(() => {
+        studyBoard.setWorkExplainer(this.takeVoice("clock"));
       });
       // AV2: the epoch-dating explainer — shown once, on the first report
       // open, because the report is where "year n AE" first appears. S0.2:
