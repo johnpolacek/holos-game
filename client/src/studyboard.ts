@@ -4772,6 +4772,17 @@ export class StudyBoard {
     header.textContent = "THE REPORT";
     this.body.append(header);
 
+    // The section caption, the sibling pages' idiom (R-40): what this
+    // surface is, stated whether or not anything is on it yet. The tab is
+    // the first thing a fresh civ opens, and it used to land on a bare
+    // title over nothing — the one page whose whole job is explanation
+    // was the one page that never explained itself.
+    const subtitle = document.createElement("div");
+    subtitle.className = "study-picker-subtitle";
+    subtitle.textContent =
+      "What has happened, dated and kept, newest first. Tap an entry to open what it records.";
+    this.body.append(subtitle);
+
     if (this.reportExplainerText !== null) {
       const note = document.createElement("div");
       note.className = "voice-note";
@@ -4780,7 +4791,16 @@ export class StudyBoard {
     }
 
     const report = this.report;
-    if (report === null) return;
+    if (report === null) {
+      // The payload rides the answer to openReport's requestReport; until
+      // it lands there is nothing honest to draw (renderThread's waiting
+      // mold). setReport re-renders in place on arrival.
+      const waiting = document.createElement("div");
+      waiting.className = "study-board-empty";
+      waiting.textContent = "Reading the record.";
+      this.body.append(waiting);
+      return;
+    }
 
     if (report.header !== null) {
       const headerProse = document.createElement("div");
@@ -4788,6 +4808,18 @@ export class StudyBoard {
       headerProse.textContent = report.header;
       this.body.append(headerProse);
       this.body.append(this.hairline());
+    }
+
+    if (report.entries.length === 0) {
+      // A fresh civ has done nothing to record, and the honest page says
+      // so and says what would change it — the renderList mold, with the
+      // second sentence naming the families that write here first.
+      const empty = document.createElement("div");
+      empty.className = "study-board-empty";
+      empty.textContent =
+        "Nothing on record yet. Entries are written as studies settle, ships report, and signals arrive.";
+      this.body.append(empty);
+      return;
     }
 
     for (const entry of report.entries) {
