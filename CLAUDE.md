@@ -3,6 +3,10 @@
 Holos is an online multiplayer browser game. This file documents the stack,
 workflows, and conventions for anyone (human or agent) working in this repo.
 
+`AGENTS.md` is a **symlink to this file**. Both names resolve here, so there
+is one copy to keep current and no second file to drift out of date. Edit
+this one; never replace the symlink with a copy.
+
 ## Stack
 
 - **TypeScript everywhere**, npm workspaces monorepo with two packages:
