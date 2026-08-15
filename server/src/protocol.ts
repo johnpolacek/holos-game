@@ -1134,11 +1134,13 @@ export interface ContactWire {
   readonly hail: ContactStance;
   /**
    * KN: the same hail, carrying the sender's charter. A SECOND STANCE ON THE
-   * SAME ACT rather than a second act: `kind` is still `hail`, the objection
-   * line is the archetype's own hail line, and only `contested` and
-   * `coherenceCost` differ — because only the demand did. It ships on every
-   * sky beside `hail`, so the ceremony can restage its resistance beat the
-   * moment the player flips the choice, with nothing asked of the server.
+   * SAME ACT rather than a second act: `kind` is still `hail`, and `contested`
+   * and `coherenceCost` differ because the demand does. `line` differs too
+   * (KN3): the objection to attaching the charter is the archetype's own line
+   * about SAYING WHO WE ARE, not its line about speaking, since the mind that
+   * argues here may have just let the bare beam go without a word. It ships on
+   * every sky beside `hail`, so the ceremony can restage its resistance beat
+   * the moment the player flips the choice, with nothing asked of the server.
    */
   readonly namedHail: ContactStance;
   readonly broadcast: ContactStance;

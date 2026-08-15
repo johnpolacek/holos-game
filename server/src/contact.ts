@@ -422,10 +422,17 @@ export const CONTACT_DEMAND: Readonly<Record<CeremonyKind, number>> = {
 /**
  * KN: what an opener carrying the charter asks. A MODIFIER ON THE HAIL, not a
  * third `CeremonyKind`: a named knock IS a hail — one beam, one listener, one
- * act in the log, one objection line — and widening the ceremony vocabulary
- * would have moved `ContactStance`, `RESISTANCE_LINES` (ten new strings for an
- * objection the mind already has) and every record contact.ts keeps over that
- * union, to say something the demand alone says.
+ * act in the log — and widening the ceremony vocabulary would have moved
+ * `ContactStance`, every record contact.ts keeps over that union, and the wire
+ * shape the client reads, to say something the demand alone says.
+ *
+ * KN3 amends one clause of that argument and leaves the rest standing. One act
+ * does NOT mean one objection: the mind's grievance about the charter is not
+ * its grievance about the beam, and in the band this feature was tuned for it
+ * is the only one the player ever hears (the bare hail passes uncontested
+ * there). So `RESISTANCE_LINES` carries a third OCCASION, `namedHail`, and
+ * nothing else moved — the bank is the one place the difference exists,
+ * because the bank is the one place the difference is audible.
  *
  * -0.5 = -(LEAN.lean + LEAN.faint): one faint step past a bare hail toward
  * Voice, and still a step short of a broadcast, which is the shape of the act
@@ -517,7 +524,11 @@ function stanceFor(seed: CivSeed, kind: CeremonyKind, named = false): ContactSta
     contested: resistance.contested,
     // Non-null iff contested: the objection is the whole content of the
     // resistance beat, and an uncontested act has nothing to say.
-    line: resistance.contested ? resistanceLine(seed.archetype, kind) : null,
+    //
+    // KN3: `named` goes to the bank as well as to the price, from the one
+    // flag, so the stance cannot be charged for one act and argue about the
+    // other. The named knock's grievance is the CHARTER, never the beam.
+    line: resistance.contested ? resistanceLine(seed.archetype, kind, named) : null,
     coherenceCost: resistance.coherenceCost,
   };
 }

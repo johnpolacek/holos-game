@@ -989,7 +989,11 @@ appends one server-composed culture part — the sender's own charter,
 index 0, nothing else expressible — and `ContactWire` carries a third
 stance, `namedHail`, which is the same act at `NAMED_HAIL_DEMAND`
 (-0.5, contesting above +0.20, between the hail's +0.35 and the
-broadcast's +0.10). Validation
+broadcast's +0.10) and carries its own objection line: KN3 gave
+`RESISTANCE_LINES` a third occasion, because between +0.20 and +0.35
+the mind lets the bare beam go without a word and argues only about
+the charter, so the grievance the player hears there has to be
+self-revelation and never the act of hailing. Validation
 answers "unknown star", "no civ there" and "light not yet arrived"
 with one code, so the error channel is not an oracle.
 
