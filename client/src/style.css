@@ -384,6 +384,8 @@ body {
 .thread-payload,
 .thread-state-line,
 .thread-closed-line,
+/* KN: what a bare opener carried, which is nothing. A sentence. */
+.thread-quiet,
 /* A2.6: a part block's gloss and its catalog prose, and the composer's two
    running lines — the carrier note and a picker row's title, which is often a
    whole charter sentence. Sentences, every one. */
@@ -3529,6 +3531,16 @@ body {
   content: close-quote;
 }
 
+/* KN: the bare knock's one line. Ink rather than amber, and unquoted, because
+   nobody said it: the payload above is what the sender put on the beam, and
+   this is the reader's own instrument noting that there was nothing. */
+.thread-quiet {
+  margin-top: 0.35rem;
+  font-size: var(--holos-text-sm);
+  line-height: 1.45;
+  color: var(--holos-ink-dim);
+}
+
 /* The silence. Quiet ink, a little air, no rule under it: there is nothing
    after this. */
 .thread-state-line {
@@ -4858,6 +4870,55 @@ body {
   color: var(--holos-ink);
 }
 
+/* KN: THE ONE BINARY — what the beam carries. Both options stand on screen at
+   once: the bare knock only reads as a choice beside the one it is not, which
+   is the whole reason this row exists. Enclosed labels, because they are two
+   states a thumb picks between rather than two verbs. */
+.contact-knock {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 0 max(1.1rem, env(safe-area-inset-left));
+  opacity: 0;
+  transition: opacity 320ms ease 260ms;
+}
+
+.contact-knock.visible {
+  opacity: 1;
+}
+
+/* The composer chip's mold, over the sky instead of in a sheet: same
+   enclosure, same reading floor (.holos-caps), same thumb target. */
+.contact-knock-btn {
+  pointer-events: none;
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.5rem 0.8rem;
+  min-height: 2.4rem;
+  font-family: inherit;
+  color: var(--holos-ink-dim);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color 200ms ease,
+    border-color 200ms ease;
+}
+
+.contact-ceremony-root.open .contact-knock.visible .contact-knock-btn {
+  pointer-events: auto;
+}
+
+/* The one the beam is carrying. Cyan, by the color rule: this is a choice
+   about your own voice, and the composer's tone chips light the same way. */
+.contact-knock-btn.on {
+  border-color: var(--holos-cyan-dim);
+  color: var(--holos-cyan);
+}
+
 /* STAY DARK. One word, no border, no fill, no ember — the ember club is
    capped at two and this is not a third member of it. It is not a cancel and
    is never styled as one: choosing silence is a choice, and ranking it below
@@ -4954,6 +5015,8 @@ body {
   .contact-reason,
   .contact-cost-chip,
   .contact-hint,
+  .contact-knock,
+  .contact-knock-btn,
   .contact-staydark {
     transition: none;
     transform: none;

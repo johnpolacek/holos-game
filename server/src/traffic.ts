@@ -96,7 +96,7 @@ import {
 // A4: the dial catalog, and the dated-sheet lookup a colony's own word about
 // itself is read through. dials.ts imports nothing and carries no truth.
 import { DIAL_AXES, dialSheetAt, type DialAxisId } from "./dials";
-import { civById, civDistanceLy, starById, type Galaxy } from "./galaxy";
+import { civById, civDistanceLy, starById, type Galaxy, type PlacedCiv } from "./galaxy";
 import {
   beamReceivedFraction,
   emissionAt,
@@ -119,6 +119,7 @@ import { createRng } from "./rng";
 import {
   accordAvailability,
   buildArchivePart,
+  charterPart,
   deriveAccord,
   MAX_PARTS_PER_SIGNAL,
   orderParts,
@@ -551,6 +552,59 @@ function voteClose(dialPosition: number): boolean {
   return Math.abs(dialPosition) < VOTE_CLOSE_BAND;
 }
 
+/**
+ * KN: HOW WIDE THE WOBBLE IS. Outside this much lean either way the opener is
+ * decided by character alone; inside it, by a seeded draw whose weight slides
+ * across the band. Deliberately the same width as VOTE_CLOSE_BAND above and
+ * for the same reason: this is what "near balanced" means on this dial, and a
+ * mind that cannot settle its own vote is a mind that could go either way
+ * about signing its first beam.
+ */
+const KNOCK_WOBBLE_BAND = 0.2;
+
+/**
+ * KN: WHO KNOCKS NAMED. A reading of the sender's own voice-silence dial at the
+ * year it transmits, not a table and not an archetype flag — the question the
+ * axis exists to answer is "does it want to be heard?", and attaching a charter
+ * to an opener is that question asked once, sharply.
+ *
+ * Leaning Voice: named. Leaning Silence: bare. The return is a CONTINUOUS
+ * function of position, which is the whole of "the boundary is not a tell":
+ * the odds slide from certainly-named at the Voice edge of the band to
+ * certainly-bare at the Silence edge, so there is no position a player could
+ * find where behavior snaps. A beacon introduces itself; the rare Silence-drawn
+ * lantern knocks bare and that is characterization nobody had to author.
+ *
+ * PURE, and the module header's law holds without an exception: seeds and the
+ * dated dial sheet, no clock, no storage, byte-identical on every evaluation.
+ * The draw is keyed on the PAIR alone rather than on the pair and an ordinal,
+ * because MAX_UNPROMPTED_PER_PAIR is 1 — there is exactly one opener to decide
+ * — and a key that cannot move is a key no later candidate ordering can move.
+ */
+function opensNamed(voicePosition: number, threadId: string): boolean {
+  const towardVoice = 0.5 - voicePosition / (2 * KNOCK_WOBBLE_BAND);
+  return createRng(`knock/${threadId}`).chance(Math.min(1, Math.max(0, towardVoice)));
+}
+
+/**
+ * KN: AN OPENER'S WHOLE PAYLOAD — nothing, or this civilization's charter.
+ * There is no third arm and no argument that could produce one: the only part
+ * this function can build is the one `charterPart` builds.
+ *
+ * `sentYear` is the year the beam departs, so a colony that walked its dials
+ * between founding and transmitting is read where it stood when it spoke
+ * (`dialSheetAt`); every civilization without a walk falls back to the sheet it
+ * was seeded with, which is what `aiCultureDial` already does.
+ */
+function openerParts(
+  ai: PlacedCiv,
+  threadId: string,
+  sentYear: number,
+): readonly SignalPart[] {
+  const sheet = dialSheetAt(ai.walkedDials ?? [], ai.seed.dials, sentYear);
+  return opensNamed(sheet["voice-silence"].position, threadId) ? [charterPart(ai.seed)] : [];
+}
+
 /** Seeded, so it is the same number on every derivation forever. */
 function deliberationFor(
   cls: CounterpartClass,
@@ -842,12 +896,12 @@ function aiCulture(input: AiComposeInput, rng: ReturnType<typeof createRng>, ope
   // a line of the history instead. Both are catalog prose and neither
   // interpolates the civilization's name (signalparts.ts states the check).
   if (opening || seed.chronicle.length === 0) {
-    return { kind: "culture", source: "charter", index: 0, axis: null, pole: null, text: seed.charter };
+    return charterPart(seed);
   }
   const index = rng.int(0, seed.chronicle.length - 1);
   const line = seed.chronicle[index];
   if (line === undefined) {
-    return { kind: "culture", source: "charter", index: 0, axis: null, pole: null, text: seed.charter };
+    return charterPart(seed);
   }
   return { kind: "culture", source: "chronicle", index, axis: null, pole: null, text: line };
 }
@@ -1185,14 +1239,47 @@ export function deriveAiSignals(
       }
     }
 
-    // A HAIL CARRIES NO PAYLOAD, on this side exactly as on the other: the
-    // lantern's unprompted opener is a beam that says only that it exists.
-    // It still carries a tone, because every signal does.
+    // Deliberation, then — one reply in four — a recess on top of it. Both
+    // are seeded on the thread and the ordinal, so a reply that has already
+    // been delivered departs at the same year forever.
+    //
+    // KN MOVED THIS ABOVE THE COMPOSER, and the reordering is safe by the same
+    // property that lets anything here be reordered: every draw below is keyed
+    // on (thread, ordinal) rather than drawn from a stream, so no line's
+    // position in this loop body can change any other line's number. What it
+    // buys is that the composer can read the SEND year, which is the year an
+    // opener's choice is actually made.
+    const recessRng = createRng(`recess/${threadId}/${ordinal}`);
+    const recess = recessRng.chance(RECESS_CHANCE)
+      ? recessRng.range(RECESS_MIN_YEARS, RECESS_MAX_YEARS)
+      : 0;
+    const sentYear = evalYear + d + deliberationFor(cls, threadId, ordinal) + recess;
+    // A4, THE EXISTENCE FLOOR. Nothing may transmit from before it existed.
+    // It was unreachable while every counterpart was seeded at cohort creation
+    // with a biosphere epoch millennia deep; a FOUNDED COLONY breaks that — its
+    // history begins at its landfall year, and a lantern child's unprompted
+    // opener is evaluated at the year the PLAYER first went bright, which can
+    // be centuries before the ship even left. The candidate is dropped whole
+    // (not clamped forward), because a hail that could not have been sent is
+    // not a late hail, and `replyIndex` is deliberately not advanced: a reply
+    // nobody sent is not this thread's first.
+    if (sentYear < existsFromYear(ai.seed) - BEAM_EPS) continue;
+
+    // AN OPENER CARRIES NOTHING, OR EXACTLY ONE CULTURE PART, on this side
+    // exactly as on the other. It carries no tone and no body: the merge below
+    // drops both on a hail, on the stored path and the derived one alike, so an
+    // opener is a stamp and at most a self-portrait.
+    //
+    // KN: which one it is comes off THIS SENDER'S OWN voice-silence dial as the
+    // sheet stood in the year it transmits (`dialSheetAt`, the dated read a
+    // walked colony's own word about itself already goes through, and the seed
+    // sheet for everyone else). Nothing else is consulted, and nothing but a
+    // charter can be built here.
     const composed =
       candidate.kind === "hail"
         ? {
             tone: aiTone(cls, beat, null, createRng(`parts/${threadId}/${ordinal}`)),
-            parts: [] as readonly SignalPart[],
+            parts: openerParts(ai, threadId, sentYear),
           }
         : composeAiParts({
             g,
@@ -1210,25 +1297,6 @@ export function deriveAiSignals(
             threadId,
             ordinal,
           });
-
-    // Deliberation, then — one reply in four — a recess on top of it. Both
-    // are seeded on the thread and the ordinal, so a reply that has already
-    // been delivered departs at the same year forever.
-    const recessRng = createRng(`recess/${threadId}/${ordinal}`);
-    const recess = recessRng.chance(RECESS_CHANCE)
-      ? recessRng.range(RECESS_MIN_YEARS, RECESS_MAX_YEARS)
-      : 0;
-    const sentYear = evalYear + d + deliberationFor(cls, threadId, ordinal) + recess;
-    // A4, THE EXISTENCE FLOOR. Nothing may transmit from before it existed.
-    // It was unreachable while every counterpart was seeded at cohort creation
-    // with a biosphere epoch millennia deep; a FOUNDED COLONY breaks that — its
-    // history begins at its landfall year, and a lantern child's unprompted
-    // opener is evaluated at the year the PLAYER first went bright, which can
-    // be centuries before the ship even left. The candidate is dropped whole
-    // (not clamped forward), because a hail that could not have been sent is
-    // not a late hail, and `replyIndex` is deliberately not advanced: a reply
-    // nobody sent is not this thread's first.
-    if (sentYear < existsFromYear(ai.seed) - BEAM_EPS) continue;
     out.push({
       id: `ai/${aiId}/${playerId}/${ordinal}`,
       fromCivId: aiId,
@@ -1310,7 +1378,8 @@ interface ThreadRow {
   readonly parts: readonly SignalPart[];
   readonly beat: SignalBeat;
   /** Composed here for a stored act, and already composed for a derived one.
-   *  Null on a hail, which carries no payload at all. */
+   *  Null on a hail, which carries no prose at all — an opener says who sent
+   *  it (KN's one culture part) or nothing, and never a sentence. */
   readonly body: string | null;
   readonly inReplyToInternal: string | null;
   /** A stamp measures an ARRIVING beam. You have no instrument at the far end
@@ -1340,9 +1409,11 @@ function rowsFromActs(
     const parts = act.parts ?? [];
     const arrivesYear = act.sentYear + distanceLy;
     const beat = beatFor(parts, senderIndex);
-    // A hail carries no payload and never has. A legacy A2.5 act carries the
-    // player's own prose and no tone, and is rendered as it was written; a
-    // composed act gets its body from the one composer, on both paths.
+    // A hail carries no prose and never has; KN gave it a payload and left
+    // that alone (`parts` above is already whatever the opener carried). A
+    // legacy A2.5 act carries the player's own prose and no tone, and is
+    // rendered as it was written; a composed act gets its body from the one
+    // composer, on both paths.
     const body =
       act.kind === "hail"
         ? null
@@ -1428,7 +1499,12 @@ function mergedThreadRows(
         arrivesYear: s.arrivesYear,
         learnedYear: s.arrivesYear,
         tone: s.kind === "hail" ? null : s.tone,
-        parts: s.kind === "hail" ? [] : s.parts,
+        // KN: an opener's parts travel. Tone and body are still dropped on a
+        // hail, which is what keeps this row identical in shape to the stored
+        // opener `rowsFromActs` builds above: parts and no tone, parts and no
+        // body. A named knock from a person and a named knock from a seeded
+        // mind are the same row.
+        parts: s.parts,
         beat: s.beat,
         body: s.kind === "hail" ? null : s.body,
         inReplyToInternal: s.inReplyTo,

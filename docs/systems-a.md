@@ -982,7 +982,14 @@ that star comes back overtaken by A2.3's machinery with no new code.
 archetype objection line, the coherence cost — pushed, not
 preflighted, because they are pure functions of the civ's own dials)
 and `outbound`, the player's own acts (`sentYear` / `arrivesYear` /
-`shellRadiusLy`). Nothing in it is about anyone else. Validation
+`shellRadiusLy`). Nothing in it is about anyone else. **KN amends the
+opener, on both counts:** the message carries an optional `named`
+(absent parses false, so a stale tab still knocks bare), a named hail
+appends one server-composed culture part — the sender's own charter,
+index 0, nothing else expressible — and `ContactWire` carries a third
+stance, `namedHail`, which is the same act at `NAMED_HAIL_DEMAND`
+(-0.5, contesting above +0.20, between the hail's +0.35 and the
+broadcast's +0.10). Validation
 answers "unknown star", "no civ there" and "light not yet arrived"
 with one code, so the error channel is not an oracle.
 

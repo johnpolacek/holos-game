@@ -859,10 +859,19 @@ export class App {
       // A2.4: AIM A BEAM. The stance rides the same `sky` that produced this
       // source, so the mind's objection (if it has one) is already in hand
       // and the ceremony arms with no round trip.
+      // KN: both prices ride the same sky, so the ceremony can offer the
+      // binary (knock bare, carry the charter) and restage the objection
+      // without asking the server anything.
       sourceCard.onContactAction((starId) => {
         const contact = this.contact;
         if (contact === null) return;
-        stage(() => contactCeremony.armHail(starId, contact.hail, this.sources));
+        stage(() =>
+          contactCeremony.armHail(
+            starId,
+            { bare: contact.hail, named: contact.namedHail },
+            this.sources,
+          ),
+        );
       });
       // A2.4: SPEAK TO EVERYONE, from the hub's own one-row section.
       studyBoard.onVoiceAction(() => {
@@ -877,7 +886,13 @@ export class App {
       studyBoard.onHailAction((starId) => {
         const contact = this.contact;
         if (contact === null) return;
-        stage(() => contactCeremony.armHail(starId, contact.hail, this.sources));
+        stage(() =>
+          contactCeremony.armHail(
+            starId,
+            { bare: contact.hail, named: contact.namedHail },
+            this.sources,
+          ),
+        );
       });
       // The HOME mote is the one present-tense object on the sky, and what it
       // points at is a place: the world this civilization woke on, still

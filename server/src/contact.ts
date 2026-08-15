@@ -134,6 +134,12 @@ export interface ContactAct {
    * optional fields on an append-only log need no migration and get none,
    * which is the same reason `inReplyTo` and `text` are shaped this way.
    *
+   * KN SEPARATES THEM, and only in one direction: a NAMED HAIL carries `parts`
+   * (exactly one culture part, the sender's charter) and no `tone`, because an
+   * opener is a beam that says who sent it and nothing about how to read it.
+   * So `parts` without `tone` means an opener, on this side exactly as on the
+   * derived one. `tone` without `parts` is still a carrier signal, unchanged.
+   *
    * `parts` IS SERVER-WRITTEN, ALWAYS. The client sent selectors;
    * `materializeParts` resolved each one against the sender's own study, sky
    * and seed state and froze the result here. No number and no string in it
@@ -413,6 +419,47 @@ export const CONTACT_DEMAND: Readonly<Record<CeremonyKind, number>> = {
   broadcast: -LEAN.strong, // speak to everyone, forever
 };
 
+/**
+ * KN: what an opener carrying the charter asks. A MODIFIER ON THE HAIL, not a
+ * third `CeremonyKind`: a named knock IS a hail — one beam, one listener, one
+ * act in the log, one objection line — and widening the ceremony vocabulary
+ * would have moved `ContactStance`, `RESISTANCE_LINES` (ten new strings for an
+ * objection the mind already has) and every record contact.ts keeps over that
+ * union, to say something the demand alone says.
+ *
+ * -0.5 = -(LEAN.lean + LEAN.faint): one faint step past a bare hail toward
+ * Voice, and still a step short of a broadcast, which is the shape of the act
+ * — saying who you are is more revelation than knocking and less than shouting
+ * it at everyone forever.
+ *
+ * THE TUNING FACT, in the currency `resistanceFor` charges. An act contests
+ * above a Silence position of `demand + CONTEST_GAP`, so the three thresholds
+ * are:
+ *
+ *   bare hail    +0.35   argues only past a Silence LEAN
+ *   named knock  +0.20   argues once the mind stops reading as balanced
+ *   broadcast    +0.10   argues almost as soon as it leans Silence at all
+ *
+ * A BALANCED MIND BARELY DOES NOT ARGUE, and +0.20 is where "barely" is: it is
+ * the edge of the band traffic.ts already calls balanced on this very dial
+ * (`VOTE_CLOSE_BAND`, the width inside which a congress cannot call its own
+ * vote). Inside that band the mind attaches the charter without comment; the
+ * first step outside it is the first objection.
+ *
+ * And the consequence the design asked for falls out at the catalog's own
+ * magnitudes: a mind seeded at Silence LEAN (+0.35) does not argue about a
+ * bare hail (its gap is exactly CONTEST_GAP, and the test is strict) and does
+ * argue about a named one.
+ */
+export const NAMED_HAIL_DEMAND = -(LEAN.lean + LEAN.faint);
+
+/** The demand one commit actually faces. `named` is meaningful on a hail
+ *  alone: a broadcast carries no parts, and nothing else can be attached to
+ *  either act. */
+export function contactDemand(kind: CeremonyKind, named: boolean): number {
+  return kind === "hail" && named ? NAMED_HAIL_DEMAND : CONTACT_DEMAND[kind];
+}
+
 /** How far a mind may sit from the demand before it argues. */
 export const CONTEST_GAP = 2 * LEAN.lean;
 
@@ -424,7 +471,8 @@ export const COHERENCE_WOUND_PER_GAP = 40;
  * thresholds fall out of the constants above: a hail contests above a
  * Silence position of +0.35, a broadcast above +0.10, so a balanced mind
  * argues about a broadcast and not about a hail, which is the right
- * asymmetry.
+ * asymmetry. KN slots the named knock between them at +0.20 without touching
+ * this function; NAMED_HAIL_DEMAND carries that arithmetic.
  *
  * The integration divisor is economy-design.md's "a deeply integrated mind
  * can weather a forcing that would fragment a shallow one", made real in one
@@ -438,8 +486,14 @@ export interface Resistance {
   readonly coherenceCost: number;
 }
 
-export function resistanceFor(seed: CivSeed, kind: CeremonyKind): Resistance {
-  const gap = seed.dials["voice-silence"].position - CONTACT_DEMAND[kind];
+export function resistanceFor(
+  seed: CivSeed,
+  kind: CeremonyKind,
+  /** KN: the opener carries the charter. Defaulted, so every A2.4 call site
+   *  keeps asking the question it always asked. */
+  named = false,
+): Resistance {
+  const gap = seed.dials["voice-silence"].position - contactDemand(kind, named);
   const contested = gap > CONTEST_GAP;
   if (!contested) return { contested: false, coherenceCost: 0 };
   const cost = Math.max(
@@ -456,8 +510,8 @@ export function resistanceFor(seed: CivSeed, kind: CeremonyKind): Resistance {
 // The wire view
 // ---------------------------------------------------------------------------
 
-function stanceFor(seed: CivSeed, kind: CeremonyKind): ContactStance {
-  const resistance = resistanceFor(seed, kind);
+function stanceFor(seed: CivSeed, kind: CeremonyKind, named = false): ContactStance {
+  const resistance = resistanceFor(seed, kind, named);
   return {
     kind,
     contested: resistance.contested,
@@ -515,6 +569,10 @@ export function buildContactWire(
   });
   return {
     hail: stanceFor(selfCiv.seed, "hail"),
+    // KN: the same act at the named knock's demand. Both stances ride every
+    // sky, so the ceremony can restage its resistance beat the instant the
+    // player flips the choice, with no round trip and no preflight.
+    namedHail: stanceFor(selfCiv.seed, "hail", true),
     broadcast: stanceFor(selfCiv.seed, "broadcast"),
     outbound,
     threads: threads.summaries,
