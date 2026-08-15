@@ -21,23 +21,42 @@ nothing here should become one.
 
 ## The credential
 
-A seat is one string, and your browser holds it at playholos.com:
+A seat is one string, and the browser you play in holds it at
+playholos.com: `localStorage['holos.account']` for a claimed seat (20
+Crockford symbols, the key from the write-it-down sheet) or
+`localStorage['holos.token']` for an unclaimed one (a UUID). `net.ts`
+keeps the XOR: a device holds one, never both.
 
-- `localStorage['holos.account']` — a claimed seat: 20 Crockford symbols,
-  the key from the write-it-down sheet. Hyphens and spacing are fine, the
-  tools normalize exactly as the server does.
-- `localStorage['holos.token']` — an unclaimed seat: a UUID.
-
-`net.ts` keeps the XOR (a device holds one, never both), so copy whichever
-is there into a file under `.seats/`:
+Pairing is how it gets here:
 
 ```sh
-mkdir -p .seats
-pbpaste > .seats/default        # or .seats/phone, .seats/testseat, ...
+npm run prod:pair                    # writes .seats/default, then verifies
+npm run prod:pair -- --seat phone    # a second seat, under its own name
 ```
 
-`.seats/` is gitignored, one file per seat. These are **bearer secrets for
-real runs** — a leaked one is someone's civilization, and there is no
+This is the OAuth native-app shape: `pair.mjs` listens once on
+`127.0.0.1`, prints a line, and you paste that line into the game's own
+DevTools console on this machine. The credential crosses the loopback
+interface and nothing else — no clipboard, no shell history. The pasted
+line itself carries no secret and is safe to display; a one-time nonce in
+its path and an `Origin` allowlist mean it works from the game, toward
+this listener, and nowhere else. On success the tool opens the seat and
+names the civ, so a wrong-profile pairing is caught immediately. (Chrome
+may ask you to type "allow pasting" the first time — that guard is about
+code from strangers.)
+
+Manual fallback, for when a console paste is not possible: copy the
+localStorage value on the device you play on and write it to
+`.seats/<name>` yourself. A **phone** seat has no loopback to this
+machine at all, so it always travels this route — claim the seat in the
+game, then type the 20-symbol key into the file; the key's alphabet was
+designed to be typed, and hyphens or lowercase are fine (the tools
+normalize exactly as the server does).
+
+`.seats/` lives at the **primary checkout** and every agent worktree
+resolves the same directory, so a seat paired once is readable from all
+of them. It is gitignored, one file per seat. These are **bearer secrets
+for real runs** — a leaked one is someone's civilization, and there is no
 recovery and no rotation. Nothing in `scripts/prod/` ever prints a
 credential (`accounts.ts`'s "NOTHING HERE EVER LOGS", carried over).
 
@@ -46,6 +65,7 @@ credential (`accounts.ts`'s "NOTHING HERE EVER LOGS", carried over).
 ## The tools
 
 ```sh
+npm run prod:pair                    # once per machine: catch the credential
 npm run prod:report                  # the AV2 annal, as the player reads it
 npm run prod:sky                     # the whole state the client renders from
 ```

@@ -79,7 +79,9 @@ npm run prod:report     # the AV2 annal, as the player reads it
 ```
 
 `scripts/prod/seat.mjs` owns the socket, the credential (one gitignored file
-per seat under `.seats/`) and **the safety property**: it refuses to send any
+per seat under the primary checkout's `.seats/`, shared by every worktree;
+`npm run prod:pair` catches it from the game's own console over loopback)
+and **the safety property**: it refuses to send any
 frame outside `hello`, `requestSky` and `requestReport`, so a tool built on
 it cannot take an action in a live galaxy. Growing that allowlist means
 reading the handler first. New prod-read tools go beside those two and are

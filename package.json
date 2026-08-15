@@ -26,6 +26,7 @@
     "audit:parity": "node scripts/audit-parity.mjs",
     "playtest:bots": "node scripts/playtest-bot.mjs",
     "eval:counsel": "node scripts/eval-counsel.mjs",
+    "prod:pair": "node scripts/prod/pair.mjs",
     "prod:report": "node scripts/prod/report.mjs",
     "prod:sky": "node scripts/prod/sky.mjs"
   },

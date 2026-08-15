@@ -20,14 +20,27 @@
 // over to the one place outside the server that holds a key).
 
 import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-export const REPO = join(HERE, "..", "..");
+const CHECKOUT = join(HERE, "..", "..");
+
+/**
+ * The PRIMARY checkout. Agent worktrees live under `.claude/worktrees/`
+ * (this repo's orchestration convention), and a credential is a fact about
+ * this MACHINE, not about a checkout — so every worktree resolves the same
+ * `.seats/` at the primary checkout, and pairing a seat once covers all of
+ * them.
+ */
+function primaryRoot() {
+  const marker = `${sep}.claude${sep}worktrees${sep}`;
+  const i = CHECKOUT.indexOf(marker);
+  return i === -1 ? CHECKOUT : CHECKOUT.slice(0, i);
+}
 
 /** Where credentials live: one file per seat, gitignored. See docs/prod-read.md. */
-const SEAT_DIR = join(REPO, ".seats");
+export const SEAT_DIR = join(primaryRoot(), ".seats");
 
 /** The client's room, hard-coded there too (client/src/net.ts's ROOM). */
 export const DEFAULT_ROOM = "genesis";
@@ -80,17 +93,25 @@ export function has(argv, name) {
 }
 
 /**
- * The credential for a seat, as the two things `hello` carries.
+ * Classify one raw credential string into the two things `hello` carries.
  *
  * A run token and an account key are both opaque strings, and telling them
  * apart is not a guess: a key normalizes to exactly 20 Crockford symbols, a
  * token is a randomUUID (32 hex symbols, which normalizes to null). So the
- * same normalizer the server uses classifies the file for us, and typing the
- * key with its display hyphens in works here exactly as it works in the game.
+ * same normalizer the server uses classifies the string for us, and typing
+ * the key with its display hyphens in works here exactly as in the game.
  *
  * net.ts's XOR holds on this side too: whichever one this returns, the other
- * is null.
+ * is null. Returns null for an empty string.
  */
+export function classifyCredential(raw) {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return null;
+  const account = normalizeAccountKey(trimmed);
+  return account !== null ? { account, token: null } : { account: null, token: trimmed };
+}
+
+/** The credential for a seat: environment override, else the seat file. */
 export function readCredential(argv) {
   const fromEnvAccount = process.env.HOLOS_ACCOUNT ?? null;
   const fromEnvToken = process.env.HOLOS_TOKEN ?? null;
@@ -101,20 +122,18 @@ export function readCredential(argv) {
   const path = join(SEAT_DIR, name);
   let raw;
   try {
-    raw = readFileSync(path, "utf8").trim();
+    raw = readFileSync(path, "utf8");
   } catch {
     throw new Error(
-      `no credential at .seats/${name}\n\n` +
-        "On the device you play on, at playholos.com, open the console and copy\n" +
-        "  localStorage['holos.account']   (a claimed seat: the 20-symbol key)\n" +
-        "  localStorage['holos.token']     (an unclaimed seat: a UUID)\n" +
-        `then write it to .seats/${name} (gitignored). See docs/prod-read.md.`,
+      `no credential at ${path}\n\n` +
+        "Pair one: `npm run prod:pair` prints a line to paste into the game's\n" +
+        "own console, and the credential lands here over loopback. The manual\n" +
+        "route is in docs/prod-read.md.",
     );
   }
-  if (raw.length === 0) throw new Error(`.seats/${name} is empty`);
-
-  const account = normalizeAccountKey(raw);
-  return account !== null ? { account, token: null } : { account: null, token: raw };
+  const credential = classifyCredential(raw);
+  if (credential === null) throw new Error(`${path} is empty`);
+  return credential;
 }
 
 /**
