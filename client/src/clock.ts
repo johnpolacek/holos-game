@@ -9,13 +9,36 @@
 // time together, everywhere a duration appears (ui-design.md's rule). Reach
 // for formatClockPair (or formatCountdown, its landed-aware cousin) by
 // default; the narrower formatters exist for the pieces that make it up.
+//
+// TWO ANCHORS, AND THE SECOND IS A BOUNDARY. The clock anchor below carries
+// the cohort's absolute year, which is the coordinate the wire speaks in and
+// the one no player may ever read (prose-style.md R-33: the cohort clock is
+// the referee's calendar, and no civilization keeps it). The epoch anchor is
+// the player civilization's own zero, and every DATE that reaches a surface
+// goes through formatEpochYear, which subtracts one from the other. Nothing
+// here exports the absolute year as a string; that is the point.
 
 import type { ClockWire } from "@holos/protocol";
 
 let anchor: ClockWire | null = null;
+let ascension: number | null = null;
+
+/** The missing-value glyph, for a formatter asked to render before its
+ *  anchor landed. An EN dash, never an em (prose-style.md R-8). */
+const NO_VALUE = "–";
 
 export function setClockAnchor(c: ClockWire): void {
   anchor = c;
+}
+
+/**
+ * THE EPOCH ANCHOR — the player civilization's own year zero, from `sky`'s
+ * `self.seed.ascensionYear`. Set once the seat has a civilization; every
+ * date-shaped surface string depends on it, so it is set before the sky
+ * mounts anything that renders one.
+ */
+export function setEpochAnchor(ascensionYear: number): void {
+  ascension = ascensionYear;
 }
 
 /** The authoritative game year right now, derived locally. 0 if no anchor yet. */
@@ -51,35 +74,33 @@ export function formatRealDuration(ms: number): string {
 }
 
 /**
- * An ABSOLUTE game year as chrome: "Y1204". For a date that simply is where
- * it is — a mission that already started, an arrival the light has fixed —
- * as opposed to a duration still running down, which always goes through
- * formatCountdown/formatClockPair instead.
+ * THE DATE FORMATTER, and the only one. A cohort-absolute game year in,
+ * the player civilization's own count from its own ascension out: "160 AE".
+ * For a date that simply is where it is — a mission that already started,
+ * an arrival the light has fixed — as opposed to a duration still running
+ * down, which goes through formatCountdown/formatClockPair instead.
  *
- * It lives here rather than in whichever surface first needed it because two
- * surfaces now render the same stamp (the observatory's dates and the choice
- * ceremony's arrival years), and a stamp that reads "Y1204" in one place and
- * "1204" in the other is two facts rather than one.
- */
-export function formatAbsoluteYear(year: number): string {
-  return `Y${Math.round(year)}`;
-}
-
-/**
- * A civilization's own count from its own ascension: "4 AE". The cohort's
- * absolute year is what `nowYear()` returns and what `formatAbsoluteYear`
- * stamps out; this is the OTHER dating, the one a civilization uses about
- * itself, and it is the only one that may stand beside that civilization's
- * own name (prose-style.md R-33, and voice.ts's `epochStamp`, which builds
- * the same stamp server-side for the report's annal).
+ * It takes the absolute year because that is what every wire field carries;
+ * it hands back the only dating a player may read (prose-style.md R-33, and
+ * voice.ts's `epochStamp`, which does the same subtraction server-side for
+ * the report's annal). One function, so a stamp cannot read "160 AE" on one
+ * surface and "Y1204" on the next: that was two facts rather than one, and
+ * one of them was the referee's calendar.
  *
- * Clamped at zero. A player civ ascended a handful of years before the act
- * opens, so the difference is always positive in practice; a civ still
- * climbing would count from a founding it has not reached, and "-3 AE" is
- * not a date.
+ * Renders the missing-value glyph before the epoch anchor lands, rather than
+ * falling back to the raw year. There is no anchor-less rendering of a date
+ * that is not a leak, so the fallback is to say nothing.
+ *
+ * Clamped at zero, and callers must stay inside that: this dates events in
+ * the PLAYER's own played frame, which begins at their ascension. An
+ * instrument reading that reaches back before it (an archive window into the
+ * biosphere era) is not a date in this calendar and belongs in the light-age
+ * register — `AS OF n Y AGO` — which is what act3-design.md's third register
+ * of time is for.
  */
-export function formatEpochYear(year: number, ascensionYear: number): string {
-  return `${Math.max(0, Math.round(year - ascensionYear))} AE`;
+export function formatEpochYear(year: number): string {
+  if (ascension === null) return NO_VALUE;
+  return `${Math.max(0, Math.round(year - ascension))} AE`;
 }
 
 /**
@@ -89,8 +110,9 @@ export function formatEpochYear(year: number, ascensionYear: number): string {
  * tail visibly ticks. Chronicle stamps and report annals keep the whole-year
  * form above — a date is a year, not a moment; this is a dial, not a date.
  */
-export function formatEpochYearPrecise(year: number, ascensionYear: number): string {
-  return `${Math.max(0, year - ascensionYear).toFixed(2)} AE`;
+export function formatEpochYearPrecise(year: number): string {
+  if (ascension === null) return NO_VALUE;
+  return `${Math.max(0, year - ascension).toFixed(2)} AE`;
 }
 
 /** Compact game-time span: "20 y", "1,200 y". Whole years, thousands-separated. */
@@ -105,7 +127,7 @@ export function formatGameYears(years: number): string {
  *  reaches a player surface, glyph or prose (prose-style.md R-8). */
 export function formatClockPair(years: number): string {
   const gamePart = formatGameYears(years);
-  if (anchor === null) return `${gamePart} · –`;
+  if (anchor === null) return `${gamePart} · ${NO_VALUE}`;
   return `${gamePart} · ≈${formatRealDuration(realMsForYears(years))}`;
 }
 

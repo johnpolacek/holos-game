@@ -34,7 +34,7 @@
 
 import type { ContactStance, DetectedSource, Vec3Ly } from "@holos/protocol";
 import { COLOR_HOME, COLOR_SELECT, type CeremonyInput, type ModelFrame, type Model } from "./model";
-import { formatAbsoluteYear, nowYear } from "./clock";
+import { formatEpochYear, nowYear } from "./clock";
 import type { CohortSocket } from "./net";
 import { Sprite, type Texture } from "pixi.js";
 
@@ -750,10 +750,10 @@ export class ContactCeremony {
     // number, having stopped being a preview.
     if (this.phase === "holding" && head.ok) {
       const year = nowYear() + clamp01(t / DRAW_FRACTION) * s.distanceLy;
-      const stamp = this.headStamp ?? this.addStamp(null, formatAbsoluteYear(year), head.x, head.y);
+      const stamp = this.headStamp ?? this.addStamp(null, formatEpochYear(year), head.x, head.y);
       this.headStamp = stamp;
       if (stamp !== null) {
-        stamp.el.textContent = formatAbsoluteYear(year);
+        stamp.el.textContent = formatEpochYear(year);
         stamp.x = head.x;
         stamp.y = head.y;
       }
@@ -838,7 +838,7 @@ export class ContactCeremony {
       // THE LEADING EDGE, read off at twelve o'clock: where the year is now,
       // and the year the front is standing on.
       if (this.phase === "holding") {
-        const edge = `${formatAbsoluteYear(nowYear())} → ${formatAbsoluteYear(nowYear() + r)}`;
+        const edge = `${formatEpochYear(nowYear())} → ${formatEpochYear(nowYear() + r)}`;
         const stamp =
           this.headStamp ?? this.addStamp(null, edge, home.x, home.y - radiusPx, "edge");
         this.headStamp = stamp;
@@ -859,7 +859,7 @@ export class ContactCeremony {
         this.crossed.add(source.starId);
         const at = frame.sourceAt(source.starId);
         if (at !== undefined) this.addGlint(frame, at.x, at.y, at.r);
-        const year = formatAbsoluteYear(nowYear() + source.distanceLy);
+        const year = formatEpochYear(nowYear() + source.distanceLy);
         this.addStamp(source.starId, year, at?.x ?? 0, at?.y ?? 0);
         this.liveRegion.textContent = year;
         // One short tick per distance crossed. Guarded, and skipped whole

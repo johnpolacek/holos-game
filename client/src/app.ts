@@ -51,7 +51,7 @@ import {
   type VoyageCardState,
 } from "./sourcecard";
 import { Home } from "./home";
-import { setClockAnchor, formatEpochYearPrecise, nowYear } from "./clock";
+import { setClockAnchor, setEpochAnchor, formatEpochYearPrecise, nowYear } from "./clock";
 import { ContactCeremony } from "./contactceremony";
 import { Intro } from "./intro";
 // A5: the boot re-sync, and nothing else from here. The row, the sheet and
@@ -616,8 +616,8 @@ export class App {
    *  count from its ascension (R-33: never the cohort's absolute year), two
    *  fixed decimals so the passage of game time is visible on the dial (a
    *  hundredth of a year is three real seconds on the shipped clock). */
-  private standingYearText(self: SelfView): string {
-    return `YEAR ${formatEpochYearPrecise(nowYear(), self.seed.ascensionYear)}`;
+  private standingYearText(): string {
+    return `YEAR ${formatEpochYearPrecise(nowYear())}`;
   }
 
   /** S0.2: the compute meter — the same local accrual the retired masthead
@@ -641,7 +641,7 @@ export class App {
    *  themselves. */
   private refreshStanding(): void {
     if (this.self === null) return;
-    this.home?.setStanding(this.self.designation, this.standingYearText(this.self));
+    this.home?.setStanding(this.self.designation, this.standingYearText());
     this.home?.setCompute(this.computeMeterState());
   }
 
@@ -662,6 +662,10 @@ export class App {
   private showSky(self: SelfView, sources: readonly DetectedSource[]): void {
     // S0.1: kept for the intro's seed regardless of which branch below runs.
     this.self = self;
+    // R-33: every dated surface string subtracts this civ's own zero from the
+    // wire's cohort-absolute year, so the epoch anchor is set before anything
+    // below can mount a surface that renders a date.
+    setEpochAnchor(self.seed.ascensionYear);
     // Later sky messages (another civ joined, or the calm-cadence refresh)
     // just update the Model and, if a card is open, its live source data.
     if (this.mountedScreen === "sky" && this.model !== null) {

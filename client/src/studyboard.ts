@@ -160,7 +160,7 @@ import {
   watchOnThisDevice,
 } from "./push";
 import {
-  formatAbsoluteYear,
+  formatEpochYear,
   formatClockPair,
   formatCountdown,
   formatGameYears,
@@ -2945,7 +2945,7 @@ export class StudyBoard {
       ? "study-voice-row study-voice-row--inert holos-caps"
       : "study-voice-row holos-caps";
     if (live && speaking !== null) {
-      btn.textContent = `SPEAKING SINCE ${formatAbsoluteYear(speaking)}`;
+      btn.textContent = `SPEAKING SINCE ${formatEpochYear(speaking)}`;
       btn.disabled = true;
     } else {
       btn.textContent = "SPEAK TO EVERYONE";
@@ -2983,7 +2983,7 @@ export class StudyBoard {
       const countdown = formatCountdown(t.nextEventYear);
       if (countdown !== null) return `${base} · ARRIVES IN ${countdown}`;
     }
-    if (t.state === "answered") return `${base} ${formatAbsoluteYear(t.lastEventYear)}`;
+    if (t.state === "answered") return `${base} ${formatEpochYear(t.lastEventYear)}`;
     return base;
   }
 
@@ -4064,7 +4064,7 @@ export class StudyBoard {
       meta.textContent =
         p.addRatePerYear > 0
           ? `+${p.addRatePerYear}/Y`
-          : `LANDED ${formatAbsoluteYear(p.landsYear ?? 0)}`;
+          : `LANDED ${formatEpochYear(p.landsYear ?? 0)}`;
       flag = document.createElement("span");
       flag.className = "study-project-flag holos-caps";
       flag.textContent = "STANDING";
@@ -4164,7 +4164,7 @@ export class StudyBoard {
       this.body.append(this.buildClockRow("TAKES", formatClockPair(p.durationYears)));
     } else if (p.status === "running") {
       if (p.startedYear !== null) {
-        this.body.append(this.buildClockRow("STARTED", formatAbsoluteYear(p.startedYear)));
+        this.body.append(this.buildClockRow("STARTED", formatEpochYear(p.startedYear)));
       }
       const countdown = p.landsYear === null ? null : formatCountdown(p.landsYear);
       this.body.append(
@@ -4175,7 +4175,7 @@ export class StudyBoard {
     } else {
       // "standing"
       if (p.landsYear !== null) {
-        this.body.append(this.buildClockRow("LANDED", formatAbsoluteYear(p.landsYear)));
+        this.body.append(this.buildClockRow("LANDED", formatEpochYear(p.landsYear)));
       }
       const standing = document.createElement("div");
       standing.className = "study-brief-meta holos-caps";
@@ -5038,7 +5038,7 @@ export class StudyBoard {
             `TRANSIT ${formatGameYears(stamp.transitYears)} · DISTANCE ${stamp.distanceLy.toFixed(1)} ly`,
           ),
           this.buildStampRow(
-            `RECEIVED ${stamp.receivedFraction.toFixed(2)} · LOSS ${Math.round(stamp.degradation * 100)}% · ARRIVED ${formatAbsoluteYear(stamp.arrivedYear)}`,
+            `RECEIVED ${stamp.receivedFraction.toFixed(2)} · LOSS ${Math.round(stamp.degradation * 100)}% · ARRIVED ${formatEpochYear(stamp.arrivedYear)}`,
           ),
         );
       }
@@ -5104,7 +5104,7 @@ export class StudyBoard {
     const kicker = s.kind === "hail" ? "HAIL · " : "";
     const countdown = formatCountdown(s.arrivesYear);
     return countdown === null
-      ? `${kicker}LANDED ${formatAbsoluteYear(s.arrivesYear)}`
+      ? `${kicker}LANDED ${formatEpochYear(s.arrivesYear)}`
       : `${kicker}IN FLIGHT · ARRIVES IN ${countdown}`;
   }
 
@@ -5301,7 +5301,15 @@ export class StudyBoard {
     desig.textContent = this.partSubject(part.subjectStarId);
     const span = document.createElement("span");
     span.className = "part-share holos-caps study-tabular";
-    span.textContent = `${formatAbsoluteYear(part.fromYear)} TO ${formatAbsoluteYear(part.toYear)}`;
+    // DEPTH, NOT DATES. This row used to stamp the window's two ends, and it
+    // was the one dated surface R-33's epoch calendar cannot carry: a `long`
+    // archive reaches 8,000 years back, into a biosphere era that predates
+    // the reader's own ascension, and a count from a zero the record starts
+    // before is not a date. So the row states the record's depth instead and
+    // leaves the dating to the block's closing line, which is already in the
+    // light-age register (act3-design.md's third register, `AS OF n Y AGO`)
+    // and already anchors the edge the depth counts back from.
+    span.textContent = `${formatArchiveAge(Math.max(0, part.toYear - part.fromYear))} Y OF RECORD`;
     row.append(desig, span);
     block.append(row);
 
@@ -6014,7 +6022,7 @@ export class StudyBoard {
         list,
         `finding:${study.starId}`,
         call.label,
-        `${this.partSubject(study.starId)} · ${Math.round(call.share * 100)}% · CALLED ${formatAbsoluteYear(call.calledYear)}`,
+        `${this.partSubject(study.starId)} · ${Math.round(call.share * 100)}% · CALLED ${formatEpochYear(call.calledYear)}`,
         detail,
         [
           {
@@ -6472,16 +6480,16 @@ export class StudyBoard {
     const now = nowYear();
     this.body.append(
       now < m.arrivalYear
-        ? this.buildClockRow("ARRIVES", formatCountdown(m.arrivalYear) ?? formatAbsoluteYear(m.arrivalYear))
-        : this.buildClockRow("ARRIVED", formatAbsoluteYear(m.arrivalYear)),
+        ? this.buildClockRow("ARRIVES", formatCountdown(m.arrivalYear) ?? formatEpochYear(m.arrivalYear))
+        : this.buildClockRow("ARRIVED", formatEpochYear(m.arrivalYear)),
     );
     this.body.append(
       now < m.firstWordYear
         ? this.buildClockRow(
             "FIRST WORD",
-            formatCountdown(m.firstWordYear) ?? formatAbsoluteYear(m.firstWordYear),
+            formatCountdown(m.firstWordYear) ?? formatEpochYear(m.firstWordYear),
           )
-        : this.buildClockRow("FIRST WORD", formatAbsoluteYear(m.firstWordYear)),
+        : this.buildClockRow("FIRST WORD", formatEpochYear(m.firstWordYear)),
     );
 
     if (m.state === "silent") {
@@ -6494,13 +6502,13 @@ export class StudyBoard {
       const sinceYear = lastReport !== undefined ? lastReport.arrivedYear : m.firstWordYear;
       const silentRow = document.createElement("div");
       silentRow.className = "tend-mission-silent holos-caps";
-      silentRow.textContent = `SILENT SINCE ${formatAbsoluteYear(sinceYear)}`;
+      silentRow.textContent = `SILENT SINCE ${formatEpochYear(sinceYear)}`;
       this.body.append(silentRow);
     } else if (m.state === "standing" && m.nextWordYear !== null) {
       this.body.append(
         this.buildClockRow(
           "NEXT WORD",
-          formatCountdown(m.nextWordYear) ?? formatAbsoluteYear(m.nextWordYear),
+          formatCountdown(m.nextWordYear) ?? formatEpochYear(m.nextWordYear),
         ),
       );
     }
@@ -7855,25 +7863,25 @@ export class StudyBoard {
     // arithmetic on the launch; the confirmation is the year word of it could
     // first reach here, and neither is a claim about what actually happened.
     const now = nowYear();
-    this.body.append(this.buildClockRow("LAUNCHED", formatAbsoluteYear(row.launchedYear)));
+    this.body.append(this.buildClockRow("LAUNCHED", formatEpochYear(row.launchedYear)));
     this.body.append(
       now < row.foundingYear
         ? this.buildClockRow(
             "FOUNDED",
-            formatCountdown(row.foundingYear) ?? formatAbsoluteYear(row.foundingYear),
+            formatCountdown(row.foundingYear) ?? formatEpochYear(row.foundingYear),
           )
-        : this.buildClockRow("FOUNDED", formatAbsoluteYear(row.foundingYear)),
+        : this.buildClockRow("FOUNDED", formatEpochYear(row.foundingYear)),
     );
     this.body.append(
       now < row.confirmYear
         ? this.buildClockRow(
             "CONFIRMED",
-            formatCountdown(row.confirmYear) ?? formatAbsoluteYear(row.confirmYear),
+            formatCountdown(row.confirmYear) ?? formatEpochYear(row.confirmYear),
           )
-        : this.buildClockRow("CONFIRMED", formatAbsoluteYear(row.confirmYear)),
+        : this.buildClockRow("CONFIRMED", formatEpochYear(row.confirmYear)),
     );
     if (row.darkSinceYear !== null) {
-      this.body.append(this.buildClockRow("DARK SINCE", formatAbsoluteYear(row.darkSinceYear)));
+      this.body.append(this.buildClockRow("DARK SINCE", formatEpochYear(row.darkSinceYear)));
     }
 
     this.body.append(this.hairline());
@@ -7913,13 +7921,13 @@ export class StudyBoard {
       this.body.append(
         this.buildClockRow(
           `${DRIFT_BAND_LABEL[row.band]} SINCE`,
-          formatAbsoluteYear(row.bandSinceYear),
+          formatEpochYear(row.bandSinceYear),
         ),
       );
     }
     if (row.independentSinceYear !== null && row.band !== "independent") {
       this.body.append(
-        this.buildClockRow("INDEPENDENT SINCE", formatAbsoluteYear(row.independentSinceYear)),
+        this.buildClockRow("INDEPENDENT SINCE", formatEpochYear(row.independentSinceYear)),
       );
     }
 
@@ -7940,7 +7948,7 @@ export class StudyBoard {
     );
     if (row.lastExchangeYear !== null) {
       this.body.append(
-        this.buildClockRow("LAST EXCHANGE", formatAbsoluteYear(row.lastExchangeYear)),
+        this.buildClockRow("LAST EXCHANGE", formatEpochYear(row.lastExchangeYear)),
       );
     }
     // YOUR OWN NEXT ARRIVAL, said as your own. There is no reply on this wire
@@ -7949,7 +7957,7 @@ export class StudyBoard {
       this.body.append(
         this.buildClockRow(
           "YOURS ARRIVES",
-          formatCountdown(row.nextExchangeYear) ?? formatAbsoluteYear(row.nextExchangeYear),
+          formatCountdown(row.nextExchangeYear) ?? formatEpochYear(row.nextExchangeYear),
         ),
       );
     }
@@ -8101,7 +8109,7 @@ export class StudyBoard {
     block.append(price);
 
     if (order.state === "armed" && order.armedYear !== null) {
-      block.append(this.buildClockRow("ARMED", formatAbsoluteYear(order.armedYear)));
+      block.append(this.buildClockRow("ARMED", formatEpochYear(order.armedYear)));
     }
 
     // ── The fired record ──
@@ -8121,7 +8129,7 @@ export class StudyBoard {
         block.append(this.buildClockRow("TOWARD", this.starLabel(order.firedStarId)));
       }
       if (order.firedYear !== null) {
-        block.append(this.buildClockRow("FIRED", formatAbsoluteYear(order.firedYear)));
+        block.append(this.buildClockRow("FIRED", formatEpochYear(order.firedYear)));
       }
       if (order.evidenceAgeYears !== null) {
         block.append(

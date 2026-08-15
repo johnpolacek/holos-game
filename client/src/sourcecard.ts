@@ -37,7 +37,7 @@ import {
   type SignalClass,
 } from "@holos/protocol";
 import { accordHeadline, accordLightLine } from "./accord";
-import { formatAbsoluteYear } from "./clock";
+import { formatEpochYear } from "./clock";
 import type { CohortSocket } from "./net";
 
 /** In-world display labels for the five v1 signal classes (act3-design.md). */
@@ -777,7 +777,7 @@ export class SourceCard {
       // being tappable: there is nothing to open, and a verb that leads
       // nowhere is worse than a date that says everything.
       this.contactBtn.textContent =
-        `BEAM IN FLIGHT · ARRIVES ${formatAbsoluteYear(inFlight.arrivesYear)}`;
+        `BEAM IN FLIGHT · ARRIVES ${formatEpochYear(inFlight.arrivesYear)}`;
       this.contactBtn.className =
         "source-card-contact-affordance source-card-contact-affordance--active";
       this.contactBtn.disabled = true;
