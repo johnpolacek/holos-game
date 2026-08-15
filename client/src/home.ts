@@ -72,9 +72,9 @@ type HudNoteKind = "standing" | "compute";
  *  here would be the drift the module header forbids. */
 const HUD_NOTE: Readonly<Record<HudNoteKind, string>> = {
   standing:
-    "The designation is our own star, as the catalog lists it. The year is our count from our own ascension, the only calendar any surface keeps, and it runs whether or not anyone is watching.",
+    "The designation is our star's catalog name. The year counts from our ascension, and never pauses.",
   compute:
-    "Compute is attention: time on the instruments, and the thinking spent on what they bring back. Questions and projects draw it down; it accrues on its own, up to what the mind can hold at once, and there it stops. The number is what stands uncommitted, the rate is what a year adds, and the bar is the number against its ceiling.",
+    "Compute pays for questions and projects. The number is what is free to spend; it accrues on its own, up to a ceiling. The bar is how full.",
 };
 
 export class Home {
