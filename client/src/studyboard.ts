@@ -407,7 +407,7 @@ const THREAD_STATE_LABEL: Record<ThreadState, string> = {
  * exactly why it can be a client string at all.
  */
 const THREAD_SILENT_LINE =
-  "The window in which an answer could have arrived has passed. Nothing came.";
+  "The window for an answer has passed. Nothing came.";
 
 // ── A2.6: the composed signal, as chrome ─────────────────────────────────
 //
@@ -2783,7 +2783,7 @@ export class StudyBoard {
     const line = document.createElement("p");
     line.className = "study-watch-line";
     line.textContent =
-      "The sky keeps moving whether or not the tab is open. If you allow it, this device can say when a watch you left trips.";
+      "The sky keeps moving with the tab closed. This device can say when a watch trips.";
     body.append(line);
 
     const allow = document.createElement("button");
@@ -2897,7 +2897,7 @@ export class StudyBoard {
       const line = document.createElement("p");
       line.className = "study-account-ceremony-line";
       line.textContent =
-        "This is your key. Write it down. There is no other way back to this run.";
+        "This is your key. Write it down. There is no other way back.";
       body.append(line);
 
       const ack = document.createElement("button");
@@ -3214,11 +3214,8 @@ export class StudyBoard {
     const note = document.createElement("div");
     note.className = "study-startover-note";
     note.textContent =
-      "This civilization is given up: its studies, its projects, its missions " +
-      "and everything it ever learned. Its star returns to the pool for whoever " +
-      "inherits next, and the light it has already sent stops arriving for the " +
-      "others. Nothing in the game itself works this way. You then inherit " +
-      "again, from a fresh offer, at the cohort's current year.";
+      "Everything goes. The star returns to the pool, the light already sent " +
+      "stops arriving. You inherit again this year.";
     this.body.append(note);
 
     if (this.startOverError !== null) {
@@ -3260,7 +3257,7 @@ export class StudyBoard {
     } catch {
       this.startOverPending = false;
       this.startOverError =
-        "The cohort would not let go of this run. Nothing was given up. Try again.";
+        "The cohort would not let go. Nothing was given up. Try again.";
       this.renderStartOver();
     }
   }
@@ -4665,7 +4662,7 @@ export class StudyBoard {
     const subtitle = document.createElement("div");
     subtitle.className = "study-picker-subtitle";
     subtitle.textContent =
-      "What has happened, dated and kept, newest first. Tap an entry to open what it records.";
+      "What has happened, dated, newest first. Tap an entry to open it.";
     this.body.append(subtitle);
 
     if (this.reportExplainerText !== null) {
@@ -5662,7 +5659,7 @@ export class StudyBoard {
       // A carrier is a real utterance, so the empty state names it rather
       // than scolding: a beam with nothing on it still arrives, dated.
       empty.textContent =
-        "Nothing on the beam yet. Sent as it stands, it is a carrier: a beam with nothing on it, arriving dated.";
+        "Nothing on the beam yet. Sent as it stands, it is a carrier: empty, and arriving dated.";
       wrap.append(empty);
       return wrap;
     }
@@ -6886,7 +6883,7 @@ export class StudyBoard {
     const subtitle = document.createElement("div");
     subtitle.className = "study-picker-subtitle";
     subtitle.textContent =
-      "The nearest stars, and what we would expect a ship to find. Every line of it is a guess from here.";
+      "The nearest stars, and what a ship would find. Every line is a guess from here.";
     this.body.append(subtitle);
 
     if (this.survey.length === 0) {
@@ -7055,7 +7052,7 @@ export class StudyBoard {
     const charterNote = document.createElement("div");
     charterNote.className = "study-picker-subtitle";
     charterNote.textContent =
-      "What the founders carry. They will be reading it centuries after we could have advised them.";
+      "What the founders carry. They will read it centuries after we could advise them.";
     this.body.append(charterNote);
 
     this.body.append(this.buildVoyageDials(catalog));
@@ -7339,7 +7336,7 @@ export class StudyBoard {
 
     const hint = document.createElement("p");
     hint.className = "dial-hint";
-    hint.textContent = "Drag a dial to aim it. Pin one to hold it there.";
+    hint.textContent = "Drag a dial to aim it. Pin it to hold.";
     wrap.append(hint);
 
     return wrap;
@@ -8056,7 +8053,7 @@ export class StudyBoard {
     const subtitle = document.createElement("div");
     subtitle.className = "study-picker-subtitle";
     subtitle.textContent =
-      "What the mind may send while nobody is watching. One order, one firing, and a fresh hand to arm it again.";
+      "What the mind may send while nobody is watching. Each order fires once, then needs arming again.";
     this.body.append(subtitle);
 
     this.body.append(this.hairline());

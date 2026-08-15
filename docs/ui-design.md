@@ -253,7 +253,7 @@ player is for, and the same objection that cut the purpose banner and the
 strip applies a third time: it states what the interface should show.
 A first session worth clicking through is what carries that meaning
 instead, and it is what S0's own playtest gate measures. Nothing was
-deleted — `ARRIVAL_LINES` stays pinned and FINAL in `voice.ts`, the
+deleted — `ARRIVAL_LINES` stays pinned in `voice.ts`, the
 message still carries the field, and a later slice that finds a real
 occasion for the line can spend it, owing the acknowledgement the strip
 used to send.

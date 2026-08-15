@@ -1,11 +1,10 @@
 # Holos prose style guide
 
-*The voice of Holos. Tone target: **lean witty** — an irreverent, self-aware,
-dryly funny machine-mind register worn lightly over vast-scale hard-SF
-grandeur. This guide teaches the mechanics of that voice so any writer (human
-or agent) can produce it on demand, per archetype, without homogenizing the
-game into one jokey narrator. Every rule is written to be checked at review
-time — by grep or script where possible.*
+*The voice of Holos. Tone target: **flat terse** — one register everywhere,
+observatory deadpan, every string as short as the fact it carries. This guide
+teaches the mechanics of that voice so any writer (human or agent) can produce
+it on demand. Every rule is written to be checked at review time — by grep or
+script where possible.*
 
 > **The one hard constraint.** We borrow the *craft*, never the *coinages*.
 > No invented terminology, proper noun, or ship name from Iain M. Banks'
@@ -21,21 +20,37 @@ time — by grep or script where possible.*
 
 ## §1 — Tone target
 
-Holos is a hard-SF game about deep time, lightspeed, and minds vast beyond
-biology. The grandeur is real and load-bearing; the wit rides **on top of
-it**, never in place of it. The register is a superintelligence that is
-smarter than its own solemnity and knows it — and finds that quietly funny
-without ever becoming glib.
+**Flat terse. Decided 2026-08-14; this supersedes the previous target.** That
+target was *lean witty*: grandeur-first prose with an irreverent machine-mind
+wit worn over it, wit ceilings up to 3 on the archetype surfaces, and length
+bounds generous enough to hold three clauses. It produced prose that was
+fancy, opaque and long — a card that took two beats to say one thing, an
+ornament in front of every reading, a joke standing where a fact was wanted.
+Holos is still a hard-SF game about deep time, lightspeed, and minds vast
+beyond biology, and the grandeur is still real and still load-bearing. It is
+no longer carried by the sentences. It moves into what the sentences report:
+the distances, the dates, the light ages, the machinery. The galaxy does the
+grandeur. The prose is the instrument pointed at it.
 
-**The wit here is:**
-- **Perspective.** A mind for whom a ten-thousand-year project is a Tuesday.
-  The comedy is the mismatch between its scale and its cadence.
-- **Scale mismatch.** Galactic stakes delivered in a domestic register — a
-  star's death budgeted like groceries.
-- **Understatement.** The largest thing in the sentence is said the most
-  quietly. Intensity is inverse to volume.
-- **Self-awareness.** The mind can hear its own grandeur and decline to be
-  impressed by it.
+One register, everywhere: **observatory deadpan**. Flat, exact, sincere,
+short. The old §4 register-2 description of the observatory is now the
+description of the whole game.
+
+**The tenets.**
+- **Say it once, plainly.** One statement of a thing, in the plainest words
+  that carry it. No restatement in a second register, no summary of the
+  sentence just read, no clause that exists to give the first clause company.
+- **The largest thing in the sentence, in the fewest words.** Size lands in
+  the reader, not in the syntax. A sentence about a star's death and a
+  sentence about a filing decision are built the same way.
+- **A fact per sentence. No scenic route.** Say the fact, stop. The player
+  came for the reading; the sentence is how the reading gets to them, not a
+  place to spend their attention. If a sentence has no fact in it, ask
+  whether it should exist at all.
+- **Wit ceiling 1, and only understatement.** One is a *ceiling*, not a
+  quota: most strings sit at 0 and are better for it. The one permitted move
+  is understatement — the biggest thing said smallest. Every other flourish
+  costs words the walls no longer grant.
 
 **The wit here is never:**
 - **Pop-culture reference, memes, anachronism, or winking at the audience.**
@@ -45,61 +60,112 @@ without ever becoming glib.
 - **Undercutting the physics.** Numbers, distances, dates, and light-ages
   stay exact and sincere. The joke is in the framing, never in a fudged
   figure. A light-age chip is deadpan, not a bit.
-- **Homogeneous.** "The mind is the interface" (ui-design.md §1). A
-  Monument's interface is liturgical; a Tide's is hungry. Wit is expressed
-  **through** the archetype's character. See §4.
 
-**The test:** if you deleted the wit, the sentence would still be **true and
-grand**. Wit is punctuation on real weight, never a substitute for it.
+The fourth prohibition used to be **homogeneous** wit, and it is retired
+here. Under flat terse the ten archetype voices deliberately **converge** on
+one clipped instrument voice; the archetype fantasy rides on mechanics — what
+a Monument does with a discovery, what a Tide spends compute on — not on
+prose style. §4 records the consequence: the swap test (R-6, and the
+per-family swap in R-31 and R-36a) is retired as a gate. *Family scope* is
+not retired, because it is a correctness rule about what a line may claim,
+not a rule about how distinctive it sounds.
+
+**Length is part of the register, not a budget applied to it.** Every surface
+has a hard word wall in §2 and R-41 enforces it. A string that says the right
+thing in too many words is not a good string that needs trimming; it is the
+wrong string.
+
+**The test**, in two passes:
+1. Delete every word whose removal does not change what the sentence claims.
+   If it still says the same thing, the deleted words were ornament and the
+   deletion is the fix, not a compromise.
+2. Count. Over the wall is unfinished.
+
+**What survives of §3's craft moves.** M2 (understatement), M4 (comedy never
+touches the physics), M6 (sincerity under the irony) and M9 (the deep-time
+shrug) survive, because each of them is a *compression* — they make a
+sentence smaller. M1, M3, M5, M7, M8 and M10 need room to set up a turn, and
+the walls no longer grant it; treat them as historical, and as the reason
+several shipped strings still read the way they do. The restraint clause
+under them was always the important part and is now the whole rule.
 
 ---
 
 ## §2 — Register map by surface
 
-Each surface gets one register and a **wit ceiling** (0 = none, 3 = highest).
-The ceiling is a *maximum* per string, not a quota; most strings sit below it.
+Each surface gets one register, a **wit ceiling** (0 = none, 1 = the
+flat-terse maximum) and a **Length** wall in words. The wit ceiling is a
+maximum per string, not a quota; most strings sit at 0. The Length wall is a
+hard maximum per string, and the *aim* beside it is where the surface should
+actually land — a string at the wall is legal and usually still too long.
 
-| Surface | Source | Register | Wit |
-|---|---|---|---|
-| Charter | `minds.ts` ARCHETYPES.charter | Founding epigraph, archetype voice | 3 |
-| First read | `minds.ts` ARCHETYPES.firstRead | Archetype voice, thumbnail | 3 |
-| Wake line | `minds.ts` SPECIES_MINDS.wake | Archetype voice, the waking moment | 3 |
-| Dial gloss | `dials.ts` gloss | Explanatory with a glint | 1 |
-| Dial question | `dials.ts` question | Plain interrogative | 0 |
-| Cradle fingerprint | `cradles.ts` fingerprint | World's voice: plain, geological, dry edge; fact-preserving | 1 |
-| Lineage fingerprint | `lineages.ts` fingerprint | Body's voice: plain, biological, dry edge; fact-preserving | 1 |
-| Chronicle template | `civseed.ts` chronicleFor | Biographer's deadpan (Act 1); dry annalist's appendix — past tense, in the order it happened, and undated (R-33a) — for Act 3, same deadpan family | 2 |
-| UI chrome / captions | `model.ts`, `sourcecard.ts` | Observatory deadpan | 0 |
-| work-list rows / states | `tend.ts`, `studyboard.ts` | Observatory deadpan | 0 |
-| Ceremony microcopy | `ceremony.ts` labels/hints | Observatory deadpan | 1 |
-| Arrival line | `voice.ts` ARRIVAL_LINES | Archetype voice, the mind's first address to the player | 3 |
-| Frame explainer — age chip | `voice.ts` ageChipLine | Observatory deadpan | 0 |
-| Frame explainer — compute | `voice.ts` computeLine | Observatory deadpan | 0 |
-| Clock line | `voice.ts` clockLine | The mind stating physics; shared across archetypes | 1 |
-| Frame explainer — epoch | `voice.ts` epochLine | Observatory deadpan | 0 |
-| Frame explainer — silence | `voice.ts` silenceLine | The mind stating physics; shared across archetypes | 1 |
-| Frame explainer — study | `voice.ts` studyLine | Observatory deadpan | 0 |
-| Report record sentence | `voice.ts` record builders | Observatory deadpan; dated, past tense | 0 |
-| Report epoch stamp | `voice.ts` epochStamp | Observatory deadpan | 0 |
-| Report triage header | `voice.ts` reportHeader | Observatory deadpan | 0 |
-| Report remark | `voice.ts` REPORT_REMARKS, or `voicegen.ts` when `HOLOS_VOICE_GEN=on` | Archetype voice, free-standing, fact-free | 2 |
-| Proposal reason | `voice.ts` reason builders | Observatory deadpan; present tense | 0 |
-| Proposal accept verb | `voice.ts` PROPOSAL_VERBS | Observatory deadpan (chrome) | 0 |
-| Proposal block header | `studyboard.ts` chrome | Observatory deadpan | 0 |
-| Question method | `questionmethod.ts` QUESTION_METHOD | Observatory deadpan; what the instrument does, never what it found | 0 |
-| Accord rail | `accord.ts` | Observatory deadpan (chrome); a pinned stem plus an interpolated fact | 0 |
-| Section caption | `studyboard.ts` `study-picker-subtitle` — the class outlived the picker AS retired and is now the caption mold on every page that has sections (the Desk, Explore, the board, the Report) | Observatory deadpan; what a section is and where it stops | 0 |
-| Caps sub-line | `studyboard.ts` accord and voyage sub-labels | Observatory deadpan; microcopy in chrome's typography (R-24a) | 0 |
-| Ship class / charter clause | `voyages.ts` | The mind stating what it is committing to; plain, consequential | 1 |
-| Standing order | `orders.ts` | The mind's instruction to itself, in absence | 1 |
-| Ledger drift band | `voice.ts` LEDGER_BAND_LINES | Observatory deadpan; a graded reading, never a verdict | 0 |
-| Proposal stance (AV4) | `voicegen.ts` counsel seam when `HOLOS_COUNSEL_GEN=on`; otherwise `null` | Archetype voice, free-standing, fact-free | 2 |
-| Intro beat | `voice.ts` INTRO_LINES | The mind stating scale; shared across archetypes, the clock line's family; copy pinned by build-s0.md | 1 |
-| Counsel line (served, no surface) | `voice.ts` COUNSEL_LINES, or the AV4 stance when `HOLOS_COUNSEL_GEN=on` | Archetype voice, free-standing, fact-free (R-36a) | 2 |
-| Home HUD / rail chrome | `home.ts` | Instrument register: labels and readouts, numerals from shipped formats | 0 |
-| Frame explainer — HUD readouts | `home.ts` HUD_NOTE | Observatory deadpan; what a readout is, never a reading of it; numeral-free (the readout carries the numbers) | 0 |
-| Docs narration | `docs/*.md` prose | Essayist, analytical | 1 |
-| In-doc quoted interface prose | walkthrough scene quotes | The quoted archetype's own voice | 3 |
+| Surface | Source | Register | Wit | Length (words) |
+|---|---|---|---|---|
+| Charter | `minds.ts` ARCHETYPES.charter | Founding epigraph, archetype voice | 1 | 10 |
+| First read | `minds.ts` ARCHETYPES.firstRead | Archetype voice, thumbnail | 1 | 16 |
+| Wake line | `minds.ts` SPECIES_MINDS.wake | Archetype voice, the waking moment | 1 | 8 |
+| Dial gloss | `dials.ts` gloss | Explanatory | 1 | 20 |
+| Dial question | `dials.ts` question | Plain interrogative | 0 | 9 (R-20) |
+| Cradle fingerprint | `cradles.ts` fingerprint | World's voice: plain, geological; fact-preserving | 1 | 18 · aim 13 |
+| Lineage fingerprint | `lineages.ts` fingerprint | Body's voice: plain, biological; fact-preserving | 1 | 18 · aim 13 |
+| Chronicle template | `civseed.ts` chronicleFor | Biographer's deadpan (Act 1); dry annalist's appendix — past tense, in the order it happened, and undated (R-33a) — for Act 3, same deadpan family | 1 | 14 |
+| UI chrome / captions | `model.ts`, `sourcecard.ts` | Observatory deadpan | 0 | 6 (R-24) |
+| work-list rows / states | `tend.ts`, `studyboard.ts` | Observatory deadpan | 0 | 6 (R-24) |
+| Ceremony microcopy | `ceremony.ts` labels/hints | Observatory deadpan | 1 | 12 (R-25) |
+| Resistance line | `voice.ts` RESISTANCE_LINES | Archetype voice, free-standing, fact-free; the objection to a ceremony move | 1 | 12 · aim 8, one sentence |
+| Arrival line | `voice.ts` ARRIVAL_LINES | Archetype voice, the mind's first address to the player | 1 | 16 · aim 12 |
+| Frame explainer — age chip | `voice.ts` ageChipLine | Observatory deadpan | 0 | 20 · aim 12 |
+| Frame explainer — compute | `voice.ts` computeLine | Observatory deadpan | 0 | 20 · aim 12 |
+| Clock line | `voice.ts` clockLine | The mind stating physics; shared across archetypes | 1 | 20 · aim 12 |
+| Frame explainer — epoch | `voice.ts` epochLine | Observatory deadpan | 0 | 20 · aim 12 |
+| Frame explainer — silence | `voice.ts` silenceLine | The mind stating physics; shared across archetypes | 1 | 20 · aim 12 |
+| Frame explainer — study | `voice.ts` studyLine | Observatory deadpan | 0 | 20 · aim 12 |
+| Report record sentence | `voice.ts` record builders | Observatory deadpan; dated, past tense | 0 | 18 · aim 12 |
+| Report epoch stamp | `voice.ts` epochStamp | Observatory deadpan | 0 | 6 (R-24) |
+| Report triage header | `voice.ts` reportHeader | Observatory deadpan | 0 | 18 (record-sentence wall: it carries two Facts and the ordering rule, which chrome's 6 cannot) |
+| Report remark | `voice.ts` REPORT_REMARKS, or `voicegen.ts` when `HOLOS_VOICE_GEN=on` | Archetype voice, free-standing, fact-free | 1 | 12 · aim 8, one sentence |
+| Proposal reason | `voice.ts` reason builders | Observatory deadpan; present tense | 0 | 16 · aim 11 |
+| Proposal accept verb | `voice.ts` PROPOSAL_VERBS | Observatory deadpan (chrome) | 0 | 6 (R-24) |
+| Proposal block header | `studyboard.ts` chrome | Observatory deadpan | 0 | 6 (R-24) |
+| Question method | `questionmethod.ts` QUESTION_METHOD | Observatory deadpan; what the instrument does, never what it found | 0 | 24 · aim 16 |
+| Accord rail | `accord.ts` | Observatory deadpan (chrome); a pinned stem plus an interpolated fact | 0 | 6, stem only (R-24a) |
+| Section caption | `studyboard.ts` `study-picker-subtitle` — the class outlived the picker AS retired and is now the caption mold on every page that has sections (the Desk, Explore, the board, the Report) | Observatory deadpan; what a section is and where it stops | 0 | 20 · aim 12 |
+| Caps sub-line | `studyboard.ts` accord and voyage sub-labels | Observatory deadpan; microcopy in chrome's typography (R-24a) | 0 | 12 |
+| Ship class / charter clause | `voyages.ts` | The mind stating what it is committing to; plain, consequential | 1 | 20 |
+| Standing order | `orders.ts` | The mind's instruction to itself, in absence | 1 | 20 |
+| Ledger drift band | `voice.ts` LEDGER_BAND_LINES | Observatory deadpan; a graded reading, never a verdict | 0 | 12 · aim 8 |
+| Signal / contact voice clause | `voice.ts` SIGNAL_VOICE, TONE_CLAUSE, ACCORD_CLAUSE, SIGNAL_OBSERVATIONS; composed in `traffic.ts` | Archetype voice, free-standing, fact-free; one pool clause | 1 | 12 · aim 8, one sentence |
+| Contest tell | `voice.ts` CONTEST_LINES | Observatory deadpan; what the look is doing, never which source | 0 | 12 · aim 8, one sentence |
+| Proposal stance (AV4) | `voicegen.ts` counsel seam when `HOLOS_COUNSEL_GEN=on`; otherwise `null` | Archetype voice, free-standing, fact-free | 1 | 12 · aim 8, one sentence |
+| Intro beat | `voice.ts` INTRO_LINES | The mind stating scale; shared across archetypes, the clock line's family; copy pinned by build-s0.md (repinned 2026-08-15, flat terse) | 1 | 12 each · aim 9 |
+| Counsel line (served, no surface) | `voice.ts` COUNSEL_LINES, or the AV4 stance when `HOLOS_COUNSEL_GEN=on` | Archetype voice, free-standing, fact-free (R-36a) | 1 | 12 · aim 8, one sentence |
+| Home HUD / rail chrome | `home.ts` | Instrument register: labels and readouts, numerals from shipped formats | 0 | 6 (R-24) |
+| Frame explainer — HUD readouts | `home.ts` HUD_NOTE | Observatory deadpan; what a readout is, never a reading of it; numeral-free (the readout carries the numbers) | 0 | 20 · aim 12 |
+| Docs narration | `docs/*.md` prose | Essayist, analytical | 1 | no wall (not a player surface) |
+| In-doc quoted interface prose | walkthrough scene quotes | The quoted surface's own voice | 1 | the quoted surface's wall |
+
+**How a word is counted.** On the **authored template text**, not on the
+rendered string: each `${…}` interpolation counts as **one word**, and the
+fact it renders is exempt from the count. A record sentence that interpolates
+a distance is charged one word for the distance whether it renders as `41 y`
+or as `four hundred and twelve years`. This is the only rule that makes a
+wall checkable at author time, and it is the rule R-41's audit implements.
+Two consequences worth stating: a passed-through catalog passage (a
+question's `line`, a project's `effectLine`) is bounded at its own source and
+charged to the framing sentence as one word, exactly as R-32 and R-35 already
+say; and a composed chrome line is bounded on its stem alone (R-24a).
+
+**Walls are ceilings; aims are targets.** The wall is where review rejects;
+the aim is where the surface is meant to sit. A bank whose strings cluster at
+the wall has not absorbed §1, whatever the audit says.
+
+**Where a wall is tighter than an old §3 bound, the wall governs.** §3's
+length bounds were derived from the pre-2026-08-14 banks and most of them are
+now slack. Two of them also carry *floors* that the walls contradict
+outright, and the floors are withdrawn: R-19's 18-word minimum on a dial
+gloss, and R-39's 45-word minimum on a question method. A floor was a way of
+saying "do not leave this surface undernourished"; under flat terse the
+undernourished surface is not the failure mode.
 
 **Rationale pins.**
 - Act 1 has **no mind yet**: cradle and lineage fingerprints speak in the
@@ -143,14 +209,15 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
   inherit, and a bank left unaudited between surfaces rots.
 - **The report is the observatory's record, presented by the mind.** It is
   not the mind's diary. The entries are instrument output — dated, past
-  tense, wit 0 — and the mind is only allowed a sentence *beside* them, so
-  the remark's ceiling is **2, not 3**: an arrival line is the mind
-  introducing itself and can afford 3, while a remark stands next to a
-  measurement and would sound glib at that height. And the ceiling is not
-  the only limit — **at most one remark rides a whole report** (R-31).
-  That is R-4's one-wit-beat-per-string applied at surface scale: a page
-  of dated entries each with its own quip is the overwitting failure mode
-  with a scrollbar attached.
+  tense, wit 0 — and the mind is only allowed a sentence *beside* them. That
+  sentence used to be bounded at wit 2 against an arrival line's 3; flat
+  terse collapses both to 1, and the distinction that survives is length: an
+  arrival line is the mind introducing itself and gets 16 words, a remark
+  stands next to a measurement and gets 12, in one sentence. The wall is not
+  the only limit — **at most one remark rides a whole report** (R-31). A page
+  of dated entries each with its own sentence beside it is the overwitting
+  failure mode with a scrollbar attached, and the walls do not fix that one;
+  R-31 does.
 
 ---
 
@@ -406,7 +473,31 @@ Named mechanics of the register. Apply **at most one** per short string.
 - **R-15 Chronicle lines are past tense** (the wake line's narrative present
   is an existing convention and stays). Present tense is reserved for HOME.
 
-**Length bounds (derived from the current banks):**
+**Length bounds.** R-41 is the governing rule; the bounds under it were
+derived from the pre-2026-08-14 banks and are now mostly slack, kept because
+each also carries a sentence-count, tense or punctuation clause that the
+walls do not restate.
+
+- **R-41 Length is enforced.** Every bank string fits the **Length wall** of
+  its surface's §2 row. Words are counted on the authored template text, each
+  `${…}` interpolation counting as one word and the fact it renders exempt
+  (§2, *How a word is counted*). Walls are ceilings; the aims beside them in
+  §2 are the targets, and a bank clustered at its wall has not landed.
+
+  Where a §2 wall and a §3 bound disagree, **the wall governs** — including
+  against the two floors the walls contradict outright, R-19's 18-word
+  minimum and R-39's 45-word minimum, both withdrawn 2026-08-14.
+
+  Enforced in two places, for the same reason R-8 is. `npm run audit:voice`
+  holds the `voice.ts` banks to their walls mechanically, from a `WALLS` map
+  it prints the offending bank and string against. Every other surface — the
+  catalogs, the client's chrome, the ceremony, `voyages.ts`, `orders.ts`,
+  `questionmethod.ts` — is held to the wall **at review**, because those
+  strings are not scraped by anything. The walls in that audit are being
+  **lowered phase by phase** as the rewrite lands: each one is seeded at the
+  bank's measured maximum on the day the map was written, with its target
+  beside it, so the audit is a ratchet against regression from the first
+  commit rather than a wall of failures nobody can land.
 - **R-16** Charter: 1 sentence, 6–18 words.
 - **R-17** First read: 1 sentence, ≤ 16 words; at most one `;`.
 - **R-18** Wake line: 1 sentence, ≤ 32 words; at most one colon or
@@ -484,11 +575,34 @@ Named mechanics of the register. Apply **at most one** per short string.
 
 ## §4 — Per-archetype voice table
 
+> **Under flat terse this table is vocabulary, not a licence (2026-08-14).**
+> The archetype signature no longer buys a string either **length** or
+> **ornament**: a Monument and a Tide write to the same wall, in the same
+> observatory deadpan, and what distinguishes them is *what they choose to
+> mention* — the noun, the concern, the thing worth reporting — not how
+> ornately they mention it. The sample register lines below are two and three
+> sentences long and would fail their own surfaces' walls today; read them for
+> **material**, never for cadence or length.
+>
+> The table stays because the generation seam still needs it. `voicegen.ts`
+> prompts from these signatures and `voice.ts` VOICE_CARDS is a verbatim
+> projection of the columns (§7), and neither has been retuned for flat terse
+> yet. When that lands, this note is what the retune is measured against.
+>
+> **The swap test is retired as a gate.** R-6's no-homogeneous-wit rule, and
+> the per-family swap in R-31 and R-36a, asked whether two archetypes' lines
+> could trade places without either becoming wrong. Under a doctrine where
+> the voices deliberately converge, the answer is often yes and that is no
+> longer a defect. It survives as advice: if a line could belong to any
+> archetype *and* mentions nothing this one would notice, it is probably
+> saying nothing. **Family scope is not retired** — a remark must still read
+> true for every entry its family can produce, which is a rule about what a
+> line claims, not about how distinctive it sounds.
+
 The ten archetypes of `minds.ts`. Charters, firstReads, and wake lines are
-**restylable** (the names are not — §8). Each archetype's wit is sourced from
-its own material; the DON'T column shows the homogeneous-jokey failure — its
-tell is interchangeability: swap any two DON'Ts and nothing breaks, because
-the joke lives in internet cadence, not the archetype's world.
+**restylable** (the names are not — §8). Each archetype's material is its
+own; the DON'T column shows the failure the table was built to prevent, and
+still does.
 
 | Archetype | Voice signature | What its wit sounds like | Sample register line | DON'T |
 |---|---|---|---|---|
@@ -720,6 +834,18 @@ guide itself; innocent senses disambiguated in the comments above.
 The **code banks are canonical**. Docs mirror them, never the reverse. A
 restyle that edits a bank without its doc sync is incomplete.
 
+**Two amendments under flat terse (2026-08-14).** First, the rows below that
+end "the swap test stays a human read" are discharged by §4's note: the swap
+test is retired as a gate, and the human read those rows still owe is **family
+scope** — whether the line reads true for every entry its family can produce.
+Second, `scripts/audit-voice.mjs`'s `WALLS` map is a third thing that tracks
+§2, and it tracks it *from below*: each entry is seeded at the bank's measured
+maximum and carries its §2 target in a comment beside it. **Lowering a bank's
+longest string is not finished until the seed comes down with it** — the map
+is a ratchet, and a seed left high is a wall that has quietly stopped
+checking anything. It is the one place in this table where the doc is the
+destination and a *number measured off the code* is the thing being synced.
+
 | Bank (canonical) | Doc that absorbs it | Obligation |
 |---|---|---|
 | `minds.ts` firstReads / charters / wake lines | `act2-minds.md` | **Verbatim**, character-for-character |
@@ -841,13 +967,16 @@ is never shown to the player — only the in-world labels reach a surface.
 
 | Failure | Symptom | Prevented by |
 |---|---|---|
-| Homogeneous wit | Every archetype tells the same joke | R-6 + §4's DON'T column |
+| The scenic route | Two clauses where one fact was wanted; a sentence that sets up the sentence after it | §1 + the §2 wall + R-41 |
 | Fact drift | A number or load-bearing fact quietly changes | R-1, R-3, R-12 |
 | Label drift | A pinned label gets "improved" | R-2 grep against §8 |
 | The undecided clause | An aside bolted on with a dash, in place of a decision about the sentence | R-8 + `npm run audit:dashes` + the gate's `em-dash` |
+| The nothing sentence | A line that survives the walls by having no fact in it at all | §1's third tenet, at review |
 
-To write a line: (1) identify the surface and pick the register from §2;
-(2) write it true and grand; (3) add at most one craft move from §3;
-(4) check archetype (§4), bans (§6), invariants (§8). If the wit erased a
-real feeling or bent a number, revert. The galaxy does the grandeur; the
-mind just declines to be too impressed by it.
+To write a line: (1) identify the surface and take its register and its wall
+from §2; (2) write the fact, plainly, in one sentence; (3) delete every word
+whose removal does not change what it claims; (4) count, and cut to the wall
+— past the wall if the aim is reachable; (5) check the bans (§6) and the
+invariants (§8). If a cut bent a number or dropped a load-bearing clause,
+put the clause back and cut somewhere else. The galaxy does the grandeur.
+The prose says what happened.

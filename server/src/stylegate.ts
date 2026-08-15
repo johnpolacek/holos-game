@@ -66,16 +66,19 @@ export interface GateLimits {
  * later check does before any of them tokenizes anything.
  */
 export const LIMITS: Readonly<Record<GenSurface, GateLimits>> = {
-  remark: { maxWords: 22, maxSentences: 2, maxChars: 200 }, // R-31
-  arrival: { maxWords: 34, maxSentences: 3, maxChars: 320 }, // R-26
-  stance: { maxWords: 22, maxSentences: 2, maxChars: 200 }, // R-36
-  record: { maxWords: 34, maxSentences: 2, maxChars: 400 }, // R-32 — no call sites
+  remark: { maxWords: 12, maxSentences: 2, maxChars: 140 }, // R-31, at R-41's wall
+  // R-26, at R-41's wall. The calibration set is the ten authored arrivals
+  // (≤13 words, two sentences) plus the intro beats the audit gates under
+  // this row — beat three is three clipped sentences, so three stands.
+  arrival: { maxWords: 16, maxSentences: 3, maxChars: 180 },
+  stance: { maxWords: 12, maxSentences: 2, maxChars: 140 }, // R-36, at R-41's wall
+  record: { maxWords: 18, maxSentences: 2, maxChars: 220 }, // R-32 — no call sites
   // A2.5: a counterpart's reply is TWO remark-sized clauses composed — the
-  // observation clause and the voice clause — so its bound is two remarks
-  // with a word of slack and nothing more. Each clause is audited ALONE
-  // against `remark` by `npm run audit:voice`; this limit governs only the
-  // composition, at its one call site in traffic.ts.
-  signal: { maxWords: 44, maxSentences: 4, maxChars: 400 },
+  // observation clause and the voice clause — so its bound is exactly two
+  // remarks. Each clause is audited ALONE against `remark` by
+  // `npm run audit:voice`; this limit governs only the composition, at its
+  // one call site in traffic.ts.
+  signal: { maxWords: 24, maxSentences: 4, maxChars: 260 },
 };
 
 // --- the compiled rule table ----------------------------------------------

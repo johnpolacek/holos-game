@@ -151,7 +151,7 @@ where the vigil would begin.
 
 A fresh browser on the deployed URL: inherits and names a civilization →
 pulls back from its system into the 3D sky → taps a warm source → reads
-designation, its own local name, "as of N y ago," a belief with a
+designation, its own local name, `AS OF n Y AGO`, a belief with a
 confidence, and a past-only light history. **And the no-leak check:**
 wire traffic contains nothing about another civilization beyond
 `ObservedCiv` fields; two browsers joined to one cohort see *each other*

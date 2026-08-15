@@ -21,11 +21,13 @@
 // (physics-audit.md P0-1). So the only number under a paragraph is the cost,
 // and the cost is inference depth — matching every line against every
 // catalog runs deep and prices dear; fitting a schedule of crossings is
-// shallow and cheap. The closing sentence of each paragraph says where the
-// depth is, and, for the three questions that lean on a span of record,
-// what happens when the record is genuinely too short: the answer says so
-// in words, which is the honest thing an instrument can report and the only
-// thing the plateau gates ever do. NO DIGITS in these sentences, ever: the
+// shallow and cheap. The spend sentence of each paragraph names the work,
+// which is where the depth is, and the two questions that lean hardest on a
+// span of record close on what happens when the record is genuinely too
+// short: the answer says so in words, which is the honest thing an
+// instrument can report and the only thing the plateau gates ever do. Under
+// the flat-terse walls (§2: 24 words, aim 16) that is all a paragraph has
+// room for. NO DIGITS in these sentences, ever: the
 // cost shown beside them is effective (project discounts apply), so a
 // literal number here could be made a lie by a landed project.
 //
@@ -35,15 +37,15 @@ import type { QuestionId } from "@holos/protocol";
 
 export const QUESTION_METHOD: Readonly<Record<QuestionId, string>> = {
   "weigh-it":
-    "Years of the source's position, and of the starlight passing behind it, are already in the record. Solving it for a mass is the expensive part; the mass is then set against the heat. The swing a solution needs was watched long before the question was put, so what is bought here is the solving and not the watching.",
+    "Years of the source's position are already logged. The spend solves them for a mass, set against the heat.",
   "temperature-over-time":
-    "Every arrival of this light was logged with its temperature. The spend re-reduces the whole record into one cooling curve, and asks whether the curve bends the way an unattended body's bends. A curve is only as honest as its span, and the span is already in hand; where the record is too short to hold a curve at all, the answer says so rather than guessing at one.",
+    "Every arrival's temperature is already logged. The spend reduces them to one cooling curve. Too short a record, and it says so.",
   "read-its-lines":
-    "The light is already in hand; splitting it into lines is not. The spend takes the accumulated spectra apart and matches each line against what rock, air, life, and industry are known to leave. Nothing here waits on new light, so the answer comes back on the same day it is asked for; matching every line against every catalog is what runs deep.",
+    "The light is already in hand; splitting it is not. The spend matches its lines against rock, air, life and industry.",
   "time-its-shadows":
-    "Every dimming this source has shown is already logged. The spend fits them all to one schedule of depth, spacing and drift, and asks whether an orbit can account for the timing. A schedule proves itself across many crossings, and the crossings are already in the record; where too few of them rise out of the noise, the fit comes back empty and says so.",
+    "Every dimming is already logged. The spend fits them to one schedule and looks for an orbit. Too few crossings, nothing fits.",
   "catch-its-edges":
-    "Polarization is recorded along with everything else and almost never read. The spend reads it: how the light is angled, and where it glints, which separates a surface from an atmosphere from a sea. None of this waits on the sky; the work is all inference, quick to finish and dear to run.",
+    "Polarization is already recorded and almost never read. The spend reads it: angle and glint separate surface from atmosphere from sea.",
   "listen-off-axis":
-    "A beam aimed elsewhere still spills at its edges, and the spill is in the archive under the noise. The spend pulls the sidelobes out to see what shape they make and where the axis points. Digging under the noise is heavy work, and every bit of it is done on spill already collected.",
+    "A beam aimed elsewhere still spills, already archived under the noise. The spend digs it out to find the axis.",
 };
