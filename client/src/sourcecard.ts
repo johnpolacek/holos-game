@@ -105,6 +105,20 @@ export type ContactCardState = { readonly arrivesYear: number } | null;
  *  (nothing has ever been sent, or everything sent has closed). */
 export type VoyageCardState = "none" | "live";
 
+/** The study row's label for a source that already has a study, one per
+ *  status. A closed study is still somewhere to go — the tap focuses it in
+ *  the observatory whatever its status — so every one of these ends in the
+ *  same VIEW, and the word before it is the one the board's own dividers
+ *  file that study under. Only a source with no study at all reads as a
+ *  verb. */
+const STUDY_ROW_LABEL: Readonly<Record<StudyStatus, string>> = {
+  open: "STUDY OPEN · VIEW",
+  shelved: "STUDY SHELVED · VIEW",
+  grounded: "STUDY GROUNDED · VIEW",
+  called: "STUDY CALLED · VIEW",
+  overtaken: "STUDY OVERTAKEN · VIEW",
+};
+
 const SWIPE_CLOSE_PX = 56;
 // The strip's default height was 46 (css px) before the tap-to-expand pass;
 // SMALL keeps roughly two thirds of that so the card reads as a glance, and
@@ -739,21 +753,18 @@ export class SourceCard {
   }
 
   private renderStudyRow(): void {
-    if (this.studyStatus === "open") {
-      this.studyBtn.textContent = "STUDY OPEN · VIEW";
-      this.studyBtn.className =
-        "source-card-study-affordance source-card-study-affordance--active";
-    } else if (this.studyStatus === "shelved") {
-      this.studyBtn.textContent = "STUDY SHELVED · VIEW";
-      this.studyBtn.className =
-        "source-card-study-affordance source-card-study-affordance--active";
-    } else {
+    const status = this.studyStatus;
+    if (status === null) {
       // AS2: no engaged study, which is not the same as no study. The row
       // still opens the board the observatory has been keeping all along; it
       // simply has no state of the player's own to report.
       this.studyBtn.textContent = "READ THE STUDY";
       this.studyBtn.className = "source-card-study-affordance";
+      return;
     }
+    this.studyBtn.textContent = STUDY_ROW_LABEL[status];
+    this.studyBtn.className =
+      "source-card-study-affordance source-card-study-affordance--active";
   }
 
   private renderMissionRow(): void {
