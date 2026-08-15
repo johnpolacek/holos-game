@@ -75,17 +75,17 @@ const { gateFactFree, gateFactCarrying, LIMITS } = gate;
  * outside this bank file.
  */
 const WALLS = {
-  "arrival line": 33, // -> 16 (aim 12), lowered as the rewrite lands, phase by phase
+  "arrival line": 16, // AT its §2 wall (aim 12) — the flat-terse pass landed this bank
   "intro beat": 23, // -> 12 each, lowered as the rewrite lands, phase by phase
-  "report remark": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
-  "contest line": 14, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
-  "resistance line": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
+  "report remark": 12, // AT its §2 wall (aim 8) — the flat-terse pass landed this bank
+  "contest line": 12, // AT its §2 wall (aim 8) — the flat-terse pass landed this bank
+  "resistance line": 12, // AT its §2 wall (aim 8) — the flat-terse pass landed this bank
   "signal observation": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
   "signal voice": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
   "tone clause": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
   "accord clause": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
   "ledger band line": 12, // AT its §2 wall (aim 8) — the flat-terse pass landed this bank
-  "counsel line": 21, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
+  "counsel line": 12, // AT its §2 wall (aim 8) — the flat-terse pass landed this bank
   // Not a bank: the worst-case COMPOSITION checked at the bottom of this
   // file, two clauses joined. It falls out of the two banks above it, so it
   // comes down on its own as they do; it is listed so the composed surface —
