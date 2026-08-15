@@ -1316,6 +1316,22 @@ export type CohortServerMessage =
       sources: readonly DetectedSource[];
       localNames: Readonly<Record<string, string>>;
       studies: readonly StudySnapshot[];
+      /**
+       * AS: a full board for every visible source the player holds NO stored
+       * study on. The ambient half of the sky, beside `studies`' engaged
+       * half, and the same type: a source is worked up from the moment it is
+       * seen, and engagement is which array a board arrived in rather than a
+       * flag on it.
+       *
+       * DISJOINT FROM `studies` BY CONSTRUCTION — membership here is the
+       * absence of a record, so no starId is ever in both.
+       *
+       * An ambient board never carries a call, a grounding, a purchase or an
+       * armed tripwire. Not by a rule applied to it: there is no record to
+       * hold one. The first act that needs remembering materializes the
+       * record, and the board moves to `studies` with it.
+       */
+      ambient: readonly StudySnapshot[];
       projects: readonly ProjectSnapshot[];
       budget: ComputeBudget;
       missions: readonly MissionSnapshot[];
@@ -2103,10 +2119,18 @@ export function parseCohortServerMessage(raw: string): CohortServerMessage | nul
       // was not really a string or null.
       const counsel = (data as { counsel?: unknown }).counsel;
       if (!isStringOrNull(counsel)) return null;
+      // AS: `ambient` is `studies`' own type and keeps `studies`' wholesale
+      // cast — two arrays of one shape parsed two ways would be a difference
+      // with nothing behind it. What is guarded is that the field is THERE
+      // and is an array: every reader walks it, so an absent one would fail
+      // as a walk over undefined rather than as a dropped message.
+      const ambient = (data as { ambient?: unknown }).ambient;
+      if (!Array.isArray(ambient)) return null;
       return {
         ...(data as Record<string, unknown>),
         proposals,
         counsel,
+        ambient,
       } as unknown as CohortServerMessage;
     }
     // AV1: unlike the cases above, validate `lines` field-by-field rather
