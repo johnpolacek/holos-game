@@ -347,16 +347,12 @@ true statement of physics.
 
 What he says yes to, this week:
 
-- **The vigil on Hearth.** The brief prices the tap before he takes it —
-  `NO COMPUTE · NO CLOCK · REVERSIBLE` — and the verb under it is *Begin
-  the Watch*. Taking it opens a study: `WHAT IT MIGHT BE` lists the four
-  readings a warmth admits, each with its own plain gloss (*brown dwarf*,
-  a star that never caught, warm and dim; *rogue world*; *cooled
-  remnant*; *somebody's heart*, a made thing, warm because it is still
-  working), and the board's own headline declines to pick between them:
-  *No hypothesis exceeds the threshold. Continue the watch.* Under
-  `OPEN QUESTIONS`, compute buys one instrument inference at a time — a
-  purpose-level choice, *which question*, never which telescope setting.
+- **The vigil on Hearth.** The study is already standing when he first
+  reads it — it has stood since the source was found — with the
+  hypotheses listed (someone's heart; a brown dwarf; a rogue world) and
+  each open question priced. Buying one is what takes the watch up, and
+  puts it on the observatory desk: a purpose-level choice, *which
+  question*, never which telescope setting.
   The study lands on the work list as a parent with a child already
   drafted: build the deep-inspection instrument (a project, an
   Investment, ~14 real hours), then ferry it out to the solar focal
