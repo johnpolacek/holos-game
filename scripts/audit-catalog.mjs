@@ -65,13 +65,11 @@ const NOT_A_SURFACE = new Set([
   // The ban list itself. Every rule in it would match itself.
   // (audit-dashes.mjs excludes it for exactly this reason.)
   "bannedterms.ts",
-  // audit:voice runs the WHOLE GATE over this file's banks, which is strictly
-  // more than the §6 subset this audit applies — and, since AS3, the §6 table
-  // plus R-24 over its ALL-CAPS chrome, which the gate cannot read. The
-  // exclusion is only as good as that file's block list: a bank neither half
-  // of audit:voice scrapes meets no check at all. audit:voice's header carries
-  // the obligation.
-  "voice.ts",
+  // voice.ts is deliberately NOT here. audit:voice runs the whole gate over
+  // it, but only over a hand-maintained block list — a bank that list misses
+  // would meet no check at all if this audit skipped the file. Scanning it
+  // here is redundant for the listed banks and load-bearing for anything the
+  // list has not caught up to. Fail closed twice rather than open once.
   // `why` fields: both modules document them as design notes kept beside the
   // numbers they explain, never a surface and never across the wire.
   "contest.ts",
