@@ -309,10 +309,12 @@ his verb is choosing. He decides *what for*; the mind owns *how*.
 
 What he says yes to, this week:
 
-- **The vigil on Hearth.** Flagging the source turns it into a study on
-  the observatory desk: hypotheses listed (someone's heart; a brown
-  dwarf; a rogue world), compute allocated between them — a
-  purpose-level choice, *which question*, never which telescope setting.
+- **The vigil on Hearth.** The study is already standing when he first
+  reads it — it has stood since the source was found — with the
+  hypotheses listed (someone's heart; a brown dwarf; a rogue world) and
+  each open question priced. Buying one is what takes the watch up, and
+  puts it on the observatory desk: a purpose-level choice, *which
+  question*, never which telescope setting.
   The study lands on the work list as a parent with a child already
   drafted: build the deep-inspection instrument (a project, an
   Investment, ~14 real hours), then ferry it out to the solar focal

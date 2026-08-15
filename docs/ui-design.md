@@ -272,7 +272,7 @@ outright.
 | Tab | Landing | Owns (drill-ins) |
 |---|---|---|
 | **Report** | The report: a header sentence in the mind's register, then entries, newest first. Each entry is a stamp, a record sentence, an optional remark, and a route. | Routes out of an entry (a study, a mission, a source, a project, a founding, a Ledger record) open the target page. |
-| **Sky** | **The bare map.** The tab lands on the Model with no page over it. | The source card and the contact ceremonies; the study list, the picker, the briefing, and explore; threads and `THE VOICE`; the survey; the founding sheet. |
+| **Sky** | **The bare map.** The tab lands on the Model with no page over it. | The source card and the contact ceremonies; the Desk, a source's study board, and explore; threads and `THE VOICE`; the survey; the founding sheet. |
 | **Projects** | `Start a project`, over `TEND` — the work list of everything under way. | The project catalog, a project's detail sheet, a mission's detail, the launch sheet. |
 | **Reach** | What the civilization has spread beyond its own system: `THE LEDGER`, the standing order under it from the first tap, then a row per fork. **The fork list is empty until the first sending.** | A fork's whole record; the sheet where a standing order is armed. |
 | **Mind** | The masthead at its head (world plate, charter; the name is the HUD's), then the proposals block, then the intro replay, then housekeeping below a hairline. | The start-over confirmation page. |
@@ -282,7 +282,9 @@ Detail worth having in front of you when building:
 - **Sky's landing is the map, not a page.** Tapping Sky from anywhere
   else shuts the open page; tapping it again on a shut panel opens Sky's
   own page. That page carries the studies row (`Your studies · <count>`
-  over `Open and shelved.`), `Start a study`, `Explore the sky`, the
+  over `The sources you have put something into.`, absent until there is
+  one — a study stands on every source, but the Desk lists the ones
+  something has been spent on), `Explore the sky`, the
   survey row when a sky has carried survey rows, a hairline, then
   `THE VOICE` with one row per thread beneath it and a row for any
   thread gone dark. Rows that have nothing behind them are absent, not
@@ -338,8 +340,9 @@ lit is a page the player cannot explain being on.**
 - A **landing has no back leg** — the rail is the way out — and dims
   nothing behind it. A **drill-in always has one**, labelled `‹ BACK`.
 - A back leg comes home somewhere the player can explain. Normally that
-  is the owning tab's landing (explore, the picker, the survey and the
-  briefing all return to Sky's page). The routed exceptions return to
+  is the owning tab's landing (explore, the Desk and the survey all
+  return to Sky's page, and a study board backs out to the Desk it was
+  opened from). The routed exceptions return to
   where the tap came from instead: a project sheet opened from a report
   entry backs out to the report, and one opened from a proposal backs
   out to the Mind page. In those cases the rail lights the page's own
@@ -731,8 +734,8 @@ allowed to be this theatrical.
   card is a fixed-height frame scrolling on the inside. Time-scrubbing is
   a later slice; the archive is read, not yet scrubbed. Sky's.
 - **The observatory** — the inference workbench, shipped in its
-  read-first form as Sky's studies, picker and briefing. Active vigils as
-  studies: hypotheses with confidence shares, buyable questions priced in
+  read-first form as Sky's Desk and the board standing on every source.
+  Vigils as studies: hypotheses with confidence shares, buyable questions priced in
   compute (a purpose-level choice — *which question*, never *which
   telescope setting*), answers that sharpen, plateau, or regress, and
   per-study tripwires

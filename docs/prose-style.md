@@ -78,6 +78,7 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | Clock line | `voice.ts` clockLine | The mind stating physics; shared across archetypes | 1 |
 | Frame explainer — epoch | `voice.ts` epochLine | Observatory deadpan | 0 |
 | Frame explainer — silence | `voice.ts` silenceLine | The mind stating physics; shared across archetypes | 1 |
+| Frame explainer — study | `voice.ts` studyLine | Observatory deadpan | 0 |
 | Report record sentence | `voice.ts` record builders | Observatory deadpan; dated, past tense | 0 |
 | Report epoch stamp | `voice.ts` epochStamp | Observatory deadpan | 0 |
 | Report triage header | `voice.ts` reportHeader | Observatory deadpan | 0 |
@@ -87,7 +88,7 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | Proposal block header | `studyboard.ts` chrome | Observatory deadpan | 0 |
 | Question method | `questionmethod.ts` QUESTION_METHOD | Observatory deadpan; what the instrument does, never what it found | 0 |
 | Accord rail | `accord.ts` | Observatory deadpan (chrome); a pinned stem plus an interpolated fact | 0 |
-| Section caption | `studyboard.ts` `study-picker-subtitle` | Observatory deadpan; what a section is and where it stops | 0 |
+| Section caption | `studyboard.ts` `study-picker-subtitle` — the class outlived the picker AS retired and is now the caption mold on every page that has sections (the Desk, Explore, the board, the Report) | Observatory deadpan; what a section is and where it stops | 0 |
 | Caps sub-line | `studyboard.ts` accord and voyage sub-labels | Observatory deadpan; microcopy in chrome's typography (R-24a) | 0 |
 | Ship class / charter clause | `voyages.ts` | The mind stating what it is committing to; plain, consequential | 1 |
 | Standing order | `orders.ts` | The mind's instruction to itself, in absence | 1 |

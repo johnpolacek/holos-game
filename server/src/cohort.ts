@@ -1098,6 +1098,12 @@ export class Cohort extends Server<CohortEnv> {
         phase: "placed",
         clock: this.toClockWire(),
         catalog: galaxy.stars,
+        // VESTIGIAL, KEPT ON PURPOSE (AS3). No shipped client reads `menus`:
+        // the briefing screen it fed is gone and every board carries its own
+        // hypotheses. It is still served because a tab left open across a
+        // deploy parses this message, and a field its guard requires cannot
+        // be dropped without breaking that session mid-flight. Removable in a
+        // later slice; protocol.ts's `HypothesisMenus` holds the note.
         menus: hypothesisMenus(),
         missionCatalog: this.missionCatalog(),
         voyageCatalog: this.voyageCatalog(),
@@ -1123,6 +1129,7 @@ export class Cohort extends Server<CohortEnv> {
       phase: "choosing",
       clock: this.toClockWire(),
       catalog: galaxy.stars,
+      // Vestigial, kept on purpose — the note is on the `placed` welcome above.
       menus: hypothesisMenus(),
       missionCatalog: this.missionCatalog(),
       voyageCatalog: this.voyageCatalog(),

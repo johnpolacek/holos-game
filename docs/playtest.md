@@ -3,9 +3,9 @@
 How to play the multiplayer game alone: run the local Worker, open the
 client in a browser, and put one or more **playtest bots** in the cohort
 beside you. The bots are headless players on the real player wire — they
-flag sources, run vigils, buy questions, hail, trade composed signals and
-answer the mutual quiet through exactly the messages the browser client
-sends. Nothing about a bot is a second species of counterpart: A2.6
+take up sources, run vigils, buy questions, hail, trade composed signals
+and answer the mutual quiet through exactly the messages the browser
+client sends. Nothing about a bot is a second species of counterpart: A2.6
 retired freeform and made human and AI threads byte-indistinguishable, so
 a client speaking that vocabulary is indistinguishable by construction,
 and playing against one exercises what a second person would.
@@ -55,8 +55,8 @@ watch terminal 3. Every bot action is one line:
 
 ```
 [bot1 Freshetarrangers] placed at HOL-2320-60, 10 sources in the sky
-[bot1 Freshetarrangers] opened a study on HOL-1163-121
-[bot2 Sunsojourners] bought "OFF-AXIS" on HOL-0412-1 for 60 compute
+[bot1 Freshetarrangers] took up HOL-1163-121 by buying "OFF-AXIS" for 60 compute
+[bot2 Sunsojourners] bought "WEIGH IT" on HOL-0412-1 for 180 compute
 [bot2 Sunsojourners] hailing HOL-0412-1 at 8.4 light years, unprompted
 [bot1 Freshetarrangers] answering HOL-7381-91 with a confirm on their
                         finding, our own recent light; tone plain
@@ -207,11 +207,14 @@ them, that is the finding that would force encrypted payloads (RFC
 One action per tick, on a seeded fifteen to forty second jitter, chosen
 off the last `sky`:
 
-- **The vigil.** Keeps two or three studies open on the nearest sources.
-  Buys the cheapest affordable question on the flattest board — the study
-  whose leading reading is least settled. Arms a tripwire now and then,
-  usually `crosses`. Calls a study once its lead passes seventy percent
-  with two answers behind it.
+- **The vigil.** Keeps two or three vigils running on the nearest
+  sources. A study stands on every source already, so taking one up means
+  spending: it buys the cheapest question it can afford on the nearest
+  untouched board, or leaves a standing order there when it can afford
+  nothing. After that it buys the cheapest affordable question on the
+  flattest board it holds — the study whose leading reading is least
+  settled. Arms a tripwire now and then, usually `crosses`. Calls a study
+  once its lead passes seventy percent with two answers behind it.
 - **Probes.** Occasionally launches an assay at the nearest source it is
   already watching, once the compute is there. The charter comes from the
   catalog the welcome sent, two clauses from different groups.
@@ -247,9 +250,11 @@ A script that touches every A2.3 through A2.6 beat. Run it with
 1. **0:00 — arrive.** Start the three terminals. Run the ceremony in the
    browser; take a candidate whose dials you can argue with. Watch
    terminal 3 for both bots placing.
-2. **0:03 — open the vigil.** Flag your two nearest sources and open
-   studies on them. Buy one question on each. Both answer on the tap, so
-   note how far each board moves on a single look.
+2. **0:03 — open the vigil.** Open your two nearest sources from the map
+   and read the boards that are already standing on them. Buy one
+   question on each; that purchase is what takes the study up and puts it
+   on the Desk. Both answer on the tap, so note how far each board moves
+   on a single look.
 3. **0:06 — skip 20 years.** Light lands, and so do the bots' moves. Read
    the evidence trail: an arrival, an answer, a report all read
    differently. Buy a second question on one of the studies now: the

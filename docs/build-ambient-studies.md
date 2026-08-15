@@ -224,6 +224,51 @@ last stage, after no shipped client sends it.
 - The A5 watch/push machinery — it walks armed tripwires on stored
   studies, which is unchanged by construction.
 
+## As built (2026-08)
+
+The three decisions above shipped as written. What follows is the record of
+everything the stages settled that this brief did not anticipate.
+
+- **`buildBriefSection` survives the briefing screen.** The brief said the
+  briefing dies, and the screen did; the section builder it used did not. The
+  project detail sheet and the charter lists render through the same helper,
+  so it stayed, along with the `.study-brief-*` CSS family. Those names are
+  **parked** on `.study-picker-subtitle`'s precedent (§ Out of scope): they
+  name a screen that no longer exists, and a class name is not a surface.
+  Both parking notes are in `client/src/style.css` beside the rules.
+- **`welcome.menus` stays on the wire as a server-only vestige.** The
+  hypothesis menus were the briefing's "what it can tell apart", and no
+  shipped client reads them any more — every board carries its own
+  hypotheses. Removing the field would break a tab left open across the
+  deploy at the welcome parse, which is the one place a stale client cannot
+  recover, so it is still served. Noted at the protocol field and at both
+  assembly sites in `cohort.ts`; removable in a later slice.
+- **The style-gate gap, found and closed (AS3).** `audit:voice` scraped
+  eleven named blocks out of `voice.ts`, and `audit:catalog` skips `voice.ts`
+  on the belief that `audit:voice` covers the file. It did not: the six frame
+  explainers and the `PROPOSAL_VERBS` chrome table met no check but
+  `audit:dashes`, so AS2's new `STUDY_LINE` and the re-authored accept verbs
+  shipped ungated. `audit-voice.mjs` now scrapes both — the frame family
+  against `LIMITS.record`, which is R-27/R-27a/R-28's own bound
+  (1–2 sentences, ≤ 34 words) transcribed, with a template-level mask for the
+  clock line's pinned facts; and the accept verbs through a chrome check
+  (§6's table, R-24, R-8), because the sentence gate rejects an unterminated
+  line and a label has no terminator by design.
+- **The compute frame line was recut to pass it.** `COMPUTE_LINE` was 44
+  words over three sentences and had been past R-27 since it landed. It is
+  now 33 over two; the cut sentence ("Attention is not savings") glossed a
+  ceiling the surviving clause already carries. No limit was weakened.
+- **The playtest bots engage by first act.** `tryOpenStudy` is gone.
+  `tryEngageStudy` reads `sky.ambient`, walks the nearest untouched boards,
+  and takes one up by buying the cheapest question it can afford or, failing
+  that, by leaving a standing order. `studyTarget` still means "engaged
+  studies I aim to hold". The bots never reopen anything, so no `openStudy`
+  send remains in the script; the verb is exercised only by the client's two
+  engaged-closed board verbs.
+- **`ui-design.md` was swept too.** It is a living doc, not a build brief,
+  and four passages still named the picker and the briefing as shipped
+  surfaces.
+
 ## Verification
 
 Beyond the CI checks per stage: a solo playtest with bots

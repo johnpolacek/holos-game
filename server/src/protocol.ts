@@ -347,6 +347,15 @@ export interface HypothesisMenuEntry {
  * `welcome` so the briefing screen names the readings without the client
  * keeping its own copy of the menus (studies.ts stays the one source of
  * truth). Wording only: no shares, nothing source-specific.
+ *
+ * VESTIGIAL SINCE AS2, and knowingly kept. There is no briefing screen any
+ * more and no shipped client reads this: a board stands on every source and
+ * carries its own hypotheses, which is strictly better than a menu of what a
+ * study "could" tell apart. It stays on the wire because a tab left open
+ * across the deploy parses the welcome it is handed, and dropping a field a
+ * stale client's guard still requires would break that session at the parse
+ * rather than at anything it does. A candidate for removal in a later slice,
+ * once no client old enough to want it can still be connected.
  */
 export type HypothesisMenus = Readonly<
   Record<SignalClass, readonly HypothesisMenuEntry[]>
@@ -1295,7 +1304,11 @@ export type CohortServerMessage =
    */
   | { type: "welcome"; token: string | null; account: boolean;
       phase: "choosing" | "placed";
-      clock: ClockWire; catalog: readonly Star[]; menus: HypothesisMenus;
+      clock: ClockWire; catalog: readonly Star[];
+      /** Vestigial since AS2: unread by every shipped client, kept so a stale
+       *  tab's welcome still parses. See `HypothesisMenus` for the whole note
+       *  and for what would have to be true to remove it. */
+      menus: HypothesisMenus;
       missionCatalog: MissionCatalog;
       // ── A4 ──
       voyageCatalog: VoyageCatalog;

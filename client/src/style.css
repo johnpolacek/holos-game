@@ -1745,15 +1745,21 @@ body {
   color: var(--holos-ink);
 }
 
-/* Explore view — an UNDER STUDY marker on a picker-style row for a source
- * that already has a study open or shelved. */
+/* Explore view — the status marker on a source row. Since AS2 it keys on
+ * ENGAGEMENT, not on the existence of a study: every source has one of those.
+ * It marks the rows this civilization has put something into. */
 .study-explore-flag {
   align-self: flex-start;
   margin-top: 0.2rem;
   color: var(--holos-amber);
 }
 
-/* Picker view — the discoverable "start a study" list. */
+/* THE NAME IS PARKED. AS2 retired the picker, and this class outlived it as
+   the section-caption mold (R-40): it captions sections on the Desk, on
+   Explore, on a board and on the Report. The name is now wrong and the rename
+   is deliberately not done — it is cosmetic churn across many pages and many
+   files, and a class name is not a surface (build-ambient-studies.md § Out of
+   scope). Read "picker" here as "section caption". */
 .study-picker-subtitle {
   font-size: var(--holos-text-sm);
   color: var(--holos-ink-dim);
@@ -2496,7 +2502,13 @@ body {
  * AS2 retired the briefing screen these were written for (a study is not
  * begun any more) and kept its furniture: the starmap now heads an un-acted
  * board, and the section/menu rules below are shared with the project sheet
- * and the charter lists. */
+ * and the charter lists.
+ *
+ * THE NAMES ARE PARKED, on .study-picker-subtitle's precedent above: the whole
+ * .study-brief-* family names a screen that no longer exists, and renaming it
+ * is cosmetic churn across this file, studyboard.ts and the project sheet for
+ * nothing a player can see. Read "brief" here as "the furniture the brief left
+ * behind". */
 /* The starmap: HOME and the source at their true bearing, the
    neighborhood's other stars scattered at their real projected offsets
    behind. The canvas draws the marks and the dotted sightline (studyboard.ts

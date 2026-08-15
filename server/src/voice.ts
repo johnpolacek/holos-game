@@ -216,11 +216,22 @@ export function ageChipLine(): string {
   return render(AGE_CHIP_LINE);
 }
 
-/** Observatory deadpan, wit 0. Shown once, first hub open. Deliberately
- *  numeral-free — the rate and the ceiling are printed on the budget chip
- *  an inch above it. */
+/**
+ * Observatory deadpan, wit 0. Shown once, first hub open. Deliberately
+ * numeral-free — the rate and the ceiling are printed on the budget chip an
+ * inch above it.
+ *
+ * RECUT IN AS3, from three sentences and forty-four words to two and
+ * thirty-three. R-27 bounds a frame explainer at 1 to 2 sentences and 34
+ * words, and this line had been past both since it landed: `audit:voice`
+ * scraped eleven named banks and the frame family was not among them, so
+ * nothing said so. It does now. The cut sentence ("Attention is not savings")
+ * was a gloss on the ceiling the ceiling clause already carries; what it
+ * teaches — that compute accrues whether or not you are here, and stops — is
+ * intact.
+ */
 const COMPUTE_LINE: PinnedLine =
-  line`Compute is this civilization's attention: instrument time, and the thinking done with it. It buys questions and pays for projects, and it accrues on its own up to what the mind can hold unspent. Attention is not savings; past the ceiling, waiting buys nothing.`;
+  line`Compute is this civilization's attention: instrument time, and the thinking done with it. It buys questions and pays for projects, and accrues on its own to a ceiling past which waiting buys nothing.`;
 
 export function computeLine(): string {
   return render(COMPUTE_LINE);
