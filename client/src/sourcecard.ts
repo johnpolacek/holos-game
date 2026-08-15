@@ -52,15 +52,15 @@ export const CLASS_LABEL: Readonly<Record<SignalClass, string>> = {
  *  row's label renders, and pinned byte-exact. */
 export const CLASS_EXPLAINER: Readonly<Record<SignalClass, string>> = {
   "infrared-excess":
-    "Warmth without light: an infrared excess. A brown dwarf, a rogue world, or somebody's heart; watching narrows it, and only watching.",
+    "Warmth without light: a brown dwarf, a rogue world, or somebody's heart. Only watching narrows it.",
   "transit-shadows":
-    "Occlusions too regular to look natural: something crosses that star on a schedule. Construction under way is one reading; an odd family of worlds is another.",
+    "Something crosses that star too regularly to look natural. Construction under way is one reading; odd worlds are another.",
   "directed-beam":
-    "A signal aimed rather than spilled: tight, coherent, and pointed at this system when it left. It was meant to arrive here.",
+    "A signal aimed, not spilled: tight, coherent, and pointed at this system when it left.",
   "broadcast-leakage":
-    "Unaimed shine: the spill of a civilization that has not gone quiet. Young and sloppy is one reading; deliberate shine is another.",
+    "Unaimed shine from a civilization not gone quiet. Young and sloppy is one reading; deliberate shine is another.",
   biosignature:
-    "A biosphere's mark on the light: chemistry that does not stay out of balance on its own. Life, seen from outside, as it was when the light left.",
+    "Chemistry out of balance, which does not happen on its own. Life, as it was when the light left.",
 };
 
 /** Inline pen/edit glyph — stroke only, no fill, so it reads in whatever ink
