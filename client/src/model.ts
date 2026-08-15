@@ -2800,9 +2800,10 @@ export class Model {
     if (this.pointers.size >= 2) {
       const spread = this.pointerSpread();
       if (this.pinchDist > 0 && spread > 0) {
-        // "Pinch out to the sky": spreading fingers dollies out. The clamp is
-        // the whole reachable universe now, not just the volume view.
-        this.dist = clamp(this.dist * (spread / this.pinchDist), DIST_MIN, DIST_MAX);
+        // Map convention: spreading fingers magnifies, so the camera dollies
+        // in. The clamp is the whole reachable universe now, not just the
+        // volume view.
+        this.dist = clamp(this.dist * (this.pinchDist / spread), DIST_MIN, DIST_MAX);
       }
       this.pinchDist = spread;
       return;
