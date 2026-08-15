@@ -77,15 +77,16 @@ npm run audit:dating  # R-33: no absolute game year on a player surface
 npm run audit:banned  # prose-style.md §6 <-> bannedterms.ts
 npm run audit:voice   # every shipped bank string through the style gate
 npm run audit:catalog # §6 over the catalogs audit:voice does not reach
+npm run audit:client  # §6 + R-24 caps bounds over the client's own strings
 npm run audit:facts   # R-1: catalog prose vs the fields it restates
 npm run audit:parity  # A2.6: human and AI signal parts stay indistinguishable
 ```
 
 CI (`.github/workflows/ci.yml`) runs all of them on every PR and they must
-pass before merge. `audit:voice` and `audit:catalog` import compiled output,
-so they run after `build`; the rest read sources.
+pass before merge. `audit:voice`, `audit:catalog` and `audit:client` import
+compiled output, so they run after `build`; the rest read sources.
 
-The two §6 audits overlap on purpose and the shape is worth knowing:
+The §6 audits overlap on purpose and the shape is worth knowing:
 `audit:voice` runs the *whole gate* over the banks its header names in
 `voice.ts` — a hand-maintained block list (since AS it also covers the frame
 lines and the ALL-CAPS proposal verbs), so a bank it does not name meets the
@@ -95,9 +96,17 @@ load-bearing for anything the list has not caught up to. It **fails closed**
 — every module is scanned except an explicit three-name `NOT_A_SURFACE` set,
 so a module added next slice is covered without anyone remembering to list
 it. Adding a module that carries `why`-style design notes rather than prose
-means adding it to that set, with the reason. `audit:banned` is neither of
-these: it checks §6 and `bannedterms.ts` are in sync, and never reads a bank
-at all.
+means adding it to that set, with the reason. `audit:client` is the same
+choice made once more, for the half of the prose no server audit sees: the
+§6 rule table over every string the client ships, plus R-24's caps bounds,
+which nothing else reads mechanically — a caps label is ≤ 6 words, a caps
+string past that must be a sub-line or composed line registered in the
+script's `SUB_LINES` (R-24a, ≤ 12 counted on the stem), and nothing in caps
+passes 12. It fails closed in both directions: every client module is
+scanned (its `NOT_A_SURFACE` set is empty today), and a registry entry no
+shipped string matches any more is itself a failure. `audit:banned` is none
+of these: it checks §6 and `bannedterms.ts` are in sync, and never reads a
+bank at all.
 
 `audit:facts` guards a different failure. A project's `effectLine` and a ship
 class's `line` are plain strings authored beside the structured fields they

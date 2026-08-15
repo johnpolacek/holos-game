@@ -98,6 +98,17 @@ jobs:
       - name: Audit the catalogs against §6
         run: npm run audit:catalog
 
+      # prose-style.md §6 + R-24/R-24a, over the client's own strings — the
+      # surfaces no server audit reads. audit:dashes and audit:dating scan
+      # client/src and check only the rule each is named for, so until this
+      # step a client label met §6 nowhere and R-24's caps bounds met
+      # nothing outside voice.ts's proposal verbs. Fails closed (every
+      # client module is scanned; ALL-CAPS strings over six words must be
+      # registered sub-lines, R-24a) and imports the COMPILED bannedterms,
+      # so it runs after `build` like the two audits above.
+      - name: Audit the client surfaces (§6 + R-24)
+        run: npm run audit:client
+
       # prose-style.md R-1/R-29, over the catalogs R-29 does not reach. A
       # project's effectLine and a standing order's line are plain strings
       # authored beside the structured fields they describe, so each is a

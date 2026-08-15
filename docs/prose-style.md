@@ -544,6 +544,15 @@ walls do not restate.
   every one of them a sub-line or a composed line rather than a label. §7
   decides which way that correction runs: the code banks are canonical, so the
   rule moves to the prose.
+
+  Enforced mechanically on the client since 2026-08: `npm run audit:client`
+  (in CI) bounds every ALL-CAPS string in `client/src` at six words unless it
+  is registered as a sub-line or composed line in the script's `SUB_LINES`,
+  bounds registered strings at twelve, and counts on the stem alone with
+  interpolations masked, which is this rule's own arithmetic. The
+  label/sub-line distinction is a judgement no scanner can make; the registry
+  is where that judgement is recorded, and the audit forces the recording.
+  (`voice.ts`'s caps chrome is `audit:voice`'s to check, and is.)
 - **R-25** Microcopy: ≤ 12 words; sentence case (caps in the R-24a case).
 - **R-39 Question method:** 3 sentences, 45–65 words; observatory deadpan,
   wit 0; **no numerals**. The costs and clocks printed beside it are

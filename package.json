@@ -19,6 +19,7 @@
     "audit:banned": "node scripts/sync-banned-terms.mjs --check",
     "audit:voice": "node scripts/audit-voice.mjs",
     "audit:catalog": "node scripts/audit-catalog.mjs",
+    "audit:client": "node scripts/audit-client.mjs",
     "audit:facts": "node scripts/audit-facts.mjs",
     "audit:dashes": "node scripts/audit-dashes.mjs",
     "audit:dating": "node scripts/audit-dating.mjs",
