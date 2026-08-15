@@ -492,6 +492,9 @@ class PlaytestBot {
       // resistance and charges what it computes. This flag only says the
       // objection was read.
       acknowledged: stance.contested === true,
+      // KN: answering a knock is a bare knock. Between this and the unprompted
+      // hail below, a run puts both shapes of opener on a human's rack.
+      named: false,
     });
     return true;
   }
@@ -500,7 +503,10 @@ class PlaytestBot {
    *  solo playtester gets hailed without having to do anything first. */
   tryFirstHail() {
     if (this.hailedUnprompted || this.ticks < 3) return false;
-    const stance = this.sky?.contact?.hail;
+    // KN: this one carries the charter, so a solo playtester is knocked on by
+    // a NAMED opener without having to do anything first. Its price is the
+    // named knock's own stance, which rides the same sky.
+    const stance = this.sky?.contact?.namedHail ?? this.sky?.contact?.hail;
     if (stance === undefined) return false;
     const spoken = new Set(this.threads().filter((t) => t.canSpeak).map((t) => t.starId));
     const target = this.sources()
@@ -516,6 +522,7 @@ class PlaytestBot {
       choice: "hail",
       starId: target.starId,
       acknowledged: stance.contested === true,
+      named: true,
     });
     return true;
   }

@@ -5158,6 +5158,22 @@ export class StudyBoard {
       el.append(payload);
     }
 
+    // KN: THE BARE KNOCK, said once. An opener may arrive carrying the
+    // sender's charter (rendered by the culture block below, the same block a
+    // conversation uses), and this is the other half of that binary: a beam
+    // that carried nothing. The second sentence states a rule of the world
+    // rather than a motive, which is what keeps it inside the no-leak
+    // discipline — the reader is told what openers are, never what this sender
+    // was thinking. Received openers only: on your own outbound rail it would
+    // be the client narrating your own choice back at you.
+    if (!mine && s.kind === "hail" && s.parts.length === 0) {
+      const quiet = document.createElement("div");
+      quiet.className = "thread-quiet";
+      quiet.textContent =
+        "It carries nothing else. Not every civilization signs its first beam.";
+      el.append(quiet);
+    }
+
     // A2.6: the payload proper. The blocks are the client's own rendering of
     // typed parts the server materialized and froze — no string below is
     // anything but a catalog literal, a server number, or this file's chrome.

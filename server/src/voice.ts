@@ -1572,10 +1572,10 @@ export function reasonProject(
 // ---------------------------------------------------------------------------
 // A2.4 — the resistance bank (the mind objects to being made to speak).
 //
-// One line per archetype per act, and no pool: the objection is not a mood,
-// it is the same mind saying the same thing every time it is asked, so there
-// is nothing here to pick between and NO RNG anywhere on this path. That is
-// also what makes the stance pushable — the client renders the objection
+// One line per archetype per OCCASION, and no pool: the objection is not a
+// mood, it is the same mind saying the same thing every time it is asked, so
+// there is nothing here to pick between and NO RNG anywhere on this path. That
+// is also what makes the stance pushable — the client renders the objection
 // before the ceremony arms, and it is byte-identical to the one the server
 // would state at the charge.
 //
@@ -1583,6 +1583,31 @@ export function reasonProject(
 // reach it (a broadcast contests above a Silence position of +0.10 and a
 // hail above +0.35, so a Voice-leaning mind simply never objects). Every
 // bank here is total; a partial one would be a crash waiting on a dial.
+//
+// KN3 — WHY THERE IS A THIRD OCCASION AND NOT TWO. KN1 priced the named knock
+// as a hail at its own demand and let it reuse the hail objection, on the
+// argument that one act deserves one line. The band the feature was tuned for
+// is what breaks that: between a Silence position of +0.20 and +0.35 the mind
+// permits the bare hail WITHOUT COMMENT and argues only once the charter is
+// attached, so the reused line argues the wrong grievance at the only moment
+// the player can hear it (a beacon that just let the beam go objecting that it
+// has never aimed its voice at one listener). The occasions differ because the
+// GRIEVANCES differ, and the difference is the whole feature:
+//
+//   hail        being made to speak at all
+//   namedHail   being made to say WHO WE ARE: the charter, our own record of
+//               ourselves, handed to a stranger. NEVER the act of hailing,
+//               which this mind may have just permitted
+//   broadcast   being made to say it to everyone, forever
+//
+// A namedHail line therefore concedes nothing about the beam either — the same
+// line is read by a deep-Silence mind that argued about the bare hail too, and
+// an objection that opened by granting the beam would contradict the one the
+// player read a moment earlier.
+//
+// It is an OCCASION, not a `CeremonyKind`: contact.ts's records, the wire
+// stance and the act log all stay keyed over two kinds, because a named knock
+// IS a hail. The only thing that widens is the question this bank answers.
 //
 // Every string obeys, without exception (LIMITS.remark, prose-style.md §4,
 // R-29a):
@@ -1605,29 +1630,37 @@ export function reasonProject(
 // disagree with it.
 // ---------------------------------------------------------------------------
 
-export const RESISTANCE_LINES: ByArchetype<Readonly<Record<CeremonyKind, string>>> = {
+export type ResistanceOccasion = CeremonyKind | "namedHail";
+
+export const RESISTANCE_LINES: ByArchetype<Readonly<Record<ResistanceOccasion, string>>> = {
   beacon: {
     hail: "We have never once aimed our voice at one listener.",
+    namedHail: "Our light says we are here. Not what we swore.",
     broadcast: "Everyone is already welcome. The announcement is for us.",
   },
   tide: {
     hail: "One listener. We have never wanted one of anything.",
+    namedHail: "We would rather arrive than be introduced.",
     broadcast: "Our portion is everything at once. Everything answers.",
   },
   monument: {
     hail: "The record will say we spoke first, forever.",
+    namedHail: "Our founding words would sit in someone else's keeping.",
     broadcast: "Everyone it reaches will keep this. So will we.",
   },
   cloister: {
     hail: "A door for one visitor is still a door.",
+    namedHail: "A description is a handle. We have never offered one.",
     broadcast: "An age spent being hard to find. This undoes it.",
   },
   shepherd: {
     hail: "The ones we watch cannot undo a word we say.",
+    namedHail: "Our charter names what we guard. It should not travel.",
     broadcast: "We grew large quietly so that nothing would come looking.",
   },
   sowing: {
     hail: "One of us speaks and all of us are implicated.",
+    namedHail: "One name, and every place we are carries it.",
     // No double quote may appear anywhere inside this declaration: the audit
     // scrapes the block for quoted literals, and a quoted word inside a
     // comment would be audited as a bank string and rejected as an
@@ -1636,27 +1669,45 @@ export const RESISTANCE_LINES: ByArchetype<Readonly<Record<CeremonyKind, string>
   },
   herald: {
     hail: "We never learned the shape of speech aimed at one.",
+    namedHail: "What we are was meant to be read after us.",
     broadcast: "What we were made for, and still we hesitate.",
   },
   engine: {
     hail: "The schedule never required a recipient. This changes the scope.",
+    namedHail: "The work needs no author. Naming one is a liability.",
     broadcast: "An output with no consumer runs forever at our expense.",
   },
   congress: {
     hail: "A majority can be brought to agree. The minority objects.",
+    namedHail: "The charter passed narrowly. Sending it reopens the argument.",
     broadcast: "The vote is close. The losing side is drafting already.",
   },
   phoenix: {
     hail: "Someone will answer a self that no longer exists.",
+    namedHail: "Any record of us already describes someone else.",
     broadcast: "Whoever hears this meets a mind we shed long ago.",
   },
 };
 
-/** The mind's objection to one kind of act. No pick, no draw, no clock.
- *  Keyed over CeremonyKind, not ContactKind: A2.5's `signal` is never
- *  contested, so there is no cell here for it and no caller that wants one. */
-export function resistanceLine(a: ArchetypeId, kind: CeremonyKind): string {
-  return RESISTANCE_LINES[a][kind];
+/**
+ * The mind's objection to one act on one occasion. No pick, no draw, no clock.
+ *
+ * The parameters are contact.ts's own pair, in its own order, so the call site
+ * asks this bank exactly the question it asked `resistanceFor`: a hail
+ * carrying the charter is charged at its own demand and objected to in its own
+ * words, and one flag decides both. `named` is meaningful on a hail alone,
+ * exactly as it is in `contactDemand` — a broadcast carries no parts.
+ *
+ * Keyed over ResistanceOccasion rather than ContactKind: A2.5's `signal` is
+ * never contested, so there is no cell here for it and no caller that wants
+ * one.
+ */
+export function resistanceLine(
+  a: ArchetypeId,
+  kind: CeremonyKind,
+  named = false,
+): string {
+  return RESISTANCE_LINES[a][kind === "hail" && named ? "namedHail" : kind];
 }
 
 // ---------------------------------------------------------------------------

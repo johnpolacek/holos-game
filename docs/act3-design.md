@@ -562,6 +562,8 @@ decision with real time in it:
    last real-world weeks. Ends only by your choice — or theirs.
 3. **The choice.** Three options, none reversible:
    - **Directed hail** — reveals your existence and position *to them*.
+     It may go bare or carry one culture part, your charter, at a price
+     between a hail's and a broadcast's (knock-design.md).
    - **Broadcast** — reveals you to everyone inside the expanding shell of
      your voice, forever.
    - **Stay dark** — keep watching. The vigil continues.

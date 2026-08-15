@@ -253,9 +253,18 @@ const remarks = quoted(block("export const REPORT_REMARKS: ByArchetype<"));
 // particular to a source, or it would name which target is masking), so it is
 // checked against the remark bounds like the rest of the fact-free prose.
 const contest = tagged(block("const CONTEST_LINES: Readonly<Record<\"tell\", PinnedLine>> = {"));
-// A2.4's resistance bank. Twenty plain strings, the REPORT_REMARKS shape, and
+// A2.4's resistance bank. Thirty plain strings, the REPORT_REMARKS shape, and
 // fact-free by construction — the objection names the kind of act and nothing
 // particular about the target — so it is checked against the remark bounds.
+//
+// KN3 WIDENED THE BANK RATHER THAN ADDING ONE, and this line is the reason
+// that is not a hole. The header's obligation is that a new bank in voice.ts
+// owes itself an entry here; the named knock's ten objections are a third
+// OCCASION inside the block already scraped, so `quoted(block(…))` reaches
+// them the day they land, they are gated at the same remark bounds, and they
+// answer to the same ceiling in WALLS — which is right, because they are the
+// same surface (§2's resistance-line row) said on a different occasion. The
+// scrape is total over the block, so the next occasion is covered too.
 const resistance = quoted(block("export const RESISTANCE_LINES: ByArchetype<"));
 // A2.5's traffic banks. A counterpart's reply is an observation clause and a
 // voice clause COMPOSED, and each half is authored to remark size on its own —

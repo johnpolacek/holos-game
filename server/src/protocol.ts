@@ -1132,6 +1132,17 @@ export interface ThreadDetail extends ThreadSummary {
 
 export interface ContactWire {
   readonly hail: ContactStance;
+  /**
+   * KN: the same hail, carrying the sender's charter. A SECOND STANCE ON THE
+   * SAME ACT rather than a second act: `kind` is still `hail`, and `contested`
+   * and `coherenceCost` differ because the demand does. `line` differs too
+   * (KN3): the objection to attaching the charter is the archetype's own line
+   * about SAYING WHO WE ARE, not its line about speaking, since the mind that
+   * argues here may have just let the bare beam go without a word. It ships on
+   * every sky beside `hail`, so the ceremony can restage its resistance beat
+   * the moment the player flips the choice, with nothing asked of the server.
+   */
+  readonly namedHail: ContactStance;
   readonly broadcast: ContactStance;
   /** The player's own acts, in commit order. */
   readonly outbound: readonly OutboundAct[];
@@ -1225,7 +1236,19 @@ export type CohortClientMessage =
   // it computes, so a client that lies about this flag still pays the
   // server's number and a client that never rendered the objection cannot
   // silently wound the mind.
-  | { type: "commitContact"; choice: string; starId: string | null; acknowledged: boolean }
+  //
+  // KN adds `named`, and ONE BOOLEAN IS THE WHOLE SHAPE. A named knock carries
+  // exactly one culture part, `source: "charter"`, index 0, the sender's own
+  // line — so there is nothing to select and nothing to describe. The part is
+  // composed server-side from the sender's own seed; no field of it rides the
+  // wire, and there is no field here a client could put one in. That is why
+  // "anything else claimed on an opener is refused" needs no validation arm:
+  // the vocabulary cannot express the claim.
+  //
+  // Meaningful on `choice === "hail"` alone. The flag is ignored on a
+  // broadcast and on stay-dark, which carry no parts and never could.
+  | { type: "commitContact"; choice: string; starId: string | null; acknowledged: boolean;
+      named: boolean }
   // ── A2.6 ──
   // THE COMPOSED SIGNAL. `tone` is a bare string and `parts` is an array of
   // bare `unknown`s: the parse layer checks SHAPE (array bound, per-string
@@ -1907,17 +1930,25 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
   // the error code (the `launchMission.kind` precedent). `starId` is
   // nullable on the wire because a broadcast is aimed at nobody and stay
   // dark aims at nothing at all.
+  //
+  // KN's `named` is OPTIONAL ON THE WIRE AND REQUIRED IN THE TYPE: absent
+  // parses as false, so a tab left open across the deploy still commits, and
+  // its flagless hail is a bare knock — which is what that client rendered and
+  // what its player chose. Present and not a boolean is a malformed message
+  // like any other, because a client that knows the field knows its type.
   if (
     msg["type"] === "commitContact" &&
     typeof msg["choice"] === "string" &&
     (msg["starId"] === null || typeof msg["starId"] === "string") &&
-    typeof msg["acknowledged"] === "boolean"
+    typeof msg["acknowledged"] === "boolean" &&
+    (msg["named"] === undefined || typeof msg["named"] === "boolean")
   ) {
     return {
       type: "commitContact",
       choice: msg["choice"],
       starId: msg["starId"],
       acknowledged: msg["acknowledged"],
+      named: msg["named"] === true,
     };
   }
 

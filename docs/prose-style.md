@@ -112,7 +112,7 @@ actually land — a string at the wall is legal and usually still too long.
 | UI chrome / captions | `model.ts`, `sourcecard.ts` | Observatory deadpan | 0 | 6 (R-24) |
 | work-list rows / states | `tend.ts`, `studyboard.ts` | Observatory deadpan | 0 | 6 (R-24) |
 | Ceremony microcopy | `ceremony.ts` labels/hints | Observatory deadpan | 1 | 12 (R-25) |
-| Resistance line | `voice.ts` RESISTANCE_LINES | Archetype voice, free-standing, fact-free; the objection to a ceremony move | 1 | 12 · aim 8, one sentence |
+| Resistance line | `voice.ts` RESISTANCE_LINES | Archetype voice, free-standing, fact-free; the objection to a ceremony move. One line per archetype per **occasion** — hail, named knock, broadcast — because the mind's grievance about attaching its charter is not its grievance about speaking (KN3) | 1 | 12 · aim 8, one sentence |
 | Arrival line | `voice.ts` ARRIVAL_LINES | Archetype voice, the mind's first address to the player | 1 | 16 · aim 12 |
 | Frame explainer — age chip | `voice.ts` ageChipLine | Observatory deadpan | 0 | 20 · aim 12 |
 | Frame explainer — compute | `voice.ts` computeLine | Observatory deadpan | 0 | 20 · aim 12 |

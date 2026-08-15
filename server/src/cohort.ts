@@ -135,7 +135,11 @@ import {
 import { buildThreads, deriveAiSignals, threadRefRowsFor } from "./traffic";
 // A2.6: the composed-signal grammar. `materializeParts` is the ONE place a
 // selector becomes a part, and its only caller is `onSendSignal`.
+// KN: `charterPart` is the second place a part is built here, and it is a
+// constructor over the sender's OWN seed rather than a materializer over a
+// selector — an opener has nothing to select.
 import {
+  charterPart,
   deriveAccord,
   materializeParts,
   parsePartRefs,
@@ -942,7 +946,7 @@ export class Cohort extends Server<CohortEnv> {
         await this.onDeclineProposal(conn, msg.id);
         return;
       case "commitContact":
-        await this.onCommitContact(conn, msg.choice, msg.starId, msg.acknowledged);
+        await this.onCommitContact(conn, msg.choice, msg.starId, msg.acknowledged, msg.named);
         return;
       case "sendSignal":
         await this.onSendSignal(conn, msg.starId, msg.tone, msg.parts);
@@ -2504,6 +2508,9 @@ export class Cohort extends Server<CohortEnv> {
     choice: string,
     starId: string | null,
     acknowledged: boolean,
+    /** KN: knock bare, or carry the charter. Read on a hail and ignored
+     *  elsewhere; see the composition below. */
+    named: boolean,
   ): Promise<void> {
     const state = this.conns.get(conn.id);
     if (state === undefined || state.civId === null) {
@@ -2580,7 +2587,11 @@ export class Cohort extends Server<CohortEnv> {
     // `acknowledged` only decides whether a contested commit may proceed. So
     // a client that never rendered the objection cannot silently wound the
     // mind, and a client that lies about the flag still pays this number.
-    const resistance = resistanceFor(selfCiv.seed, kind);
+    // KN: the named knock is priced through the same beat at its own demand,
+    // and `carriesCharter` is the ONE fact both the price and the payload are
+    // read from, so a commit cannot be charged for one act and write the other.
+    const carriesCharter = kind === "hail" && named;
+    const resistance = resistanceFor(selfCiv.seed, kind, carriesCharter);
     if (resistance.contested && acknowledged !== true) {
       this.sendMsg(conn, {
         type: "error",
@@ -2603,6 +2614,14 @@ export class Cohort extends Server<CohortEnv> {
       toCivId,
       sentYear: nowYear,
       coherenceCost: charged,
+      // KN: AN OPENER CARRIES NOTHING, OR EXACTLY ONE CULTURE PART, and this
+      // line is the whole enforcement. The part is CONSTRUCTED from this
+      // sender's own seed, not materialized from anything a client said, so
+      // there is no selector to validate and no arm through which a chronicle
+      // line, a finding or anybody else's charter could arrive. A client that
+      // decorates its message with a payload is not refused; it is not read.
+      // No tone rides an opener on either side of the wire.
+      ...(carriesCharter ? { parts: [charterPart(selfCiv.seed)] } : {}),
     };
     const updatedSelf: PlacedCiv = {
       ...selfCiv,
