@@ -103,6 +103,17 @@ compute spend, and the three paths already exist:
 - **Go and look** — missions (THE ASSAY, THE SENTINEL) with charters;
   reports fold into any board and can ground an engaged study.
 
+There is also a fourth channel, and it is not a spend: **what others
+choose to send you.** A counterpart's finding shared in conversation
+already moves a board (traffic.ts reads the menu ids for exactly this),
+and the knock rework ([knock-design.md](./knock-design.md)) extends the
+same principle to first contact: a named knock carries the sender's
+charter line, information given, not bought. The knock's culture part is
+deliberately non-actionable (it moves no board, names no coordinates),
+so it changes nothing mechanical here; but the frame should be stated
+completely: a board sharpens by light, by spend, or by what someone
+tells you.
+
 What this binds for the standings: rows render what the current
 instruments make of the light, nothing more — the shares already carry
 the tier, because they derive from the lifted confidence. The standings
@@ -129,6 +140,16 @@ CLAUDE.md routes doc fix; the source card closed-status row) — disjoint
 files. Local main carries unpushed commits (zoom ladder, pinch
 direction, closed-study row); if any land on origin/main first, rebase —
 the touched region here is `renderReport` only.
+
+The knock slice ([knock-design.md](./knock-design.md)) is planned from a
+separate thread and is sequence-independent of this one: it touches the
+hail act in `protocol.ts`, `deriveAiSignals` in traffic.ts,
+`CONTACT_DEMAND`, and the ceremony/contact client surfaces — no overlap
+with `renderReport`. One free synergy to know about, not to build: a
+knock lights a directed-beam source in the sky, every source carries a
+study, so a knock's origin lands in these standings by construction —
+the Report becomes the place a knock that arrived while you were away
+gets noticed, with its board one tap deep.
 
 ## Verification
 
