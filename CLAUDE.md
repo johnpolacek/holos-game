@@ -65,6 +65,27 @@ there and nowhere else: it opens the Cohort's dev HTTP surface, which
 hands out other civilizations' present, and anything set in
 `wrangler.jsonc` ships.
 
+## Reading production
+
+Production hands out nothing: the dev HTTP surface is gated behind
+`HOLOS_DEV_ENDPOINTS`, which `wrangler.jsonc` deliberately omits, and
+Durable Object storage has no CLI read path. To troubleshoot a live run —
+or to improve something against what real play actually produced — join the
+cohort on that seat's own credential and read what the server serves it:
+
+```sh
+npm run prod:sky        # the whole state the client renders from
+npm run prod:report     # the AV2 annal, as the player reads it
+```
+
+`scripts/prod/seat.mjs` owns the socket, the credential (one gitignored file
+per seat under `.seats/`) and **the safety property**: it refuses to send any
+frame outside `hello`, `requestSky` and `requestReport`, so a tool built on
+it cannot take an action in a live galaxy. Growing that allowlist means
+reading the handler first. New prod-read tools go beside those two and are
+the same six lines; `docs/prod-read.md` is the runbook, including the one
+thing looking costs (the handshake advances that seat's report baseline).
+
 ## Tests / checks
 
 There is no test suite yet. The checks that must pass are:

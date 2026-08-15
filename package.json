@@ -25,7 +25,9 @@
     "audit:dating": "node scripts/audit-dating.mjs",
     "audit:parity": "node scripts/audit-parity.mjs",
     "playtest:bots": "node scripts/playtest-bot.mjs",
-    "eval:counsel": "node scripts/eval-counsel.mjs"
+    "eval:counsel": "node scripts/eval-counsel.mjs",
+    "prod:report": "node scripts/prod/report.mjs",
+    "prod:sky": "node scripts/prod/sky.mjs"
   },
   "devDependencies": {
     "sharp": "^0.35.3",

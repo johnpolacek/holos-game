@@ -20,6 +20,11 @@ art-test/
 # ones. Local to a dev machine, and a credential — never committed.
 .playtest/
 
+# Production read seats (docs/prod-read.md): one credential per file, each
+# one a bearer secret for a live run. The .playtest/ rationale, with higher
+# stakes — these are REAL seats, and a leaked one is someone's civilization.
+.seats/
+
 # Claude Code agent worktrees (transient)
 .claude/worktrees/
 
