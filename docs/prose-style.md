@@ -298,8 +298,17 @@ Named mechanics of the register. Apply **at most one** per short string.
   to rewrite.
 - **R-33 Epoch dating is frozen.** Every date a player reads is that
   civilization's own count from its own ascension (`year n AE`, §8's
-  chronicle-dating row); the cohort's absolute year never reaches the wire
-  or a surface. Its companion: **a remote entry's light age at its own
+  chronicle-dating row); the cohort's absolute year never reaches a surface.
+  The wire is not the boundary and never was — `ClockWire.epochGameYear`,
+  `seed.ascensionYear` and every `…Year` field on a snapshot are cohort
+  coordinates, because a countdown cannot be derived without them. **The
+  subtraction is the boundary, and it happens in exactly two places:**
+  `voice.ts`'s `epochStamp` for anything the server writes, and the client's
+  `clock.ts` `formatEpochYear` for anything a surface renders. Neither
+  module exports a formatter that stamps the absolute year, which is what
+  keeps the third place from being invented; a surface that reaches for a
+  raw `…Year` field is reaching past both. Its companion: **a remote
+  entry's light age at its own
   stamp year is exactly the distance.** A record line prints the distance
   in years, never a difference of two years — an annal does not re-age its
   entries when they are re-read, and a line dated `year 160 AE` says the
