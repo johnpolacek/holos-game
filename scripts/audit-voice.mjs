@@ -15,6 +15,28 @@
 // It also makes the gate a retroactive test of the banks themselves: if a
 // shipped remark ever acquires a numeral or a banned term, CI now says so.
 //
+// SECOND JOB: THE LENGTH WALLS (prose-style.md §2, R-41). Flat terse gives
+// every surface a hard word ceiling, and the gate's LIMITS cannot carry it —
+// LIMITS is what the STYLE GATE enforces on generated prose at runtime, and
+// dropping it to the §2 wall in one commit would reject the templated
+// fallbacks the gate exists to fall back to. So the walls live here, in
+// WALLS, applied to the authored banks only.
+//
+// WALLS IS A RATCHET, NOT A TARGET. Every entry is seeded at the bank's
+// MEASURED MAXIMUM on the day it was written (2026-08-14), with its §2 target
+// in the comment beside it. Seeded that way the audit is green from the first
+// commit and still catches the next long string somebody adds, which is the
+// only version of this check that can exist before the rewrite lands. Each
+// phase of the rewrite lowers the seeds it earned: shortening a bank's
+// longest string is not finished until its number here comes down with it
+// (prose-style.md §7 says the same thing from the doc side). A seed left high
+// is a wall that has quietly stopped checking anything.
+//
+// Words are counted the way §2 says to count them: on the AUTHORED template
+// text, with each `${…}` interpolation charged as one word and the fact it
+// renders exempt. That is the only count an author can check before a render
+// exists.
+//
 // The gate is IMPORTED from the compiled output rather than re-implemented or
 // scraped, so the audit cannot drift from the code that ships (a departure
 // from audit-names.mjs's source-scraping, justified because the thing under
@@ -37,6 +59,44 @@ try {
   process.exit(1);
 }
 const { gateFactFree, gateFactCarrying, LIMITS } = gate;
+
+/**
+ * R-41's word ceilings, one per audited bank. Seeded 2026-08-14 at each
+ * bank's measured maximum; the arrow is the §2 wall it is being walked down
+ * to, LOWERED AS THE REWRITE LANDS, PHASE BY PHASE. A bank with no entry here
+ * fails the audit rather than skipping the check.
+ */
+const WALLS = {
+  "arrival line": 33, // -> 16 (aim 12), lowered as the rewrite lands, phase by phase
+  "intro beat": 23, // -> 12 each, lowered as the rewrite lands, phase by phase
+  "report remark": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
+  "contest line": 14, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
+  "resistance line": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
+  "signal observation": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
+  "signal voice": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
+  "tone clause": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
+  "accord clause": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
+  "ledger band line": 20, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
+  "counsel line": 21, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
+  // Not a bank: the worst-case COMPOSITION checked at the bottom of this
+  // file, two clauses joined. It falls out of the two banks above it, so it
+  // comes down on its own as they do; it is listed so the composed surface —
+  // the thing a stranger actually reads — has a wall of its own.
+  "signal composition": 44, // -> 24, lowered as the rewrite lands, phase by phase
+};
+
+/**
+ * §2's counting rule: the authored template text, each `${…}` interpolation
+ * charged as one word. Nothing here renders, so the placeholder stands in for
+ * the fact and the fact itself is never counted.
+ */
+function words(line) {
+  return line
+    .replace(/\$\{[^}]*\}/g, "interpolation")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
+}
 
 const source = readFileSync(join(root, "server/src/voice.ts"), "utf8");
 
@@ -64,14 +124,29 @@ function tagged(text) {
 const failures = [];
 const fail = (msg) => failures.push(msg);
 
+/** One row per bank for the closing summary, in check order. */
+const sizes = [];
+
 function check(label, strings, limits) {
   if (strings.length === 0) fail(`${label}: scraped zero strings — the audit is not testing anything`);
+  // Fails CLOSED: a bank added without a wall is a bank nobody bounded.
+  const wall = WALLS[label];
+  if (wall === undefined) {
+    fail(`${label}: no WALLS entry. Add one, seeded at this bank's measured maximum (R-41).`);
+  }
+  let widest = 0;
   for (const line of strings) {
     const verdict = gateFactFree(line, limits);
     if (!verdict.ok) {
       fail(`${label}: rejected as "${verdict.reason}"${verdict.detail ? ` (${verdict.detail})` : ""}\n      ${line}`);
     }
+    const n = words(line);
+    if (n > widest) widest = n;
+    if (wall !== undefined && n > wall) {
+      fail(`${label}: ${n} words, over its ceiling of ${wall} (R-41)\n      ${line}`);
+    }
   }
+  sizes.push({ label, count: strings.length, widest, wall });
   return strings.length;
 }
 
@@ -123,17 +198,17 @@ const bandLines = quoted(block("export const LEDGER_BAND_LINES: Readonly<"));
 // home-strip row.
 const counselLines = quoted(block("export const COUNSEL_LINES: ByArchetype<"));
 
-const arrivalCount = check("arrival line", arrivals, LIMITS.arrival);
-const introCount = check("intro beat", intros, LIMITS.arrival);
-const remarkCount = check("report remark", remarks, LIMITS.remark);
-const contestCount = check("contest line", contest, LIMITS.remark);
-const resistanceCount = check("resistance line", resistance, LIMITS.remark);
-const observationCount = check("signal observation", observations, LIMITS.remark);
-const signalVoiceCount = check("signal voice", signalVoice, LIMITS.remark);
-const toneCount = check("tone clause", toneClauses, LIMITS.remark);
-const accordCount = check("accord clause", accordClauses, LIMITS.remark);
-const bandCount = check("ledger band line", bandLines, LIMITS.remark);
-const counselCount = check("counsel line", counselLines, LIMITS.stance);
+check("arrival line", arrivals, LIMITS.arrival);
+check("intro beat", intros, LIMITS.arrival);
+check("report remark", remarks, LIMITS.remark);
+check("contest line", contest, LIMITS.remark);
+check("resistance line", resistance, LIMITS.remark);
+check("signal observation", observations, LIMITS.remark);
+check("signal voice", signalVoice, LIMITS.remark);
+check("tone clause", toneClauses, LIMITS.remark);
+check("accord clause", accordClauses, LIMITS.remark);
+check("ledger band line", bandLines, LIMITS.remark);
+check("counsel line", counselLines, LIMITS.stance);
 
 // The composition is what actually ships, so prove it fits: every opening
 // against every voice clause would be the exhaustive test, but the bound is
@@ -154,6 +229,18 @@ if (!composed.ok) {
     `signal composition: the longest opening clause and the longest voice clause compose to "${composed.reason}"\n      ${worstComposition}`,
   );
 }
+const composedWords = words(worstComposition);
+if (composedWords > WALLS["signal composition"]) {
+  fail(
+    `signal composition: ${composedWords} words, over its ceiling of ${WALLS["signal composition"]} (R-41)\n      ${worstComposition}`,
+  );
+}
+sizes.push({
+  label: "signal composition",
+  count: 1,
+  widest: composedWords,
+  wall: WALLS["signal composition"],
+});
 
 // The fact-carrying gate has ZERO call sites in AV4 (every generated surface
 // is fact-free by construction), so it is exercised here instead — masking a
@@ -173,21 +260,19 @@ const invented = gateFactCarrying(
 );
 if (invented.ok) fail("fact-carrying gate accepted an unpinned figure in the residue");
 
-console.log(`arrival lines   ${arrivalCount}`);
-console.log(`intro beats     ${introCount}`);
-console.log(`report remarks  ${remarkCount}`);
-console.log(`contest lines   ${contestCount}`);
-console.log(`resistance      ${resistanceCount}`);
-console.log(`observations    ${observationCount}`);
-console.log(`signal voice    ${signalVoiceCount}`);
-console.log(`tone clauses    ${toneCount}`);
-console.log(`accord clauses  ${accordCount}`);
-console.log(`band lines      ${bandCount}`);
-console.log(`counsel lines   ${counselCount}`);
+// Strings, then the bank's longest against its ceiling. The gap in the last
+// column is the work R-41's ratchet is waiting on: when it closes, the
+// ceiling in WALLS comes down to the §2 wall in the comment beside it.
+console.log("bank                  n   longest   ceiling");
+for (const { label, count, widest, wall } of sizes) {
+  console.log(
+    `${label.padEnd(20)} ${String(count).padStart(3)}   ${String(widest).padStart(7)}   ${String(wall ?? "none").padStart(7)}`,
+  );
+}
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} failure(s):`);
   for (const f of failures) console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log("\nevery shipped bank string passes the gate");
+console.log("\nevery shipped bank string passes the gate and fits its ceiling");
