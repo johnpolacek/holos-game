@@ -78,7 +78,7 @@ export const TRIPWIRE_KINDS: readonly TripwireKind[] = ["regress", "leakage-stop
 /** The lead share `crosses` waits for. Fixed, and deliberately not a number
  *  on the wire: a share picker would turn a decision into a dial, and a free
  *  number arriving from a client is a number the server has to police. The
- *  client's tripwire chrome spells this constant out ("IF BELIEF CROSSES
+ *  client's tripwire chrome spells this constant out ("IF A READING PASSES
  *  70%", studyboard.ts) precisely because the wire will not carry it, so a
  *  retune here retunes that label too. */
 export const CROSS_SHARE = 0.7;

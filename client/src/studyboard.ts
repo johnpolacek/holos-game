@@ -147,7 +147,7 @@ import { worldArt } from "./art";
 import type { CohortSocket } from "./net";
 import { startOver } from "./startover";
 import { QUESTION_METHOD } from "./questionmethod";
-import { CLASS_LABEL } from "./sourcecard";
+import { CLASS_EXPLAINER, CLASS_LABEL } from "./sourcecard";
 import { accordFlightLine, accordHeadline, accordLightLine } from "./accord";
 // A5: the watch. Everything about a subscription lives in push.ts; this panel
 // owns the row, the sheet and the moment the ask is spent.
@@ -193,10 +193,17 @@ const WORK_STATE_LABEL: Record<WorkState, string> = {
 // studies.ts's CROSS_SHARE spelled as chrome: the wire deliberately carries
 // no threshold (no free numbers), so a retune of CROSS_SHARE must retune
 // this label with it.
+// "IF IT GOES QUIET", not "IF THE LEAKAGE STOPS": the condition is generic
+// (studies.ts fires it on emission falling below the floor after having
+// stood above it), but "leakage" is one class's vocabulary — on a DARK NODE
+// board the old label named a thing the board never introduced. "READING",
+// not "BELIEF": one canonical noun for the hypothesis-share concept, the
+// annotation line's own ("the strongest reading"). The 70% spells out
+// studies.ts's CROSS_SHARE, which the wire deliberately does not carry.
 const TRIPWIRE_LABEL: Record<TripwireKind, string> = {
   regress: "IF IT REGRESSES",
-  "leakage-stops": "IF THE LEAKAGE STOPS",
-  crosses: "IF BELIEF CROSSES 70%",
+  "leakage-stops": "IF IT GOES QUIET",
+  crosses: "IF A READING PASSES 70%",
 };
 
 const TRIPWIRE_STATE_LABEL: Record<"available" | "armed" | "tripped", string> = {
@@ -4688,8 +4695,9 @@ export class StudyBoard {
     // was the one page that never explained itself.
     const subtitle = document.createElement("div");
     subtitle.className = "study-picker-subtitle";
-    subtitle.textContent =
-      "What has happened, dated, newest first. Tap an entry to open it.";
+    // One sentence: "dated" is what the stamps show, and "tap an entry" is
+    // what a row of buttons says by being one.
+    subtitle.textContent = "What has happened, newest first.";
     this.body.append(subtitle);
 
     if (this.reportExplainerText !== null) {
@@ -4785,8 +4793,10 @@ export class StudyBoard {
     // says these two lists are the same kind of thing.
     const caption = document.createElement("div");
     caption.className = "study-picker-subtitle";
-    caption.textContent =
-      "Where every study stands, as of the light in hand. The ones you have put something into come first.";
+    // One sentence: the engaged-first ordering is visible whenever it
+    // exists, and with nothing engaged the second sentence described a
+    // distinction the page could not show.
+    caption.textContent = "Where every study stands, as of the light in hand.";
     this.body.append(caption);
 
     for (const source of [...engaged, ...rest]) {
@@ -8532,16 +8542,33 @@ export class StudyBoard {
     header.append(nameEl);
     host.append(header);
 
-    // The caption (R-40, the sibling pages' mold): what a player is looking
-    // at on a board they have never touched. Only on the ambient face — on an
-    // engaged board the answer is on the Desk and in the verbs below.
-    if (!engaged) {
-      const caption = document.createElement("div");
-      caption.className = "study-picker-subtitle";
-      caption.textContent =
-        "A study the observatory already keeps. It stands whether or not you spend anything on it.";
-      host.append(caption);
-    }
+    // The class, named and defined WHERE THE JARGON LANDS. The row that
+    // opened this board said "DARK NODE 59%" and the board used to never say
+    // it again — the one surface defining a class was the source card's info
+    // toggle, which the report's standings route never passes through. So the
+    // head carries the belief line (row chrome, so the row and the board
+    // read as the same object) and CLASS_EXPLAINER's sentence under it,
+    // byte-identical to the card's (one definition, two surfaces).
+    const beliefLine = document.createElement("div");
+    beliefLine.className = "study-row-beliefline";
+    const cls = document.createElement("span");
+    cls.className = "study-row-class";
+    cls.textContent = CLASS_LABEL[source.signal.classification];
+    const conf = document.createElement("span");
+    conf.className = "study-row-conf";
+    conf.textContent = `${Math.round(source.signal.confidence * 100)}%`;
+    beliefLine.append(cls, conf);
+    host.append(beliefLine);
+
+    const classNote = document.createElement("div");
+    classNote.className = "study-picker-subtitle";
+    classNote.textContent = CLASS_EXPLAINER[source.signal.classification];
+    host.append(classNote);
+
+    // No ambient caption. This head now states everything the two-sentence
+    // "a study the observatory already keeps" line used to (R-40's job is
+    // done by the head itself), and the absent verb row already says the
+    // rest: there is nothing here a spend has started.
 
     const lightAgeLine = document.createElement("div");
     lightAgeLine.className = "study-focus-lightage";
@@ -8667,7 +8694,12 @@ export class StudyBoard {
         if (ev.latest) {
           const newest = document.createElement("span");
           newest.className = "study-archive-newest holos-caps";
-          newest.textContent = "THE NEWEST LIGHT WE HAVE";
+          // Not "THE NEWEST LIGHT WE HAVE": the head already says how old
+          // the newest LIGHT is (years), and this row's age is when the
+          // CHANGE happened (often millennia) — two "newest light" claims
+          // three orders of magnitude apart read as a contradiction. This
+          // badge marks the era the current light still belongs to.
+          newest.textContent = "WHAT YOU SEE NOW";
           row.append(newest);
         }
 

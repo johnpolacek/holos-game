@@ -303,9 +303,16 @@ export function silenceLine(): string {
  * Numeral-free by construction: the price of a question is on the question's
  * own row, effective (a landed project discounts it), and a figure here could
  * be made false by one.
+ *
+ * Two sentences, not three: it used to close with "Light is read against
+ * the stories in play", which coined a fourth name for the one
+ * hypothesis-share concept ("stories" beside "reading", "belief" and WHAT
+ * IT MIGHT BE) on the one screen where a first-timer meets all of them.
+ * The menu under this line makes the point by existing; the coinage said
+ * it worse.
  */
 const STUDY_LINE: PinnedLine =
-  line`Watching begins at detection and costs nothing; questions cost compute. Light is read against the stories in play.`;
+  line`Watching begins at detection and costs nothing; questions cost compute.`;
 
 export function studyLine(): string {
   return render(STUDY_LINE);
