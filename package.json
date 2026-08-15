@@ -26,7 +26,7 @@
     "eval:counsel": "node scripts/eval-counsel.mjs"
   },
   "devDependencies": {
-    "sharp": "^0.34.5",
-    "wrangler": "^4.112.0"
+    "sharp": "^0.35.3",
+    "wrangler": "^4.120.0"
   }
 }

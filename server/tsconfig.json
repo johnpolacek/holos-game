@@ -11,6 +11,10 @@
     "noUnusedParameters": true,
     "isolatedModules": true,
     "skipLibCheck": true,
+    // TypeScript 7 stopped inferring rootDir from the common source
+    // directory (TS5011). Without this the emit lands in dist/src/, and
+    // audit-voice, audit-catalog and playtest-bot all read dist/*.js.
+    "rootDir": "src",
     "outDir": "dist"
   },
   "include": ["src"]
