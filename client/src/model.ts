@@ -230,6 +230,11 @@ const TAP_MS = 900;
  *  full drawn radius (see sourceScreen) — what looks like the source IS the
  *  target, and an uncertain source is a big soft one. */
 const THUMB_PX = 32;
+/** How solid the HOME word must be drawn before it answers a thumb. It fades
+ *  out with the neighborhood it names, and a label nobody can read is the
+ *  same trap as an invisible smudge that still takes a tap: the ring under it
+ *  is the target from here on out, and the ring never leaves. */
+const HOME_LABEL_HIT_ALPHA = 0.3;
 
 const STAR_TEX_SIZE = 48;
 const GLOW_TEX_SIZE = 128;
@@ -909,6 +914,16 @@ export class Model {
    *  system/planet hand-off, so the thread of a hail leaves from the same
    *  pixel the cyan ring is drawn around. Also the HOME mote's hit target. */
   private readonly homeScreen: Projected = { ok: false, x: 0, y: 0, depth: 0 };
+  /** What HOME LOOKS LIKE this frame, which is what a thumb may reach: the
+   *  ring's drawn radius, and the top-left of the word beside it while that
+   *  word is legible. The affordance is two things, and both grew away from
+   *  the fixed thumb-circle the hit test used to be — out in the volume the
+   *  ring is nine pixels and "HOME" runs past fifty of them to its right, and
+   *  past the hand-off the ring opens up to encircle a world two hundred
+   *  pixels across. Either way the middle answered and the rest did not.
+   *  The word's WIDTH is deliberately absent: reading it costs a layout, so
+   *  the hit test reads it on the tap rather than sixty times a second. */
+  private readonly homeHit = { ringPx: HOME_RING_PX, labelOk: false, labelX: 0, labelY: 0 };
   /** The frame's camera, latched in `tick` so `project` can be called from
    *  outside the projection pass without re-deriving eight trig terms. */
   private readonly camFrame = {
@@ -1320,9 +1335,11 @@ export class Model {
     this.selectCb = cb;
   }
 
-  /** A2.4: the HOME mote answers a thumb too. It is the only present-tense
-   *  object on the sky, so tapping it goes where the player's own doings
-   *  live; the Model reports the tap and decides nothing. */
+  /** A2.4: the HOME mote answers a thumb too — the ring, and the word beside
+   *  it. It is the only present-tense object on the sky, so tapping it is the
+   *  way back to the world you woke on; the Model reports the tap and decides
+   *  nothing, including which way the camera should then go (the App reads
+   *  `cameraView` against the poses below and calls `dollyTo`). */
   onSelectHome(cb: () => void): void {
     this.selectHomeCb = cb;
   }
@@ -2596,6 +2613,7 @@ export class Model {
     if (!this.proj.ok) {
       mote.visible = false;
       this.homeScreen.ok = false;
+      this.homeHit.labelOk = false;
       this.homeLabel.style.opacity = "0";
       return;
     }
@@ -2642,6 +2660,7 @@ export class Model {
     this.homeScreen.x = x;
     this.homeScreen.y = y;
     this.homeScreen.depth = starDepth;
+    this.homeHit.ringPx = ringPx;
 
     // Thin cyan ring — the one present-tense object.
     gfx
@@ -2656,8 +2675,19 @@ export class Model {
     // the neighborhood it names has faded out from under it).
     const base = this.pullingBack() ? clamp((this.pullT - 0.12) / 0.4, 0, 1) * 0.75 : 0.75;
     const labelAlpha = base * nearAlpha;
+    const labelX = x + ringPx + 8;
+    const labelY = y - 8;
     this.homeLabel.style.opacity = String(labelAlpha);
-    this.homeLabel.style.transform = `translate(${x + ringPx + 8}px, ${y - 8}px)`;
+    this.homeLabel.style.transform = `translate(${labelX}px, ${labelY}px)`;
+
+    // The word joins the hit test on the same terms it is drawn on. The
+    // overlay's own visibility is part of that: a sequence that takes the
+    // label layer off screen (setOverlayHidden) has taken the target with it,
+    // whatever this frame's alpha says.
+    this.homeHit.labelOk =
+      labelAlpha > HOME_LABEL_HIT_ALPHA && this.overlay.style.visibility !== "hidden";
+    this.homeHit.labelX = labelX;
+    this.homeHit.labelY = labelY;
   }
 
   private drawSelection(): void {
@@ -2848,13 +2878,28 @@ export class Model {
       }
     }
 
-    // A2.4: HOME is on the same scoreboard, at the ring's own reach. It wins
-    // ties against a smudge the same way one smudge wins against another —
-    // by the tap having landed further inside it — so a source sitting near
-    // HOME on screen is still reachable.
+    // A2.4: HOME is on the same scoreboard. It wins ties against a smudge the
+    // same way one smudge wins against another — by the tap having landed
+    // further inside it — so a source sitting near HOME on screen is still
+    // reachable.
     const home = this.homeScreen;
     if (home.ok && this.selectHomeCb !== null) {
-      const homeScore = Math.hypot(home.x - x, home.y - y) / THUMB_PX;
+      // The ring at its DRAWN radius, exactly as a smudge is scored: what is
+      // drawn is what is tappable. A fixed thumb-circle was the bug — inside
+      // the system the ring encircles a whole world and only its middle
+      // answered.
+      const reach = Math.max(THUMB_PX, this.homeHit.ringPx);
+      let homeScore = Math.hypot(home.x - x, home.y - y) / reach;
+      // The word too, scored by its distance OUT of the box (zero within it),
+      // because out in the volume "HOME" is most of what HOME looks like and
+      // its tail sits well outside the nine-pixel ring it labels.
+      if (this.homeHit.labelOk) {
+        const w = this.homeLabel.offsetWidth;
+        const h = this.homeLabel.offsetHeight;
+        const dx = Math.max(this.homeHit.labelX - x, 0, x - (this.homeHit.labelX + w));
+        const dy = Math.max(this.homeHit.labelY - y, 0, y - (this.homeHit.labelY + h));
+        homeScore = Math.min(homeScore, Math.hypot(dx, dy) / THUMB_PX);
+      }
       if (homeScore < bestScore) {
         this.selectedStarId = null;
         this.selectHomeCb();

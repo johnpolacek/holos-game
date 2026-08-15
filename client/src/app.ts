@@ -59,6 +59,27 @@ import { Intro } from "./intro";
 // the ask all live in the study board.
 import { resyncWatch } from "./push";
 
+/** The HOME mote's flight is timed by the DECADES it crosses, not by a fixed
+ *  clock, because the camera is logarithmic and the two ends are not a fixed
+ *  distance apart: the volume is six orders of magnitude off the home world
+ *  and the cosmic web is thirteen. A fixed duration would fly the second trip
+ *  at twice the rate of the first, so the further you were, the more the
+ *  scales would blur past. At this rate the volume round trip lands near two
+ *  seconds — brisk against the act-opening pull-back's 4.2s, which is a
+ *  cutscene you watch once where this is a control you use all session.
+ *  The floor keeps a short hop from reading as a cut; the ceiling keeps the
+ *  trip back from the web from becoming a cutscene of its own. */
+const HOME_FLY_MS_PER_DECADE = 360;
+const HOME_FLY_MS_MIN = 900;
+const HOME_FLY_MS_MAX = 3600;
+
+/** How long to fly between two camera distances, at that rate. */
+function homeFlyMs(fromLy: number, toLy: number): number {
+  const decades = Math.abs(Math.log10(toLy / fromLy));
+  const ms = decades * HOME_FLY_MS_PER_DECADE;
+  return Math.min(HOME_FLY_MS_MAX, Math.max(HOME_FLY_MS_MIN, ms));
+}
+
 /** Tend states that mean a mission is still under way — everything but a
  *  terminal returned/silent (missions.ts's missionWorkState never emits
  *  "in-hand" for a mission; that branch is defensive only there too). */
@@ -864,12 +885,39 @@ export class App {
         if (contact === null) return;
         stage(() => contactCeremony.armHail(starId, contact.hail, this.sources));
       });
-      // A2.4: the HOME mote is the one present-tense object on the sky, so
-      // tapping it goes to where the player's own voice lives.
+      // The HOME mote is the one present-tense object on the sky, and what it
+      // points at is a place: the world this civilization woke on, still
+      // turning around its own star. So tapping it FLIES THERE — the
+      // act-opening pull-back run backwards, into the orrery the intro left.
+      // Tapping it again from down there flies back out to the volume, so the
+      // mote is a round trip rather than a one-way drop that strands a player
+      // who does not know the sky answers a pinch.
+      //
+      // Which way is a question about where the camera already is, and the
+      // camera is logarithmic (thirteen orders of magnitude), so the midpoint
+      // is a GEOMETRIC one: nearer the world than the volume in log distance
+      // means the tap is asking to leave. That derives the boundary from the
+      // two poses instead of pinning a light-year count that every star class
+      // would want set differently.
+      //
+      // It replaces opening Sky's page at the voice section. Nothing is
+      // stranded: that section is on Sky's page, one rail tap away.
       model.onSelectHome(() => {
+        const opening = model.openingPose();
+        const volume = model.volumePose();
+        // Null until the home system is known, which is before the first sky
+        // and therefore before any of this is on screen to tap.
+        if (opening === null) return;
+        const here = model.cameraView().distLy;
+        const goingOut = here < Math.sqrt(opening.distLy * volume.distLy);
+        const to = goingOut ? volume : opening;
+        // The sky is the thing for the length of a flight: the card, the ring
+        // and the page all come down, the way `stage` clears it for a
+        // ceremony. The board's own close puts the rail back on Sky.
         sourceCard.close();
         model.clearSelection();
-        studyBoard.openSkyPage("voice");
+        studyBoard.close();
+        model.dollyTo(to.distLy, to.az, to.el, homeFlyMs(here, to.distLy));
       });
       sourceCard.onMissionAction((starId) => {
         const live = this.findLiveMission(starId);
