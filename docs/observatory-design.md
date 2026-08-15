@@ -45,7 +45,7 @@ Flagging a source opens a **study** — the observatory desk's unit of work,
 one per source under active vigil. A study holds:
 
 - **The record so far.** Everything your instruments have ever received
-  from the source — the light archive the source card already scrubs —
+  from the source — the light archive the source card already shows —
   now annotated: which arrivals moved which beliefs.
 - **The hypotheses.** The candidate identities still in play, each with
   its share of the mind's confidence.
@@ -201,8 +201,8 @@ What the observatory shows of it — three shapes an answer can take:
   that got cleaner in the wrong way. **Nature does not get better at
   hiding.** A regression is evidence of spending, and the observatory
   says so plainly (**settled**) — not a wobble left for experts to
-  notice, but the implication stated in the observatory's deadpan: *this
-  does not happen naturally; something is working against the look.* The
+  notice, but the implication stated in the observatory's deadpan:
+  *Nature does not learn to hide. Something there has.* The
   mind reclassifies the study from *what is it* toward *why does it mind
   being looked at*. Losing ground on a study is the moment a vigil
   becomes a thriller, and it is information no honest sharpening could
@@ -243,8 +243,8 @@ filling to 100:
   years it takes; the study's escape hatch, and the observatory's
   standing advertisement for the work list.
 - **Shelved.** The vigil goes passive: allocation drops to zero, study
-  tripwires stay armed (*wake this study if the leakage stops; if
-  confidence regresses; if a beam*). Shelving is how a study load stays
+  tripwires stay armed (*wake this study if the leakage stops; if it
+  regresses; if belief crosses*). Shelving is how a study load stays
   finite without ever quite letting go — and a shelved study waking
   itself is a beat.
 - **Overtaken.** The source acts first — it hails, goes dark, moves, or

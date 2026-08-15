@@ -152,9 +152,9 @@ What a row shows — and the altitude guard that keeps it honest:
   never logistics*).
 - **Its class chip** — Ambient, Investment, Endeavor, Epochal — so the
   budget conversation is visible at a glance.
-- **The clock pair** (`31 h · ≈370 y`), and for missions the mission
-  clock's next checkpoint: arrival, earliest confirmation, next
-  scheduled report.
+- **The clock pair** (`370 y · ≈31 h` — game time first, then real), and
+  for missions the mission clock's next checkpoint: arrival, earliest
+  confirmation, next scheduled report.
 - **Its state**, derived from physics, never set by hand:
 
 | State | Meaning |
@@ -358,8 +358,9 @@ grounded exit — is stage A2.2b (roadmap.md § A2).*
 - **The signal plan** in its minimal form: report cadence + silence
   deadline (this is A4's mission clock, unchanged).
 - **Standing orders, tripwire-adjacent**: one or two armable
-  order-classes (*on warm movement, launch sentinel*), priced at fire
-  time.
+  order-classes (*the warm movement order*, which sends the Sentinel
+  unasked at the first thing to run hot inside twenty light-years),
+  priced at fire time.
 - **Deferred with their systems**: veterans and weight, joint nodes,
   the Working family's cross-civ forms, campaigns as UI (a campaign can
   ship as authored content sooner), armada-scale ensembles (conflict

@@ -1433,7 +1433,8 @@ condition; it is a content change to the class a player reads, and it
 belongs to whoever owns the young-world beat. Second, *the Shepherd's
 default posture contradicts its own charter*: minds.ts gives it
 `defaultPosture: "bright"` under "We grew strong so the small stay small,
-and unaware." A vigil-keeper that shines contaminates its own wards. Flipping it is a one-word coherence fix worth about half a point of
+and unaware." A vigil-keeper that shines contaminates its own wards.
+Flipping it is a one-word coherence fix worth about half a point of
 loud fraction, and it changes what an existing archetype *is*, so it is not
 a tuning slice's call.
 

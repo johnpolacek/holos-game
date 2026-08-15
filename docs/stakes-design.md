@@ -487,9 +487,9 @@ would betray which sources are people.)
 
 **Exposure is derived, never stored:** capability × proximity,
 explicitly disposition-free — what a source *could* do to you and how
-soon, never whether it would. And **every reading wears its age** — "as
-of 14 years ago" — because the map is the past and the instruments must
-say so on every line.
+soon, never whether it would. And **every reading wears its age** — the
+source card's chip reads `AS OF 14.0 Y AGO` — because the map is the past
+and the instruments must say so on every line.
 
 ### Two registers
 
