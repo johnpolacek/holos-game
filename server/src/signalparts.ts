@@ -1050,9 +1050,9 @@ export interface PartParityRow {
 export const PART_PARITY: readonly PartParityRow[] = [
   {
     kind: "finding",
-    aiClasses: ["congress", "lantern"],
+    aiClasses: ["congress", "lantern", "whisperer"],
     human: true,
-    note: "a reading of a source in its own sky, frozen at its own call year",
+    note: "a reading of a source in its own sky, frozen at its own call year; any class hands one over when asked",
   },
   {
     kind: "sighting",
@@ -1068,9 +1068,9 @@ export const PART_PARITY: readonly PartParityRow[] = [
   },
   {
     kind: "culture",
-    aiClasses: ["whisperer", "lantern"],
+    aiClasses: ["whisperer", "lantern", "congress"],
     human: true,
-    note: "charter on the opening beat; a chronicle line in place of a refused sighting",
+    note: "every class leads with its charter on the opening beat; a chronicle line in place of a refused sighting; a dial when asked who it is",
   },
   {
     kind: "request",
