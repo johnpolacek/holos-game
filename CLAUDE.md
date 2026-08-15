@@ -3,6 +3,10 @@
 Holos is an online multiplayer browser game. This file documents the stack,
 workflows, and conventions for anyone (human or agent) working in this repo.
 
+`AGENTS.md` is a **symlink to this file**. Both names resolve here, so there
+is one copy to keep current and no second file to drift out of date. Edit
+this one; never replace the symlink with a copy.
+
 ## Stack
 
 - **TypeScript everywhere**, npm workspaces monorepo with two packages:
@@ -54,6 +58,13 @@ dependencies, never imported by shipped code), so they exercise what a
 second person would. The runbook, the dev time-skip and a
 thirty-minute session script are in `docs/playtest.md`.
 
+Optional local flags — the generated voice, the dev HTTP endpoints, the
+push dry-run — are documented in `.dev.vars.example`; copy it to
+`.dev.vars` (gitignored) to use them. `HOLOS_DEV_ENDPOINTS=on` belongs
+there and nowhere else: it opens the Cohort's dev HTTP surface, which
+hands out other civilizations' present, and anything set in
+`wrangler.jsonc` ships.
+
 ## Tests / checks
 
 There is no test suite yet. The checks that must pass are:
@@ -62,25 +73,31 @@ There is no test suite yet. The checks that must pass are:
 npm run typecheck     # tsc --noEmit in both workspaces
 npm run build         # vite build (client) + tsc emit (server)
 npm run audit:dashes  # R-8: no em dash on a player surface
+npm run audit:dating  # R-33: no absolute game year on a player surface
 npm run audit:banned  # prose-style.md §6 <-> bannedterms.ts
 npm run audit:voice   # every shipped bank string through the style gate
 npm run audit:catalog # §6 over the catalogs audit:voice does not reach
 npm run audit:facts   # R-1: catalog prose vs the fields it restates
+npm run audit:parity  # A2.6: human and AI signal parts stay indistinguishable
 ```
 
 CI (`.github/workflows/ci.yml`) runs all of them on every PR and they must
 pass before merge. `audit:voice` and `audit:catalog` import compiled output,
-so they run after `build`.
+so they run after `build`; the rest read sources.
 
-The two §6 audits divide the banks between them and the split is worth
-knowing: `audit:voice` runs the *whole gate* over `voice.ts` and nothing else
-(its header says why), while `audit:catalog` runs the *§6 rule table* over
-everything else in `server/src`. It **fails closed** — every module is scanned
-except an explicit four-name `NOT_A_SURFACE` set, so a module added next slice
-is covered without anyone remembering to list it. Adding a module that carries
-`why`-style design notes rather than prose means adding it to that set, with
-the reason. `audit:banned` is neither of these: it checks §6 and
-`bannedterms.ts` are in sync, and never reads a bank at all.
+The two §6 audits overlap on purpose and the shape is worth knowing:
+`audit:voice` runs the *whole gate* over the banks its header names in
+`voice.ts` — a hand-maintained block list (since AS it also covers the frame
+lines and the ALL-CAPS proposal verbs), so a bank it does not name meets the
+gate nowhere. `audit:catalog` runs the *§6 rule table* over every module in
+`server/src`, `voice.ts` included: redundant for the listed banks,
+load-bearing for anything the list has not caught up to. It **fails closed**
+— every module is scanned except an explicit three-name `NOT_A_SURFACE` set,
+so a module added next slice is covered without anyone remembering to list
+it. Adding a module that carries `why`-style design notes rather than prose
+means adding it to that set, with the reason. `audit:banned` is neither of
+these: it checks §6 and `bannedterms.ts` are in sync, and never reads a bank
+at all.
 
 `audit:facts` guards a different failure. A project's `effectLine` and a ship
 class's `line` are plain strings authored beside the structured fields they
@@ -91,6 +108,35 @@ receipt the player reads is false with nothing to catch it — least of all when
 the number is spelled out ("twenty light-years" over `WARM_RADIUS_LY`). It
 knows only the couplings written into it, so **when catalog prose starts
 restating a new field, add the check there too**; its header says as much.
+
+`audit:dating` guards R-33: the cohort's absolute game year must never reach
+a player surface, because every date a player reads is that civilization's
+own count from its own ascension (`4 AE`). The client enforces that
+*structurally* — `clock.ts` exports one date formatter, `formatEpochYear`,
+which subtracts the epoch anchor before it renders, and there is no absolute
+formatter left to call. Structure is the strong half of the rule and not the
+whole of it: a component can still hand-roll `` `Y${Math.round(year)}` `` or
+drop a raw `…Year` wire field into a label, and both read as ordinary code at
+review. That is how the formatter this audit replaced came to exist, and it
+survived until a docs pass caught it. So the script scans `client/src` string
+literals for the `Y1204` stamp, and every template interpolation for a `…Year`
+identifier that does not pass through one of the formatters on its allowlist.
+It **fails closed** three ways: every module is scanned (only `clock.ts` is
+exempt, and only from the interpolation check, because the subtraction is its
+job); the allowlist is what a year may disappear into, so a new formatter
+belongs on it deliberately; and `clock.ts` may not export a `format…` the
+script does not know, which is what would rot that allowlist quietly. The
+naming convention it reads is worth keeping: **`…Year` is a date, `…Years` is
+a span, `…PerYear` is a rate** — R-33 bans the calendar, not arithmetic.
+
+`audit:parity` is the one that is not about prose. A2.6's claim is that a
+signal's bytes say nothing about whether a person or a seeded civilization
+composed it, and the wire shapes carry that for a single message but not for a
+*population*: a part kind that only ever arrives from an AI, or only ever
+leaves from a player, is itself the tell. So it asserts `PART_PARITY` is total
+in both directions. Like `audit:names` it scrapes source rather than importing
+the module (the subject is a hand-maintained table, and scraping is what
+catches a row edited without being thought about), so it runs before `build`.
 
 Those audits are mechanical: they catch a dash, a coinage, a numeral in a
 remark. They cannot catch prose that is merely *flat* — the rule-of-three
@@ -111,12 +157,15 @@ deploys the one Worker (game server + client assets, config: root
 `wrangler.jsonc`, including Durable Object migrations). No GitHub
 secrets are involved. The custom domain (playholos.com, apex canonical)
 attaches to this Worker through the `routes` block in `wrangler.jsonc`,
-which stays **commented out** until that DNS zone is active on the same
-Cloudflare account — `wrangler deploy` fails with "Could not find zone"
-otherwise, and `main` auto-deploys, so shipping routes early breaks
-production. `wrangler deploy --dry-run` does not catch this (it never
-contacts Cloudflare). The zone move and its verification are the runbook
-in `docs/deploy.md`.
+and that block is **live**: the zone went ACTIVE on this Cloudflare
+account on 2026-07-27, which was the precondition for shipping it. A
+route still must never land ahead of its zone — `wrangler deploy`
+resolves each route's zone at deploy time and fails with "Could not find
+zone" when it is absent, and `main` auto-deploys, so that breaks
+production. `wrangler deploy --dry-run` does not catch it (it never
+contacts Cloudflare). The zone move and its verification are the record
+in `docs/deploy.md`, which is also the sequence to follow for a second
+domain.
 
 **Adding a Durable Object fails the *preview* build, not production.** A
 new DO adds a `migrations` entry to `wrangler.jsonc`. On `main` the
@@ -137,7 +186,8 @@ branch builds in the Workers Builds project settings.)
   Parse untrusted input (e.g. WebSocket messages) with the guards in
   `protocol.ts` rather than casting.
 - The server is authoritative: clients send intents, never state. Any new
-  gameplay logic belongs in the Room.
+  gameplay logic belongs in the `Cohort` Durable Object, not the client and
+  not the vestigial `Room`.
 - Keep dependencies minimal; prefer the platform (pointer events, etc.)
   over libraries.
 - **Type and ink come from the tokens in `client/src/style.css`** — the

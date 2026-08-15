@@ -347,6 +347,15 @@ export interface HypothesisMenuEntry {
  * `welcome` so the briefing screen names the readings without the client
  * keeping its own copy of the menus (studies.ts stays the one source of
  * truth). Wording only: no shares, nothing source-specific.
+ *
+ * VESTIGIAL SINCE AS2, and knowingly kept. There is no briefing screen any
+ * more and no shipped client reads this: a board stands on every source and
+ * carries its own hypotheses, which is strictly better than a menu of what a
+ * study "could" tell apart. It stays on the wire because a tab left open
+ * across the deploy parses the welcome it is handed, and dropping a field a
+ * stale client's guard still requires would break that session at the parse
+ * rather than at anything it does. A candidate for removal in a later slice,
+ * once no client old enough to want it can still be connected.
  */
 export type HypothesisMenus = Readonly<
   Record<SignalClass, readonly HypothesisMenuEntry[]>
@@ -835,13 +844,19 @@ export interface LedgerWire {
 
 export type VoiceKey =
   | "arrival" | "age" | "compute" | "clock" | "epoch" | "silence"
+  // AS2: the board's own frame line, shown once on the first study board this
+  // player opens (ambient or engaged — the board is the first face of the
+  // watch either way). It carries what the retired briefing screen used to
+  // teach: that a watch stands on every source found, and what attending to
+  // one costs.
+  | "study"
   // S0.1: the four intro beats after the ceremony's BECOME. Kept as four
   // keys, not one, so `seen` tracks each beat independently the way every
   // other frame line does — a client that dismissed beat three but dropped
   // its connection before beat four gets exactly the tail on reconnect.
   | "intro1" | "intro2" | "intro3" | "intro4";
 export const VOICE_KEYS: readonly VoiceKey[] = [
-  "arrival", "age", "compute", "clock", "epoch", "silence",
+  "arrival", "age", "compute", "clock", "epoch", "silence", "study",
   "intro1", "intro2", "intro3", "intro4",
 ];
 export function isVoiceKey(v: unknown): v is VoiceKey {
@@ -1117,6 +1132,17 @@ export interface ThreadDetail extends ThreadSummary {
 
 export interface ContactWire {
   readonly hail: ContactStance;
+  /**
+   * KN: the same hail, carrying the sender's charter. A SECOND STANCE ON THE
+   * SAME ACT rather than a second act: `kind` is still `hail`, and `contested`
+   * and `coherenceCost` differ because the demand does. `line` differs too
+   * (KN3): the objection to attaching the charter is the archetype's own line
+   * about SAYING WHO WE ARE, not its line about speaking, since the mind that
+   * argues here may have just let the bare beam go without a word. It ships on
+   * every sky beside `hail`, so the ceremony can restage its resistance beat
+   * the moment the player flips the choice, with nothing asked of the server.
+   */
+  readonly namedHail: ContactStance;
   readonly broadcast: ContactStance;
   /** The player's own acts, in commit order. */
   readonly outbound: readonly OutboundAct[];
@@ -1210,7 +1236,19 @@ export type CohortClientMessage =
   // it computes, so a client that lies about this flag still pays the
   // server's number and a client that never rendered the objection cannot
   // silently wound the mind.
-  | { type: "commitContact"; choice: string; starId: string | null; acknowledged: boolean }
+  //
+  // KN adds `named`, and ONE BOOLEAN IS THE WHOLE SHAPE. A named knock carries
+  // exactly one culture part, `source: "charter"`, index 0, the sender's own
+  // line — so there is nothing to select and nothing to describe. The part is
+  // composed server-side from the sender's own seed; no field of it rides the
+  // wire, and there is no field here a client could put one in. That is why
+  // "anything else claimed on an opener is refused" needs no validation arm:
+  // the vocabulary cannot express the claim.
+  //
+  // Meaningful on `choice === "hail"` alone. The flag is ignored on a
+  // broadcast and on stay-dark, which carry no parts and never could.
+  | { type: "commitContact"; choice: string; starId: string | null; acknowledged: boolean;
+      named: boolean }
   // ── A2.6 ──
   // THE COMPOSED SIGNAL. `tone` is a bare string and `parts` is an array of
   // bare `unknown`s: the parse layer checks SHAPE (array bound, per-string
@@ -1289,7 +1327,11 @@ export type CohortServerMessage =
    */
   | { type: "welcome"; token: string | null; account: boolean;
       phase: "choosing" | "placed";
-      clock: ClockWire; catalog: readonly Star[]; menus: HypothesisMenus;
+      clock: ClockWire; catalog: readonly Star[];
+      /** Vestigial since AS2: unread by every shipped client, kept so a stale
+       *  tab's welcome still parses. See `HypothesisMenus` for the whole note
+       *  and for what would have to be true to remove it. */
+      menus: HypothesisMenus;
       missionCatalog: MissionCatalog;
       // ── A4 ──
       voyageCatalog: VoyageCatalog;
@@ -1316,6 +1358,22 @@ export type CohortServerMessage =
       sources: readonly DetectedSource[];
       localNames: Readonly<Record<string, string>>;
       studies: readonly StudySnapshot[];
+      /**
+       * AS: a full board for every visible source the player holds NO stored
+       * study on. The ambient half of the sky, beside `studies`' engaged
+       * half, and the same type: a source is worked up from the moment it is
+       * seen, and engagement is which array a board arrived in rather than a
+       * flag on it.
+       *
+       * DISJOINT FROM `studies` BY CONSTRUCTION — membership here is the
+       * absence of a record, so no starId is ever in both.
+       *
+       * An ambient board never carries a call, a grounding, a purchase or an
+       * armed tripwire. Not by a rule applied to it: there is no record to
+       * hold one. The first act that needs remembering materializes the
+       * record, and the board moves to `studies` with it.
+       */
+      ambient: readonly StudySnapshot[];
       projects: readonly ProjectSnapshot[];
       budget: ComputeBudget;
       missions: readonly MissionSnapshot[];
@@ -1872,17 +1930,25 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
   // the error code (the `launchMission.kind` precedent). `starId` is
   // nullable on the wire because a broadcast is aimed at nobody and stay
   // dark aims at nothing at all.
+  //
+  // KN's `named` is OPTIONAL ON THE WIRE AND REQUIRED IN THE TYPE: absent
+  // parses as false, so a tab left open across the deploy still commits, and
+  // its flagless hail is a bare knock — which is what that client rendered and
+  // what its player chose. Present and not a boolean is a malformed message
+  // like any other, because a client that knows the field knows its type.
   if (
     msg["type"] === "commitContact" &&
     typeof msg["choice"] === "string" &&
     (msg["starId"] === null || typeof msg["starId"] === "string") &&
-    typeof msg["acknowledged"] === "boolean"
+    typeof msg["acknowledged"] === "boolean" &&
+    (msg["named"] === undefined || typeof msg["named"] === "boolean")
   ) {
     return {
       type: "commitContact",
       choice: msg["choice"],
       starId: msg["starId"],
       acknowledged: msg["acknowledged"],
+      named: msg["named"] === true,
     };
   }
 
@@ -2103,10 +2169,18 @@ export function parseCohortServerMessage(raw: string): CohortServerMessage | nul
       // was not really a string or null.
       const counsel = (data as { counsel?: unknown }).counsel;
       if (!isStringOrNull(counsel)) return null;
+      // AS: `ambient` is `studies`' own type and keeps `studies`' wholesale
+      // cast — two arrays of one shape parsed two ways would be a difference
+      // with nothing behind it. What is guarded is that the field is THERE
+      // and is an array: every reader walks it, so an absent one would fail
+      // as a walk over undefined rather than as a dropped message.
+      const ambient = (data as { ambient?: unknown }).ambient;
+      if (!Array.isArray(ambient)) return null;
       return {
         ...(data as Record<string, unknown>),
         proposals,
         counsel,
+        ambient,
       } as unknown as CohortServerMessage;
     }
     // AV1: unlike the cases above, validate `lines` field-by-field rather

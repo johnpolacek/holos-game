@@ -59,6 +59,16 @@ jobs:
       - name: Audit dashes (R-8)
         run: npm run audit:dashes
 
+      # prose-style.md §3 R-33 — the cohort's absolute year never reaches a
+      # player surface; every date a player reads is that civilization's own
+      # count from its own ascension. `clock.ts` enforces that structurally
+      # (one date formatter, which subtracts the epoch anchor), and this is
+      # the half structure cannot reach: a component hand-rolling `Y${year}`,
+      # or dropping a raw `…Year` wire field into a label. Reads sources, so
+      # it needs no build.
+      - name: Audit dating (R-33)
+        run: npm run audit:dating
+
       # A2.6, the indistinguishability ledger. Asserts PART_PARITY is total in
       # BOTH directions: every part kind a human can compose is emitted by some
       # seeded counterpart class, and every kind a counterpart emits is offered
@@ -73,7 +83,9 @@ jobs:
 
       # AV4, prose-style.md §3 R-38. Runs after `build` because it imports the
       # COMPILED gate, so the audit can never drift from the code that ships.
-      # If this fails, the gate is wrong, not the banks.
+      # If this fails, the gate is wrong, not the banks. Since AS3 it also
+      # checks voice.ts's ALL-CAPS chrome against §6 and R-24, which the gate
+      # cannot read — and there the banks are wrong, not the gate.
       - name: Audit the style gate against every shipped bank string
         run: npm run audit:voice
 

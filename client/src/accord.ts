@@ -18,7 +18,7 @@
 // rail with no light yet says exactly that, rather than guessing at quiet.
 
 import type { AccordRail } from "@holos/protocol";
-import { formatAbsoluteYear, nowYear } from "./clock";
+import { formatEpochYear, nowYear } from "./clock";
 
 /**
  * The headline. Null when there is no understanding to speak of, which is
@@ -36,7 +36,7 @@ export function accordHeadline(rail: AccordRail): string | null {
     case "held":
       return rail.heldSinceYear === null
         ? "MUTUAL QUIET · HELD"
-        : `MUTUAL QUIET · HELD SINCE ${formatAbsoluteYear(rail.heldSinceYear)}`;
+        : `MUTUAL QUIET · HELD SINCE ${formatEpochYear(rail.heldSinceYear)}`;
     case "you-offered":
       return "MUTUAL QUIET · OFFERED";
     case "they-offered":
@@ -80,5 +80,5 @@ export function accordFlightLine(
 ): string {
   const transit = Math.max(0, offerArrivesYear - offerSentYear);
   if (nowYear() < offerArrivesYear) return "IN FLIGHT";
-  return `NO ANSWER POSSIBLE BEFORE ${formatAbsoluteYear(offerSentYear + transit * 2)}`;
+  return `NO ANSWER POSSIBLE BEFORE ${formatEpochYear(offerSentYear + transit * 2)}`;
 }

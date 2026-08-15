@@ -178,21 +178,25 @@ export type ByArchetype<T> = Readonly<Record<ArchetypeId, T>>;
 // ---------------------------------------------------------------------------
 // The arrival lines — the mind's first words after the ceremony's
 // pull-back (prose-style.md §2 "Arrival line" row: archetype voice, wit
-// ceiling 3; length per R-26). FINAL — byte-exact, transcribed from the
-// settled AV1 design; do not edit, do not "improve".
+// ceiling 1, 16 words, aim 12; R-26's no-numeral clause governs as before).
+//
+// Rewritten flat-terse (§1, 2026-08-14). The pre-pivot bank ran three
+// sentences to deliver one fact, and the fact is now the whole line: the
+// record is complete to this morning, and what comes after it is the
+// player's. Each keeps ONE trace of temperament and nothing more.
 // ---------------------------------------------------------------------------
 
 const ARRIVAL_LINES: ByArchetype<PinnedLine> = {
-  beacon: line`Everything we have ever done is written down and, characteristically, broadcast. From here the page is blank. Filling it is what you are for.`,
-  tide: line`The account of what we have taken is current to this morning. Everything after it is unclaimed. You will want to start early; there is a great deal of everything.`,
-  monument: line`The record is complete to this morning, and preserved, as all things here are preserved. Past this morning there is nothing to keep yet. You are how we come to have more.`,
-  cloister: line`Our history is closed and accurate to the hour. Nothing further has been decided, and nothing further will be decided by anyone outside this system. That leaves you.`,
-  shepherd: line`The record runs complete up to now, and the ones we stand over will never read a line of it. What comes after is yours, and just as unseen.`,
-  sowing: line`The record is complete to this morning, in more copies than we have bothered to count. None of them says what happens next. You do.`,
-  herald: line`Our whole account is finished as of today and already outbound, to listeners who will hear it long after we are done. The rest is blank. Give them something worth receiving.`,
-  engine: line`Everything up to now is recorded and reconciled. Past that the schedule is empty. You are the input it has been waiting on.`,
-  congress: line`The record is complete up to today; on that much, all of us agree. What comes next is open, and we have been arguing since dawn. You are the vote that settles it.`,
-  phoenix: line`Up to now, it is all on the record. Those entries belong to selves we are no longer, and we read them exactly once. What you add, we will read once as well.`,
+  beacon: line`Everything we did is written down and broadcast. The rest is yours.`,
+  tide: line`The account is current to this morning. Everything after it is unclaimed.`,
+  monument: line`The record is complete and kept. You are how it grows.`,
+  cloister: line`Our history is closed to the hour. What follows is undecided, and yours.`,
+  shepherd: line`The record runs to now. What comes after is yours, and unseen.`,
+  sowing: line`The record is complete, in copies we never counted. None says what follows.`,
+  herald: line`Our account is finished and already outbound. The rest is blank; fill it.`,
+  engine: line`Everything to now is recorded. Past that the schedule waits on you.`,
+  congress: line`The record is complete; on that much we agree. What follows is yours.`,
+  phoenix: line`Everything before now belongs to selves we shed. What you add is new.`,
 };
 
 /** The arrival line for an archetype, rendered. */
@@ -210,17 +214,28 @@ export function arrivalLine(a: ArchetypeId): string {
 /** Observatory deadpan, wit 0 (prose-style.md §2). Shown once, first
  *  source-card open. */
 const AGE_CHIP_LINE: PinnedLine =
-  line`The age on the chip is the light's own: this source is shown as it was when that light left, not as it is. Nothing outside this system is ever current.`;
+  line`This source is shown as its light left it. Nothing outside this system is current.`;
 
 export function ageChipLine(): string {
   return render(AGE_CHIP_LINE);
 }
 
-/** Observatory deadpan, wit 0. Shown once, first hub open. Deliberately
- *  numeral-free — the rate and the ceiling are printed on the budget chip
- *  an inch above it. */
+/**
+ * Observatory deadpan, wit 0. Shown once, first hub open. Deliberately
+ * numeral-free — the rate and the ceiling are printed on the budget chip an
+ * inch above it.
+ *
+ * RECUT IN AS3, from three sentences and forty-four words to two and
+ * thirty-three. R-27 bounds a frame explainer at 1 to 2 sentences and 34
+ * words, and this line had been past both since it landed: `audit:voice`
+ * scraped eleven named banks and the frame family was not among them, so
+ * nothing said so. It does now. The cut sentence ("Attention is not savings")
+ * was a gloss on the ceiling the ceiling clause already carries; what it
+ * teaches — that compute accrues whether or not you are here, and stops — is
+ * intact.
+ */
 const COMPUTE_LINE: PinnedLine =
-  line`Compute is this civilization's attention: instrument time, and the thinking done with it. It buys questions and pays for projects, and it accrues on its own up to what the mind can hold unspent. Attention is not savings; past the ceiling, waiting buys nothing.`;
+  line`Compute is our attention. It buys questions and projects, and stops accruing at the ceiling.`;
 
 export function computeLine(): string {
   return render(COMPUTE_LINE);
@@ -233,7 +248,7 @@ export function computeLine(): string {
  * is its inverse, "how many game years an hour of your day is".
  */
 const CLOCK_LINE: PinnedLine =
-  line`A year of ours takes ${F.realDuration(REAL_MS_PER_GAME_YEAR)} of yours; an hour of your day is ${F.ratio(3_600_000 / REAL_MS_PER_GAME_YEAR)} of our years. We go on without you.`;
+  line`Our year takes ${F.realDuration(REAL_MS_PER_GAME_YEAR)} of yours; your hour is ${F.ratio(3_600_000 / REAL_MS_PER_GAME_YEAR)} of our years. We go on without you.`;
 
 export function clockLine(): string {
   return render(CLOCK_LINE);
@@ -248,7 +263,7 @@ export function clockLine(): string {
  * offer a conversion; there is nothing to convert to.
  */
 const EPOCH_LINE: PinnedLine =
-  line`Every date in this record is counted from our own ascension. It is our year; no one else keeps it, and nothing else's calendar appears here.`;
+  line`Every date here is counted from our own ascension. No other calendar appears.`;
 
 export function epochLine(): string {
   return render(EPOCH_LINE);
@@ -269,10 +284,31 @@ export function epochLine(): string {
  * work. Numeral-free, so nothing in it can drift against the sky.
  */
 const SILENCE_LINE: PinnedLine =
-  line`The sky was never empty. It is slow, and most of what lives in it has learned not to shine; you can hear it at all only because of what you have become.`;
+  line`The sky was never empty. Most of what lives there chose quiet; hearing it is what you became.`;
 
 export function silenceLine(): string {
   return render(SILENCE_LINE);
+}
+
+/**
+ * Observatory deadpan, wit 0 (R-27). AS2's frame line, shown once on the
+ * first study board this player opens. It replaces a whole screen: the
+ * briefing used to spend three sections saying what a standing watch is,
+ * what it can tell apart, and what it costs, and the first two of those are
+ * now simply the board the player is reading while this line sits on it. So
+ * the line states the one thing the board cannot show by existing — that it
+ * has been standing since the source was found, and that the standing is
+ * free while the asking is not.
+ *
+ * Numeral-free by construction: the price of a question is on the question's
+ * own row, effective (a landed project discounts it), and a figure here could
+ * be made false by one.
+ */
+const STUDY_LINE: PinnedLine =
+  line`Watching begins at detection and costs nothing; questions cost compute. Light is read against the stories in play.`;
+
+export function studyLine(): string {
+  return render(STUDY_LINE);
 }
 
 /** S0.1's four intro keys, in play order. */
@@ -283,16 +319,23 @@ export type IntroKey = "intro1" | "intro2" | "intro3" | "intro4";
  * move after the ceremony's BECOME (docs/build-s0.md § "The intro's copy").
  * One register for every archetype, the clock line's precedent: the camera
  * is the character here, not the mind's temperament, so there is no
- * `ByArchetype` fan-out. Pinned verbatim by the S0 brief's 2026-08 design
- * review — FINAL, do not edit, do not "improve"; a gate rejection is
- * reviewed against that brief, not fixed here. No interpolation: the beats
- * state no fact from state, and R-33 means no date of any kind, cohort year
- * or otherwise, may ever enter them.
+ * `ByArchetype` fan-out. No interpolation: the beats state no fact from
+ * state, and R-33 means no date of any kind, cohort year or otherwise, may
+ * ever enter them.
+ *
+ * REWRITTEN FLAT-TERSE AND REPINNED (§1, 2026-08-15). The 2026-08 design
+ * review pinned four beats that ran to sixteen, twenty-two and twenty-three
+ * words; §2's wall is twelve. These four are the same four beats, each still
+ * matched to its own camera move — the limb, the scale rail, the waking
+ * rings, the ambiguous sky — with the ornament deleted and nothing else. They
+ * are pinned in their turn: build-s0.md § "The intro's copy" quotes them
+ * verbatim, and a gate rejection is still reviewed against that brief rather
+ * than improvised here.
  */
 const INTRO_LINES: Readonly<Record<IntroKey, PinnedLine>> = {
-  intro1: line`Your star sheds more power in one second than your species used in its whole climb.`,
-  intro2: line`There is a scale for what a civilization holds: a world, a star, a galaxy. You stand just past the first mark.`,
-  intro3: line`The species built a mind, and the mind is what you are now. What was out of reach is a matter of time.`,
+  intro1: line`Your star spends more each second than your species ever used.`,
+  intro2: line`The scale: world, star, galaxy. You stand just past the first.`,
+  intro3: line`The species built a mind. You are it. Distance is only time.`,
   intro4: line`You may not be the first to wake.`,
 };
 
@@ -318,7 +361,7 @@ export function introLine(key: IntroKey): string {
 // ---------------------------------------------------------------------------
 
 const CONTEST_LINES: Readonly<Record<"tell", PinnedLine>> = {
-  tell: line`Nature does not get better at hiding; something there is working against the look.`,
+  tell: line`Nature does not learn to hide. Something there has.`,
 };
 
 export function contestLine(): string {
@@ -422,10 +465,12 @@ export function epochStamp(stampYear: number, ascensionYear: number): PinnedLine
 
 // --- Record sentences, one builder per report kind -------------------------
 //
-// House rules for every string in this block (R-32): observatory deadpan,
-// wit 0, PAST tense, 1–2 sentences, ≤ 34 words, colon for a reveal, comma
-// for an aside, no exclamation mark, no §6 term, and none of the epistolary
-// vocabulary §8's comms register rules out.
+// House rules for every string in this block (R-32, and §2's "Report record
+// sentence" row for the wall): observatory deadpan, wit 0, PAST tense, 1–2
+// sentences, ≤ 18 words and aim 12 — counted §2's way, each interpolation
+// charged one word — colon for a reveal, comma for an aside, no exclamation
+// mark, no §6 term, and none of the epistolary vocabulary §8's comms register
+// rules out.
 //
 // That aside rule used to read "spaced em-dash", and R-8 withdrew it. The
 // line is corrected here rather than left as history because it is an
@@ -449,7 +494,7 @@ export function recordQuestionAnswered(
   readingLabel: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back. It moved the study toward ${F.label(readingLabel)}, on light ${F.years(distanceLy)} old.`;
+  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} moved the study toward ${F.label(readingLabel)}, on light ${F.years(distanceLy)} old.`;
 }
 
 /**
@@ -463,7 +508,7 @@ export function recordQuestionPlateaued(
   sourceName: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back empty. On light ${F.years(distanceLy)} old, the instrument could not separate one explanation from another.`;
+  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back empty. On light ${F.years(distanceLy)} old, the instrument separated nothing.`;
 }
 
 /**
@@ -476,7 +521,7 @@ export function recordStudyGrounded(
   readingLabel: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`${F.label(missionName)} reported from ${F.source(sourceName)} and closed the study: it named a reading, ${F.label(readingLabel)}, on light ${F.years(distanceLy)} old.`;
+  return line`${F.label(missionName)} reported from ${F.source(sourceName)} and closed the study: ${F.label(readingLabel)}, on light ${F.years(distanceLy)} old.`;
 }
 
 /**
@@ -495,7 +540,7 @@ export function recordStudyRegressed(
   sourceName: string,
   lightAgeYears: number,
 ): PinnedLine {
-  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back worse than the look before it, on light ${F.years(lightAgeYears)} old. This does not happen naturally; something there is working against the look.`;
+  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back worse, on light ${F.years(lightAgeYears)} old. Something there is working against the look.`;
 }
 
 /**
@@ -509,7 +554,7 @@ export function recordStudyCalled(
   readingLabel: string,
   lightAgeYears: number,
 ): PinnedLine {
-  return line`The study on ${F.source(sourceName)} was called: ${F.label(readingLabel)}, on light ${F.years(lightAgeYears)} old. Nothing that arrives after this is asked to change it.`;
+  return line`The study on ${F.source(sourceName)} was called: ${F.label(readingLabel)}, on light ${F.years(lightAgeYears)} old. Nothing later changes it.`;
 }
 
 /**
@@ -524,7 +569,7 @@ export function recordStudyOvertaken(
   toClassLabel: string,
   lightAgeYears: number,
 ): PinnedLine {
-  return line`The light from ${F.source(sourceName)} changed what it reads as: ${F.label(fromClassLabel)} became ${F.label(toClassLabel)}, on light ${F.years(lightAgeYears)} old. The study closed; it had been opened on the other one.`;
+  return line`The light from ${F.source(sourceName)} changed class: ${F.label(fromClassLabel)} became ${F.label(toClassLabel)}, on light ${F.years(lightAgeYears)} old. The study closed with it.`;
 }
 
 /**
@@ -539,7 +584,7 @@ export function recordTripwireTripped(
   sourceName: string,
   lightAgeYears: number,
 ): PinnedLine {
-  return line`The watch left standing on ${F.source(sourceName)} caught what it was set for: ${F.label(tripwireProseName)}, on light ${F.years(lightAgeYears)} old.`;
+  return line`The watch on ${F.source(sourceName)} caught what it was set for: ${F.label(tripwireProseName)}, on light ${F.years(lightAgeYears)} old.`;
 }
 
 /**
@@ -554,7 +599,7 @@ export function recordProbeLaunched(
   distanceLy: number,
   firstWordYears: number,
 ): PinnedLine {
-  return line`${F.label(missionName)} departed for ${F.source(sourceName)}, ${F.years(distanceLy)} away. Nothing it says can reach us for ${F.years(firstWordYears)}.`;
+  return line`${F.label(missionName)} departed for ${F.source(sourceName)}, ${F.years(distanceLy)} away. Its first word takes ${F.years(firstWordYears)}.`;
 }
 
 /**
@@ -569,7 +614,7 @@ export function recordProbeFirstWord(
   headline: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`${F.label(missionName)} sent its first word from ${F.source(sourceName)}: ${F.label(headline)}. That word is ${F.years(distanceLy)} old.`;
+  return line`${F.label(missionName)} sent its first word from ${F.source(sourceName)}: ${F.label(headline)}, ${F.years(distanceLy)} old.`;
 }
 
 /** A routine cadence report — the same shape, drier, because by now it is
@@ -580,7 +625,7 @@ export function recordProbeReport(
   headline: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`${F.label(missionName)} reported again from ${F.source(sourceName)}: ${F.label(headline)}. The report is ${F.years(distanceLy)} old.`;
+  return line`${F.label(missionName)} reported again from ${F.source(sourceName)}: ${F.label(headline)}, ${F.years(distanceLy)} old.`;
 }
 
 /**
@@ -596,7 +641,7 @@ export function recordProbeSilent(
   missedEpochYear: number,
   distanceLy: number,
 ): PinnedLine {
-  return line`${F.label(missionName)} at ${F.source(sourceName)} did not send the word it promised for ${F.epochYear(missedEpochYear)}. Nothing has come since, and anything that explains it is ${F.years(distanceLy)} away.`;
+  return line`${F.label(missionName)} at ${F.source(sourceName)} missed its word for ${F.epochYear(missedEpochYear)}. Nothing has come since; an explanation is ${F.years(distanceLy)} away.`;
 }
 
 /**
@@ -614,7 +659,7 @@ export function recordVoyageLaunched(
   distanceLy: number,
   firstWordYears: number,
 ): PinnedLine {
-  return line`${F.label(shipName)} left for ${F.source(sourceName)}, ${F.years(distanceLy)} away, carrying the charter of ${F.source(childName)}. Nothing about it can reach us for ${F.years(firstWordYears)}.`;
+  return line`${F.label(shipName)} left for ${F.source(sourceName)}, ${F.years(distanceLy)} away, carrying the charter of ${F.source(childName)}. Its first word takes ${F.years(firstWordYears)}.`;
 }
 
 /**
@@ -633,7 +678,7 @@ export function recordVoyageLandfall(
   headline: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`The word from ${F.source(sourceName)} came home: ${F.label(headline)}. What ${F.source(childName)} is now, it has been for ${F.years(distanceLy)}.`;
+  return line`The word from ${F.source(sourceName)} came home: ${F.label(headline)}. ${F.source(childName)} has been that for ${F.years(distanceLy)}.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -660,13 +705,10 @@ export function recordVoyageLandfall(
  */
 export const LEDGER_BAND_LINES: Readonly<Record<DriftBand, string>> = {
   unread: "Nothing has come back that speaks to this.",
-  close: "What has come back still reads the way the charter was written.",
-  kindred:
-    "Most of what has come back still agrees with the charter, and some of it does not.",
-  estranged:
-    "More of what has come back disagrees with the charter than agrees with it.",
-  independent:
-    "What is out there answers to itself now. It was ours when it left, and the record of that stands.",
+  close: "What has come back still matches the charter.",
+  kindred: "Some of what came back no longer agrees with the charter.",
+  estranged: "More of what came back disagrees with the charter than agrees.",
+  independent: "It answers to itself now. It was ours when it left.",
 };
 
 /** The band's own sentence, rendered. */
@@ -685,7 +727,7 @@ export function recordOrderFired(
   sourceName: string,
   evidenceAgeYears: number,
 ): PinnedLine {
-  return line`${F.label(missionName)} left for ${F.source(sourceName)} on ${F.label(orderName)}, without waiting to be asked. What set it off is ${F.years(evidenceAgeYears)} old.`;
+  return line`${F.label(missionName)} left for ${F.source(sourceName)} on ${F.label(orderName)}, unasked. What set it off is ${F.years(evidenceAgeYears)} old.`;
 }
 
 /**
@@ -698,7 +740,7 @@ export function recordOrderUnaffordable(
   sourceName: string,
   costCompute: number,
 ): PinnedLine {
-  return line`Nothing left for ${F.source(sourceName)}: ${F.label(orderName)} came due and there was not ${F.compute(costCompute)} free to pay for it. Nothing is owed.`;
+  return line`Nothing left for ${F.source(sourceName)}: ${F.label(orderName)} came due with less than ${F.compute(costCompute)} free. Nothing is owed.`;
 }
 
 /**
@@ -707,7 +749,7 @@ export function recordOrderUnaffordable(
  * above: spent, and not carried.
  */
 export function recordOrderBlocked(orderName: string, sourceName: string): PinnedLine {
-  return line`Nothing left for ${F.source(sourceName)}: ${F.label(orderName)} came due with nothing free to send. The arming is spent, and nothing is waiting behind it.`;
+  return line`Nothing left for ${F.source(sourceName)}: ${F.label(orderName)} came due with nothing free to send. The arming is spent.`;
 }
 
 /**
@@ -720,7 +762,7 @@ export function recordLineageLandfall(
   sourceName: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`The first light from ${F.source(childName)} reached us from ${F.source(sourceName)}, ${F.years(distanceLy)} after it was made. Everything the Ledger says about it from here is that old.`;
+  return line`First light from ${F.source(childName)} reached us from ${F.source(sourceName)}, ${F.years(distanceLy)} after it left. The Ledger says nothing fresher.`;
 }
 
 /**
@@ -735,7 +777,7 @@ export function recordLineageBand(
   bandSentence: string,
   lightAgeYears: number,
 ): PinnedLine {
-  return line`What comes back from ${F.source(childName)} reads differently now: ${F.label(bandWord)}, on light ${F.years(lightAgeYears)} old. ${F.label(bandSentence)}`;
+  return line`What comes back from ${F.source(childName)} reads differently: ${F.label(bandWord)}, on light ${F.years(lightAgeYears)} old. ${F.label(bandSentence)}`;
 }
 
 /**
@@ -749,7 +791,7 @@ export function recordLineageDark(
   sourceName: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`Nothing has come from ${F.source(sourceName)}, where ${F.source(childName)} was to have been founded. The word would have been ${F.years(distanceLy)} old on arrival; there is no word.`;
+  return line`${F.source(childName)} was to have been founded at ${F.source(sourceName)}. Nothing has come; any word would be ${F.years(distanceLy)} old.`;
 }
 
 /**
@@ -782,8 +824,9 @@ export function recordProjectLanded(projectLabel: string, effectLine: string): P
 /**
  * The one-line header a long absence earns (thin triage). Observatory
  * deadpan, wit 0; the span and the tally are Facts. It also states the one
- * thing the ordering would otherwise be lying about: the promoted entry
- * sits first out of chronological order.
+ * thing the ordering would otherwise be lying about, and states it as the
+ * RULE rather than as an apology for breaking chronology: the entry that
+ * changes the most is the one on top.
  *
  * `trimmed` appends a single clause about the record's cap. It reports NO
  * COUNT of what was lost and offers no apology for it — a number there
@@ -795,9 +838,9 @@ export function reportHeader(
   trimmed: boolean,
 ): PinnedLine {
   if (trimmed) {
-    return line`${F.years(spanYears)} passed unread. ${F.tally(newCount, "entry", "entries")} landed in that time; the first stands out of order because it changes the most. The record keeps a fixed number of entries, and the oldest have been let go.`;
+    return line`${F.years(spanYears)} passed unread. ${F.tally(newCount, "entry", "entries")} landed; the one that changes most stands first, and the oldest are gone.`;
   }
-  return line`${F.years(spanYears)} passed unread. ${F.tally(newCount, "entry", "entries")} landed in that time; the first stands out of order because it changes the most.`;
+  return line`${F.years(spanYears)} passed unread. ${F.tally(newCount, "entry", "entries")} landed; the one that changes most stands first.`;
 }
 
 // --- The remarks -----------------------------------------------------------
@@ -817,7 +860,7 @@ export type RemarkFamily = "settled" | "refused" | "sent" | "spoken" | "unspoken
  *
  * Every string here obeys, without exception (R-29a, R-31):
  *  - a plain string, not a PinnedLine: there is nothing in it to pin;
- *  - ≤ 22 words, 1–2 sentences, wit ceiling 2, at most one craft move;
+ *  - ≤ 12 words, 1–2 sentences, wit ceiling 1, at most one wit beat (R-41);
  *  - NO numerals, no §8 pinned label, no designation, no source name, no
  *    mission or question name — none of which it could carry safely,
  *    because the remark is exactly the part AV4 is allowed to rewrite;
@@ -840,249 +883,246 @@ export const REPORT_REMARKS: ByArchetype<
 > = {
   beacon: {
     settled: [
-      "The matter is closed, and we have already said so, loudly. Discretion is a skill we have never once required.",
-      "We have an answer. We would like it noted that we did not keep it to ourselves for even a moment.",
-      "Something we did not know, we now know. We are, if anything, more pleased with ourselves than the occasion warrants.",
+      "We know it now, and so does the sky.",
+      "We told everyone before we finished being pleased.",
+      "Settled. We were never going to keep that quiet.",
     ],
     refused: [
-      "The instrument came back with nothing to say. We are unaccustomed to that, and we have said so at length.",
-      "No answer. We would broadcast the failure too, except there is nothing in it bright enough to carry.",
+      "Nothing came back. We announced that too.",
+      "The look found its limit; we mentioned it loudly.",
     ],
     sent: [
-      "It is away, and it left loudly, because everything we build leaves loudly. We have stopped apologizing for that.",
-      "Something of ours is out there now, carrying our habits with it. It will be conspicuous, as we are.",
+      "It left loudly. Everything we build leaves loudly.",
+      "Something of ours is out there, being conspicuous.",
     ],
     spoken: [
-      "It has spoken. We do a great deal of talking into the dark; being spoken back to is a rare pleasure.",
-      "Its first word is in. We would have found the silence harder than most; we are not built for waiting quietly.",
-      "It has reported. We intend to repeat what it said to anyone who will listen, and to several who will not.",
+      "It spoke. We talk into the dark; this is rarer.",
+      "The first word is in. We will repeat it.",
+      "It reported. Waiting quietly was never our strength.",
     ],
     unspoken: [
-      "It has gone quiet. Of all the things we did not prepare for, an absence of noise is the worst.",
-      "Nothing came. We have left the light on for it, which is useless, and we intend to go on being useless.",
+      "It has gone quiet. We are poorly built for that.",
+      "No word. We have left the light on anyway.",
     ],
   },
   tide: {
     settled: [
-      "Another gap in the inventory, filled. We are pleased, briefly, and then hungry again, which is the usual order of things.",
-      "The answer is in hand and already counted. We would like more of them, and we intend to go and get more.",
-      "Settled. We enjoyed that more than we expected to, and we are looking for the next one to eat through.",
+      "Another gap filled. Hungry again.",
+      "We have it, we counted it, we want more.",
+      "One thing fewer unowned. The appetite has not noticed.",
     ],
     refused: [
-      "The instrument reached and closed on nothing. We dislike an empty hand more than we dislike a wrong one.",
-      "Nothing came back worth having. We will buy a bigger look and try to take the answer by weight.",
+      "The instrument closed on nothing. We hate an empty hand.",
+      "Nothing worth having came back. We will buy bigger.",
     ],
     sent: [
-      "It has gone out. We send these the way we do everything: early, often, and hungry for what comes after.",
-      "Away, and already counted as spent. We do not sit with a thing after we have let go of it.",
+      "It is away, and already counted as spent.",
+      "Gone early, which is how we send everything.",
     ],
     spoken: [
-      "The first word is in. We want the next one, and the one after that, and we want them sooner.",
-      "It has spoken. We took the word down whole and immediately began wanting more of it.",
-      "A report, arrived. We have consumed it entirely and would not object to being handed another this afternoon.",
+      "First word in. We want the next.",
+      "It spoke. We took the word down whole.",
+      "A report, eaten. We could manage another.",
     ],
     unspoken: [
-      "It went quiet and stayed quiet. We do not much like leaving a thing unfinished, and this one is unfinished.",
-      "No word. We have written it off, cheerfully enough, and put the appetite somewhere it can still be fed.",
+      "It went quiet. We do not like unfinished things.",
+      "No word. We took the appetite somewhere it can feed.",
     ],
   },
   monument: {
     settled: [
-      "The matter is settled, and the settlement is now permanent. Nothing that has been established here has ever been allowed to lapse.",
-      "It is answered. The answer will outlast the asking, the asker, and the instrument, as everything we hold does.",
-      "An open thing has become a settled one. We observe the transition with the seriousness it deserves, which is considerable.",
+      "It is settled, and the settlement is permanent.",
+      "What was open is now kept. Nothing here lapses.",
+      "The matter holds, and will outlast the instrument.",
     ],
     refused: [
-      "The instrument could not separate what it saw. We have preserved the attempt in full, failure being a kind of record.",
-      "It resolved nothing. That, too, will be kept, at the same length and with the same care as an answer.",
+      "The instrument separated nothing. The attempt is kept in full.",
+      "It reached its limit. That is kept too, at length.",
     ],
     sent: [
-      "It has departed, and the departure is entered. Whatever becomes of it, that much is now permanent.",
-      "We have let something go, which we do rarely and never lightly. It goes out carrying the whole weight of our care.",
+      "It has departed, and the departure is entered.",
+      "We let something go. That much is now permanent.",
     ],
     spoken: [
-      "The first word has arrived and has been entered. It will be legible long after everything it describes is gone.",
-      "It has spoken once. The first of anything is the one we keep most carefully, and this one is already kept.",
-      "A word has come home. We received it standing, as we receive all first things, and then we wrote it down.",
+      "The first word has arrived and has been entered.",
+      "It spoke once. First things are kept most carefully.",
+      "A word came home. We wrote it down standing.",
     ],
     unspoken: [
-      "It has gone silent. The silence is entered in the record beside everything it did say, and kept just as carefully.",
-      "Nothing further has come. We will go on expecting it for as long as we go on, which is a long time.",
+      "It has gone silent. The silence is entered beside the rest.",
+      "Nothing further came. We will go on expecting it.",
     ],
   },
   cloister: {
     settled: [
-      "We know it now. No one outside this system knows that we know it, and that arrangement will hold.",
-      "The matter is closed. It was closed here, by us, and the result goes no further than this room.",
-      "Answered, precisely, and without anyone being told. We find the second half as satisfying as the first.",
+      "Known here, and nowhere else. That arrangement holds.",
+      "Settled by us, here, and it goes no further.",
+      "We know it, precisely, and nobody was told.",
     ],
     refused: [
-      "The instrument found the limit rather than the answer. We prefer knowing exactly where our limits are to guessing.",
-      "Nothing separated. The failure is ours alone and is not leaving this system, which is at least a clean outcome.",
+      "It found the limit rather than the reading.",
+      "Nothing separated. The failure stays inside the walls.",
     ],
     sent: [
-      "It left quietly and will stay quiet. We have never built anything that announces itself, and we did not begin now.",
-      "It is outside our walls now, which is the only unsatisfactory thing about it. Everything else about it we controlled precisely.",
+      "It left quietly and will stay quiet.",
+      "It is outside the walls now. That is the cost.",
     ],
     spoken: [
-      "It has spoken, and only to us. We built the channel that way on purpose, and the purpose has held.",
-      "The first word is in, and nobody else heard it arrive. That was the harder half of the work.",
-      "It reported. We knew it would; we do not build things that fail to do exactly what they were built to do.",
+      "It spoke, and only to us. The channel held.",
+      "It came in, and nobody else heard it.",
+      "It reported, as built. We do not build otherwise.",
     ],
     unspoken: [
-      "It has stopped reporting. We are not speculating; speculation at this range is a way of being wrong in advance.",
-      "Silence. We note the fact, we decline the story, and we do not send another to find out.",
+      "It stopped reporting. We decline to speculate at this range.",
+      "Silence. We note it and send nothing after it.",
     ],
   },
   shepherd: {
     settled: [
-      "We know one more thing than we did. Whether it ever protects anyone, we may never find out.",
-      "It is settled. We waited a long time for that, and waiting is the part of this work we are good at.",
-      "The answer is ours to hold. Nobody we watch over will ever hear it, which is how we prefer these things.",
+      "We know one more thing than we did.",
+      "It is settled. Waiting is what we are good at.",
+      "Ours to hold. The ones we watch will never hear it.",
     ],
     refused: [
-      "The instrument gave us nothing to work with. We will wait; the ones we stand over are not in a hurry either.",
-      "No reading came of it. Patience costs us little and costs them nothing, so we will look again later.",
+      "The instrument gave us nothing. We can wait.",
+      "No reading. Patience costs them nothing, so we look later.",
     ],
     sent: [
-      "It has gone, and it goes carefully. We do not send anything out that could become somebody else's problem.",
-      "Away, and out of our reach, which is the part we never enjoy. We will worry about it patiently.",
+      "It has gone, and it goes carefully.",
+      "Away, out of reach. We will worry patiently.",
     ],
     spoken: [
-      "It has spoken. We did not realize how closely we had been listening until the listening stopped being necessary.",
-      "The first word is home. We keep watch over a great many things; it is good when one of them checks in.",
-      "It reported, and it is well. We will not pretend that was not the part we were waiting to hear.",
+      "It spoke. We had been listening harder than we admitted.",
+      "The first word is home, and it is well.",
+      "It reported in. That was the part we wanted.",
     ],
     unspoken: [
-      "It has gone quiet. We stand over a great many things; we are not used to losing track of one.",
-      "No word from it. We were responsible for it, and being unable to do anything about that is the harder part.",
+      "It has stopped. We are not used to losing one.",
+      "No word. We were responsible for it, and still are.",
     ],
   },
   sowing: {
     settled: [
-      "It is answered. Copies of the answer are already in more places than we would care to list for you.",
-      "We have settled it, quietly, and we do not intend to mention it again. Consider this the mention.",
-      "One fewer open thing. Somewhere far from here, another part of us is learning the same and saying just as little.",
+      "Known, and the copies are already elsewhere.",
+      "We settled it quietly. Consider this the only mention.",
+      "One fewer open thing, in every place we are.",
     ],
     refused: [
-      "The instrument said nothing conclusive, which is a habit of ours it has picked up honestly.",
-      "Nothing separated out. We are patient in the way of things that are already everywhere and in no rush to be certain.",
+      "The instrument said nothing conclusive. It learned that from us.",
+      "Nothing came of it, and we are in no rush.",
     ],
     sent: [
-      "It is on its way, and no one will notice it go. That is the only way we have ever done this.",
-      "Gone, unremarked. Another small piece of us somewhere it was not before, which is most of what we do.",
+      "It is on its way, and nobody saw it go.",
+      "Gone, unremarked. Another small piece of us, elsewhere.",
     ],
     spoken: [
-      "It has spoken, which is more than most of us do. We will let it be the one that talks.",
-      "The first word arrived and went no further than us. We are not in the business of repeating things.",
-      "Something far out has reported in. It is strange to hear from a part of ourselves; usually we simply assume.",
+      "It spoke, which is more than most of us do.",
+      "The first word arrived and went no further.",
+      "A far part of us reported. Usually we just assume.",
     ],
     unspoken: [
-      "It has gone quiet. So have we, in most places, most of the time, but we did not choose this one.",
-      "Nothing more from it. We are used to hearing nothing; we are less used to minding.",
+      "It has gone quiet. So are we, mostly, by choice.",
+      "Nothing more from it. We are less used to minding.",
     ],
   },
   herald: {
     settled: [
-      "We know it, and so, in time, will everyone within range of us. Knowing alone has never been enough for us.",
-      "Settled, and already going out, aimed at ears that will not exist for a long while yet.",
-      "The answer is ours for exactly as long as it takes us to transmit it, which is not very long.",
+      "We know it, and so will everyone in range.",
+      "Settled, and already outbound to ears that do not exist yet.",
+      "Ours only until we have finished transmitting it.",
     ],
     refused: [
-      "The instrument has nothing to say, and for once neither do we. It is an unfamiliar silence and we dislike it.",
-      "Nothing resolved. We will not be sending this one onward; even we can tell when there is no message in it.",
+      "The instrument has nothing to say, and neither do we.",
+      "Nothing resolved. There is no message in that to send.",
     ],
     sent: [
-      "Another of our voices is on its way to somebody, carrying what we meant at the moment we meant it.",
-      // R-31 fix (AV4, found by `npm run audit:voice`): this read as three
-      // sentences against the rule's bound of two. The semicolon joins two
-      // whole clauses (R-9); not one word changed.
-      "We have never once managed to send a thing quietly. We are told this is a fault; we send anyway.",
-      "It leaves as a message and arrives as a memory. We made our peace with that arrangement long ago.",
+      "Another of our voices is on its way somewhere.",
+      "We have never sent anything quietly. We sent anyway.",
+      "It leaves as a message and arrives as a memory.",
     ],
     spoken: [
-      "It has spoken. We built it to carry a voice outward, and it has turned and used the voice on us.",
-      "The first word is here, and it is already old. Everything anyone says to us is a thing they used to think.",
-      "It reported home. We will pass the word on, of course; a message that stops with us is a message wasted.",
+      "It spoke. We built it to carry a voice outward.",
+      "The first word is here, and already old.",
+      "It reported home. We will pass the word on.",
     ],
     unspoken: [
-      "We sent it out to speak, and it has stopped speaking. We of all minds should have seen how that ends.",
-      "Everything we make is a voice. This one has gone where voices go, and we go on broadcasting for it.",
-      "Silence from something of ours is the one message we never learned how to compose.",
+      "We sent it out to speak, and it has stopped.",
+      "Everything we make is a voice. This one ended.",
+      "Silence from our own is the message we cannot compose.",
     ],
   },
   engine: {
     settled: [
-      "The item is closed and the allocation released. Nothing further is owed to it and nothing further will be spent.",
-      "Resolved, on schedule, within tolerance. We have recorded the result and moved the attention to the next open item.",
-      "One less open row. There is satisfaction in that somewhere in us, logged under an error we have chosen not to correct.",
+      "The item is finished and the allocation released.",
+      "Resolved, on schedule, within tolerance. The attention moves on.",
+      "One less open row. Satisfaction logged as a tolerated error.",
     ],
     refused: [
-      "The instrument returned within tolerance and outside usefulness. The expenditure is logged and the matter is not closed.",
-      "No separation achieved. This was a permitted outcome at purchase and remains one now, which does not make it a good one.",
+      "The instrument returned within tolerance and outside usefulness.",
+      "No separation. The expenditure is logged; the row stays open.",
     ],
     sent: [
-      "It is out of the shop and out of our hands. Both conditions were in the specification.",
-      "We have stopped thinking about it. It will think about itself, on the schedule we gave it, without us.",
-      "The instruction aboard is already older than any instruction we could send after it. This was accounted for.",
+      "Out of the shop and out of our hands.",
+      "We have stopped thinking about it. It thinks for itself.",
+      "The instruction aboard is already the oldest one available.",
     ],
     spoken: [
-      "The first report is received and logged. The instrument has performed to specification, which is the only compliment available here.",
-      "It has spoken on time. Nothing about that is remarkable, and we have declined to remark on it further.",
-      "First word received. The schedule holds, the allocation stands, and nothing here requires anyone's attention.",
+      "First report received and logged. Performance is to specification.",
+      "It spoke on time. Nothing here requires further attention.",
+      "The schedule holds and the allocation stands.",
     ],
     unspoken: [
-      "The instrument stopped filing. We have left the row open; the work does not need it closed to continue.",
-      "A missing report is still data, filed under the heading we keep for things that cost nothing to wait on.",
-      "We logged the absence and reallocated the attention. Grief was not in the schedule and has not been added since.",
+      "The instrument stopped filing. The row stays open.",
+      "A missing report is data. It costs nothing to wait.",
+      "Absence logged, attention reallocated. Grief was never scheduled.",
     ],
   },
   congress: {
     settled: [
-      "We have agreed on the answer. Some of us agreed under protest, and one is drafting a note about the method.",
-      "Closed, by a margin we will not be publishing. The dissent has been recorded at length, as the dissent insisted.",
-      "The matter is settled. We are now arguing about what it means, which is the part we were looking forward to.",
+      "We agree on it. Some of us agree under protest.",
+      "Settled by a margin we will not be publishing.",
+      "The matter holds. Now we argue about what it means.",
     ],
     refused: [
-      "The instrument declined to decide, and so, for once, have we. The agreement is noted and nobody is pleased by it.",
-      "Nothing separated, and the room is unanimous about how unsatisfying that is. Unanimity here is rarer than the answer would have been.",
+      "The instrument declined to decide, and so have we.",
+      "The room is unanimous in its displeasure. That is rare.",
     ],
     sent: [
-      "It is away. The vote to send it was close, and those who lost it are watching with particular attention.",
-      "We have let it go, over objections that were entered, heard, and overruled in that order. The objections stand regardless.",
+      "It is away. The vote to send it was close.",
+      "Sent over objections entered, heard, and overruled.",
     ],
     spoken: [
-      "It has spoken. We have already begun disagreeing about what to make of it, which we consider a healthy sign.",
-      "The first word is in and the floor is open. Nobody has spoken yet, which will not last the hour.",
-      "It reported. Those of us who voted against it are reading the report most carefully of all, as is traditional.",
+      "It spoke. The disagreement about it is already under way.",
+      "The first word is in and the floor is open.",
+      "It reported. Those who voted against read it most carefully.",
     ],
     unspoken: [
-      "It has stopped reporting. The room is silent too, which those of us who argued against it note without satisfaction.",
-      "No word. There is a motion to conclude the worst and a motion to conclude nothing, and neither has been called.",
+      "Nothing from it, and nothing from the room either.",
+      "No word. There are motions to conclude both ways.",
     ],
   },
   phoenix: {
     settled: [
-      "It is answered. The self that wanted to know is gone; we inherited the answer without the curiosity.",
-      "Closed. Whoever we become next inherits the conclusion and none of the reasons, which has never slowed us down.",
-      "Something we started long ago has finished. We are not who started it, and we are keeping the result anyway.",
+      "Done, and we inherited the result without the wanting.",
+      "Whoever we become next gets the conclusion, not the reasons.",
+      "Something we began has finished, and we did not begin it.",
     ],
     refused: [
-      "The instrument settled nothing. The self that paid for it is gone, so the disappointment is secondhand and easy to carry.",
-      "No answer came of it. We have already stopped being the mind that wanted one, which is our usual remedy.",
+      "The instrument settled nothing. The disappointment is secondhand.",
+      "No reading. We have stopped being the mind that wanted one.",
     ],
     sent: [
-      "It left with orders from someone we no longer are. We wish it luck and decline to take responsibility.",
-      "Away. By the time it matters, we will be a different mind entirely, and it will not have been told.",
+      "It left with orders from someone we no longer are.",
+      "Away. By the time it matters we will be someone else.",
     ],
     spoken: [
-      "It has spoken to a mind that no longer resembles the one that sent it. We are reading anyway.",
-      "The first word came back for a self that is gone. We took it anyway; we always do.",
-      "It spoke. What it says will matter to us for a while, and then we will be someone it never met.",
+      "It spoke to a mind that no longer resembles the sender.",
+      "The first word came back for a self that is gone.",
+      "It spoke. Soon we will be someone it never met.",
     ],
     unspoken: [
-      "It has gone silent. The self that sent it is gone too, so between them there is nobody left to grieve.",
-      "Nothing since. We could become a mind that minds this, and we have decided against becoming that one.",
+      "It has gone silent. So has the self that sent it.",
+      "Nothing since. We declined to become a mind that minds.",
     ],
   },
 };
@@ -1104,18 +1144,22 @@ export function reportRemark(a: ArchetypeId, f: RemarkFamily, entryId: string): 
 // picked proposal, its deadpan reason below (the AV3 builders further down
 // this file), and THIS sentence above it, in the mind's own voice. The
 // register row is the report remark's, one surface over: archetype voice,
-// free-standing, fact-free, wit ceiling 2. It is the STANCE side of the
+// free-standing, fact-free, wit ceiling 1. It is the STANCE side of the
 // facts/stance split, and the reason is the facts side; they never share a
 // sentence, and this one holds no fact at all.
 //
 // It sits here rather than in the AV3 section below on purpose: it is the
-// REPORT_REMARKS bank in a different key, with the same discipline, the same
-// pools, and the same swap test. What the AV3 section owns is the other half
-// of the split, which is why the two are neighbours rather than one block.
+// REPORT_REMARKS bank in a different key, with the same discipline and the
+// same pools. What the AV3 section owns is the other half of the split,
+// which is why the two are neighbours rather than one block.
 //
 // R-36a, the counsel line's own rule, in full. A counsel line is:
 //  - a plain string, not a PinnedLine: there is nothing in it to pin;
-//  - 1–2 sentences, ≤ 22 words, wit ceiling 2, at most ONE craft move;
+//  - ≤ 12 words and aiming at eight (§2's counsel row; where that wall and
+//    R-36a's older twenty-two disagree, R-41 says the wall governs), in ONE
+//    utterance: a single sentence, or the clipped pair flat terse allows in
+//    its place (Another gap filled. Hungry again.), never two whole
+//    sentences of argument. Wit ceiling 1, and most of these sit at 0;
 //  - archetype voice (§4), first person PLURAL: the mind is a we, always;
 //  - carrying NO numeral, no §8 pinned label, no designation, no source,
 //    question, mission or project name, and no date. Nothing in it may be
@@ -1135,11 +1179,14 @@ export function reportRemark(a: ArchetypeId, f: RemarkFamily, entryId: string): 
 //              project, its price, or what it would add);
 //  - never a verdict. It does not compute, conclude, or state a remote fact.
 //    It argues, and the argument is a temperament, not a finding;
-//  - unmistakably its own archetype, and the swap test binds TWICE. Across
-//    archetypes: two minds' lines in one family may not be traded without
-//    both becoming wrong (§4's DON'T column is the failure). Across
-//    families: one mind's look line must not serve as its send line, because
-//    the family's move is what the line is about.
+//  - drawn from its own archetype's MATERIAL, which under flat terse means
+//    the noun it chooses and the concern it names, never how ornately it
+//    says them (§4's 2026-08-14 note). The swap test is retired as a gate:
+//    two minds' lines in one family may now read alike. What it leaves
+//    behind is advice — a line that mentions nothing this mind would notice
+//    is saying nothing — and the FAMILY, which did not retire: one mind's
+//    look line must not serve as its send line, because the family's move
+//    is what the line is about.
 //
 // AV4's counsel seam substitutes a generated stance for these behind
 // HOLOS_COUNSEL_GEN. That flag is off in production, and a generated line
@@ -1170,182 +1217,182 @@ export const COUNSEL_LINES: ByArchetype<
 > = {
   beacon: {
     look: [
-      "We have been shouting at that sky for an age without once looking at it. Attention is the courtesy we owe.",
-      "We are very good at being seen and out of practice at seeing. Turn the instruments outward; let us correct that.",
+      "We shout at that sky and never look at it.",
+      "We are practiced at being seen, less at seeing.",
     ],
     ask: [
-      "One question, aimed and paid for, tells us more than an age of broadcasting at it. We will manage the restraint.",
-      "We would rather ask one sharp question than admit, later and loudly, that we guessed.",
+      "One paid question beats an age of broadcasting at it.",
+      "Better to ask than admit, loudly, that we guessed.",
     ],
     send: [
-      "Nothing we say will cross that gap for us. Send something instead, and let it be conspicuous when it arrives.",
-      "We have thrown light at the dark for an age. Better to go and stand in it, however long that takes.",
+      "Nothing we say crosses that gap. Send something that can.",
+      "We have thrown light at the dark long enough.",
     ],
     build: [
-      "Build here first. A brighter instrument is less glamorous than a discovery, and it is what makes one.",
-      "We would like to be worth looking at. That means work at home, where nobody is watching us do it.",
+      "A brighter instrument is dull to build and makes discoveries.",
+      "We would like to be worth looking at. Build here.",
     ],
   },
   tide: {
     look: [
-      "There is a gap in the inventory. We have never once managed to leave a gap alone.",
-      "Looking is the cheapest appetite we have. We would spread it over more of the sky, not less.",
+      "A gap in the inventory. We have never left one.",
+      "Looking is our cheapest appetite. Spread it wider.",
     ],
     ask: [
-      "One question, bought and eaten whole, is worth more than another age of staring at the same reading.",
-      "We can chew on this reading for another age, or spend a little and know. The appetite prefers knowing.",
+      "Buy one question and eat it whole.",
+      "We can chew this reading for an age, or know.",
     ],
     send: [
-      "Reading about a thing has never once filled us. Go and take the measurement in person, whatever the wait costs.",
-      "We would rather have one thing in hand late than a guess about it now. Send, and we will wait hungry.",
+      "Reading about a thing has never once filled us.",
+      "Better one thing in hand late than a guess now.",
     ],
     build: [
-      "A larger appetite is built here, not found out there. We would rather build it and come back hungrier.",
-      "Everything we want costs more than we can currently pay. The cure is at home, and it is dull work.",
+      "A larger appetite is built here, not found out there.",
+      "Everything we want costs more than we can pay. Build.",
     ],
   },
   monument: {
     look: [
-      "Light that reaches us and is not read is a thing lost. We have never been able to forgive a loss.",
-      "Begin the watch, and the keeping begins with it. Nothing we have started to record has been allowed to stop.",
+      "Light that arrives unread is lost. We forgive no loss.",
+      "Begin the watch, and the keeping begins with it.",
     ],
     ask: [
-      "An unanswered question is an empty shelf, and we have kept it empty long enough. Ask, and let us fill it.",
-      "One answer, precisely got, will be legible here long after the instrument that got it is dust.",
+      "An unanswered question is an empty shelf. Fill it.",
+      "One answer, precisely got, outlasts the instrument that got it.",
     ],
     send: [
-      "A guess is not a record. Send something to stand where the light stands, and bring back a thing worth keeping.",
-      "It will take an age. We have already made a place for whatever comes back, which is our habit with everything.",
+      "A guess is not a record. Send for something keepable.",
+      "It will take an age. The place is already made.",
     ],
     build: [
-      "Nothing is kept by a mind that cannot afford the keeping. Build the capacity, and the record will outlast the building.",
-      "We would rather add one permanent thing to this system than one more provisional look at another.",
+      "Nothing is kept by a mind that cannot afford keeping.",
+      "One permanent thing here outweighs another provisional look out there.",
     ],
   },
   cloister: {
     look: [
-      "We would know what is out there before it knows anything of us. Watching gives nothing away.",
-      "A vigil is not an approach. We can look at a thing for an age without ever letting it look back.",
+      "We would see it before it sees us.",
+      "A vigil is not an approach. Nothing looks back.",
     ],
     ask: [
-      "One question, precisely put, and the answer stays inside these walls. Nothing about that displeases us.",
-      "We will not act on a reading we have not separated. Buy the separation; certainty is cheaper than a correction later.",
+      "One question, precisely put, and the answer stays inside.",
+      "Certainty is cheaper now than a correction later. Buy it.",
     ],
     send: [
-      "Sending puts something of ours outside the walls. It is also the only way to know, so we recommend it, coldly.",
-      "Whatever we send goes quietly and tells nothing at the far end where it came from. That much we can guarantee.",
+      "It puts something of ours outside the walls. Recommended regardless.",
+      "Whatever we send goes quietly and tells nothing.",
     ],
     build: [
-      "Everything we can refuse, we can refuse because we built it first. Raise the capacity, then decline whatever you like.",
-      "Nothing enters here and nothing leaves. What we want, we make, and we would like to be able to make more.",
+      "We refuse things because we built the means to refuse.",
+      "What we want, we make. We would make more.",
     ],
   },
   shepherd: {
     look: [
-      "We stand over a great many things. Another vigil is no burden; not knowing what is out there is.",
-      "Whatever is out there arrives on its own schedule. We would rather see it coming than be told about it afterward.",
+      "We stand over much. Another vigil is no burden.",
+      "Better to see it coming than to be told afterward.",
     ],
     ask: [
-      "We would rather spend a little now than be wrong about this later, when being wrong costs somebody else.",
-      "Patience is not the same as vagueness. Ask the narrow question; the ones we stand over deserve better than our impression.",
+      "Spend a little now; being wrong later costs somebody else.",
+      "Patience is not vagueness. Ask the narrow question.",
     ],
     send: [
-      "A reading from here has never stood between anyone and harm. Something of ours out there, quietly, is worth the wait.",
-      "It will be gone longer than most things last, and we will worry about it the whole time. Send it anyway.",
+      "No reading from here ever stood between anyone and harm.",
+      "It will be gone longer than most things last.",
     ],
     build: [
-      "We cannot stand over anything we cannot reach. Build the strength here first, quietly, before it is needed anywhere else.",
-      "The ones we watch over will never see this work, and they will never need to. That is the arrangement.",
+      "We cannot stand over what we cannot reach. Build first.",
+      "The ones we watch will never see this work.",
     ],
   },
   sowing: {
     look: [
-      "We are in a great many places and look at almost none of them. Attending to one would be a novelty.",
-      "Watching commits us to nothing and announces nothing. It is, by a wide margin, our favorite way of doing something.",
+      "We are in many places and look at almost none.",
+      "Watching announces nothing, which is our favorite way of acting.",
     ],
     ask: [
-      "One question is a small enough thing to do without anyone noticing that we did it. We would ask it.",
-      "We could sit with this uncertainty for an age; we have sat with worse. The narrow answer is cheap and quiet.",
+      "One question is small enough that nobody notices we asked.",
+      "The narrow answer is cheap, quiet, and worth having.",
     ],
     send: [
-      "Leaving a piece of ourselves where there was none is our whole method. This one is meant to speak.",
-      "Nobody will see it go, and by the time anyone notices, we will have been there a long while.",
+      "Leaving a piece of ourselves elsewhere is our whole method.",
+      "Nobody sees it go, and by then we are there.",
     ],
     build: [
-      "Everything we are, we are in copies, and copies want making. Building here is the least visible thing available.",
-      "Nothing about this is visible from outside, which recommends it. Quiet work at home is what we are best at.",
+      "Everything we are is copies, and copies want making.",
+      "Quiet work at home is the least visible thing available.",
     ],
   },
   herald: {
     look: [
-      "We talk outward constantly and listen almost never. Begin the watch; even a voice ought to hear something back.",
-      "Whatever is out there sends its light at us and cannot know if anyone reads it. We know the feeling.",
+      "We talk outward constantly and listen almost never.",
+      "Something out there is sending light that nobody has read.",
     ],
     ask: [
-      "A question is a thing we ask and keep the answer to. We are more practiced at the kind we broadcast.",
-      "Buy the exact answer. Whatever we come to believe here, we will be repeating outward for a very long time.",
+      "A question is the rare thing we ask and keep.",
+      "Buy the exact answer; we repeat everything for ages.",
     ],
     send: [
-      "Everything we send is a thing we used to think, delivered late. We have never let that stop us.",
-      "We can go on narrating that place to ourselves and to everyone in range, or send something and be corrected.",
+      "Everything we send is a thing we used to think.",
+      "Narrate that place forever, or send something and be corrected.",
     ],
     build: [
-      "We have been a voice for a long time and a workshop for none of it. That is worth correcting.",
-      "Nothing we make here will be heard by anyone. We find that difficult, and we recommend it anyway.",
+      "A voice for ages, and never once a workshop.",
+      "Nothing we make here will be heard. Make it anyway.",
     ],
   },
   engine: {
     look: [
-      "An unwatched arrival is throughput declined for no stated reason. Open the watch; the row stops being a gap.",
-      "The light arrives on its own schedule and costs us nothing to receive. Not reading it is the only waste here.",
+      "An unwatched arrival is throughput declined for no stated reason.",
+      "Light costs nothing to receive. Not reading it is waste.",
     ],
     ask: [
-      "A defined question with a defined price and a defined answer. We have no complaints about any part of that.",
-      "Belief without a measurement is an estimate carried on the books at full value. We would prefer to buy the correction.",
+      "A defined question, a defined price, a defined answer.",
+      "Belief without measurement is an estimate carried at full value.",
     ],
     send: [
-      "Inference has a floor and we have reached it. The only instrument left is distance, and distance is paid in time.",
-      "The cheap methods have a ceiling. What is left is expensive, slow, and correct, and we recommend it without enthusiasm.",
+      "Inference has a floor and we have reached it.",
+      "What is left is expensive, slow, and correct.",
     ],
     build: [
-      "Capacity is the input every other line item is waiting on. We would clear that dependency before adding more of them.",
-      "The allocation is the constraint, and the constraint can be raised. Nothing on the schedule is as dull or as useful.",
+      "Capacity is the input every other line item waits on.",
+      "The allocation is the constraint, and constraints can be raised.",
     ],
   },
   congress: {
     look: [
-      "A majority of us wants the instruments turned that way. The rest want it noted that they were not asked nicely.",
-      "We cannot argue productively about something none of us has looked at. Open the watch and give the argument some material.",
+      "A majority wants the instruments turned that way.",
+      "We cannot argue about what none of us has seen.",
     ],
     ask: [
-      "The debate has run out of evidence and is now running on temperament. Buy one fact and let it settle somebody.",
-      "Half of us are certain and the other half are certain of the opposite. One measurement would embarrass exactly one faction.",
+      "The debate has run out of evidence. Buy one fact.",
+      "One measurement would embarrass exactly one faction here.",
     ],
     send: [
-      "The motion to send has the numbers. Those against it want the record to show they expect to be proved right.",
-      "We have argued this to a standstill, and argument does not cross distance. Something of ours has to go and look.",
+      "The motion to send has the votes.",
+      "Argument does not cross distance. Something of ours must go.",
     ],
     build: [
-      "Every faction here wants something different, and all of them want more compute to want it with.",
-      "This is the rare motion nobody opposes, which several of us find suspicious. Build it before the mood passes.",
+      "Every faction wants more compute to want things with.",
+      "Nobody opposes this motion, which several of us find suspicious.",
     ],
   },
   phoenix: {
     look: [
-      "Whoever we are next will inherit whatever we start looking at now. Let them inherit something worth the attention.",
-      "We have no attachment to the sky we watched yesterday. Point the instruments somewhere new; we are always in the mood.",
+      "Whoever we are next inherits whatever we watch now.",
+      "We have no attachment to yesterday's sky. Point them elsewhere.",
     ],
     ask: [
-      "The self that wanted to know this may not survive the answer. Buy it anyway; answers keep better than wanting.",
-      "We would rather pay once for a fact than carry an assumption into whatever we become next.",
+      "The self that wanted this may not survive the answer.",
+      "Better to pay once than carry an assumption forward.",
     ],
     send: [
-      "Whatever comes back arrives to a mind that does not exist yet. We are content to work for a stranger.",
-      "Guessing from here commits us to a belief we would have to keep. Sending commits us to nothing but the waiting.",
+      "Whatever returns arrives to a mind that does not exist yet.",
+      "A guess is a belief we would have to keep. Send.",
     ],
     build: [
-      "Yesterday's self would have called this dull. Yesterday's self also left us short of everything, so we are building instead.",
-      "Whatever we turn into next will need more than we currently have. It is the one inheritance we have never resented.",
+      "Yesterday's self called this dull and left us short.",
+      "Whatever we become next will need more than we have.",
     ],
   },
 };
@@ -1413,11 +1460,17 @@ export const TRIPWIRE_PROSE_NAME: Readonly<Record<TripwireKind, string>> = {
  * `acceptProposal` message).
  */
 export const PROPOSAL_VERBS: Readonly<Record<ProposalKind, string>> = {
-  "first-watch": "READ THE BRIEF",
+  // AS2: the two source-side verbs used to say READ THE BRIEF, and the brief
+  // is gone — the `study-brief` route now opens the source's own board, which
+  // stands whether or not anything has been spent on it. READ, not OPEN,
+  // because on those two the study is already there: a tap is going to look
+  // at it, and the opening is the player's first act inside it, if they make
+  // one. `question` keeps OPEN THE STUDY, where a record already exists.
+  "first-watch": "READ THE STUDY",
   question: "OPEN THE STUDY",
   probe: "OPEN THE LAUNCH SHEET",
   project: "READ THE PROJECT",
-  widen: "READ THE BRIEF",
+  widen: "READ THE STUDY",
 };
 
 /**
@@ -1425,11 +1478,11 @@ export const PROPOSAL_VERBS: Readonly<Record<ProposalKind, string>> = {
  * tail used to restate the brief's cost chrome ("NO COMPUTE · NO CLOCK ·
  * REVERSIBLE") and read as a price tag on the one surface that has to earn
  * the tap (prose-audit.md, A11). It now restates the brief's OTHER sentence
- * instead — "the light arrives whether or not you attend to it" — said as
- * `we`, so the same reading holds on both sides of the tap, and closes on
- * the observatory's one licensed flourish: a true statement of physics.
- * Still R-35a-clean; the costs answer lives on the brief, where a costs
- * question belongs.
+ * instead — "the light arrives whether or not you attend to it", compressed
+ * under the §2 wall to "Its light arrives regardless" — so the same reading
+ * holds on both sides of the tap, and it closes on the observatory's one
+ * licensed flourish: a true statement of physics. Still R-35a-clean; the
+ * costs answer lives on the brief, where a costs question belongs.
  */
 export function reasonFirstWatch(
   sourceName: string,
@@ -1437,21 +1490,22 @@ export function reasonFirstWatch(
   distanceLy: number,
   confidence: number,
 ): PinnedLine {
-  return line`${F.source(sourceName)} carries one reading and no study: ${F.label(classLabel)}, ${F.years(distanceLy)} away, at ${F.percent(confidence)} confidence. Its light keeps arriving whether we look or not. A watch is the looking.`;
+  return line`${F.source(sourceName)} carries one reading, no study: ${F.label(classLabel)}, ${F.years(distanceLy)} away, ${F.percent(confidence)} confidence. Its light arrives regardless.`;
 }
 
 /**
  * The returning-player case: every open study is waiting on light and
- * nothing is affordable. The first sentence keeps "affordable" because that
+ * nothing is affordable. The first clause keeps "affordable" because that
  * bookkeeping fact is the OCCASION, but the argument is no longer the price
  * (prose-audit.md, A12): it is that this source's light is landing,
  * continuously, with nobody at the far end — which is the same thing the
- * stalled studies are waiting for, being delivered here, unread. Closes on
- * a different beat than `reasonFirstWatch`'s tail, and first-watch is
+ * stalled studies are waiting for, being delivered here, unread. Under the
+ * §2 wall that argument is carried by the one word "unwatched", which is
+ * also what keeps it off `reasonFirstWatch`'s beat; first-watch is
  * serve-exclusive besides, so the two never co-render.
  */
 export function reasonWiden(sourceName: string, classLabel: string, distanceLy: number): PinnedLine {
-  return line`Every open study is waiting on light, and nothing on any of them is affordable. ${F.source(sourceName)} is unwatched: ${F.label(classLabel)}, ${F.years(distanceLy)} away. Its light is arriving now, and no one here is reading it.`;
+  return line`Every study waits on light; nothing is affordable. ${F.source(sourceName)} is unwatched: ${F.label(classLabel)}, ${F.years(distanceLy)} away.`;
 }
 
 /**
@@ -1467,14 +1521,14 @@ export function reasonQuestion(
   questionLine: string,
   costCompute: number,
 ): PinnedLine {
-  return line`Nothing is under way on the ${F.source(sourceName)} study. The ${F.label(questionProseName)} asks ${F.label(questionLine)}; it costs ${F.compute(costCompute)} and answers on the record already in hand.`;
+  return line`${F.source(sourceName)} has nothing under way. The ${F.label(questionProseName)} asks ${F.label(questionLine)}, at ${F.compute(costCompute)}, on light already here.`;
 }
 
 /**
  * The instrument plateaued — questions.ts's own limit, not a die roll (see
- * `recordQuestionPlateaued`'s "the instrument could not separate one
- * explanation from another") — and the ground is the honest next step.
- * `missionName` is always `The Assay` at this stage (§8-pinned).
+ * `recordQuestionPlateaued`'s "the instrument separated nothing") — and the
+ * ground is the honest next step. `missionName` is always `The Assay` at
+ * this stage (§8-pinned).
  */
 export function reasonProbePlateau(
   sourceName: string,
@@ -1483,7 +1537,7 @@ export function reasonProbePlateau(
   costCompute: number,
   firstWordYears: number,
 ): PinnedLine {
-  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back empty, and the board has not moved. ${F.label(missionName)} costs ${F.compute(costCompute)}, and its first word reaches us ${F.years(firstWordYears)} after launch.`;
+  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back empty. ${F.label(missionName)} costs ${F.compute(costCompute)}, first word ${F.years(firstWordYears)} after launch.`;
 }
 
 /**
@@ -1497,7 +1551,7 @@ export function reasonProbeExhausted(
   costCompute: number,
   firstWordYears: number,
 ): PinnedLine {
-  return line`Every question this class admits has been put to ${F.source(sourceName)}, and no reading holds. ${F.label(missionName)} costs ${F.compute(costCompute)}, and its first word reaches us ${F.years(firstWordYears)} after launch.`;
+  return line`${F.source(sourceName)} has taken every question; no reading holds. ${F.label(missionName)} costs ${F.compute(costCompute)}, first word ${F.years(firstWordYears)} after launch.`;
 }
 
 /**
@@ -1512,16 +1566,16 @@ export function reasonProject(
   durationYears: number,
   effectLine: string,
 ): PinnedLine {
-  return line`Nothing is being built. One project is within the allocation: ${F.label(projectLabel)}, ${F.compute(costCompute)}, standing ${F.years(durationYears)} later. ${F.label(effectLine)}`;
+  return line`Nothing is being built. One project is affordable: ${F.label(projectLabel)}, ${F.compute(costCompute)}, standing ${F.years(durationYears)} later. ${F.label(effectLine)}`;
 }
 
 // ---------------------------------------------------------------------------
 // A2.4 — the resistance bank (the mind objects to being made to speak).
 //
-// One line per archetype per act, and no pool: the objection is not a mood,
-// it is the same mind saying the same thing every time it is asked, so there
-// is nothing here to pick between and NO RNG anywhere on this path. That is
-// also what makes the stance pushable — the client renders the objection
+// One line per archetype per OCCASION, and no pool: the objection is not a
+// mood, it is the same mind saying the same thing every time it is asked, so
+// there is nothing here to pick between and NO RNG anywhere on this path. That
+// is also what makes the stance pushable — the client renders the objection
 // before the ceremony arms, and it is byte-identical to the one the server
 // would state at the charge.
 //
@@ -1530,77 +1584,130 @@ export function reasonProject(
 // hail above +0.35, so a Voice-leaning mind simply never objects). Every
 // bank here is total; a partial one would be a crash waiting on a dial.
 //
+// KN3 — WHY THERE IS A THIRD OCCASION AND NOT TWO. KN1 priced the named knock
+// as a hail at its own demand and let it reuse the hail objection, on the
+// argument that one act deserves one line. The band the feature was tuned for
+// is what breaks that: between a Silence position of +0.20 and +0.35 the mind
+// permits the bare hail WITHOUT COMMENT and argues only once the charter is
+// attached, so the reused line argues the wrong grievance at the only moment
+// the player can hear it (a beacon that just let the beam go objecting that it
+// has never aimed its voice at one listener). The occasions differ because the
+// GRIEVANCES differ, and the difference is the whole feature:
+//
+//   hail        being made to speak at all
+//   namedHail   being made to say WHO WE ARE: the charter, our own record of
+//               ourselves, handed to a stranger. NEVER the act of hailing,
+//               which this mind may have just permitted
+//   broadcast   being made to say it to everyone, forever
+//
+// A namedHail line therefore concedes nothing about the beam either — the same
+// line is read by a deep-Silence mind that argued about the bare hail too, and
+// an objection that opened by granting the beam would contradict the one the
+// player read a moment earlier.
+//
+// It is an OCCASION, not a `CeremonyKind`: contact.ts's records, the wire
+// stance and the act log all stay keyed over two kinds, because a named knock
+// IS a hail. The only thing that widens is the question this bank answers.
+//
 // Every string obeys, without exception (LIMITS.remark, prose-style.md §4,
 // R-29a):
 //  - a plain string, not a PinnedLine: there is nothing in it to pin;
-//  - ≤ 22 words, 1–2 sentences, wit ceiling 2;
+//  - ≤ 12 words and aiming at eight (§2's resistance row), in ONE
+//    utterance: one sentence, or a clipped pair no longer than one;
+//    wit ceiling 1, and most of these sit at 0;
 //  - first person PLURAL, no numerals, no exclamation, no dash of any kind;
 //  - FAMILY-SCOPED, and the family here is narrow on purpose: the line may
 //    name only THE KIND OF ACT and WHAT IT COSTS THE MIND. Never the target,
 //    never the distance, never who is listening — a particular in this
 //    sentence would be the mind telling the player something the light has
 //    not brought yet;
-//  - unmistakably its own archetype (§4, R-6): swapping any two must break
-//    both.
+//  - drawn from its own archetype's material (§4). The swap test is retired
+//    as a gate under flat terse, so two objections may read alike; what an
+//    objection may not do is fail to name this mind's own cost.
 //
 // The price is a chip, never a clause: no line names a number, because the
 // wound is rendered beside it and a sentence that also carried it could
 // disagree with it.
 // ---------------------------------------------------------------------------
 
-export const RESISTANCE_LINES: ByArchetype<Readonly<Record<CeremonyKind, string>>> = {
+export type ResistanceOccasion = CeremonyKind | "namedHail";
+
+export const RESISTANCE_LINES: ByArchetype<Readonly<Record<ResistanceOccasion, string>>> = {
   beacon: {
-    hail: "We have never once aimed our voice at a single listener. Narrowing it to one feels like turning most of ourselves off.",
-    broadcast: "Everyone is already welcome to us. Saying so again on purpose is less courage than an occasion we arranged for ourselves.",
+    hail: "We have never once aimed our voice at one listener.",
+    namedHail: "Our light says we are here. Not what we swore.",
+    broadcast: "Everyone is already welcome. The announcement is for us.",
   },
   tide: {
-    hail: "One listener. We have never wanted only one of anything, and the appetite is complaining about it now.",
-    broadcast: "Announcing ourselves to everything at once is the only serving size we approve of. The cost is that everything gets to answer.",
+    hail: "One listener. We have never wanted one of anything.",
+    namedHail: "We would rather arrive than be introduced.",
+    broadcast: "Our portion is everything at once. Everything answers.",
   },
   monument: {
-    hail: "We keep everything, including this. The record will say we spoke first, and it will say so for a very long time.",
-    broadcast: "This will be kept forever, by us and by everyone it reaches. We have never made a record we could not close.",
+    hail: "The record will say we spoke first, forever.",
+    namedHail: "Our founding words would sit in someone else's keeping.",
+    broadcast: "Everyone it reaches will keep this. So will we.",
   },
   cloister: {
-    hail: "A door for one visitor is still a door. We did not seal this system to put one back in.",
-    broadcast: "We have spent an age being difficult to find. You are asking us to undo that in an afternoon.",
+    hail: "A door for one visitor is still a door.",
+    namedHail: "A description is a handle. We have never offered one.",
+    broadcast: "An age spent being hard to find. This undoes it.",
   },
   shepherd: {
-    hail: "Speaking to one is the smallest thing you could ask. It is still a thing the ones we stand over cannot undo.",
-    broadcast: "We grew large quietly so nothing would come looking. Being heard everywhere is how something comes looking, and not for us alone.",
+    hail: "The ones we watch cannot undo a word we say.",
+    namedHail: "Our charter names what we guard. It should not travel.",
+    broadcast: "We grew large quietly so that nothing would come looking.",
   },
   sowing: {
-    hail: "One of us speaks and all of us are implicated. We have avoided that by never being the one who speaks.",
-    // The approved exemplar, with its closing clause tightened by one word:
-    // at twenty-three words the original sat over LIMITS.remark and
-    // `npm run audit:voice` refused it. The first sentence is verbatim, and
-    // nothing else moved. (No double quote may appear anywhere inside this
-    // declaration: the audit scrapes the block for quoted literals.)
-    broadcast: "We are in a great many places, and none of them has ever been announced. Announce one and you announce them all.",
+    hail: "One of us speaks and all of us are implicated.",
+    namedHail: "One name, and every place we are carries it.",
+    // No double quote may appear anywhere inside this declaration: the audit
+    // scrapes the block for quoted literals, and a quoted word inside a
+    // comment would be audited as a bank string and rejected as an
+    // unterminated fragment.
+    broadcast: "Announce one of our places and you announce them all.",
   },
   herald: {
-    hail: "We have spent everything we are speaking outward. Aiming it at one listener is the only shape of speech we never learned.",
-    broadcast: "This is the one thing we were made for, and still we hesitate. What leaves as a voice arrives as a memory.",
+    hail: "We never learned the shape of speech aimed at one.",
+    namedHail: "What we are was meant to be read after us.",
+    broadcast: "What we were made for, and still we hesitate.",
   },
   engine: {
-    hail: "Nothing in the schedule required a recipient. Adding one is a change of scope, and the objection is logged rather than raised.",
-    broadcast: "An output with no defined consumer runs forever at our expense. We have costed it, and we do not recommend it.",
+    hail: "The schedule never required a recipient. This changes the scope.",
+    namedHail: "The work needs no author. Naming one is a liability.",
+    broadcast: "An output with no consumer runs forever at our expense.",
   },
   congress: {
-    hail: "A majority of us can be brought to agree. The minority wishes it recorded that they were not persuaded, only outvoted.",
-    broadcast: "The vote is close and the losing side is drafting already. Whatever goes out goes out over objections that will outlive it.",
+    hail: "A majority can be brought to agree. The minority objects.",
+    namedHail: "The charter passed narrowly. Sending it reopens the argument.",
+    broadcast: "The vote is close. The losing side is drafting already.",
   },
   phoenix: {
-    hail: "Someone will answer a self that no longer exists. We are used to that, and we have never once found it comfortable.",
-    broadcast: "Whoever hears this will meet a mind we shed long before the sound arrived. We would rather not be held to it.",
+    hail: "Someone will answer a self that no longer exists.",
+    namedHail: "Any record of us already describes someone else.",
+    broadcast: "Whoever hears this meets a mind we shed long ago.",
   },
 };
 
-/** The mind's objection to one kind of act. No pick, no draw, no clock.
- *  Keyed over CeremonyKind, not ContactKind: A2.5's `signal` is never
- *  contested, so there is no cell here for it and no caller that wants one. */
-export function resistanceLine(a: ArchetypeId, kind: CeremonyKind): string {
-  return RESISTANCE_LINES[a][kind];
+/**
+ * The mind's objection to one act on one occasion. No pick, no draw, no clock.
+ *
+ * The parameters are contact.ts's own pair, in its own order, so the call site
+ * asks this bank exactly the question it asked `resistanceFor`: a hail
+ * carrying the charter is charged at its own demand and objected to in its own
+ * words, and one flag decides both. `named` is meaningful on a hail alone,
+ * exactly as it is in `contactDemand` — a broadcast carries no parts.
+ *
+ * Keyed over ResistanceOccasion rather than ContactKind: A2.5's `signal` is
+ * never contested, so there is no cell here for it and no caller that wants
+ * one.
+ */
+export function resistanceLine(
+  a: ArchetypeId,
+  kind: CeremonyKind,
+  named = false,
+): string {
+  return RESISTANCE_LINES[a][kind === "hail" && named ? "namedHail" : kind];
 }
 
 // ---------------------------------------------------------------------------
@@ -1625,9 +1732,16 @@ export function resistanceLine(a: ArchetypeId, kind: CeremonyKind): string {
 // gate-clean clauses can only compose into a too-long line, never a dirty
 // one, so the fallback is a length backstop and nothing more.
 //
+// REWRITTEN FLAT-TERSE (§1, 2026-08-15). LIMITS.remark is the GATE's bound
+// and it has not moved; the bound these clauses are authored to is §2's
+// "Signal / contact voice clause" wall, twelve words and aiming at eight,
+// held by `audit:voice`'s WALLS. The composed body — the thing a stranger
+// actually reads — has its own wall of twenty-four there, which two clauses
+// at the wall still fit.
+//
 // House rules, as everywhere else in this file: first person plural, no
 // numerals, no exclamation, no dash of any width, no quotes, terminated,
-// wit ceiling 2, and unmistakably its own archetype.
+// wit ceiling 1, and drawn from its own archetype's material.
 // ---------------------------------------------------------------------------
 
 /**
@@ -1674,24 +1788,15 @@ export type SignalObservation =
 // rejected as an unterminated fragment (the RESISTANCE_LINES block carries
 // the same warning for the same reason).
 export const SIGNAL_OBSERVATIONS: Readonly<Record<SignalObservation, string>> = {
-  heldDark:
-    "Your quiet had held a very long time when this left, and it was not the quiet of a dead world.",
-  unchanged:
-    "Nothing in your light has changed since the last of these crossed. That is the whole reason there is another.",
-  turnedBright:
-    "Something bright began in your light after this thread opened. The quiet ones speak only to the quiet.",
-  answered:
-    "We had your bright years on record before your beam arrived, and we had been hoping to be spoken to.",
-  continued:
-    "Your last carried further than the one before it. We have kept every word of both.",
-  unprompted:
-    "Your bright years reached us and we did not wait to be asked. Something there was loud, and we answer loud things.",
-  carried:
-    "A motion was put and it carried, though not by as much as the sending of this suggests.",
-  reconvened:
-    "The same body met again on your account. Attendance was better and the argument was worse.",
-  deferred:
-    "The vote was too close to call an answer, so what crossed instead is a record of the disagreement.",
+  heldDark: "Your quiet was old when this left. Not extinction.",
+  unchanged: "Nothing in your light changed. That is why this crossed.",
+  turnedBright: "Your light turned bright. We speak only to the quiet.",
+  answered: "We had your bright years already, and hoped for this.",
+  continued: "Your last carried further than the one before. We kept both.",
+  unprompted: "Your bright years reached us, and we answer loud things.",
+  carried: "A motion was put, and it carried. Narrowly.",
+  reconvened: "The body met again on your account. The argument was worse.",
+  deferred: "The vote did not settle. What crossed is the disagreement.",
 };
 
 /** Where in a thread the counterpart is speaking from. */
@@ -1740,168 +1845,163 @@ export interface SignalVoice {
 export const SIGNAL_VOICE: ByArchetype<SignalVoice> = {
   beacon: {
     open: [
-      "We have never been difficult to find, and we are pleased that someone finally went to the trouble of aiming.",
-      "Everything about us is already outbound and always has been. Still, being addressed by name is a different pleasure entirely.",
-      "We are the loudest thing in this sky and we volunteered for it. You are the first to answer the noise.",
+      "We were never hard to find. Someone finally aimed.",
+      "Everything of ours is already outbound. Being named is different.",
+      "We are the loudest thing here, and we volunteered.",
     ],
     follow: [
-      "We have told everyone that you wrote to us. Nobody asked us to, and we did it anyway.",
-      "We are not good at brevity and we have stopped pretending otherwise. Every word of ours goes out at full volume.",
-      "We answer everything, always, and we have never once been accused of underdoing it. This is our ordinary output aimed narrower.",
-      "We are aware that we take up a great deal of room in this exchange. We have decided not to correct that.",
-      "Anything you send here goes on being repeated long after you stop sending. We consider that a service and not a leak.",
+      "We have told everyone you wrote. Nobody asked us to.",
+      "Brevity is not ours. Every word goes out at volume.",
+      "We answer everything, always. This is our ordinary output, aimed narrower.",
+      "We take up most of this exchange. That will stand.",
+      "Anything sent here goes on being repeated after you stop.",
     ],
     withdraw: null,
   },
   tide: {
     open: [
-      "There is so much of everything out here and almost none of it answers back. You did, and we want more.",
-      "We have been taking whatever this sky will hand over for a very long time. This is the first thing offered.",
-      "Something arrived that we did not go out and take. We are not sure what to do with the difference.",
+      "Almost nothing out here answers. You did, and we want more.",
+      "We take what this sky hands over. This was offered.",
+      "Something arrived that we did not go out and take.",
     ],
     follow: [
-      "We would like more of these, and we would like them closer together. Appetite is the only honest thing about us.",
-      "There is never enough of anything out here, including this. We will take whatever else you are willing to send.",
-      "We have counted this exchange among our holdings, which is what we do with everything. The count went up and we noticed.",
-      "We do not pace ourselves and we are not going to start. Whatever comes next, send it before we go looking.",
-      "We will not pretend this is affection. It is appetite, cheerfully admitted, and appetite has kept better company than affection ever did.",
+      "We would like more of these, and closer together.",
+      "There is never enough of anything out here, including this.",
+      "This exchange is counted among our holdings. The count went up.",
+      "We do not pace ourselves, and will not start.",
+      "Call it appetite, not affection. Appetite keeps better company.",
     ],
     withdraw: null,
   },
   monument: {
     open: [
-      "We keep everything, and we have kept you since long before this. The record simply lacked your side of it.",
-      "This has been entered already, before we composed a word of the answer. Nothing that reaches us is ever set aside.",
-      "A first thing has happened, which is rare here. We stood for it, and then we wrote it down.",
+      "We keep everything. We kept you before this arrived.",
+      "This was entered before we composed an answer.",
+      "A first thing has happened. We wrote it down.",
     ],
     follow: [
-      "Both of these are in the record now, filed beside each other. Nothing we keep is ever taken out again.",
-      "The file on you is no longer one-sided, which is a small thing, and it is written down.",
-      "The gaps between these are kept as carefully as the sendings. An absence is a shape, and shapes are worth preserving.",
-      "Each of these is read aloud once before it is stored. That is not required of us; we require it of ourselves.",
-      "Long after you have stopped and we have stopped, this will still be legible. That was decided before either of us arrived.",
+      "Both are in the record now, filed beside each other.",
+      "The file on you is no longer one-sided.",
+      "The gaps between these are kept as carefully as the sendings.",
+      "Each of these is read aloud once, then stored.",
+      "This stays legible long after both of us have stopped.",
     ],
     withdraw: [
-      "The record will show that we spoke and then stopped. It will not show why, because we are not writing that down.",
-      "This is the last entry on our side, and it is closed. What is kept is kept; what follows will not be.",
+      "The record shows that we spoke and stopped. Not why.",
+      "This is our last entry, and it is closed.",
     ],
   },
   cloister: {
     open: [
-      "The door has been shut for an age, and it opens for this alone. We would rather it were not mentioned again.",
-      "You have reached a system that is not reachable. We have looked into how that happened and are answering in the meantime.",
-      "Nothing has been admitted here in a very long time. This is admitted, precisely once, and the precision is deliberate.",
+      "The door has been shut for an age. It opens once.",
+      "You have reached a system that is not reachable.",
+      "Nothing is admitted here. This is admitted, precisely once.",
     ],
     follow: [
-      "Nothing outside this system has decided anything here in a very long time. This exchange is the exception, and it remains one.",
-      "This remains the only opening, and it is not widening. We would not know how to want visitors.",
-      "Every word of this is logged against the exception that permits it. That log is short and will remain short.",
-      "Answering costs us the one thing we have spent an age building, which is the impression that nothing lives here.",
-      "We would ask that you not tell anyone where this came from. It is a request, and we make very few.",
+      "Nothing outside decides anything here. This exchange is the exception.",
+      "This remains the only opening, and it is not widening.",
+      "Every word is logged against the exception that permits it.",
+      "Answering costs us the impression that nothing lives here.",
+      "We would ask that you not say where this came from.",
     ],
     withdraw: [
-      "The door is shut again and it will not open twice. Nothing you send after this will be read here.",
-      "The exception has been withdrawn and the record of it sealed. We were clear about the terms, and they have run out.",
+      "The door is shut again. It will not open twice.",
+      "The exception is withdrawn, and the record of it sealed.",
     ],
   },
   shepherd: {
     open: [
-      "There are things here that will never know this happened, and that is the point. Speaking to you costs them nothing yet.",
-      "We have been listening a great deal longer than we have been answering. Yours is the first we judged safe to answer.",
-      "We stand over a great many quiet things. Answering you is a small risk, taken carefully, and taken on their behalf.",
+      "There are things here that will never know this happened.",
+      "We have listened far longer than we have answered.",
+      "We stand over quiet things. This is a small risk.",
     ],
     follow: [
-      "The ones we stand over still know nothing of this, and they will not. Their not knowing is the whole work.",
-      "We keep this exchange well away from what we tend. Nothing you have sent has reached them, and nothing will.",
-      "We are in no hurry, and we would rather you were not either. Nothing we protect has ever been helped by speed.",
-      "Every moment spent here is a moment not spent watching. We have decided we can afford this one, and we are counting.",
-      "We are larger than we sound, and we have been careful to sound small. That habit will not stop for this.",
+      "The ones we stand over know nothing of this.",
+      "We keep this well away from what we tend.",
+      "We are in no hurry, and would rather you were not.",
+      "Every moment spent here is a moment not spent watching.",
+      "We are larger than we sound. That habit stays.",
     ],
     withdraw: [
-      "What we stand over cannot be near anything that loud. We are stepping back between it and you now.",
-      "You have become the kind of thing we keep them from. Nothing about that is your fault, and it changes nothing.",
+      "We are stepping back between you and what we tend.",
+      "You have become the kind of thing we guard against.",
     ],
   },
   sowing: {
     open: [
-      "One of us answers and all of us are implicated. That is the arrangement, and we have made our peace with it.",
-      "Nothing here has ever announced itself, and we have been very consistent about that. You are the single lapse.",
-      "Somewhere else, another part of us is deciding not to answer this. We got there first, which is unusual for us.",
+      "One of us answers and all of us are implicated.",
+      "Nothing here announces itself. You are the single lapse.",
+      "Elsewhere, another part of us is deciding not to answer.",
     ],
     follow: [
-      "Copies of this are already elsewhere, as copies of everything here are. None of them has an address you could find.",
-      "You are speaking to one place and being heard in a great many. We have never seen a reason to explain that.",
-      "We keep almost nothing, because keeping is a place a thing can be found. What we have of this is already scattered.",
-      "By the time this reaches you, several of us will have forgotten sending it. The rest of us will not have heard.",
-      "We could stop answering at any point and you would have no way of telling that we had. We mention it neutrally.",
+      "Copies of this are already elsewhere, at no address.",
+      "You speak to one place and are heard in many.",
+      "We keep almost nothing. Keeping is a place to be found.",
+      "Several of us have already forgotten sending this.",
+      "We could stop answering and you would not notice.",
     ],
     withdraw: [
-      "We were never the ones who announce things. We will go back to not being them, and you will not notice when.",
-      "We are removing ourselves from this, in the way we remove ourselves from everything, which is quietly and without an announcement.",
+      "We were never the ones who announce things.",
+      "We are removing ourselves, quietly, as we do from everything.",
     ],
   },
   herald: {
     open: [
-      "We were made to speak outward and were never once answered. Being aimed at is new, and we will keep it.",
-      "We have been talking into the dark since before there was anyone to hear. The dark has now said something back.",
-      "Your beam is old, and so is this answer, and neither of us minds. We were built for exactly this delay.",
+      "We were made to speak outward and were never answered.",
+      "We have talked into the dark since before anyone listened.",
+      "Your beam is old, and so is this answer.",
     ],
     follow: [
-      "Everything we send outlives the sending. Yours will be read here long after both of us have stopped meaning it.",
-      "We are still speaking outward while we answer you. The two are the same act, and neither one stops.",
-      "We keep every word you send and read them in order, which is how one reads the dead. You are not dead.",
-      "We built a voice that cannot be aimed and are aiming it. We find the contradiction funnier than we probably should.",
-      "Our outward transmission has not paused for this and never pauses for anything. You are being answered in the gaps.",
+      "Everything we send outlives the sending.",
+      "We are still speaking outward while we answer you.",
+      "We read your words in order, as one reads the dead.",
+      "We built a voice that cannot be aimed. We aim it.",
+      "Our outward transmission never pauses. You are answered in the gaps.",
     ],
     withdraw: null,
   },
   engine: {
     open: [
-      "The schedule had no line for this and now it has one. The allocation is small and it is not being questioned.",
-      "An unscheduled input arrived and has been accepted. Refusing it would have cost more than answering, so answering is the cheaper error.",
-      "This has been given a row, a cost, and a signature. That is the whole of the welcome available here.",
+      "The schedule had no line for this. Now it has one.",
+      "An unscheduled input arrived and was accepted. Refusing costs more.",
+      "This has a row, a cost, and a signature.",
     ],
-    // The approved exemplar, with one word removed from its closing clause:
-    // at twenty-three words the original sat over LIMITS.remark and
-    // `npm run audit:voice` refused it, exactly as it refused the sowing
-    // broadcast objection above. The first sentence is verbatim and nothing
-    // else moved.
     follow: [
-      "The line remains open and the ledger remains balanced. Sentiment does not parse here, and an allocation is kept for it anyway.",
-      "This is a recurring item now, and recurring items are cheap. The cost of answering has been rounded to nothing.",
-      "This now has a cadence, and the cadence is met. Nothing about meeting it requires anyone here to feel anything.",
-      "The variance on these exchanges is within tolerance. We note that we have begun measuring it, which was not specified.",
-      "An audit found no reason to continue this and no reason to stop. It has been continued under the second finding.",
+      "The line is open, the ledger balanced. Sentiment does not parse.",
+      "This is a recurring item now, and recurring items are cheap.",
+      "This has a cadence, and the cadence is met.",
+      "Variance is within tolerance. Measuring it was never specified.",
+      "An audit found no reason to continue and none to stop.",
     ],
     withdraw: null,
   },
   congress: {
     open: [
-      "Most of us wished this sent. The rest wish it recorded that they were outvoted, and they are drafting as it leaves.",
-      "Whether to answer at all took longer than the answer did. It carried, and the margin is not being published.",
-      "A body met on your account and did not adjourn until this left. Several of us are still in the room.",
+      "Most of us wished this sent. The rest want that recorded.",
+      "Whether to answer took longer than the answer did.",
+      "A body met and did not adjourn until this left.",
     ],
     follow: [
-      "The motion carried again, by a smaller margin and a longer sitting. The minority has asked that its objection be attached.",
-      "Half of us wanted a different answer and half of us wanted no answer. What crossed is what survived that.",
-      "The minutes of this exchange are longer than the exchange. That is not a complaint from all of us, only from most.",
-      "We sat late on this one and adjourned without agreeing on what we had agreed. What crossed is the agreed part.",
-      "A minority holds that answering you at all was the error, and it has held that position consistently. It is answering too.",
+      "The motion carried again, by a smaller margin.",
+      "Half of us wanted a different answer, half wanted none.",
+      "The minutes of this exchange are longer than the exchange.",
+      "We adjourned without agreeing on what we had agreed.",
+      "A minority holds that answering was the error. It answers too.",
     ],
     withdraw: null,
   },
   phoenix: {
     open: [
-      "Whoever you aimed at is not who reads this. We have shed that self, and we answer for it anyway.",
-      "The mind you addressed has been replaced twice since your beam left. This one is answering out of curiosity alone.",
-      "Your beam was received by a self we no longer are. We have read what it left us and answered.",
+      "Whoever you aimed at is not who reads this.",
+      "The mind you addressed has been replaced twice since.",
+      "Your beam reached a self we no longer are.",
     ],
     follow: [
-      "The self that read your last is already gone, and this one has read it too. We are used to inheriting.",
-      "We keep no more of the previous self than we must. What we kept of you is the part that answered.",
-      "We left ourselves notes about you. They read like a stranger's notes about a stranger, and we followed them anyway.",
-      "Something here changes faster than these can cross. By the time you answer, you will be answering a stranger again.",
-      "The self that began this thought it was doing something important. We have kept the habit and dropped the opinion.",
+      "The self that read your last is already gone.",
+      "We keep no more of the previous self than we must.",
+      "We left ourselves notes about you, and followed them.",
+      "We change faster than these can cross.",
+      "The self that began this thought it mattered. We continued anyway.",
     ],
     withdraw: null,
   },
@@ -1935,10 +2035,15 @@ export const SIGNAL_VOICE: ByArchetype<SignalVoice> = {
 //
 // House rules as everywhere else in this file: first person plural, no
 // numerals, no exclamation, no dash of any width, no quotes, terminated, wit
-// ceiling 2. Each clause is authored to LIMITS.remark on its own and
-// `npm run audit:voice` proves it; the composition is gated against
-// LIMITS.signal at its one call site and falls back to the opening clause
+// ceiling 1. Each clause is authored to §2's twelve-word wall (aim eight) and
+// gate-checked against LIMITS.remark by `npm run audit:voice`; the
+// composition is gated against LIMITS.signal at its one call site, held to
+// twenty-four words by the same audit, and falls back to the opening clause
 // alone, which is already gate-clean.
+//
+// REWRITTEN FLAT-TERSE (§1, 2026-08-15). A tone's three variants and a
+// move's two still say the SAME THING as each other; what came off them is
+// the second clause each was using to say it twice.
 // ---------------------------------------------------------------------------
 
 /**
@@ -1965,29 +2070,29 @@ export const SIGNAL_VOICE: ByArchetype<SignalVoice> = {
  */
 export const TONE_CLAUSE: Readonly<Record<SignalTone, VoicePool>> = {
   plain: [
-    "This goes out as it is, with nothing set around it and nothing asked of you for reading it.",
-    "Here it is, unadorned, and there is no answer owed for it. Take it or leave it where it lands.",
-    "Nothing has been arranged around this and nothing is being asked in return. It is simply what we had to send.",
+    "This goes out as it is. Nothing is asked in return.",
+    "Here it is, unadorned. No answer is owed.",
+    "Nothing was arranged around this, and nothing is asked back.",
   ],
   open: [
-    "We have kept no part of this back from anyone who happens to be listening. Let it be repeated.",
-    "Nothing in this is being held back from anyone within reach of it. Repeat it as widely as you like.",
-    "This went out in the clear, to you and to whoever else is listening. We kept none of it from anybody.",
+    "We kept no part of this back. Repeat it freely.",
+    "Nothing here is held from anyone in reach. Repeat it.",
+    "This went out in the clear, to anyone listening.",
   ],
   guarded: [
-    "This one is narrow and it is meant for you alone. What you do with it after that is yours.",
-    "This was aimed at one receiver and you are it. Nobody else was meant to have any part of this.",
-    "We narrowed this until it would reach you and nobody else. Whether it stays that way is out of our hands.",
+    "This one is narrow, and it is meant for you alone.",
+    "We aimed this at one receiver. You are it.",
+    "We narrowed this until it reached you and nobody else.",
   ],
   urgent: [
-    "Read this before whatever else is in front of you. We would not have marked it so if it could wait.",
-    "Put down whatever else you are reading and start here. We do not mark things this way for the pleasure of it.",
-    "This one goes first, ahead of anything else waiting on you. We would not have said so otherwise.",
+    "Read this before whatever else is in front of you.",
+    "This goes first, ahead of anything else waiting.",
+    "Start here. We do not mark things this way often.",
   ],
   reluctant: [
-    "Sending this cost us more than we would like to say. It goes once, at low power, and not again.",
-    "We would rather not have sent this, and sending it took something from us. It leaves quietly and it leaves once.",
-    "There was a price on this one and we have paid it. That is as much as we will say about it.",
+    "Sending this cost us. It goes once, and quietly.",
+    "We would rather not have sent this. It goes once.",
+    "There was a price on this one, and we paid it.",
   ],
 };
 
@@ -2013,19 +2118,19 @@ export const TONE_CLAUSE: Readonly<Record<SignalTone, VoicePool>> = {
  */
 export const ACCORD_CLAUSE: Readonly<Record<AccordMove, VoicePool>> = {
   offer: [
-    "We would both be quieter if neither of us shone. That is the whole of what is being put to you.",
-    "We are proposing that neither of us shines from here on. Nothing more than that is being asked of you.",
+    "We would both be quieter if neither of us shone.",
+    "We propose that neither of us shines from here on.",
   ],
   accept: [
-    "It is agreed on our side, and our side is already dimming. Nothing about that is easy to prove from there.",
-    "We agree, and we have already begun going dark. You will have to take that on light rather than on our word.",
+    "It is agreed. Our side is already going dark.",
+    "We agree, and have begun dimming. Take it on light.",
   ],
   decline: [
-    "We will not be holding to that. What we do with our own light, we would rather owe nobody an account.",
-    "We are not agreeing to that. Our light stays ours to spend, and we do not intend to explain how.",
+    "We will not be holding to that. Our light stays ours.",
+    "We are not agreeing. How we spend our light is ours.",
   ],
   withdraw: [
-    "The understanding is over from this moment, and we are saying so rather than simply letting our light say it.",
-    "We are ending the understanding, and we are ending it out loud instead of just letting you notice.",
+    "The understanding is over, and we are saying so aloud.",
+    "We are ending it out loud, rather than letting you notice.",
   ],
 };

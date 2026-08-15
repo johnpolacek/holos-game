@@ -144,28 +144,47 @@ S0 makes four things true, one stage each:
   § Settled: overflow detail holds the full record and roadmap.md § The
   UX reboot carries the call.)*
 
-### The intro's copy (settled 2026-08, design review)
+### The intro's copy (repinned 2026-08-15, flat terse)
 
 Pinned, subject only to the mechanical gates:
 
 1. *The measure* — the star's limb filling the frame:
-   **"Your star sheds more power in one second than your species used in
-   its whole climb."**
+   **"Your star spends more each second than your species ever used."**
 2. *Where you sit* — the scale rail, three marks, the cyan point just
-   past the first: **"There is a scale for what a civilization holds: a
-   world, a star, a galaxy. You stand just past the first mark."**
-3. *The new state* — the waking rings: **"The species built a mind, and
-   the mind is what you are now. What was out of reach is a matter of
-   time."**
+   past the first: **"The scale: world, star, galaxy. You stand just past
+   the first."**
+3. *The new state* — the waking rings: **"The species built a mind. You
+   are it. Distance is only time."**
 4. *The sky* — an ambiguous sky, faint warm smudges that could be
    civilizations or could be nothing: **"You may not be the first to
    wake."** Then Begin.
 
+**What changed, and why the old pin is gone.** The 2026-08 design review
+pinned four beats written under the *lean witty* target: sixteen, twenty-two,
+twenty-three and eight words. prose-style.md §1's flat-terse turn
+(2026-08-14) supersedes that target and §2 gives an intro beat a
+twelve-word wall, aiming at nine, so three of the four were over their
+surface's wall on the day the doctrine landed — and a pin cannot hold copy
+above a wall that governs it. The four above are the same four beats, each
+still matched to its own camera move, with the ornament deleted and no beat
+retired, reordered or re-aimed. Beat four is unchanged: it was already the
+shortest thing in the sequence and it is the drama. `voice.ts`'s
+`INTRO_LINES` carries them verbatim and `npm run audit:voice` holds the bank
+at twelve.
+
+They are pinned in their turn, on the same terms as before: **if a gate
+rejects one, the fix is reviewed against this brief, not improvised** — and
+now also against §1, which is the thing that moved.
+
 Beat two shows the scale and never names it: "Kardashev" is design
-vocabulary (vision.md § Source framework) and does not reach a surface.
-Beat four's visual must not assert neighbors exist — no confirmed amber
-sources, only ambiguity — because the line's uncertainty is the knowledge
-layer's own, and the art may not claim what no instrument could.
+vocabulary (vision.md § Source framework) and does not reach a surface. Under
+the terse copy the rail carries more of that work than it used to: beat one
+sets the unit (what a star spends against what a species spent), so beat
+two's three marks read as the ladder they are, and the line names them
+rather than explaining them. Beat four's visual must not assert neighbors
+exist — no confirmed amber sources, only ambiguity — because the line's
+uncertainty is the knowledge layer's own, and the art may not claim what no
+instrument could.
 
 ### Decisions already made (do not reopen)
 
@@ -260,8 +279,8 @@ ships whole.
   belong to the instrument register), no cohort year anywhere in the
   intro (R-33 — the beats carry no dates at all), and every new string
   through the style gate.
-- **Do not reopen settled copy.** The four beat lines are pinned above;
-  if a gate rejects one, the fix is reviewed against this brief, not
-  improvised.
+- **Do not reopen settled copy.** The four beat lines are pinned above
+  (repinned 2026-08-15, flat terse); if a gate rejects one, the fix is
+  reviewed against this brief, not improvised.
 - **Every merge is shippable** — `main` auto-deploys; a half-done stage
   does not merge.

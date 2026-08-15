@@ -36,7 +36,7 @@
 // senders who chose the same parts emit byte-identical lists: composition
 // order is not a fingerprint.
 
-import type { CivId } from "./civseed";
+import type { CivId, CivSeed } from "./civseed";
 import { DIAL_AXES, type DialAxisId } from "./dials";
 import { civAtStar, type Galaxy } from "./galaxy";
 import { emissionAt, visibleSky, type SignalClass } from "./knowledge";
@@ -300,6 +300,32 @@ export interface CulturePart {
   readonly pole: string | null;
   /** The catalog prose, frozen at send. */
   readonly text: string;
+}
+
+/**
+ * KN: THE ONE CONSTRUCTION OF A CHARTER PART, and every path that emits one
+ * goes through it — the human composer's charter arm below, the counterpart's
+ * opening flourish (traffic.ts's `aiCulture`), and the named opener on both
+ * sides. That is not tidiness: the knock's claim is that a named opener says
+ * NOTHING about who sent it, and the strongest form of that claim is a single
+ * constructor rather than four literals that currently agree.
+ *
+ * `index` is 0 because a civilization has one charter. `axis` and `pole` are
+ * dial-only fields and stay null, which is what makes this shape byte-identical
+ * to the one A2.6 already shipped.
+ */
+export function charterPart(seed: CivSeed): CulturePart {
+  return {
+    kind: "culture",
+    source: "charter",
+    index: 0,
+    axis: null,
+    pole: null,
+    // A catalog literal (`archetypeById(a).charter`, copied onto the seed at
+    // generation), frozen here at send. Nothing source-specific and nothing
+    // actionable: a self-portrait, not a proposition.
+    text: seed.charter,
+  };
 }
 
 /** Trade needs a way to WANT. A request names a kind and, optionally, a star
@@ -890,14 +916,7 @@ function materializeCulture(
   if (me === undefined) return unavailable("no self there");
   switch (source) {
     case "charter":
-      return {
-        kind: "culture",
-        source: "charter",
-        index: 0,
-        axis: null,
-        pole: null,
-        text: me.seed.charter,
-      };
+      return charterPart(me.seed);
     case "chronicle": {
       const line = me.seed.chronicle[index];
       if (line === undefined) return unavailable("no such line");

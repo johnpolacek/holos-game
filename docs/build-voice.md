@@ -119,10 +119,10 @@ Decisions already made (do not reopen):
   archetype voices the narrator speaks in), §7 (sync obligations), §8
   (pinned vocabulary).
 - [walkthrough.md](./walkthrough.md) — the acceptance fiction: the
-  ceremony's pull-back line (*"The record is complete up to this
-  morning…"*), Day 1 evening's report opening, Days 2–3's
-  report → strategy turn → beats loop, and Week 6's triaged wake report
-  (the mature form AV2's thin report grows toward).
+  ceremony's pull-back line (*"The record is complete and kept. You are
+  how it grows."*), Days 2–3's report → strategy turn → beats loop, and
+  Week 6's triaged wake report (the mature form AV2's thin report grows
+  toward).
 - [act3-design.md](./act3-design.md) — § The Sky (tense discipline),
   § Sleep and the presence rule.
 - [ui-design.md](./ui-design.md) — the Desk surfaces, principles on ages
@@ -147,11 +147,12 @@ The mind speaks, and the chrome learns to explain itself once.
 
 Server: a voice bank for the **arrival line** — the mind's first words
 after the pull-back, per archetype (register: archetype voice, wit
-ceiling 3; the walkthrough's *"The record is complete up to this morning.
-What happens next has been left, deliberately, blank. That is what you
-are for."* is the register target, not necessarily the shipped line for
-every archetype). Client: the line lands as a DOM overlay beat at the end
-of the pull-back, dismissed by tap, never shown again.
+ceiling 3; the walkthrough's original pull-back line — *"The record is
+complete up to this morning. What happens next has been left,
+deliberately, blank. That is what you are for."* — was the register
+target, not necessarily the shipped line for every archetype). Client:
+the line lands as a DOM overlay beat at the end of the pull-back,
+dismissed by tap, never shown again.
 
 The frame lines, each shown once at the moment its surface first appears,
 then never again (a per-player `seen` set in DO storage):

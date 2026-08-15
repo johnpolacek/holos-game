@@ -452,11 +452,11 @@ outpacing the observer's instruments: confidence retreats.
   regressions asymptote and never reach flat, the mirror of
   `SHARE_CEIL`'s *watching never delivers certainty*. Regression
   enters shares only through `settleShares`.
-- **The tell** is one banked wit-0 sentence on the wire
-  (`StudySnapshot.contestLine`): *"Nature does not get better at
-  hiding; something there is working against the look."* The evidence
-  trail's regressed row states only the observation (*"The later look
-  separates less than the earlier one..."*); cause lives in the tell.
+- **The tell** is one banked wit-0 line on the wire
+  (`StudySnapshot.contestLine`): *"Nature does not learn to hide.
+  Something there has."* The evidence trail's regressed row states only
+  the observation (*"The later look separates less than the earlier
+  one..."*); cause lives in the tell.
   A masked plateau (*"...consistent with every reading and decisive
   about none."*) is indistinguishable on the surface from an
   instrument-limit plateau, deliberately.
@@ -685,8 +685,8 @@ the only truth-derived member.
 **Named TEND on screen** (renamed from *the Docket*, 2026-07). The old
 name was the last survivor of a legal vocabulary the game had already
 dropped once, when `case` became `study`; TEND is a verb, and it names
-the second standing chip on the sky — `+ Start` begins something, `Tend`
-checks on what is already going. In code the module is `tend.ts` with
+the list on the rail's Projects page, under the `Start a project` row
+that begins something new. In code the module is `tend.ts` with
 `TendRow`, and the per-row state is `WorkState`, which describes the work
 rather than the surface.
 
@@ -982,7 +982,18 @@ that star comes back overtaken by A2.3's machinery with no new code.
 archetype objection line, the coherence cost — pushed, not
 preflighted, because they are pure functions of the civ's own dials)
 and `outbound`, the player's own acts (`sentYear` / `arrivesYear` /
-`shellRadiusLy`). Nothing in it is about anyone else. Validation
+`shellRadiusLy`). Nothing in it is about anyone else. **KN amends the
+opener, on both counts:** the message carries an optional `named`
+(absent parses false, so a stale tab still knocks bare), a named hail
+appends one server-composed culture part — the sender's own charter,
+index 0, nothing else expressible — and `ContactWire` carries a third
+stance, `namedHail`, which is the same act at `NAMED_HAIL_DEMAND`
+(-0.5, contesting above +0.20, between the hail's +0.35 and the
+broadcast's +0.10) and carries its own objection line: KN3 gave
+`RESISTANCE_LINES` a third occasion, because between +0.20 and +0.35
+the mind lets the bare beam go without a word and argues only about
+the charter, so the grievance the player hears there has to be
+self-revelation and never the act of hailing. Validation
 answers "unknown star", "no civ there" and "light not yet arrived"
 with one code, so the error channel is not an oracle.
 
@@ -1110,8 +1121,7 @@ astronomy, never mail); sent signals ride a cyan rail whose LANDED
 line is the player's own arithmetic, never a receipt. Answering a
 counterpart that hailed you first routes through the hail ceremony,
 because answering reveals you. The silent state's one line: "The
-window in which an answer could have arrived has passed. Nothing
-came."
+window for an answer has passed. Nothing came."
 
 ---
 
@@ -1399,11 +1409,12 @@ instead of neglect.
 
 **Payload-free, structurally.** The POST body is empty; the service
 worker (client/public/sw.js, no fetch handler, no caching) shows one
-fixed line, "A watch tripped. One of the conditions you left standing
-now holds. The board has the rest." The server stores no subscriber
-key material (no p256dh, no auth), so no code path could put a fact
-on a push service's wire even if a later change tried. The content
-waits behind the tap, in the game, through the cone, as always.
+fixed title, "A watch tripped", over one fixed body, "One of the
+conditions you left standing now holds. The board has the rest." The
+server stores no subscriber key material (no p256dh, no auth), so no
+code path could put a fact on a push service's wire even if a later
+change tried. The content waits behind the tap, in the game, through
+the cone, as always.
 
 **The watch.** A tripwire's condition can change only at a dated
 arrival: a grown emission epoch reaching the observer, a bought

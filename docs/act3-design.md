@@ -562,6 +562,8 @@ decision with real time in it:
    last real-world weeks. Ends only by your choice — or theirs.
 3. **The choice.** Three options, none reversible:
    - **Directed hail** — reveals your existence and position *to them*.
+     It may go bare or carry one culture part, your charter, at a price
+     between a hail's and a broadcast's (knock-design.md).
    - **Broadcast** — reveals you to everyone inside the expanding shell of
      your voice, forever.
    - **Stay dark** — keep watching. The vigil continues.
@@ -1432,9 +1434,9 @@ WORLD` → `BROADCAST LEAKAGE` an event you can watch rather than an initial
 condition; it is a content change to the class a player reads, and it
 belongs to whoever owns the young-world beat. Second, *the Shepherd's
 default posture contradicts its own charter*: minds.ts gives it
-`defaultPosture: "bright"` under "We grew strong so the small could stay
-small, and never know why." A vigil-keeper that shines contaminates its own
-wards. Flipping it is a one-word coherence fix worth about half a point of
+`defaultPosture: "bright"` under "We grew strong so the small stay small,
+and unaware." A vigil-keeper that shines contaminates its own wards.
+Flipping it is a one-word coherence fix worth about half a point of
 loud fraction, and it changes what an existing archetype *is*, so it is not
 a tuning slice's call.
 

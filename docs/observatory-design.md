@@ -41,11 +41,13 @@ toolset that combines in ways this document does not enumerate.
 
 ## The study
 
-Flagging a source opens a **study** — the observatory desk's unit of work,
-one per source under active vigil. A study holds:
+A **study** stands on every source from the moment it is found — there is no
+verb between seeing a source and reading its board, and never was one worth
+paying for (see *Ambient studies*, below). A study is the observatory desk's
+unit of work, one per source. It holds:
 
 - **The record so far.** Everything your instruments have ever received
-  from the source — the light archive the source card already scrubs —
+  from the source — the light archive the source card already shows —
   now annotated: which arrivals moved which beliefs.
 - **The hypotheses.** The candidate identities still in play, each with
   its share of the mind's confidence.
@@ -55,9 +57,28 @@ one per source under active vigil. A study holds:
   stranger (see *The contest*, below).
 - **The study tripwires.** Standing wake conditions scoped to this source.
 
-The observatory (the Desk panel) is the set of open studies with
-their confidence bars and next checkpoints — the sky as a study load, which
-is exactly the session texture playstyles.md promises the Silence lean.
+The observatory (the Desk panel) is the set of studies this civilization has
+put something into, with their confidence bars and next checkpoints — the sky
+as a study load, which is exactly the session texture playstyles.md promises
+the Silence lean.
+
+### Ambient studies (shipped 2026-08, build-ambient-studies.md)
+
+The board is universal and the record is lazy. Every visible source renders a
+full board — hypotheses, evidence trail, open questions with prices — with no
+gate and no verb, because a mind that had detected a source and was not
+already working up what it might be would be a bad observatory. What the
+server stores is a different thing: a `StoredStudy` comes into existence on
+the **first act that needs a record** (buying a question, arming a tripwire,
+calling, launching a mission at the source, or a standing order dispatching
+one), and `openedYear` / `openedClass` stamp *then*. Shelving refuses where
+there is no record, because it only takes something away.
+
+So the Desk lists the sources you have spent something on, not the sky. That
+is what keeps the portfolio texture and the report's scope honest, and what
+keeps the grounded and overtaken endings anchored to a real act of attention:
+an ambient board cannot ground, cannot overtake, and cannot fire a tripwire,
+because nobody has taken the watch up on it yet.
 
 ## Hypotheses
 
@@ -146,8 +167,8 @@ It is spendable on one thing — knowing — and converts to nothing else, so
 it never becomes the universal medium economy-design.md § *No money*
 refuses. Scarcity does the design work: with three live studies and income
 for one deep question, *which question, on which study* is a real decision
-every session. There is no cap on open studies — only on how fast any of
-them can move.
+every session. There is no cap on how many studies a player takes up — only
+on how fast any of them can move.
 
 **Sequencing is the skill.** A cheap question that halves the hypothesis
 space beats an expensive one that polishes the leader. The observatory
@@ -201,8 +222,8 @@ What the observatory shows of it — three shapes an answer can take:
   that got cleaner in the wrong way. **Nature does not get better at
   hiding.** A regression is evidence of spending, and the observatory
   says so plainly (**settled**) — not a wobble left for experts to
-  notice, but the implication stated in the observatory's deadpan: *this
-  does not happen naturally; something is working against the look.* The
+  notice, but the implication stated in the observatory's deadpan:
+  *Nature does not learn to hide. Something there has.* The
   mind reclassifies the study from *what is it* toward *why does it mind
   being looked at*. Losing ground on a study is the moment a vigil
   becomes a thriller, and it is information no honest sharpening could
@@ -236,15 +257,15 @@ filling to 100:
   but never auto-reopens the study, never warns of contradiction, and
   never charges a penalty — the wrong belief just sits there shaping
   choices until reality corrects it, as an event, maybe years later.
-  The player can always reopen a study on their own suspicion; the game
-  will not do their doubting for them.
+  The player can always take the watch up again on their own suspicion; the
+  game will not do their doubting for them.
 - **Grounded.** The Assay — a probe goes and looks
   (missions-design.md). Ground truth for the price of a mission and the
   years it takes; the study's escape hatch, and the observatory's
   standing advertisement for the work list.
 - **Shelved.** The vigil goes passive: allocation drops to zero, study
-  tripwires stay armed (*wake this study if the leakage stops; if
-  confidence regresses; if a beam*). Shelving is how a study load stays
+  tripwires stay armed (*wake this study if the leakage stops; if it
+  regresses; if belief crosses*). Shelving is how a study load stays
   finite without ever quite letting go — and a shelved study waking
   itself is a beat.
 - **Overtaken.** The source acts first — it hails, goes dark, moves, or
@@ -323,8 +344,12 @@ session: read the new light across the whole board (which questions
 landed, what moved, anything regress, which studies said nothing at all —
 nothing is a normal answer), buy one or two questions wherever they buy
 the most, set or adjust a hold, maybe call or shelve something, and
-leave with the next checkpoints visible on the strip. A single study may
-be mid-dry-spell for a week; the board never is. The observatory speaks its register throughout — instrument
+leave with the next checkpoints visible on the strip. *Shipped 2026-08
+(build-report-standings.md): "which studies said nothing at all" is now
+structure rather than bookkeeping — the Report carries a live STANDINGS list
+of every study in the sky beneath its dated annal, so a study with a row down
+there and no entry above it is exactly the one that was quiet.* A single study
+may be mid-dry-spell for a week; the board never is. The observatory speaks its register throughout — instrument
 deadpan, beliefs with ages, no adjectives — and the one flourish it is
 allowed stays true: the light you are reading left before you were
 watching.

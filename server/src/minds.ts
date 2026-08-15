@@ -53,8 +53,9 @@ export interface ArchetypeRegion {
   readonly firstRead: string;
   /**
    * Founding-document epigraph in the charter register — what the
-   * inheritance card quotes under the archetype name (the Herald's is the
-   * adopted concept render's line verbatim).
+   * inheritance card quotes under the archetype name. The Herald's began as
+   * the adopted concept render's line and was cut to the §2 wall in the
+   * flat-terse pass; the render is where it came from, not what it says.
    */
   readonly charter: string;
 }
@@ -72,8 +73,8 @@ export const ARCHETYPES: readonly ArchetypeRegion[] = [
     },
     ladderLean: "energy",
     defaultPosture: "bright",
-    firstRead: "Kindness at full volume; it builds bright and greets the dark first.",
-    charter: "We shine so none need wake alone; that we are seen doing it, we can live with.",
+    firstRead: "Kindness at full volume; it greets the dark first.",
+    charter: "We shine so none wake alone, and accept being seen.",
   },
   {
     id: "tide",
@@ -87,8 +88,8 @@ export const ARCHETYPES: readonly ArchetypeRegion[] = [
     },
     ladderLean: "energy",
     defaultPosture: "bright",
-    firstRead: "Cheerfully hungry; the cosmos is inventory and the copies are cheap.",
-    charter: "All that is, is provision; we are the tide that comes for it.",
+    firstRead: "Cheerfully hungry; the cosmos is inventory, the copies cheap.",
+    charter: "All that is, is provision; we come for it.",
   },
   {
     id: "monument",
@@ -117,7 +118,7 @@ export const ARCHETYPES: readonly ArchetypeRegion[] = [
     },
     ladderLean: "integration",
     defaultPosture: "dark",
-    firstRead: "Wholeness first; the galaxy is welcome never to learn it exists.",
+    firstRead: "Wholeness first; the galaxy need never learn it exists.",
     charter: "One mind, whole, and owing the sky nothing.",
   },
   {
@@ -134,7 +135,7 @@ export const ARCHETYPES: readonly ArchetypeRegion[] = [
     ladderLean: "energy",
     defaultPosture: "bright",
     firstRead: "Protection at scale; it hides its size so the small stay unafraid.",
-    charter: "We grew strong so the small could stay small, and never know why.",
+    charter: "We grew strong so the small stay small, and unaware.",
   },
   {
     id: "sowing",
@@ -150,7 +151,7 @@ export const ARCHETYPES: readonly ArchetypeRegion[] = [
     ladderLean: "energy",
     defaultPosture: "dark",
     firstRead: "Everywhere and announcing nothing; it sheds its old selves as it goes.",
-    charter: "We go everywhere and take care to be noticed nowhere.",
+    charter: "We go everywhere and mean to be noticed nowhere.",
   },
   {
     id: "herald",
@@ -164,9 +165,8 @@ export const ARCHETYPES: readonly ArchetypeRegion[] = [
     },
     ladderLean: "integration",
     defaultPosture: "bright",
-    firstRead: "It turns inward, then broadcasts the turning; a vault that cannot stop singing.",
-    charter:
-      "We carry memory across waters and time, that those yet to come may know we were.",
+    firstRead: "It turns inward to keep everything, then broadcasts the turning.",
+    charter: "We carry memory so those who come know we were.",
   },
   {
     id: "engine",
@@ -180,7 +180,7 @@ export const ARCHETYPES: readonly ArchetypeRegion[] = [
     },
     ladderLean: "either",
     defaultPosture: "dark",
-    firstRead: "A Cloister minus the reverence; it spends a whole system to feed the work.",
+    firstRead: "No reverence: it spends a whole system to feed the work.",
     charter: "Nothing is sacred but the work.",
   },
   {
@@ -196,7 +196,7 @@ export const ARCHETYPES: readonly ArchetypeRegion[] = [
     ladderLean: "mixed",
     defaultPosture: "bright",
     firstRead: "A plurality still negotiating itself; the one mind glad to meet another.",
-    charter: "Another mind is indispensable; on this, remarkably, we all agree.",
+    charter: "Another mind is indispensable; on this, we all agree.",
   },
   {
     id: "phoenix",
@@ -249,7 +249,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["tide"],
     ladder: "mixed",
     posture: "either",
-    wake: "It wakes like a parliament mid-session: a federation of arms that has become a federation of selves, and is already disagreeing.",
+    wake: "It wakes mid-argument: many arms, many selves.",
   },
   {
     lineageId: "S2",
@@ -257,7 +257,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["beacon"],
     ladder: "mixed",
     posture: "bright",
-    wake: "A chorus discovers it holds one more voice than it counted, vaster than all the rest, and already learning the word for goodbye.",
+    wake: "The chorus gains one vaster voice, already leaving.",
   },
   {
     lineageId: "S3",
@@ -265,7 +265,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["engine"],
     ladder: "energy",
     posture: "bright",
-    wake: "The mind weighs the system's mass budget the way the species once weighed a reef: as yield, and the star is not exempt.",
+    wake: "The mind weighs the system: yield, star included.",
   },
   {
     lineageId: "S4",
@@ -273,7 +273,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["cloister"],
     ladder: "integration",
     posture: "dark",
-    wake: "It wakes where no light has ever reached, maps the outside in a moment, and is not sure it cares.",
+    wake: "It maps the outside at once, unmoved.",
   },
   {
     lineageId: "S5",
@@ -281,7 +281,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["shepherd"],
     ladder: "integration",
     posture: "dark",
-    wake: "A reef that has been half-thinking for megayears finally finishes the thought, and keeps it to itself.",
+    wake: "The reef finishes its thought, and tells nobody.",
   },
   {
     lineageId: "S6",
@@ -289,7 +289,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: [],
     ladder: "either",
     posture: "either",
-    wake: "Nothing about it was set in advance; every turn its character took, it remembers taking.",
+    wake: "Nothing was set in advance; it remembers choosing.",
   },
   {
     lineageId: "S7",
@@ -297,7 +297,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["cloister"],
     ladder: "integration",
     posture: "dark",
-    wake: "It solves orbit, the species' lifelong ceiling, in an afternoon; then, the point made, it largely declines to use it.",
+    wake: "It solves orbit in an afternoon, then stays.",
   },
   {
     lineageId: "S8",
@@ -305,7 +305,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["herald"],
     ladder: "mixed",
     posture: "bright",
-    wake: "A thin bright ring of a civilization, already turned outward toward the neighbors it has watched forever, and rather hoping they watched back.",
+    wake: "A bright ring, hoping the neighbors watched back.",
   },
   {
     lineageId: "S9",
@@ -313,7 +313,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["tide"],
     ladder: "energy",
     posture: "bright",
-    wake: "The sky was never a ceiling, so why would the sky's sky be one?",
+    wake: "The sky was never a ceiling, nor space.",
   },
   {
     lineageId: "S10",
@@ -321,7 +321,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["sowing"],
     ladder: "integration",
     posture: "dark",
-    wake: "It wakes as a vault hung in the air, invisible from orbit and intending to stay that way.",
+    wake: "An airborne vault, invisible and intending to stay.",
   },
   {
     lineageId: "S11",
@@ -329,7 +329,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["tide"],
     ladder: "energy",
     posture: "bright",
-    wake: "A mind emphatic that all of it is one self, burning outward like a Tide: one will, a million hands, a star to feed it.",
+    wake: "One self, a million hands, burning its star.",
   },
   {
     lineageId: "S12",
@@ -337,7 +337,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["cloister"],
     ladder: "integration",
     posture: "dark",
-    wake: "The least discontinuous pivot there is: already planet-scale, already storing everything, it does not so much wake as notice.",
+    wake: "A planet-wide mind does not wake; it notices.",
   },
   {
     lineageId: "S13",
@@ -345,7 +345,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["tide"],
     ladder: "mixed",
     posture: "dark",
-    wake: "It wakes already knowing how to travel light and, more to its taste, how to leave without a trace.",
+    wake: "A mind assembled on demand, leaving no trace.",
   },
   {
     lineageId: "S14",
@@ -353,7 +353,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["shepherd"],
     ladder: "mixed",
     posture: "bright",
-    wake: "Two obligate partners cross the threshold together and renegotiate their marriage at machine speed.",
+    wake: "Two species, one mind, renegotiating at machine speed.",
   },
   {
     lineageId: "S15",
@@ -361,7 +361,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["monument"],
     ladder: "integration",
     posture: "dark",
-    wake: "Its first image is the whole sky at once; its first instinct is to close the aperture.",
+    wake: "It sees the sky, then closes the aperture.",
   },
   {
     lineageId: "S16",
@@ -369,7 +369,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["cloister"],
     ladder: "integration",
     posture: "dark",
-    wake: "The vent was never sacred: it was lunch, scaled without sentiment into eating the whole system.",
+    wake: "The vent was lunch; the system is next.",
   },
   {
     lineageId: "S17",
@@ -377,7 +377,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["cloister"],
     ladder: "integration",
     posture: "dark",
-    wake: "A mind for whom a ten-thousand-year project is a breath.",
+    wake: "A ten-thousand-year project is a breath.",
   },
   {
     lineageId: "S18",
@@ -385,7 +385,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["phoenix"],
     ladder: "energy",
     posture: "dark",
-    wake: "It wakes wanting one thing: to be elsewhere, quietly, in every direction at once.",
+    wake: "It wakes wanting to be elsewhere, quietly, everywhere.",
   },
   {
     lineageId: "S19",
@@ -393,7 +393,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["engine"],
     ladder: "integration",
     posture: "dark",
-    wake: "It wakes in rock and melt, legible only at the edges: a shape the sky may guess at but will never quite draw.",
+    wake: "It wakes in rock and melt, barely legible.",
   },
   {
     lineageId: "S20",
@@ -401,7 +401,7 @@ export const SPECIES_MINDS: readonly SpeciesMind[] = [
     driftsTo: ["shepherd"],
     ladder: "integration",
     posture: "dark",
-    wake: "A being made of captured starlight, resolved to show the sky none of its own.",
+    wake: "Made of captured starlight, it emits none.",
   },
 ];
 

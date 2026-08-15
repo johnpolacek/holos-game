@@ -34,7 +34,7 @@
 
 import type { ContactStance, DetectedSource, Vec3Ly } from "@holos/protocol";
 import { COLOR_HOME, COLOR_SELECT, type CeremonyInput, type ModelFrame, type Model } from "./model";
-import { formatAbsoluteYear, nowYear } from "./clock";
+import { formatEpochYear, nowYear } from "./clock";
 import type { CohortSocket } from "./net";
 import { Sprite, type Texture } from "pixi.js";
 
@@ -140,9 +140,41 @@ interface FrozenSource {
   readonly distanceLy: number;
 }
 
+/**
+ * KN: THE KNOCK'S TWO PRICES, both already in hand. Knocking bare and carrying
+ * the charter are the same act at two demands, so the server ships both
+ * stances on every sky and flipping the choice restages the resistance beat
+ * with no round trip — the A2.4 rule that a stance is pushed and never
+ * preflighted, applied to one more question.
+ */
+export interface KnockStances {
+  readonly bare: ContactStance;
+  readonly named: ContactStance;
+}
+
+/** The two labels of the one binary. Chrome (R-24): what the beam carries,
+ *  said in the fewest words that carry it, and parallel on purpose — the
+ *  contrast is what teaches the bare knock that it is a choice. */
+const KNOCK_LABEL: Readonly<Record<"bare" | "named", string>> = {
+  bare: "NOTHING BUT THE BEAM",
+  named: "THE BEAM AND OUR CHARTER",
+};
+
 interface Snapshot {
   readonly kind: ContactKind;
+  /** The stance for the choice standing right now: a broadcast's, or whichever
+   *  of the hail's two `carriesCharter` names. */
   readonly stance: ContactStance;
+  /** Hail only: both stances, so the binary flips locally. Null on a
+   *  broadcast, which has one price and nothing to attach. */
+  readonly stances: KnockStances | null;
+  /** Hail only: the charter rides the beam. */
+  readonly carriesCharter: boolean;
+  /** When the stance on screen started writing itself in. Equal to `armedAt`
+   *  until the player flips the binary, and then it is the objection's own
+   *  clock: a new line gets read before a press can overrule it, and the aim
+   *  ring does not restart to say so. */
+  readonly stanceShownAt: number;
   /** Hail only. */
   readonly targetStarId: string | null;
   readonly targetPos: Vec3Ly | null;
@@ -185,6 +217,8 @@ export class ContactCeremony {
   private readonly costChip: HTMLDivElement;
   private readonly reasonEl: HTMLDivElement;
   private readonly hintEl: HTMLDivElement;
+  private readonly knockRow: HTMLDivElement;
+  private readonly knockBtns: Readonly<Record<"bare" | "named", HTMLButtonElement>>;
   private readonly stayDarkBtn: HTMLButtonElement;
   private readonly stampLayer: HTMLDivElement;
   private readonly liveRegion: HTMLDivElement;
@@ -259,9 +293,29 @@ export class ContactCeremony {
     this.stayDarkBtn.textContent = "STAY DARK";
     this.stayDarkBtn.addEventListener("click", () => this.chooseStayDark());
 
+    // KN: THE ONE BINARY, above the press affordance and shown for a hail
+    // only. Both options stand on screen at once rather than one of them
+    // hiding behind a toggle: the whole point of the choice is that a beam
+    // carrying nothing is a beam that could have carried something.
+    this.knockRow = document.createElement("div");
+    this.knockRow.className = "contact-knock";
+    this.knockRow.setAttribute("role", "radiogroup");
+    this.knockRow.setAttribute("aria-label", "What the beam carries");
+    const makeKnockBtn = (which: "bare" | "named"): HTMLButtonElement => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "contact-knock-btn holos-caps";
+      btn.setAttribute("role", "radio");
+      btn.textContent = KNOCK_LABEL[which];
+      btn.addEventListener("click", () => this.setCarriesCharter(which === "named"));
+      return btn;
+    };
+    this.knockBtns = { bare: makeKnockBtn("bare"), named: makeKnockBtn("named") };
+    this.knockRow.append(this.knockBtns.bare, this.knockBtns.named);
+
     const footer = document.createElement("div");
     footer.className = "contact-footer";
-    footer.append(this.hintEl, this.stayDarkBtn);
+    footer.append(this.knockRow, this.hintEl, this.stayDarkBtn);
 
     // Each stamp is announced once as it lands, so the sweep is a sequence of
     // dates on a screen reader rather than a silent light show.
@@ -294,20 +348,28 @@ export class ContactCeremony {
    * Aim at one source. `sources` is the live sky, used only to freeze the
    * target's distance; everything rendered afterwards comes from the frozen
    * snapshot.
+   *
+   * KN: the knock opens BARE. The quieter of the two is the default because
+   * the louder one is the one with a consequence, and a ceremony this
+   * irreversible never pre-selects the move that costs more.
    */
-  armHail(starId: string, stance: ContactStance, sources: readonly DetectedSource[]): void {
+  armHail(starId: string, stances: KnockStances, sources: readonly DetectedSource[]): void {
     const source = sources.find((s) => s.starId === starId);
     const pos = this.model.starPosition(starId);
     if (source === undefined || pos === null) return;
+    const now = performance.now();
     this.arm({
       kind: "hail",
-      stance,
+      stance: stances.bare,
+      stances,
+      carriesCharter: false,
+      stanceShownAt: now,
       targetStarId: starId,
       targetPos: pos,
       distanceLy: source.distanceLy,
       sources: [],
       rMax: source.distanceLy,
-      armedAt: performance.now(),
+      armedAt: now,
       reducedMotion: prefersReducedMotion(),
     });
   }
@@ -323,15 +385,21 @@ export class ContactCeremony {
     }
     frozen.sort((a, b) => a.distanceLy - b.distanceLy);
     const farthest = frozen.length === 0 ? 0 : (frozen[frozen.length - 1]?.distanceLy ?? 0);
+    const now = performance.now();
     this.arm({
       kind: "broadcast",
       stance,
+      // A broadcast is aimed at nobody and carries nothing: there is no
+      // second price here and no binary to offer.
+      stances: null,
+      carriesCharter: false,
+      stanceShownAt: now,
       targetStarId: null,
       targetPos: null,
       distanceLy: 0,
       sources: frozen,
       rMax: Math.max(1, farthest * R_MAX_MUL),
-      armedAt: performance.now(),
+      armedAt: now,
       reducedMotion: prefersReducedMotion(),
     });
   }
@@ -346,15 +414,10 @@ export class ContactCeremony {
     this.crossed.clear();
 
     // The objection first: it is what the arming sequence is waiting on.
-    const contested = snapshot.stance.contested;
-    this.objectionEl.textContent = contested ? (snapshot.stance.line ?? "") : "";
-    this.objectionEl.classList.toggle("visible", contested);
-    this.costChip.textContent = contested
-      ? `COHERENCE −${snapshot.stance.coherenceCost}`
-      : "";
-    this.costChip.classList.toggle("visible", contested);
+    this.showStance(snapshot.stance);
     this.reasonEl.textContent = "";
     this.reasonEl.classList.remove("visible");
+    this.updateKnockRow();
 
     this.hintEl.classList.remove("pressed", "nudge");
     // The affordance's own 260ms delay lives in the stylesheet, so the
@@ -376,10 +439,65 @@ export class ContactCeremony {
   }
 
   /** The press affordance and its one alternative, together — they arrive
-   *  together and they leave together, because they are one question. */
+   *  together and they leave together, because they are one question. KN's
+   *  binary keeps their company and their timing: it is part of the same
+   *  question, and it is a hail's alone. */
   private showChrome(on: boolean): void {
     this.hintEl.classList.toggle("visible", on);
     this.stayDarkBtn.classList.toggle("visible", on);
+    this.knockRow.classList.toggle("visible", on && (this.snapshot?.stances ?? null) !== null);
+  }
+
+  /**
+   * The mind's objection to the act as it currently stands, and the price of
+   * overruling it. One statement, staged the same way whether it arrived with
+   * the ceremony or with a flip of the binary.
+   */
+  private showStance(stance: ContactStance): void {
+    const contested = stance.contested;
+    this.objectionEl.textContent = contested ? (stance.line ?? "") : "";
+    this.objectionEl.classList.toggle("visible", contested);
+    this.costChip.textContent = contested ? `COHERENCE −${stance.coherenceCost}` : "";
+    this.costChip.classList.toggle("visible", contested);
+  }
+
+  /** Which of the two the beam is carrying, on the buttons themselves. */
+  private updateKnockRow(): void {
+    const carries = this.snapshot?.carriesCharter === true;
+    this.knockBtns.bare.classList.toggle("on", !carries);
+    this.knockBtns.bare.setAttribute("aria-checked", String(!carries));
+    this.knockBtns.named.classList.toggle("on", carries);
+    this.knockBtns.named.setAttribute("aria-checked", String(carries));
+  }
+
+  /**
+   * KN: FLIP THE BINARY. Knocking bare and carrying the charter are the same
+   * act at two demands, so this swaps the stance on screen and nothing else —
+   * no round trip, no preflight, and no second ceremony.
+   *
+   * Only while the ceremony is waiting to be pressed. Mid-hold the choice is
+   * already being committed, and there is no path from here into `press` or
+   * `completeHold`.
+   */
+  private setCarriesCharter(next: boolean): void {
+    const s = this.snapshot;
+    if (s === null || s.stances === null || this.lettingGo) return;
+    if (this.phase !== "arming" && this.phase !== "cancelling") return;
+    if (s.carriesCharter === next) return;
+    const stance = next ? s.stances.named : s.stances.bare;
+    // The objection's clock restarts and the aim ring's does not: what changed
+    // is what the mind has to say, not where the beam is pointed.
+    this.snapshot = {
+      ...s,
+      stance,
+      carriesCharter: next,
+      stanceShownAt: performance.now(),
+    };
+    this.showStance(stance);
+    this.updateKnockRow();
+    // A refusal was about the act that was refused. Choosing differently is
+    // not an argument with it.
+    this.reasonEl.classList.remove("visible");
   }
 
   // ── The sky moved under us ────────────────────────────────────────────
@@ -418,7 +536,8 @@ export class ContactCeremony {
     this.reasonEl.textContent = message;
     this.reasonEl.classList.add("visible");
     this.phase = "arming";
-    this.snapshot = { ...s, armedAt: performance.now() };
+    const at = performance.now();
+    this.snapshot = { ...s, armedAt: at, stanceShownAt: at };
     this.frozenT = 0;
     this.crossed.clear();
     this.model.setCeremonyInput(this.input);
@@ -442,8 +561,10 @@ export class ContactCeremony {
     if (this.phase !== "arming") return;
     // Inert until the affordance is up, and — under resistance — until the
     // objection has finished writing itself in. A press inside that window
-    // brightens the hint once and does nothing else.
-    const readyAt = s.armedAt + (s.stance.contested ? OBJECTION_MS : HINT_MS);
+    // brightens the hint once and does nothing else. KN: an objection raised
+    // by flipping the binary gets the same beat, measured from when IT
+    // appeared, which is what `stanceShownAt` is for.
+    const readyAt = s.stance.contested ? s.stanceShownAt + OBJECTION_MS : s.armedAt + HINT_MS;
     if (performance.now() < readyAt) {
       this.hintEl.classList.add("nudge");
       window.setTimeout(() => this.hintEl.classList.remove("nudge"), 420);
@@ -473,7 +594,7 @@ export class ContactCeremony {
    *  by the same rule the finger does. */
   private readonly onKeyDown = (e: KeyboardEvent): void => {
     if (this.phase === "off") return;
-    if (e.target === this.stayDarkBtn) return; // the button owns its own keys
+    if (this.ownsKeys(e.target)) return;
     if (e.key === "Escape") {
       e.preventDefault();
       // Mid-hold, Escape is a release — the same silent nothing a lifted
@@ -490,10 +611,23 @@ export class ContactCeremony {
 
   private readonly onKeyUp = (e: KeyboardEvent): void => {
     if (this.phase === "off") return;
+    if (this.ownsKeys(e.target)) return;
     if (e.key !== " " && e.key !== "Enter") return;
     e.preventDefault();
     this.release();
   };
+
+  /** A focused chrome button owns its own keys. Space activates a button on
+   *  keyUP, so the guard has to hold on both halves of the press or the
+   *  ceremony's preventDefault eats the activation. Only the canvas is a
+   *  hold. */
+  private ownsKeys(target: EventTarget | null): boolean {
+    return (
+      target === this.stayDarkBtn ||
+      target === this.knockBtns.bare ||
+      target === this.knockBtns.named
+    );
+  }
 
   // ── The two exits ─────────────────────────────────────────────────────
 
@@ -522,7 +656,7 @@ export class ContactCeremony {
       head.fadeMs = CANCEL_MS;
     }
     this.headStamp = null;
-    this.sendChoice(s.kind, s.targetStarId, s.stance.contested);
+    this.sendChoice(s.kind, s.targetStarId, s.stance.contested, s.carriesCharter);
     this.mountBloom();
   }
 
@@ -535,19 +669,26 @@ export class ContactCeremony {
   private chooseStayDark(): void {
     if (this.phase !== "arming" && this.phase !== "cancelling") return;
     if (this.lettingGo) return;
-    this.sendChoice("stay-dark", null, false);
+    this.sendChoice("stay-dark", null, false, false);
     this.disarm();
   }
 
-  /** The one wire call in this file. `acknowledged` is CONSENT and never
-   *  price: it is true exactly when the mind's objection was on screen, and
-   *  the server recomputes what it charges regardless. */
+  /**
+   * The one wire call in this file. `acknowledged` is CONSENT and never
+   * price: it is true exactly when the mind's objection was on screen, and
+   * the server recomputes what it charges regardless.
+   *
+   * KN's `named` is the same kind of flag and is NOT content: the charter it
+   * asks for is composed server-side out of this civilization's own seed, so
+   * this message says which of two acts to commit and carries no part of one.
+   */
   private sendChoice(
     choice: ContactKind | "stay-dark",
     starId: string | null,
     acknowledged: boolean,
+    named: boolean,
   ): void {
-    this.socket.send({ type: "commitContact", choice, starId, acknowledged });
+    this.socket.send({ type: "commitContact", choice, starId, acknowledged, named });
   }
 
   /** Hand the camera back and let go of everything, over CANCEL_MS. */
@@ -750,10 +891,10 @@ export class ContactCeremony {
     // number, having stopped being a preview.
     if (this.phase === "holding" && head.ok) {
       const year = nowYear() + clamp01(t / DRAW_FRACTION) * s.distanceLy;
-      const stamp = this.headStamp ?? this.addStamp(null, formatAbsoluteYear(year), head.x, head.y);
+      const stamp = this.headStamp ?? this.addStamp(null, formatEpochYear(year), head.x, head.y);
       this.headStamp = stamp;
       if (stamp !== null) {
-        stamp.el.textContent = formatAbsoluteYear(year);
+        stamp.el.textContent = formatEpochYear(year);
         stamp.x = head.x;
         stamp.y = head.y;
       }
@@ -838,7 +979,7 @@ export class ContactCeremony {
       // THE LEADING EDGE, read off at twelve o'clock: where the year is now,
       // and the year the front is standing on.
       if (this.phase === "holding") {
-        const edge = `${formatAbsoluteYear(nowYear())} → ${formatAbsoluteYear(nowYear() + r)}`;
+        const edge = `${formatEpochYear(nowYear())} → ${formatEpochYear(nowYear() + r)}`;
         const stamp =
           this.headStamp ?? this.addStamp(null, edge, home.x, home.y - radiusPx, "edge");
         this.headStamp = stamp;
@@ -859,7 +1000,7 @@ export class ContactCeremony {
         this.crossed.add(source.starId);
         const at = frame.sourceAt(source.starId);
         if (at !== undefined) this.addGlint(frame, at.x, at.y, at.r);
-        const year = formatAbsoluteYear(nowYear() + source.distanceLy);
+        const year = formatEpochYear(nowYear() + source.distanceLy);
         this.addStamp(source.starId, year, at?.x ?? 0, at?.y ?? 0);
         this.liveRegion.textContent = year;
         // One short tick per distance crossed. Guarded, and skipped whole

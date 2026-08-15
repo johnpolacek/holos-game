@@ -22,3 +22,14 @@ art-test/
 
 # Claude Code agent worktrees (transient)
 .claude/worktrees/
+
+# Claude Code's Browser-pane dev-server config. Worktree-local by nature:
+# parallel worktrees must bind DIFFERENT ports to run at once, so a shared
+# copy is merge noise with no product value. The one that reached main was a
+# session's own scratch config (a single entry named after its branch, with
+# no client server in it) that arrived through a merge. The preview tool
+# writes the file from its own schema when it is missing, so ignoring it
+# costs a fresh clone nothing. settings.local.json is the same failure mode.
+# settings.json, commands/ and hooks/ ARE shared project config and stay.
+.claude/launch.json
+.claude/settings.local.json

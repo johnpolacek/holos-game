@@ -86,7 +86,7 @@ export const ORDER_CLASSES: readonly OrderClassDef[] = [
   {
     orderClass: "warm-movement-sentinel",
     label: "THE WARM MOVEMENT ORDER",
-    line: "If anything inside twenty light-years starts running hot for the first time, send the Sentinel without waiting to be asked. We would rather have an instrument on the way than a decision we made a century late.",
+    line: "If anything inside twenty light-years first runs hot, send the Sentinel unasked. An instrument beats a late decision.",
     missionKind: "sentinel",
     costCompute: SENTINEL_COST_COMPUTE,
     radiusLy: WARM_RADIUS_LY,

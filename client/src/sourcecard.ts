@@ -11,10 +11,14 @@
 // future here (concepts/03-01 shows future ticks — that is wrong).
 //
 // Read-and-name, plus three affordance rows of identical anatomy: the study
-// verb (A2.1), the mission verb (A2.2, DISPATCH A PROBE) and the contact verb
+// row (A2.1), the mission verb (A2.2, DISPATCH A PROBE) and the contact verb
 // (A2.4, AIM A BEAM) — each fires a starId callback and leaves the App to
 // decide what happens (open a sheet, focus something already under way, or
 // stage the choice ceremony out on the sky). No time-scrubbing (later slices).
+//
+// AS2: the first of the three is not a verb at all any more. Every detected
+// source carries a study from the moment it is seen, so the row is a door to
+// a board that already exists, and its idle string says so.
 //
 // The third row is the only cyan thing on this card, and it earns it: every
 // other line here is somebody else's light, arriving late, and that is why
@@ -33,7 +37,7 @@ import {
   type SignalClass,
 } from "@holos/protocol";
 import { accordHeadline, accordLightLine } from "./accord";
-import { formatAbsoluteYear } from "./clock";
+import { formatEpochYear } from "./clock";
 import type { CohortSocket } from "./net";
 
 /** In-world display labels for the five v1 signal classes (act3-design.md). */
@@ -52,15 +56,15 @@ export const CLASS_LABEL: Readonly<Record<SignalClass, string>> = {
  *  row's label renders, and pinned byte-exact. */
 export const CLASS_EXPLAINER: Readonly<Record<SignalClass, string>> = {
   "infrared-excess":
-    "Warmth without light: an infrared excess. A brown dwarf, a rogue world, or somebody's heart; watching narrows it, and only watching.",
+    "Warmth without light: a brown dwarf, a rogue world, or somebody's heart. Only watching narrows it.",
   "transit-shadows":
-    "Occlusions too regular to look natural: something crosses that star on a schedule. Construction under way is one reading; an odd family of worlds is another.",
+    "Something crosses that star too regularly to look natural. Construction under way is one reading; odd worlds are another.",
   "directed-beam":
-    "A signal aimed rather than spilled: tight, coherent, and pointed at this system when it left. It was meant to arrive here.",
+    "A signal aimed, not spilled: tight, coherent, and pointed at this system when it left.",
   "broadcast-leakage":
-    "Unaimed shine: the spill of a civilization that has not gone quiet. Young and sloppy is one reading; deliberate shine is another.",
+    "Unaimed shine from a civilization not gone quiet. Young and sloppy is one reading; deliberate shine is another.",
   biosignature:
-    "A biosphere's mark on the light: chemistry that does not stay out of balance on its own. Life, seen from outside, as it was when the light left.",
+    "Chemistry out of balance, which does not happen on its own. Life, as it was when the light left.",
 };
 
 /** Inline pen/edit glyph — stroke only, no fill, so it reads in whatever ink
@@ -368,7 +372,7 @@ export class SourceCard {
     this.studyBtn = document.createElement("button");
     this.studyBtn.type = "button";
     this.studyBtn.className = "source-card-study-affordance";
-    this.studyBtn.textContent = "OPEN A STUDY";
+    this.studyBtn.textContent = "READ THE STUDY";
     this.studyBtn.addEventListener("click", () => {
       if (this.source !== null) this.onStudyActionCb?.(this.source.starId);
     });
@@ -462,8 +466,9 @@ export class SourceCard {
 
   /** Fired when the study-affordance row is tapped, with the open source's
    * starId. The card does not send wire messages itself and does not know
-   * what happens next — that is the App's call (open a study vs. focus the
-   * existing one). */
+   * what happens next — that is the App's call. AS2: the row is a door and
+   * always was one; every source carries a study, so there is no longer a
+   * second thing the tap could mean. */
   onStudyAction(cb: (starId: string) => void): void {
     this.onStudyActionCb = cb;
   }
@@ -544,8 +549,11 @@ export class SourceCard {
     this.explainerEl.textContent = text;
   }
 
-  /** The study for the currently open source, or null if none exists yet.
-   * The App calls this right after open() (and again on every later sky). */
+  /** The status of the ENGAGED study on the currently open source, or null
+   * where this player has not put anything into it yet (AS2: null is not "no
+   * study" any more — the observatory keeps one either way — it is "nothing
+   * of yours on it"). The App calls this right after open() (and again on
+   * every later sky). */
   setStudyStatus(status: StudyStatus | null): void {
     this.studyStatus = status;
     this.renderStudyRow();
@@ -747,7 +755,10 @@ export class SourceCard {
   private renderStudyRow(): void {
     const status = this.studyStatus;
     if (status === null) {
-      this.studyBtn.textContent = "OPEN A STUDY";
+      // AS2: no engaged study, which is not the same as no study. The row
+      // still opens the board the observatory has been keeping all along; it
+      // simply has no state of the player's own to report.
+      this.studyBtn.textContent = "READ THE STUDY";
       this.studyBtn.className = "source-card-study-affordance";
       return;
     }
@@ -777,7 +788,7 @@ export class SourceCard {
       // being tappable: there is nothing to open, and a verb that leads
       // nowhere is worse than a date that says everything.
       this.contactBtn.textContent =
-        `BEAM IN FLIGHT · ARRIVES ${formatAbsoluteYear(inFlight.arrivesYear)}`;
+        `BEAM IN FLIGHT · ARRIVES ${formatEpochYear(inFlight.arrivesYear)}`;
       this.contactBtn.className =
         "source-card-contact-affordance source-card-contact-affordance--active";
       this.contactBtn.disabled = true;
