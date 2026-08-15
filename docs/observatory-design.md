@@ -344,8 +344,12 @@ session: read the new light across the whole board (which questions
 landed, what moved, anything regress, which studies said nothing at all —
 nothing is a normal answer), buy one or two questions wherever they buy
 the most, set or adjust a hold, maybe call or shelve something, and
-leave with the next checkpoints visible on the strip. A single study may
-be mid-dry-spell for a week; the board never is. The observatory speaks its register throughout — instrument
+leave with the next checkpoints visible on the strip. *Shipped 2026-08
+(build-report-standings.md): "which studies said nothing at all" is now
+structure rather than bookkeeping — the Report carries a live STANDINGS list
+of every study in the sky beneath its dated annal, so a study with a row down
+there and no entry above it is exactly the one that was quiet.* A single study
+may be mid-dry-spell for a week; the board never is. The observatory speaks its register throughout — instrument
 deadpan, beliefs with ages, no adjectives — and the one flourish it is
 allowed stays true: the light you are reading left before you were
 watching.

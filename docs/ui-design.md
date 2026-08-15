@@ -286,7 +286,7 @@ outright.
 
 | Tab | Landing | Owns (drill-ins) |
 |---|---|---|
-| **Report** | The report: a header sentence in the mind's register, then entries, newest first. Each entry is a stamp, a record sentence, an optional remark, and a route. | Routes out of an entry (a study, a mission, a source, a project, a founding, a Ledger record) open the target page. |
+| **Report** | Two halves. The annal: a header sentence in the mind's register, then entries, newest first, each a stamp, a record sentence, an optional remark, and a route. Then `STANDINGS` (shipped 2026-08, build-report-standings.md), live and needing no payload: a source row per study in the sky, the engaged ones first in the Desk's order carrying their status flags, then the rest by light age. | Routes out of an entry (a study, a mission, a source, a project, a founding, a Ledger record) open the target page; a standings row opens that source's board, which backs out to the Report. |
 | **Sky** | **The bare map.** The tab lands on the Model with no page over it. | The source card and the contact ceremonies; the Desk, a source's study board, and explore; threads and `THE VOICE`; the survey; the founding sheet. |
 | **Projects** | `Start a project`, over `TEND` — the work list of everything under way. | The project catalog, a project's detail sheet, a mission's detail, the launch sheet. |
 | **Reach** | What the civilization has spread beyond its own system: `THE LEDGER`, the standing order under it from the first tap, then a row per fork. **The fork list is empty until the first sending.** | A fork's whole record; the sheet where a standing order is armed. |
