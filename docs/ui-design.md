@@ -234,14 +234,20 @@ already said as much and are worth reading as one rule: *S0's job is to
 not build prose surfaces where geometry will go*, and the purpose banner
 that was mocked and cut for stating rather than showing.
 
-*The arrival line now has nowhere to land.* The server still serves the
-mind's per-archetype first read after the intro's last beat, and no client
-surface displays or acknowledges it, so it is re-offered every session —
-the TALK tap was what reported it seen. The gap is deliberate rather than
-an oversight: the arrival line is the intro's payoff and deserves a
-surface chosen on purpose. Which surface takes it is open (§ Open
-questions), and whatever does owes the acknowledgement the strip used to
-send.
+*The arrival line was cut with it* (settled 2026-08). The server still
+serves the mind's per-archetype first read after the intro's last beat,
+and no client surface displays or acknowledges it, so it is re-offered
+every session — the TALK tap was what reported it seen. That is now the
+resting state rather than a gap awaiting a surface. The line was the
+intro's payoff, but what it pays off with is a sentence about what the
+player is for, and the same objection that cut the purpose banner and the
+strip applies a third time: it states what the interface should show.
+A first session worth clicking through is what carries that meaning
+instead, and it is what S0's own playtest gate measures. Nothing was
+deleted — `ARRIVAL_LINES` stays pinned and FINAL in `voice.ts`, the
+message still carries the field, and a later slice that finds a real
+occasion for the line can spend it, owing the acknowledgement the strip
+used to send.
 
 **The rail (bottom).** Five equal tabs, always visible, in this pinned
 order:
@@ -869,13 +875,13 @@ The full shot lists live in the content-art briefs:
   neither of which the tested surface had, and were out of the test.
   Which container they take is the next call, and the answer is allowed
   to differ from the reading surfaces'.
-- **Where the arrival line lands, and whether the mind ever gets an
-  unprompted surface again.** Cutting the counsel strip (§ Anatomy) took
-  both with it: the server still serves the arrival line to a client that
-  ignores it, and the mind now speaks only beside a report entry or a
-  proposal. Whether that is the right resting state, and where the first
-  read goes if it is not, is the next slice's call. Nothing above depends
-  on it, and the strip is not the answer by default — it was tried.
+- **Whether the mind ever gets an unprompted surface again.** Cutting the
+  counsel strip (§ Anatomy) left the mind speaking only beside a report
+  entry or a proposal. Whether that is the right resting state is the
+  next slice's call. Nothing above depends on it, and the strip is not
+  the answer by default — it was tried. The arrival line, which this
+  question used to carry with it, is no longer part of it: it was settled
+  2026-08 as cut (§ Anatomy), so nothing here waits on where it lands.
 - **Art direction (interface look)** — this doc specifies structure and
   rules, not look. A working proposal (dark astronomical matte,
   ember-warmth accents, editorial type) lives in

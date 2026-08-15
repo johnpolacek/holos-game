@@ -628,7 +628,10 @@ gets priced risky besides).
       and its TALK was the third way to reach a Mind page the rail already
       opens. The AV4 seam and its bank are untouched and still serve the
       proposal stance; what is now open is where the mind speaks
-      unprompted, if it ever does, and where the arrival line lands.)*
+      unprompted, if it ever does. The arrival line is settled: cut
+      2026-08, the third prose surface to fall to one rule, with a first
+      session worth clicking through doing the work all three were
+      reaching for. build-s0.md § S0.3 carries the reasoning.)*
 - [ ] **S1 — The prizes and the mirror.** The two-layer sky (real
       catalog as public knowledge, statistically-honest hidden objects
       to survey out), prospecting as the early game, the near scarcity

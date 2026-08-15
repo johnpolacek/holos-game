@@ -98,9 +98,20 @@ S0 makes four things true, one stage each:
   is the generation seam, which is a different thing from the strip and
   did not move. The arrival line went with the strip, though: the server
   still serves it after beat four and no surface displays or acknowledges
-  it, so it is re-offered every session. Where it lands is now an open
-  question, and the next slice answers it. ui-design.md § Anatomy carries
+  it, so it is re-offered every session. ui-design.md § Anatomy carries
   the record.)*
+  *(Settled 2026-08: the arrival line does not get a surface. It is cut,
+  and for the reason that cut the two before it — it tells the player what
+  the interface is supposed to show them, and what it tells them is
+  precisely the thing a first session is meant to make them find. The
+  three cuts are one rule now: the purpose banner, the counsel strip, the
+  arrival line. What replaces all three is a first session worth clicking
+  through, which is the same work S0's own "do you know what to do next?"
+  gate measures. Nothing is deleted: `ARRIVAL_LINES` stays pinned and
+  FINAL in `voice.ts` and still passes `audit:voice`, and the server keeps
+  serving `arrival` to a client that ignores it. That is inert, it costs a
+  field on a message nobody reads, and it keeps the ten lines available if
+  a later slice ever finds an occasion they can answer.)*
 - **S0.4 — The thumb test and the sync.** The one open UX call — overflow
   detail on map-anchored cards versus dashboard pages — prototyped both
   ways and decided on a phone. ui-design.md revised to the reboot's
@@ -212,8 +223,9 @@ ships whole.
    register map synced. *(Done 2026-08: the card won; the record is the
    S0.4 amendment above and ui-design.md § Settled: overflow detail. The
    stage closes, S0 does not: the "Done when" playtest answer has not
-   been taken, the arrival line still has no surface, and the silence
-   note still waits behind a second source-card open. The Reach page's
+   been taken, and the silence note still waits behind a second
+   source-card open. The arrival line was the third item standing here
+   and is settled — cut, per the S0.3 amendment above. The Reach page's
    standing-order row and the stranded clock explainer were both settled
    afterwards: the row is right and the docs describing a blank page were
    wrong, and the clock note moved to the first open of Projects, where
