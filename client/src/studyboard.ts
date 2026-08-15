@@ -1600,10 +1600,11 @@ export class StudyBoard {
       // every one), so this branch is load-bearing and not defensive.
       this.renderMind();
     } else if (this.view === "report") {
-      // Defensive consistency only, the `work`/`projects` precedent — a
-      // `sky` carries none of the report's own data, so this just re-runs
-      // the render against whatever `this.report` already holds. It is NOT
-      // how the report refreshes; see openReport()/setReport().
+      // Load-bearing since RS. The ANNAL still refreshes by its own route
+      // (openReport()/setReport()) and a `sky` carries none of its payload,
+      // so that half just re-runs against whatever `this.report` holds. The
+      // STANDINGS half is pure sky — the studies and the sources this sky
+      // just replaced — and this is the only thing that keeps it current.
       this.renderReport();
     } else {
       this.renderList();
@@ -3476,13 +3477,22 @@ export class StudyBoard {
    *  AS2: the flag marks ENGAGEMENT and nothing else. Every source on this
    *  page carries a board, so a flag on all of them would say nothing; what
    *  it says instead is which of them this player has put something into,
-   *  and what became of it. */
-  private buildExploreRow(source: DetectedSource): HTMLButtonElement {
+   *  and what became of it.
+   *
+   *  RS: the tap is the row's one variable part, so it is a parameter rather
+   *  than a second builder. Explore's rows open the source card, because that
+   *  page is an index; the report's standings open the board itself, with the
+   *  report as the leg back. Everything else about the row is the same row. */
+  private buildExploreRow(source: DetectedSource, onTap?: () => void): HTMLButtonElement {
     const btn = this.buildSourceRow(source);
-    btn.addEventListener("click", () => {
-      this.onInspectCb?.(source.starId);
-      this.close();
-    });
+    btn.addEventListener(
+      "click",
+      onTap ??
+        (() => {
+          this.onInspectCb?.(source.starId);
+          this.close();
+        }),
+    );
 
     const engaged = this.studiesByStarId.get(source.starId);
     if (engaged !== undefined) {
@@ -3496,6 +3506,33 @@ export class StudyBoard {
   }
 
   // ── Render: list view ────────────────────────────────────────────────
+
+  /**
+   * The Desk's order, in one place: the open studies first, then each closed
+   * status under its own word. Grounded comes first of those, because a study
+   * a probe settled is a finding and a shelved one is only a vigil put down;
+   * A2.3's two other exits join grounded ahead of shelved for the same reason,
+   * both being closed, decided outcomes rather than a vigil merely paused.
+   *
+   * RS: the report's standings walk the same portfolio in the same sequence,
+   * so the sequence is written once and read twice. The closed words are
+   * STUDY_STATUS_FLAG's own, which is what keeps a study reading the same as a
+   * Desk divider and as a standings row flag; `null` is the open block, which
+   * has no divider over it on either page.
+   */
+  private deskGroups(): readonly {
+    readonly label: string | null;
+    readonly studies: readonly StudySnapshot[];
+  }[] {
+    const all = [...this.studiesByStarId.values()];
+    const of = (status: StudyStatus): readonly StudySnapshot[] =>
+      all.filter((s) => s.status === status);
+    const closed: readonly StudyStatus[] = ["grounded", "called", "overtaken", "shelved"];
+    return [
+      { label: null, studies: of("open") },
+      ...closed.map((status) => ({ label: STUDY_STATUS_FLAG[status], studies: of(status) })),
+    ];
+  }
 
   /**
    * THE DESK: the studies this player keeps. Engaged only, and that is the
@@ -3520,8 +3557,7 @@ export class StudyBoard {
       "The sources you have put something into, and what the light has made of them since.";
     this.body.append(subtitle);
 
-    const all = [...this.studiesByStarId.values()];
-    if (all.length === 0) {
+    if (this.studiesByStarId.size === 0) {
       const empty = document.createElement("div");
       empty.className = "study-board-empty";
       empty.textContent =
@@ -3531,35 +3567,20 @@ export class StudyBoard {
       return;
     }
 
-    const open = all.filter((s) => s.status === "open");
-    // Closed studies keep their own sections, and grounded comes first: a
-    // study a probe settled is a finding, and a shelved one is only a vigil
-    // put down. A2.3's two other exits join grounded ahead of shelved for
-    // the same reason — called and overtaken are both closed, decided
-    // outcomes, not a vigil merely paused.
-    const grounded = all.filter((s) => s.status === "grounded");
-    const called = all.filter((s) => s.status === "called");
-    const overtaken = all.filter((s) => s.status === "overtaken");
-    const shelved = all.filter((s) => s.status === "shelved");
-
-    for (const s of open) {
-      const row = this.buildRow(s, false);
-      if (row !== null) this.body.append(row);
-    }
-
-    for (const [label, group] of [
-      ["GROUNDED", grounded],
-      ["CALLED", called],
-      ["OVERTAKEN", overtaken],
-      ["SHELVED", shelved],
-    ] as const) {
-      if (group.length === 0) continue;
-      const divider = document.createElement("div");
-      divider.className = "study-board-divider holos-caps";
-      divider.textContent = label;
-      this.body.append(divider);
-      for (const s of group) {
-        const row = this.buildRow(s, true);
+    // The order and the dividers are deskGroups' (shared with the report's
+    // standings); a labelled group is a closed one, which is also what dims
+    // its rows.
+    for (const group of this.deskGroups()) {
+      if (group.studies.length === 0) continue;
+      const closed = group.label !== null;
+      if (group.label !== null) {
+        const divider = document.createElement("div");
+        divider.className = "study-board-divider holos-caps";
+        divider.textContent = group.label;
+        this.body.append(divider);
+      }
+      for (const s of group.studies) {
+        const row = this.buildRow(s, closed);
         if (row !== null) this.body.append(row);
       }
     }
@@ -4639,10 +4660,16 @@ export class StudyBoard {
     return track;
   }
 
-  // ── Render: the report (AV2) ─────────────────────────────────────────
-  // The observatory's annal: frozen record sentences, stamped and routed,
+  // ── Render: the report (AV2, halved in RS) ───────────────────────────
+  // Two halves, and they are different kinds of thing. The ANNAL on top is
+  // the observatory's record: frozen record sentences, stamped and routed,
   // in the server's own order (promoted-first if a header fired, else
-  // newest-first — protocol.ts's ReportPayload). The client never sorts.
+  // newest-first — protocol.ts's ReportPayload). The client never sorts it,
+  // and it is engaged events only. The STANDINGS below are not a record at
+  // all: live rows for every study in the sky, assembled here from the sky
+  // the panel already holds, nothing pinned and nothing dated. A study that
+  // said nothing has no entry above and a row below, which is how the annal
+  // gets to stay silent about silence.
   // NOT in the 1s ticker (startTicking): there is nothing here that counts
   // down, and a re-render mid-scroll would fight the reader's thumb.
 
@@ -4676,36 +4703,96 @@ export class StudyBoard {
     if (report === null) {
       // The payload rides the answer to openReport's requestReport; until
       // it lands there is nothing honest to draw (renderThread's waiting
-      // mold). setReport re-renders in place on arrival.
+      // mold). setReport re-renders in place on arrival. RS: this waits for
+      // the ANNAL only, and the standings below it are drawn anyway — they
+      // read the sky the panel already holds and need no payload at all.
       const waiting = document.createElement("div");
       waiting.className = "study-board-empty";
       waiting.textContent = "Reading the record.";
       this.body.append(waiting);
-      return;
+    } else {
+      if (report.header !== null) {
+        const headerProse = document.createElement("div");
+        headerProse.className = "report-header";
+        headerProse.textContent = report.header;
+        this.body.append(headerProse);
+        this.body.append(this.hairline());
+      }
+
+      if (report.entries.length === 0) {
+        // A fresh civ has done nothing to record, and the honest page says
+        // so and says what would change it — the renderList mold, with the
+        // second sentence naming the families that write here first. Since
+        // RS it is an empty RECORD above a full page rather than an empty
+        // page, which is what "on record" was saying all along; the standings
+        // under it are what make the distinction legible, so the words stand.
+        const empty = document.createElement("div");
+        empty.className = "study-board-empty";
+        empty.textContent =
+          "Nothing on record yet. Entries are written as studies settle, ships report, and signals arrive.";
+        this.body.append(empty);
+      }
+
+      for (const entry of report.entries) {
+        this.body.append(this.buildReportRow(entry));
+      }
     }
 
-    if (report.header !== null) {
-      const headerProse = document.createElement("div");
-      headerProse.className = "report-header";
-      headerProse.textContent = report.header;
-      this.body.append(headerProse);
-      this.body.append(this.hairline());
+    this.appendStandings();
+  }
+
+  /**
+   * RS: the second half of the report. Where every study in the sky stands
+   * right now, engaged ones first in the Desk's own order with the flag they
+   * carry there, then the rest of the sky in Explore's (light age ascending).
+   * Live presentation and never a record: nothing here is pinned, dated or
+   * persisted, and the whole thing is rebuilt from the current sky on every
+   * update().
+   *
+   * The rows are Explore's, tapping through to the board with the report as
+   * the leg back. No tier chrome of any kind rides them: what better
+   * instruments buy is a sharper board and a cheaper question, so it shows up
+   * in the share the row already prints, never as a badge
+   * (build-report-standings.md § The tech frame).
+   */
+  private appendStandings(): void {
+    const engaged: DetectedSource[] = [];
+    for (const group of this.deskGroups()) {
+      for (const s of group.studies) {
+        const source = this.sourcesByStarId.get(s.starId);
+        // Defensive, buildRow's precedent: a study whose source is not in
+        // this sky has nothing to render.
+        if (source !== undefined) engaged.push(source);
+      }
     }
 
-    if (report.entries.length === 0) {
-      // A fresh civ has done nothing to record, and the honest page says
-      // so and says what would change it — the renderList mold, with the
-      // second sentence naming the families that write here first.
-      const empty = document.createElement("div");
-      empty.className = "study-board-empty";
-      empty.textContent =
-        "Nothing on record yet. Entries are written as studies settle, ships report, and signals arrive.";
-      this.body.append(empty);
-      return;
-    }
+    const rest = [...this.sourcesByStarId.values()]
+      .filter((source) => !this.studiesByStarId.has(source.starId))
+      .sort((a, b) => a.lightAgeYears - b.lightAgeYears);
 
-    for (const entry of report.entries) {
-      this.body.append(this.buildReportRow(entry));
+    // Before the first sky there is no sky to stand in, and a caption over
+    // nothing is the fault this half exists to fix.
+    if (engaged.length === 0 && rest.length === 0) return;
+
+    this.body.append(this.hairline());
+
+    const header = document.createElement("div");
+    header.className = "study-section-header holos-caps";
+    header.textContent = "STANDINGS";
+    this.body.append(header);
+
+    // R-40, and deliberately the Desk caption's shape: the parallel is what
+    // says these two lists are the same kind of thing.
+    const caption = document.createElement("div");
+    caption.className = "study-picker-subtitle";
+    caption.textContent =
+      "Where every study stands, as of the light in hand. The ones you have put something into come first.";
+    this.body.append(caption);
+
+    for (const source of [...engaged, ...rest]) {
+      this.body.append(
+        this.buildExploreRow(source, () => this.focusStudy(source.starId, "report")),
+      );
     }
   }
 
