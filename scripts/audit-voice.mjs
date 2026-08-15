@@ -21,6 +21,15 @@
 // test here is code, not a literal pool). The bank strings are scraped from
 // voice.ts, which the audit cannot import for the same reason cohort.ts is
 // the only consumer: it pulls the catalog chain in behind it.
+//
+// ONE HALF OF THE FILE IS NOT SENTENCES. voice.ts also holds ALL-CAPS chrome —
+// the proposal accept verbs — and the gate cannot read a label: it rejects an
+// unterminated line, and a set phrase has no terminator by design. Those go
+// through `checkChrome` instead, which applies the rules that do govern them
+// (§6, R-24, R-8) from the same compiled table. `audit:catalog` skips voice.ts
+// on the strength of this file, so anything here that neither half scrapes is
+// covered nowhere; AS3 added the frame explainers and the accept verbs for
+// exactly that reason, and a new bank in voice.ts owes itself a line below.
 
 import { readFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -28,10 +37,13 @@ import { dirname, join } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(root, "server/dist/stylegate.js");
+const BANNED_DIST = join(root, "server/dist/bannedterms.js");
 
 let gate;
+let bannedRules;
 try {
   gate = await import(pathToFileURL(DIST).href);
+  ({ BANNED_RULES: bannedRules } = await import(pathToFileURL(BANNED_DIST).href));
 } catch (err) {
   console.error(`could not load ${DIST}. Run \`npm run build\` first.\n${String(err)}`);
   process.exit(1);
@@ -61,8 +73,49 @@ function tagged(text) {
   return [...text.matchAll(/line`([^`]*)`/g)].map((m) => m[1]);
 }
 
+/** The VALUES of a `key: "string"` table. A chrome table quotes some of its
+ *  KEYS too (`"first-watch"`), and a key is an identifier, not a surface. */
+function tableValues(text) {
+  return [...text.matchAll(/:\s*"((?:[^"\\]|\\.)*)"/g)].map((m) => m[1]);
+}
+
+/**
+ * The `line`-tagged template of a `const NAME: PinnedLine =` declaration —
+ * the shape every frame explainer is declared in — with each interpolated
+ * span masked to a single space.
+ *
+ * The mask is `gateFactCarrying`'s own MASK, THEN RE-USE applied one level up.
+ * An interpolation here is a `Fact`, which is to say a pinned token, and the
+ * fact-carrying gate blanks exactly those spans before running the fact-free
+ * list over what is left; a pinned fact is not charged against the prose bound
+ * there, and it is not charged against it here. Doing it at the template
+ * rather than rendering the line is what lets the clock line be audited at
+ * all: rendering would mean importing voice.ts, and voice.ts pulls the catalog
+ * chain in behind it (this file's header).
+ */
+function frameLine(name) {
+  const start = source.indexOf(`const ${name}: PinnedLine =`);
+  if (start < 0) throw new Error(`voice.ts has no frame line named: ${name}`);
+  const match = /line`([^`]*)`/.exec(source.slice(start));
+  if (match === null) throw new Error(`could not find the template of: ${name}`);
+  return match[1].replace(/\$\{[^}]*\}/g, " ");
+}
+
 const failures = [];
 const fail = (msg) => failures.push(msg);
+
+/**
+ * §6's table, compiled from the SAME output the gate compiles it from, for the
+ * chrome check below. `audit:catalog` makes the identical trade for every other
+ * module's chrome and for the same reason.
+ */
+const CHROME_BANNED = bannedRules.map((r) => new RegExp(r.source, r.flags));
+/** R-8's dash family, byte-identical to stylegate.ts's EM_DASH. */
+const CHROME_DASH = /[—–―]|--/;
+/** R-24: ALL-CAPS set phrases. A lowercase letter is the tell. */
+const CHROME_LOWER = /\p{Ll}/u;
+/** R-24's ceiling. */
+const CHROME_MAX_WORDS = 6;
 
 function check(label, strings, limits) {
   if (strings.length === 0) fail(`${label}: scraped zero strings — the audit is not testing anything`);
@@ -70,6 +123,34 @@ function check(label, strings, limits) {
     const verdict = gateFactFree(line, limits);
     if (!verdict.ok) {
       fail(`${label}: rejected as "${verdict.reason}"${verdict.detail ? ` (${verdict.detail})` : ""}\n      ${line}`);
+    }
+  }
+  return strings.length;
+}
+
+/**
+ * The chrome check — for ALL-CAPS set phrases, which the sentence gate cannot
+ * read.
+ *
+ * THE SENTENCE GATE IS THE WRONG INSTRUMENT HERE and cannot be made the right
+ * one. `gateFactFree` rejects an unterminated line, and a label has no
+ * terminator BY DESIGN; the only way to push READ THE STUDY through it would be
+ * to append a full stop first, which is the audit editing the string — the one
+ * thing the gate itself refuses to do (stylegate.ts's opening note). So the
+ * rules that actually govern chrome are applied directly instead: §6's table,
+ * R-24's six-word ALL-CAPS bound, and R-8's dash family.
+ */
+function checkChrome(label, strings) {
+  if (strings.length === 0) fail(`${label}: scraped zero strings — the audit is not testing anything`);
+  for (const text of strings) {
+    const words = text.split(/\s+/).filter((w) => w.length > 0);
+    if (words.length > CHROME_MAX_WORDS) {
+      fail(`${label}: past R-24's six words (${words.length})\n      ${text}`);
+    }
+    if (CHROME_LOWER.test(text)) fail(`${label}: not an ALL-CAPS set phrase (R-24)\n      ${text}`);
+    if (CHROME_DASH.test(text)) fail(`${label}: carries a dash (R-8)\n      ${text}`);
+    for (const rule of CHROME_BANNED) {
+      if (rule.test(text)) fail(`${label}: §6 term /${rule.source}/\n      ${text}`);
     }
   }
   return strings.length;
@@ -122,6 +203,34 @@ const bandLines = quoted(block("export const LEDGER_BAND_LINES: Readonly<"));
 // substitutes for it behind the counsel flag and the two must fit the same
 // home-strip row.
 const counselLines = quoted(block("export const COUNSEL_LINES: ByArchetype<"));
+// The frame explainers — the archetype-neutral lines shown once each, at the
+// moment their surface first appears. THIS WAS THE HOLE IN THIS AUDIT: eleven
+// named blocks were scraped and the frame family was not one of them, while
+// `audit:catalog` skips voice.ts believing this audit covers the file. From
+// the age chip to AS's study line, six shipped player surfaces met no check
+// but `audit:dashes`, and one of them (the compute line, 44 words over three
+// sentences) had been past its own rule since the day it landed.
+//
+// Checked at RECORD size, which is the frame family's bound transcribed:
+// R-27 (frame explainer), R-27a (the silence line) and R-28 (the clock line)
+// all read "1–2 sentences, ≤ 34 words", and `LIMITS.record` is exactly that
+// pair. Remark size would be the wrong shape (a frame line teaches a surface;
+// it is not a free-standing aside) and arrival size would be wrong the other
+// way — three sentences is the arrival's licence, not this family's.
+const frameLines = [
+  "AGE_CHIP_LINE",
+  "COMPUTE_LINE",
+  "CLOCK_LINE",
+  "EPOCH_LINE",
+  "SILENCE_LINE",
+  "STUDY_LINE",
+].map(frameLine);
+// The proposal accept verbs (§2's "Proposal accept verb" row, R-24). Chrome,
+// so they go through `checkChrome` rather than the gate; that function says
+// why the gate cannot read them.
+const proposalVerbs = tableValues(
+  block("export const PROPOSAL_VERBS: Readonly<Record<ProposalKind, string>> = {"),
+);
 
 const arrivalCount = check("arrival line", arrivals, LIMITS.arrival);
 const introCount = check("intro beat", intros, LIMITS.arrival);
@@ -134,6 +243,8 @@ const toneCount = check("tone clause", toneClauses, LIMITS.remark);
 const accordCount = check("accord clause", accordClauses, LIMITS.remark);
 const bandCount = check("ledger band line", bandLines, LIMITS.remark);
 const counselCount = check("counsel line", counselLines, LIMITS.stance);
+const frameCount = check("frame line", frameLines, LIMITS.record);
+const verbCount = checkChrome("proposal verb", proposalVerbs);
 
 // The composition is what actually ships, so prove it fits: every opening
 // against every voice clause would be the exhaustive test, but the bound is
@@ -184,6 +295,8 @@ console.log(`tone clauses    ${toneCount}`);
 console.log(`accord clauses  ${accordCount}`);
 console.log(`band lines      ${bandCount}`);
 console.log(`counsel lines   ${counselCount}`);
+console.log(`frame lines     ${frameCount}`);
+console.log(`proposal verbs  ${verbCount}`);
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} failure(s):`);

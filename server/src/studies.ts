@@ -140,26 +140,40 @@ export interface StoredStudy {
    *  cannot be forged by editing storage. */
   readonly bought: readonly BoughtQuestion[];
   /**
-   * A2.2b: the year this study was last opened — set on the first open AND
-   * on every reopen. The grounded exit fires only on a mission report that
-   * reached home STRICTLY AFTER this year, which is what makes reopening a
-   * real act: the report that already closed the study cannot close it
-   * again, and only the next word can. One rule, no special case for the
-   * first open (a probe that reported before the study existed still shows
-   * in the evidence trail and still moves the board — it just does not
-   * close a vigil the player only now decided to keep).
+   * A2.2b: the home year of the act that took this study up — the first act
+   * that needed a record (a purchase, a launch, an arming, a call), and
+   * every explicit reopen after it. NEVER the year of detection: every
+   * visible source carries a board from the moment it is seen, and a vigil
+   * nobody kept cannot end.
+   *
+   * The grounded exit fires only on a mission report that reached home
+   * STRICTLY AFTER this year, which is what makes taking a study up a real
+   * act: a report already home when the player first acts closes nothing,
+   * and only the next word can. That one rule needs no first-act special
+   * case. A probe launched as the first act stamps this at launch, so the
+   * probe's own report, arriving later, grounds the study it opened; a
+   * report that landed before there was a record still shows in the evidence
+   * trail and still moves the board, it just closes nothing.
+   *
+   * The ambient boards cohort.ts assembles for sources with no record are
+   * built over a synthetic, never-persisted study whose value here is
+   * positive infinity. That is the arithmetic form of the rule above:
+   * nothing can arrive strictly after it, so no ambient board can ground.
    */
   readonly openedYear: number;
   /**
-   * A2.3: the source's signal class as it stood when the study was last
-   * opened, stamped on every open and reopen. The overtaken exit compares it
-   * against the class the light shows now, which is what makes "this is not
-   * the thing you were studying" a fact rather than a feeling.
+   * A2.3: the source's signal class as it stood at that same act. Stamped
+   * WITH `openedYear` and never apart from it: one stamp, two fields. The
+   * overtaken exit compares it against the class the light shows now, which
+   * is what makes "this is not the thing you were studying" a fact rather
+   * than a feeling.
    *
-   * Null only on a study migrated from before this field existed. A null
-   * NEVER overtakes: cohort.ts back-fills it to the current class on the next
-   * sky-send, so a study that has been watched for weeks does not close
-   * itself on a class it was never opened against.
+   * Null on a study migrated from before this field existed, and null on the
+   * synthetic record behind an ambient board. A null NEVER overtakes: for a
+   * migrated study cohort.ts back-fills it to the current class on the next
+   * sky-send, so one that has been watched for weeks does not close itself
+   * on a class it was never taken up against; for an ambient board there is
+   * nothing to back-fill and nothing to close.
    */
   readonly openedClass: SignalClass | null;
   /** A2.3: non-null iff `status === "called"`. */
@@ -871,7 +885,7 @@ export function calledAnnotationFor(call: StoredCall): string {
  * card to show what the study had believed up to here.
  */
 export const OVERTAKEN_LINE =
-  "What this is has changed since you opened the study. The light reads differently now. Reopening starts the watch on what it is now.";
+  "What this is has changed since you took this study up. The light reads differently now. Taking it up again starts the watch on what it is now.";
 
 type TransitionKind = "first" | "rose" | "fell" | "held";
 

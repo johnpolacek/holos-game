@@ -73,7 +73,9 @@ jobs:
 
       # AV4, prose-style.md §3 R-38. Runs after `build` because it imports the
       # COMPILED gate, so the audit can never drift from the code that ships.
-      # If this fails, the gate is wrong, not the banks.
+      # If this fails, the gate is wrong, not the banks. Since AS3 it also
+      # checks voice.ts's ALL-CAPS chrome against §6 and R-24, which the gate
+      # cannot read — and there the banks are wrong, not the gate.
       - name: Audit the style gate against every shipped bank string
         run: npm run audit:voice
 

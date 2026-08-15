@@ -5,7 +5,7 @@
 // arrives from someone else, and one person cannot open two browsers and still
 // be surprised. A2.6 retired freeform and made human and AI threads
 // byte-indistinguishable, so a bot that speaks the shipped client vocabulary is
-// indistinguishable BY CONSTRUCTION: it flags sources, runs vigils, buys
+// indistinguishable BY CONSTRUCTION: it takes up sources, runs vigils, buys
 // questions, hails, trades composed signals and answers the mutual quiet
 // through exactly the messages `client/src/net.ts` sends. It is not a second
 // species of AI counterpart (traffic.ts already owns those, server-side and
@@ -232,7 +232,7 @@ class PlaytestBot {
     // the others decline it, which is what makes the accord a real move
     // instead of a formality the playtester always sees succeed.
     this.quiet = this.rng.chance(0.5);
-    this.studyTarget = 2 + this.rng.int(2); // 2 or 3 open vigils
+    this.studyTarget = 2 + this.rng.int(2); // 2 or 3 vigils it means to hold
     this.tripwireHabit = this.rng.range(0.2, 0.5);
     this.probeHabit = this.rng.range(0.2, 0.45);
   }
@@ -440,7 +440,7 @@ class PlaytestBot {
       this.tryReadThread() ||
       this.tryFirstHail() ||
       this.tryCallStudy() ||
-      this.tryOpenStudy() ||
+      this.tryEngageStudy() ||
       this.tryBuyQuestion() ||
       this.tryArmTripwire() ||
       this.tryLaunchProbe();
@@ -683,17 +683,59 @@ class PlaytestBot {
     return this.studies().filter((s) => s.status === "open");
   }
 
-  /** Keep two or three vigils running on the nearest sources. */
-  tryOpenStudy() {
+  /** The boards on sources this bot holds no record on. A study stands on
+   *  every source from the moment it is found, so these arrive fully built —
+   *  hypotheses, prices and all — and cost nothing to read. */
+  ambient() {
+    return this.sky?.ambient ?? [];
+  }
+
+  /**
+   * Keep two or three vigils running on the nearest sources — by ACTING on
+   * them.
+   *
+   * AS: there is no "begin the watch" any more. The board is already standing
+   * on every source; what the Desk lists, and what `sky.studies` carries, is
+   * the sources this civilization has put something into. So taking one up
+   * means spending: the cheapest question this bot can afford on the nearest
+   * ambient board, or, when it can afford nothing, a standing order on it —
+   * both are acts the server must remember, and either one materializes the
+   * record in the same write. `studyTarget` is unchanged in meaning; it just
+   * counts boards acted on rather than boards filed.
+   */
+  tryEngageStudy() {
     if (this.openStudies().length >= this.studyTarget) return false;
-    const watched = new Set(this.studies().map((s) => s.starId));
-    const target = this.sources()
-      .filter((s) => !watched.has(s.starId))
-      .sort((a, b) => a.distanceLy - b.distanceLy)[0];
-    if (target === undefined) return false;
-    this.log(`opened a study on ${target.designation}`);
-    this.send({ type: "openStudy", starId: target.starId });
-    return true;
+    const free = this.freeCompute();
+    const distance = new Map(this.sources().map((s) => [s.starId, s.distanceLy]));
+    const nearest = this.ambient()
+      .slice()
+      .sort(
+        (a, b) =>
+          (distance.get(a.starId) ?? Infinity) - (distance.get(b.starId) ?? Infinity),
+      );
+    for (const board of nearest) {
+      const question = (board.openQuestions ?? [])
+        .filter((q) => q.state === "offered" && q.costCompute <= free)
+        .sort((a, b) => a.costCompute - b.costCompute)[0];
+      if (question !== undefined) {
+        this.log(
+          `took up ${this.designationOf(board.starId)} by buying "${question.label}" ` +
+            `for ${question.costCompute} compute`,
+        );
+        this.send({ type: "buyQuestion", starId: board.starId, questionId: question.id });
+        return true;
+      }
+      const wire = (board.tripwires ?? []).find((t) => t.state === "available");
+      if (wire !== undefined) {
+        this.log(
+          `took up ${this.designationOf(board.starId)} with a standing ${wire.kind} order, ` +
+            `nothing there being affordable yet`,
+        );
+        this.send({ type: "armTripwire", starId: board.starId, kind: wire.kind });
+        return true;
+      }
+    }
+    return false;
   }
 
   /** The cheapest affordable question on the FLATTEST board — the study whose

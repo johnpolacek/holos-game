@@ -65,9 +65,11 @@ const NOT_A_SURFACE = new Set([
   // The ban list itself. Every rule in it would match itself.
   // (audit-dashes.mjs excludes it for exactly this reason.)
   "bannedterms.ts",
-  // audit:voice runs the WHOLE GATE over this file, which is strictly more
-  // than the §6 subset this audit applies.
-  "voice.ts",
+  // voice.ts is deliberately NOT here. audit:voice runs the whole gate over
+  // it, but only over a hand-maintained block list — a bank that list misses
+  // would meet no check at all if this audit skipped the file. Scanning it
+  // here is redundant for the listed banks and load-bearing for anything the
+  // list has not caught up to. Fail closed twice rather than open once.
   // `why` fields: both modules document them as design notes kept beside the
   // numbers they explain, never a surface and never across the wire.
   "contest.ts",

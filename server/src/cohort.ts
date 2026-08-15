@@ -105,7 +105,14 @@ import {
   type PlacedCiv,
   type Star,
 } from "./galaxy";
-import { emissionAt, lightConeFor, observeCiv, observeSky, visibleSky } from "./knowledge";
+import {
+  emissionAt,
+  lightConeFor,
+  observeCiv,
+  observeSky,
+  visibleSky,
+  type SignalClass,
+} from "./knowledge";
 import {
   actsFrom,
   appendAct,
@@ -149,7 +156,7 @@ import {
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
-import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine, silenceLine, introLine, counselLine } from "./voice";
+import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine, silenceLine, studyLine, introLine, counselLine } from "./voice";
 import {
   buildStudySnapshot,
   hypothesisMenus,
@@ -697,6 +704,58 @@ function remarkFamilyOf(state: ReportState, entryId: string): RemarkFamily | nul
   return stored === undefined ? null : asRemarkFamily(stored.family);
 }
 
+/**
+ * AS: the record a FIRST ACT brings into being — the one write that turns an
+ * ambient board into a study the server remembers. Every act that needs a
+ * record (a purchase, a launch, an arming, a call) materializes through this
+ * shape, so the stamp is made in one place and can only be made whole:
+ * `openedYear` is the home year of the act and `openedClass` is the class the
+ * source shows at that same moment, and the two are never written apart.
+ *
+ * Only acts the server must REMEMBER materialize. Shelving takes something
+ * away and refuses where there is no record; a founding is not attention paid
+ * to a source and never materializes one.
+ */
+function takenUpStudy(starId: string, nowYear: number, signalClass: SignalClass): StoredStudy {
+  return {
+    starId,
+    status: "open",
+    bought: [],
+    openedYear: nowYear,
+    openedClass: signalClass,
+    called: null,
+    overtaken: null,
+    tripwires: [],
+  };
+}
+
+/**
+ * AS: the never-persisted record an AMBIENT board is assembled over, so that
+ * `buildStudySnapshot` serves both halves of the sky and is never forked.
+ * NOTHING WRITES THIS SHAPE — the assembly takes the snapshot and discards the
+ * writes, because a board with no record has nowhere to put them.
+ *
+ * Its three empty values are load-bearing rather than merely blank, and each
+ * closes one path by arithmetic instead of by a rule someone has to remember:
+ * `openedYear` at positive infinity means no report can arrive strictly after
+ * it, so an ambient board cannot ground; a null `openedClass` can never
+ * overtake; and an empty `bought` means `assembleQuestion` never reaches
+ * `resolveQuestion`, the one truth read in this pipeline. Assembling a board
+ * for every visible source therefore widens no leak at all.
+ */
+function ambientStudy(starId: string): StoredStudy {
+  return {
+    starId,
+    status: "open",
+    bought: [],
+    openedYear: Number.POSITIVE_INFINITY,
+    openedClass: null,
+    called: null,
+    overtaken: null,
+    tripwires: [],
+  };
+}
+
 export class Cohort extends Server<CohortEnv> {
   private clock: ClockState | null = null;
   /**
@@ -1039,6 +1098,12 @@ export class Cohort extends Server<CohortEnv> {
         phase: "placed",
         clock: this.toClockWire(),
         catalog: galaxy.stars,
+        // VESTIGIAL, KEPT ON PURPOSE (AS3). No shipped client reads `menus`:
+        // the briefing screen it fed is gone and every board carries its own
+        // hypotheses. It is still served because a tab left open across a
+        // deploy parses this message, and a field its guard requires cannot
+        // be dropped without breaking that session mid-flight. Removable in a
+        // later slice; protocol.ts's `HypothesisMenus` holds the note.
         menus: hypothesisMenus(),
         missionCatalog: this.missionCatalog(),
         voyageCatalog: this.voyageCatalog(),
@@ -1064,6 +1129,7 @@ export class Cohort extends Server<CohortEnv> {
       phase: "choosing",
       clock: this.toClockWire(),
       catalog: galaxy.stars,
+      // Vestigial, kept on purpose — the note is on the `placed` welcome above.
       menus: hypothesisMenus(),
       missionCatalog: this.missionCatalog(),
       voyageCatalog: this.voyageCatalog(),
@@ -1424,9 +1490,23 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
-   * openStudy: open a study on a currently visible detected source (also
-   * resumes a shelved study — the one verb serves both). No derivation here:
-   * status flip and persistence only, then a fresh sky.
+   * openStudy: THE REOPEN VERB. AS: every visible source already carries a
+   * board, so there is nothing left to open; what this verb still does is
+   * resume a study the player set down or one that closed itself, which is
+   * the one move an ambient board cannot stand in for.
+   *
+   * Three cases, and the third is the one worth stating out loud. An ABSENT
+   * record materializes open, stamped now, so a tab from an older deploy
+   * sending this at an untouched source is a taking-up rather than an error.
+   * A SHELVED or CLOSED study reopens: status open, the stamp restamped, the
+   * frozen exits cleared, `bought` and `tripwires` kept. An ALREADY OPEN study
+   * is a NO-OP with no write at all — restamping there would push the
+   * grounding horizon past a probe already in flight, so a second tab, a
+   * double tap, or a stale client could otherwise cost the player the report
+   * they are waiting on.
+   *
+   * No derivation here either way: status flip and persistence only, then a
+   * fresh sky.
    */
   private async onOpenStudy(conn: Connection, starId: string): Promise<void> {
     const state = this.conns.get(conn.id);
@@ -1446,12 +1526,22 @@ export class Cohort extends Server<CohortEnv> {
       return;
     }
     const studyState = await this.loadStudyState(state.token, nowYear);
+    const existing = studyState.studies[starId];
+    if (existing !== undefined && existing.status === "open") {
+      // AS: already open. Nothing to resume, and above all nothing to
+      // restamp. The sky still goes out, so a client that sent this gets the
+      // same answer a write would have given it (onDisarmTripwire's
+      // idempotence, one step further along: no write at all).
+      await this.sendSkyToSeat(state);
+      return;
+    }
     // synthesis.md §2 (the reopen bug): SPREAD the existing record rather
     // than writing a fresh `{starId, status}` — a shelved study's `bought[]`
     // must survive a reopen, or every purchase on it would be discarded.
     //
-    // A2.2b: `openedYear` is stamped on EVERY open, first or re-. It is what
-    // the grounded exit measures a report's arrival against, so reopening a
+    // A2.2b: `openedYear` is stamped here, on the taking-up and on every
+    // reopen — and, per the no-op above, on nothing else. It is what the
+    // grounded exit measures a report's arrival against, so reopening a
     // grounded study genuinely reopens it — the report that closed it has
     // already arrived and can never close it again.
     //
@@ -1461,7 +1551,6 @@ export class Cohort extends Server<CohortEnv> {
     // so); reopening an overtaken one starts the watch on what the source is
     // now, which is exactly what its closing line offered. `tripwires`
     // survives untouched: an order left standing is left standing.
-    const existing = studyState.studies[starId];
     const studies: Record<string, StoredStudy> = {
       ...studyState.studies,
       [starId]: {
@@ -1517,6 +1606,14 @@ export class Cohort extends Server<CohortEnv> {
    * to the share. From here nothing reads it back. Light goes on arriving,
    * the underlying board goes on moving, and none of that touches the call
    * or is scored against it.
+   *
+   * AS: CALLING IS A FIRST ACT, and the board it calls may be an ambient one,
+   * so the lead is looked for in both halves of the assembly. A source with no
+   * record materializes and closes in the SAME write: the study is taken up
+   * and called at one home year, which is the honest record of what happened
+   * (the player read a board and said what they think it is). Deciding is
+   * something the server must remember, so it is a first act; the stamp goes
+   * on with the call, never after it.
    */
   private async onCallStudy(conn: Connection, starId: string): Promise<void> {
     const state = this.conns.get(conn.id);
@@ -1534,7 +1631,7 @@ export class Cohort extends Server<CohortEnv> {
     }
     const studyState = await this.loadStudyState(state.token, nowYear);
     const existing = studyState.studies[starId];
-    if (existing === undefined || isClosed(existing.status)) {
+    if (existing !== undefined && isClosed(existing.status)) {
       this.sendMsg(conn, {
         type: "error",
         code: "study-unavailable",
@@ -1543,8 +1640,13 @@ export class Cohort extends Server<CohortEnv> {
       return;
     }
 
+    // AS: the engaged half first, then the ambient one. A recordless source
+    // has its board in `ambient` and nowhere else, and the two are disjoint,
+    // so this finds exactly one board or none.
     const assembled = await this.assembleSkyState(state.token, state.civId, nowYear);
-    const snapshot = assembled.studies.find((s) => s.starId === starId);
+    const snapshot =
+      assembled.studies.find((s) => s.starId === starId) ??
+      assembled.ambient.find((s) => s.starId === starId);
     const lead = snapshot === undefined ? undefined : leadHypothesisOf(snapshot.hypotheses);
     if (lead === undefined) {
       this.sendMsg(conn, {
@@ -1558,8 +1660,16 @@ export class Cohort extends Server<CohortEnv> {
     // Re-read: `assembleSkyState` owns a write of its own (studyWrites), so
     // the record loaded above may be stale by now. Same re-fetch-before-put
     // discipline the mission and wake-queue writes use.
+    //
+    // AS: the third arm is the materialization. It is the same fall-through —
+    // the freshest record wins, and where there has never been one, the act
+    // brings it into being stamped at this year, against the class the source
+    // shows now. The spread below then closes it, so one save carries both.
     const current = await this.loadStudyState(state.token, nowYear);
-    const base = current.studies[starId] ?? existing;
+    const base =
+      current.studies[starId] ??
+      existing ??
+      takenUpStudy(starId, nowYear, source.signal.classification);
     if (isClosed(base.status)) {
       // The assemble above closed it out from under us (a report landed, or
       // the class changed in the same breath). Those exits are the sky's and
@@ -1597,6 +1707,13 @@ export class Cohort extends Server<CohortEnv> {
    * the server REFUSES to arm a condition that already holds: arming
    * something that would fire on the same breath is not an order, it is a
    * misunderstanding, and `tripwire-unavailable` says so.
+   *
+   * AS: ARMING IS A FIRST ACT — an order is something the server must
+   * remember — so a source with no record materializes one here, stamped at
+   * this year, in the same write that stores the arming. The already-holds
+   * refusal still needs a board to read, and for a recordless source that
+   * board is the ambient one this send assembled: the player armed against
+   * what they were looking at, and that is what is checked.
    */
   private async onArmTripwire(conn: Connection, starId: string, kind: string): Promise<void> {
     const state = this.conns.get(conn.id);
@@ -1623,7 +1740,7 @@ export class Cohort extends Server<CohortEnv> {
     }
     const studyState = await this.loadStudyState(state.token, nowYear);
     const existing = studyState.studies[starId];
-    if (existing === undefined || isClosed(existing.status)) {
+    if (existing !== undefined && isClosed(existing.status)) {
       this.sendMsg(conn, {
         type: "error",
         code: "study-unavailable",
@@ -1637,8 +1754,14 @@ export class Cohort extends Server<CohortEnv> {
     // the moment of arming; the other two are armed-year-relative and so are
     // false by construction here, which is the whole reason the state machine
     // needs nothing but a fired year.
+    //
+    // AS: for a source with no record that board is the ambient one, found in
+    // the other half of the same assembly. The halves are disjoint, so this
+    // finds exactly one board or none.
     const assembled = await this.assembleSkyState(state.token, state.civId, nowYear);
-    const snapshot = assembled.studies.find((s) => s.starId === starId);
+    const snapshot =
+      assembled.studies.find((s) => s.starId === starId) ??
+      assembled.ambient.find((s) => s.starId === starId);
     const holds =
       snapshot !== undefined &&
       tripwireHolds(tripwireKind, nowYear, {
@@ -1656,8 +1779,15 @@ export class Cohort extends Server<CohortEnv> {
       return;
     }
 
+    // AS: onCallStudy's fall-through exactly — the freshest record, then the
+    // one this handler loaded, then the taking-up where there has never been
+    // one. The arming spread below rides on whichever it is, so the stamp and
+    // the order reach storage in a single save.
     const current = await this.loadStudyState(state.token, nowYear);
-    const base = current.studies[starId] ?? existing;
+    const base =
+      current.studies[starId] ??
+      existing ??
+      takenUpStudy(starId, nowYear, source.signal.classification);
     if (isClosed(base.status)) {
       // Closed by the assemble above; a closed study evaluates no tripwires,
       // so arming one on it would be an order nothing will ever read.
@@ -1836,13 +1966,18 @@ export class Cohort extends Server<CohortEnv> {
   /**
    * buyQuestion: commission one inference against free compute. Requires a
    * visible source (so the class is known); it does NOT require an open
-   * study — the spend is the statement of intent, so it opens the study
-   * when none exists and reopens a shelved one (stamping `openedYear`
+   * study — the spend is the statement of intent, so it takes the study up
+   * when there is no record and resumes a shelved one (stamping `openedYear`
    * exactly as onOpenStudy would). The statuses a spend does not override
    * are the CLOSED ones: grounded, called, and overtaken all stay closed
    * until the player deliberately reopens, because reopening restamps
    * `openedYear` and `openedClass` and with them what those exits measure
    * against (observatory-design.md § The exits).
+   *
+   * AS: A SPEND IS A FIRST ACT, and this handler has always written the
+   * record a first act needs — the shape below is already the taking-up, with
+   * the purchase in it. Nothing about that changes now that the board it was
+   * bought from may never have had a record behind it.
    */
   private async onBuyQuestion(conn: Connection, starId: string, questionId: string): Promise<void> {
     const state = this.conns.get(conn.id);
@@ -1934,6 +2069,13 @@ export class Cohort extends Server<CohortEnv> {
   /**
    * launchMission: commit a probe-class mission to a visible source under a
    * charter written now and never patchable again (systems-a.md §5.4).
+   *
+   * AS: LAUNCHING IS A FIRST ACT. Sending something to a source is attention
+   * the server has to remember, so a source with no study record gets one
+   * here, stamped at the launch year (`takeUpStudy`). That stamp is what
+   * makes the probe's own report the thing that closes the study it opened:
+   * the report reaches home strictly after the launch, so the grounded exit
+   * fires on it with no first-act special case anywhere.
    */
   private async onLaunchMission(
     conn: Connection,
@@ -2022,6 +2164,11 @@ export class Cohort extends Server<CohortEnv> {
 
     const updatedProjectState = commitCompute(projectState, kindDef.costCompute, nowYear);
     await this.saveProjectState(state.token, updatedProjectState);
+
+    // AS: the taking-up, beside the launch it belongs to. It writes only where
+    // there is no record; a launch at a source already being watched changes
+    // nothing about the study, least of all its stamp.
+    await this.takeUpStudy(state.token, starId, source.signal.classification, nowYear);
 
     await this.pushWakeEvent({
       token: state.token,
@@ -3391,6 +3538,35 @@ export class Cohort extends Server<CohortEnv> {
     await this.ctx.storage.put(`studies:${token}`, state);
   }
 
+  /**
+   * AS: materialize the study a LAUNCH stands for, when this seat holds no
+   * record on that source yet. Returns whether it wrote.
+   *
+   * The two launch sites (`onLaunchMission` and the standing order's dispatch
+   * inside `assembleSkyState`) share it because a dispatch is a delegated
+   * launch and must be indistinguishable from a hand one in the record.
+   * Launching IS the act, so the stamp is the launch year: the probe's own
+   * report reaches home strictly after it and grounds the study it opened.
+   *
+   * It never touches a record that already exists — not the status, not the
+   * stamp. A launch at a source the player is already watching is one more
+   * thing the study will hear back from, not a fresh taking-up of it.
+   */
+  private async takeUpStudy(
+    token: string,
+    starId: string,
+    signalClass: SignalClass,
+    nowYear: number,
+  ): Promise<boolean> {
+    const state = await this.loadStudyState(token, nowYear);
+    if (state.studies[starId] !== undefined) return false;
+    await this.saveStudyState(token, {
+      version: 4,
+      studies: { ...state.studies, [starId]: takenUpStudy(starId, nowYear, signalClass) },
+    });
+    return true;
+  }
+
   /** A run placed before A2.2 has no stored mission state: lazily create one. */
   private async loadMissionState(token: string): Promise<MissionState> {
     const stored = await this.ctx.storage.get<MissionState>(`missions:${token}`);
@@ -3525,7 +3701,7 @@ export class Cohort extends Server<CohortEnv> {
   /**
    * AV1: send the lines this player has not yet been shown — arrival (this
    * civ's archetype), the frame explainers (age chip, compute, clock,
-   * epoch, silence), and S0.1's four intro beats. Sent on placement only,
+   * epoch, silence, study), and S0.1's four intro beats. Sent on placement only,
    * right before that path's sendSky — never from sendSky itself, which
    * repeats on every alarm-driven resend and every verb; the voice message
    * would otherwise replay endlessly. THE CLIENT'S INTRO AUTOPLAY DEPENDS
@@ -3562,6 +3738,9 @@ export class Cohort extends Server<CohortEnv> {
     // The Fermi stance — shown once, on a source card, after the age-chip
     // line has been taken (act3-design.md, *The silence, kept*).
     if (!seen.has("silence")) lines.silence = silenceLine();
+    // AS2: the board's frame line — the client shows it once, on the first
+    // study board opened, which is where a watch is first read.
+    if (!seen.has("study")) lines.study = studyLine();
     // S0.1: the four beats. `forceIntro` bypasses `seen` entirely — the
     // Mind page's replay path re-requests lines this player already
     // dismissed, and the replace-not-patch contract above is what makes
@@ -3866,6 +4045,7 @@ export class Cohort extends Server<CohortEnv> {
       sources,
       localNames,
       studies,
+      ambient,
       missions,
       voyages,
       survey,
@@ -3990,6 +4170,7 @@ export class Cohort extends Server<CohortEnv> {
       sources,
       localNames,
       studies,
+      ambient,
       projects,
       budget,
       missions,
@@ -4048,6 +4229,55 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
+   * One star's mission-report moves as of `nowYear`, and the grounding they
+   * would make for a study last stamped at `openedYear`.
+   *
+   * AS: extracted from the stored-study loop below so the ambient boards fold
+   * in probe reports through the SAME derivation rather than a second copy of
+   * it. A report is a fact about the source, not a reward for having filed
+   * anything, so a player who has not taken the study up still reads it on the
+   * board. An ambient study's `openedYear` is positive infinity, which makes
+   * the strictly-after test below false for every report — the moves land, the
+   * grounding never does.
+   *
+   * The grounding decision lives HERE rather than in studies.ts for the reason
+   * that module's header gives: it cannot tell a bought answer from a probe
+   * report, and this is the one place that knows (systems-a.md §2.5, §11).
+   */
+  private studyMovesFor(
+    galaxy: Galaxy,
+    civId: string,
+    starId: string,
+    missions: readonly StoredMission[],
+    openedYear: number,
+    nowYear: number,
+  ): { readonly moves: readonly StudyMove[]; readonly grounding: StudyGrounding | null } {
+    const moves: StudyMove[] = [];
+    let grounding: StudyGrounding | null = null;
+    for (const m of missions) {
+      if (m.starId !== starId) continue;
+      const mCone = lightConeFor(galaxy, civId, m.targetCivId, nowYear);
+      const plan = resolveMissionPlan(galaxy, mCone, m, nowYear);
+      if (plan === null) continue;
+      const found = deriveStudyMoves(galaxy, mCone, m, plan, missionArrivalYear(m), nowYear);
+      moves.push(...found);
+      for (const move of found) {
+        if (move.arrivedYear <= openedYear + YEAR_EPS) continue;
+        if (grounding !== null && move.arrivedYear <= grounding.arrivedYear) continue;
+        grounding = {
+          missionId: m.id,
+          reportId: move.id,
+          missionName: missionProseName(m.kind),
+          asOfYear: move.asOfYear,
+          lightAgeYears: nowYear - move.asOfYear,
+          arrivedYear: move.arrivedYear,
+        };
+      }
+    }
+    return { moves, grounding };
+  }
+
+  /**
    * The wire-snapshot assembly `sendSky` sends and AV2's `materializeReport`
    * derives from — split out so both can reach it without either depending
    * on the other having already run this turn. Owns the one side effect in
@@ -4068,6 +4298,11 @@ export class Cohort extends Server<CohortEnv> {
     readonly sources: readonly DetectedSource[];
     readonly localNames: Readonly<Record<string, string>>;
     readonly studies: readonly StudySnapshot[];
+    /** AS: the boards for visible sources with no stored study, exposed to
+     *  handlers exactly as `studies` is. A first-act handler (a call, an
+     *  arming) has to read the board the player was looking at, and for a
+     *  source with no record that board is this one. */
+    readonly ambient: readonly StudySnapshot[];
     readonly missions: readonly MissionSnapshot[];
     readonly voyages: readonly VoyageSnapshot[];
     readonly survey: readonly SurveyRow[];
@@ -4166,35 +4401,14 @@ export class Cohort extends Server<CohortEnv> {
         const targetCiv = civAtStar(galaxy, stored.starId);
         if (source === undefined || targetCiv === undefined) return null;
         const cone = lightConeFor(galaxy, civId, targetCiv.seed.id, nowYear);
-        const missionMoves: StudyMove[] = [];
-        let grounding: StudyGrounding | null = null;
-        for (const m of missionState.missions) {
-          if (m.starId !== stored.starId) continue;
-          const mCone = lightConeFor(galaxy, civId, m.targetCivId, nowYear);
-          const plan = resolveMissionPlan(galaxy, mCone, m, nowYear);
-          if (plan === null) continue;
-          const moves = deriveStudyMoves(
-            galaxy,
-            mCone,
-            m,
-            plan,
-            missionArrivalYear(m),
-            nowYear,
-          );
-          missionMoves.push(...moves);
-          for (const move of moves) {
-            if (move.arrivedYear <= stored.openedYear + YEAR_EPS) continue;
-            if (grounding !== null && move.arrivedYear <= grounding.arrivedYear) continue;
-            grounding = {
-              missionId: m.id,
-              reportId: move.id,
-              missionName: missionProseName(m.kind),
-              asOfYear: move.asOfYear,
-              lightAgeYears: nowYear - move.asOfYear,
-              arrivedYear: move.arrivedYear,
-            };
-          }
-        }
+        const { moves: missionMoves, grounding } = this.studyMovesFor(
+          galaxy,
+          civId,
+          stored.starId,
+          missionState.missions,
+          stored.openedYear,
+          nowYear,
+        );
 
         // Only an OPEN study grounds: a shelved vigil is passive, and an
         // already-grounded one keeps the grounding it has.
@@ -4275,6 +4489,57 @@ export class Cohort extends Server<CohortEnv> {
       await this.saveStudyState(token, { version: 4, studies: studyWrites });
     }
 
+    // ── AS: THE AMBIENT BOARDS ───────────────────────────────────────────
+    //
+    // A full board for every visible source this player holds no record on. A
+    // mind that had detected a source and was not already working up what it
+    // might be would be a bad observatory, so there is no verb between seeing
+    // and reading: the board is simply there.
+    //
+    // NO WRITE PATH EXISTS HERE, and that is the whole discipline of this
+    // block. `buildStudySnapshot` is reused rather than forked, over
+    // `ambientStudy`'s synthetic record, and only `.snapshot` is taken — the
+    // tripwire and overtaking writes it also returns are discarded, because
+    // there is no record to put them in. The exits stay anchored to acts by
+    // construction: nothing here can ground, overtake, or fire.
+    //
+    // No leak widens either. These boards read the same `ObservedSignal` and
+    // the same delivered moves the engaged ones do, and an empty `bought`
+    // means `resolveQuestion` — the one gated truth read in this pipeline — is
+    // never reached for a source nobody has spent on.
+    //
+    // Sorted by starId like `studies`, and DISJOINT from it by the filter
+    // below: membership is the absence of a record.
+    let ambient: StudySnapshot[] = sources
+      .filter((source) => studyState.studies[source.starId] === undefined)
+      .map((source) => {
+        const targetCiv = civAtStar(galaxy, source.starId);
+        if (targetCiv === undefined) return null;
+        const cone = lightConeFor(galaxy, civId, targetCiv.seed.id, nowYear);
+        const stored = ambientStudy(source.starId);
+        const { moves } = this.studyMovesFor(
+          galaxy,
+          civId,
+          source.starId,
+          missionState.missions,
+          stored.openedYear,
+          nowYear,
+        );
+        return buildStudySnapshot(
+          galaxy,
+          cone,
+          source,
+          stored,
+          nowYear,
+          projectState,
+          moves,
+          null,
+          null,
+        ).snapshot;
+      })
+      .filter((s): s is StudySnapshot => s !== null)
+      .sort((a, b) => a.starId.localeCompare(b.starId));
+
     // ── A4: THE STANDING ORDERS, AND THE LEDGER ──────────────────────────
     //
     // SITED HERE ON PURPOSE: after the sources (an order may only fire on
@@ -4323,6 +4588,9 @@ export class Cohort extends Server<CohortEnv> {
     if (orderWrites) {
       await this.saveOrderState(token, { version: 1, orders: orderSettle.orders });
     }
+    // AS: the stars a dispatch took a study up on, gathered so the ambient and
+    // engaged halves of THIS send can be re-partitioned once, below.
+    const takenUpByOrder = new Set<string>();
     for (const firing of orderSettle.firings) {
       // A fizzle is a whole outcome: the arming is spent, the annal says so,
       // and NOTHING is launched, queued or owed. Only a launch writes.
@@ -4348,12 +4616,45 @@ export class Cohort extends Server<CohortEnv> {
       await this.saveMissionState(token, missionsNow);
       projectStateNow = commitCompute(projectStateNow, firing.costCompute, nowYear);
       await this.saveProjectState(token, projectStateNow);
+      // AS: A DISPATCH IS A DELEGATED LAUNCH, so it takes the study up exactly
+      // as a hand launch does, stamped at the dispatch year — the probe's own
+      // report, arriving strictly after that stamp, is what will ground it.
+      //
+      // A load-modify-save of its own rather than a fold into `studyWrites`
+      // above: that map was assembled from the state loaded at the top of this
+      // method and has ALREADY BEEN SAVED by the time an order settles, so
+      // storage is the only base still current here. The two writes cannot
+      // fight over an entry, because a source with no record was never in the
+      // map, and this one writes nothing else.
+      const firedSource = sources.find((s) => s.starId === firing.starId);
+      if (firedSource !== undefined) {
+        const tookUp = await this.takeUpStudy(
+          token,
+          firing.starId,
+          firedSource.signal.classification,
+          nowYear,
+        );
+        if (tookUp) takenUpByOrder.add(firing.starId);
+      }
       await this.pushWakeEvent({
         token,
         atYear: missionFirstWordYear(mission),
         missionId: mission.id,
         key: `m/${mission.id}/0`,
       });
+    }
+    // AS: a study a dispatch took up crosses to the engaged half IN THIS SEND
+    // rather than on the next one, so the payload's two halves still say what
+    // the record says. A RE-PARTITION, never a rebuild: `buildStudySnapshot`
+    // reads neither `openedYear` nor `openedClass`, and the record just written
+    // matches the synthetic one in every field it does read, so the snapshot
+    // already assembled is the one an engaged pass would have produced.
+    if (takenUpByOrder.size > 0) {
+      for (const board of ambient) {
+        if (takenUpByOrder.has(board.starId)) studies.push(board);
+      }
+      studies.sort((a, b) => a.starId.localeCompare(b.starId));
+      ambient = ambient.filter((board) => !takenUpByOrder.has(board.starId));
     }
 
     // This seat's own foundings, in launch order — the list both the Ledger
@@ -4496,6 +4797,7 @@ export class Cohort extends Server<CohortEnv> {
       sources,
       localNames,
       studies,
+      ambient,
       missions,
       voyages,
       survey,

@@ -347,6 +347,15 @@ export interface HypothesisMenuEntry {
  * `welcome` so the briefing screen names the readings without the client
  * keeping its own copy of the menus (studies.ts stays the one source of
  * truth). Wording only: no shares, nothing source-specific.
+ *
+ * VESTIGIAL SINCE AS2, and knowingly kept. There is no briefing screen any
+ * more and no shipped client reads this: a board stands on every source and
+ * carries its own hypotheses, which is strictly better than a menu of what a
+ * study "could" tell apart. It stays on the wire because a tab left open
+ * across the deploy parses the welcome it is handed, and dropping a field a
+ * stale client's guard still requires would break that session at the parse
+ * rather than at anything it does. A candidate for removal in a later slice,
+ * once no client old enough to want it can still be connected.
  */
 export type HypothesisMenus = Readonly<
   Record<SignalClass, readonly HypothesisMenuEntry[]>
@@ -835,13 +844,19 @@ export interface LedgerWire {
 
 export type VoiceKey =
   | "arrival" | "age" | "compute" | "clock" | "epoch" | "silence"
+  // AS2: the board's own frame line, shown once on the first study board this
+  // player opens (ambient or engaged — the board is the first face of the
+  // watch either way). It carries what the retired briefing screen used to
+  // teach: that a watch stands on every source found, and what attending to
+  // one costs.
+  | "study"
   // S0.1: the four intro beats after the ceremony's BECOME. Kept as four
   // keys, not one, so `seen` tracks each beat independently the way every
   // other frame line does — a client that dismissed beat three but dropped
   // its connection before beat four gets exactly the tail on reconnect.
   | "intro1" | "intro2" | "intro3" | "intro4";
 export const VOICE_KEYS: readonly VoiceKey[] = [
-  "arrival", "age", "compute", "clock", "epoch", "silence",
+  "arrival", "age", "compute", "clock", "epoch", "silence", "study",
   "intro1", "intro2", "intro3", "intro4",
 ];
 export function isVoiceKey(v: unknown): v is VoiceKey {
@@ -1289,7 +1304,11 @@ export type CohortServerMessage =
    */
   | { type: "welcome"; token: string | null; account: boolean;
       phase: "choosing" | "placed";
-      clock: ClockWire; catalog: readonly Star[]; menus: HypothesisMenus;
+      clock: ClockWire; catalog: readonly Star[];
+      /** Vestigial since AS2: unread by every shipped client, kept so a stale
+       *  tab's welcome still parses. See `HypothesisMenus` for the whole note
+       *  and for what would have to be true to remove it. */
+      menus: HypothesisMenus;
       missionCatalog: MissionCatalog;
       // ── A4 ──
       voyageCatalog: VoyageCatalog;
@@ -1316,6 +1335,22 @@ export type CohortServerMessage =
       sources: readonly DetectedSource[];
       localNames: Readonly<Record<string, string>>;
       studies: readonly StudySnapshot[];
+      /**
+       * AS: a full board for every visible source the player holds NO stored
+       * study on. The ambient half of the sky, beside `studies`' engaged
+       * half, and the same type: a source is worked up from the moment it is
+       * seen, and engagement is which array a board arrived in rather than a
+       * flag on it.
+       *
+       * DISJOINT FROM `studies` BY CONSTRUCTION — membership here is the
+       * absence of a record, so no starId is ever in both.
+       *
+       * An ambient board never carries a call, a grounding, a purchase or an
+       * armed tripwire. Not by a rule applied to it: there is no record to
+       * hold one. The first act that needs remembering materializes the
+       * record, and the board moves to `studies` with it.
+       */
+      ambient: readonly StudySnapshot[];
       projects: readonly ProjectSnapshot[];
       budget: ComputeBudget;
       missions: readonly MissionSnapshot[];
@@ -2103,10 +2138,18 @@ export function parseCohortServerMessage(raw: string): CohortServerMessage | nul
       // was not really a string or null.
       const counsel = (data as { counsel?: unknown }).counsel;
       if (!isStringOrNull(counsel)) return null;
+      // AS: `ambient` is `studies`' own type and keeps `studies`' wholesale
+      // cast — two arrays of one shape parsed two ways would be a difference
+      // with nothing behind it. What is guarded is that the field is THERE
+      // and is an array: every reader walks it, so an absent one would fail
+      // as a walk over undefined rather than as a dropped message.
+      const ambient = (data as { ambient?: unknown }).ambient;
+      if (!Array.isArray(ambient)) return null;
       return {
         ...(data as Record<string, unknown>),
         proposals,
         counsel,
+        ambient,
       } as unknown as CohortServerMessage;
     }
     // AV1: unlike the cases above, validate `lines` field-by-field rather
