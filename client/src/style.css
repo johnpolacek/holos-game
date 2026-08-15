@@ -2292,8 +2292,10 @@ body {
   row-gap: 0.3rem;
   align-content: start;
   overflow: hidden;
-  /* Nothing in the band is interactive in S0.2 — a thumb reaches straight
-     through it to the map underneath, everywhere the band covers. */
+  /* The band passes a thumb straight through to the map underneath —
+     everywhere except its readouts, which the tap-to-explain pass (2026-08)
+     made buttons; the toggle block after the meter rules below is where
+     they opt back in. */
   pointer-events: none;
 }
 
@@ -2369,7 +2371,7 @@ body {
   flex-direction: column;
   align-items: flex-start;
   gap: 0.25rem;
-  pointer-events: none;
+  /* Interactivity (it is a button now) comes from the toggle block below. */
 }
 
 .home-meter--empty {
@@ -2403,6 +2405,58 @@ body {
   border-radius: 999px;
   background: var(--holos-indigo);
   transition: width 900ms linear;
+}
+
+/* Tap-to-explain (2026-08): the band's readouts — the two standing lines
+   and the compute meter — are buttons, the band's one exception to its
+   pass-through rule (the .home-hud comment above). Each toggles the pinned
+   note below; everywhere else in the band a thumb still reaches the map.
+   The reset clears the UA button chrome and re-inherits the two font
+   properties a button refuses to inherit on its own; each readout's face,
+   size and ink stay with its own rules (and the mono sprinkle near the top
+   of this file), which target the class and so dress the button as they
+   dressed the span. */
+.home-standing-designation,
+.home-standing-year,
+.home-meter {
+  pointer-events: auto;
+  appearance: none;
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+  font-weight: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The note a readout tap opens: voice-note anatomy for the type and ink, in
+   a raised box pinned just under the band, over whatever page or sky is up.
+   left + right + max-width let it span the band's own padding on a phone;
+   on a wider screen the modifiers park it under the readout that asked
+   (auto margin on the far side). A tap anywhere on it dismisses it. */
+.home-note {
+  position: fixed;
+  top: calc(var(--home-hud-h) + 0.35rem);
+  left: max(0.9rem, env(safe-area-inset-left));
+  right: max(0.9rem, env(safe-area-inset-right));
+  z-index: 4; /* the band's own slot: above a docked page, below overlays */
+  max-width: 30rem;
+  padding: 0.6rem 0.8rem;
+  background: var(--holos-bg-raised);
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
+
+.home-note--standing {
+  margin-left: auto;
+}
+
+.home-note--compute {
+  margin-right: auto;
 }
 
 .home-rail {

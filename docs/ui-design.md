@@ -214,8 +214,17 @@ Sky's page scrolled to the voice section.
   whole when there is no ceiling to draw against; an empty bar would be a
   claim.
 
-Nothing in the band is interactive. A thumb reaches straight through it
-to the map underneath, everywhere the band covers.
+The band's readouts explain themselves on tap (2026-08; the source
+card's class-explainer info toggle is the precedent): the standing lines
+— either one — toggle a pinned note saying what the designation and the
+epoch year are, and the compute meter toggles one saying what compute
+is. The note is `home.ts`'s HUD_NOTE, observatory deadpan, deliberately
+numeral-free (every number it could quote is printed on the readout the
+tap came from); it hangs just under the band, hugging the tapped
+readout's edge, and a second tap on the readout, a tap on the note, or
+any rail tab stands it down. Everywhere else the band stays
+non-interactive — a thumb reaches straight through it to the map
+underneath.
 
 **Between map and rail: nothing.** The **counsel strip** shipped in that
 gap in S0.3 and was cut in 2026-08. It carried one argued line from the
@@ -446,8 +455,9 @@ for the restatement. The rows are hidden rather than torn down, so
 releasing the detail restores the card without rebuilding it.
 
 **Getting out** is four ways: the detail's own `‹ STUDIES` back leg, a
-swipe down on the grabber, a tap on the strip of sky or on the HUD band,
-and any rail tab. The rail lights **Sky** the whole time the
+swipe down on the grabber, a tap on the strip of sky or on the HUD band
+(its pass-through regions — the band's readouts catch the tap for their
+own note instead), and any rail tab. The rail lights **Sky** the whole time the
 detail is on the card, which is the deciding test's own answer — a study
 is about the sky. The deep-link rule and the back-leg rule above are
 inherited unchanged.
@@ -791,7 +801,7 @@ removed is worth knowing about.
 
 | Component | Contract |
 |---|---|
-| **HUD band** | cyan mark + name (titling face) left, designation over ticking epoch year (mono) right, compute meter under the name; two fixed rows, never a wrap, never interactive |
+| **HUD band** | cyan mark + name (titling face) left, designation over ticking epoch year (mono) right, compute meter under the name; two fixed rows, never a wrap; the readouts toggle a pinned what-this-means note (§ Anatomy), the rest of the band passes taps through |
 | **Counsel strip** *(shipped S0.3, cut 2026-08)* | one argued line from the mind + TALK, both opening the Mind page; empty collapsed to nothing; the arrival line sticky until acknowledged; no animation. Removed when the line proved to be ambient counsel with nothing at stake, and TALK a third door to a page the rail already opens; § Anatomy holds the record |
 | **Rail** | five equal tabs, pinned words and order, titling face at xs in amber with the lit tab full amber; exactly one lit, derived from the view through `VIEW_TAB` |
 | **Page** | docks between HUD and rail; a landing has no back leg and dims nothing, a drill-in carries `‹ BACK`; never a modal over the map |
