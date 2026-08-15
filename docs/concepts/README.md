@@ -1,0 +1,66 @@
+# Concept art — the board
+
+*Curated concept mockups for art-direction. These are **reference, not
+shipped assets** — nothing here is loaded by the game. Production assets
+(the real sprites, fonts, textures, and the star catalog the Pixi client
+renders) live under `client/`, never here.*
+
+> Generated from [../ui-image-brief.md](../ui-image-brief.md); judged
+> against [../ui-design.md](../ui-design.md).
+
+---
+
+## What goes here
+
+- **Only decisions.** Commit the renders you've *adopted* or are actively
+  weighing — not every generation and not the rejects. Generator PNGs are
+  ~1–2 MB each and git keeps every version forever, so the exploration
+  firehose belongs outside the repo (a drive / Figma / Notion board); a
+  handful of blessed frames belong here.
+- **Naming:** `GG-NN-screen-name.png` — `GG` groups by act (`00` = style &
+  components, `01` = Act 1, `02` = the pivot / Act 2, `03` = Act 3), `NN`
+  orders within the group (plus a letter suffix like `b` for a variant of
+  the same screen). `NN` does **not** equal the screen number in
+  ui-image-brief.md — e.g. `03-01` is Screen 7, `03-07` is Screen 13; the
+  status table's **Notes** column gives each row's ui-image-brief.md screen
+  number. (The style tile is the lone group-00 asset, `00-style-tile.png`.)
+  Grouping mirrors the brief's own act split, so each image sits next to the
+  prompt that made it.
+- **The status table below is the decision log** — *which* render we
+  picked and *why*, including the fidelity notes from the design review.
+  Keep it current; it is the point of this folder.
+
+## Status
+
+| Screen | File | Status | Notes |
+|---|---|---|---|
+| Style tile | `00-style-tile.png` | **Adopted** — sref anchor | Best realization of the brief; palette/type dead-on; the two choice cards read as stay-dark vs act, with the *act* card ember (spending visibility) — color doing meaning. Use as the `--sref` for the rest of the set. |
+| Content-art anchor | `00-content-style-anchor.png` | **Adopted** — sref for the content-art library | The cinematic-matte `--sref` for the *content* register — the world / species / technology plates ([content-art-worlds.md](../content-art-worlds.md), [-species](../content-art-species.md), [-technology](../content-art-technology.md)) — a separate track from the interface set above. Warm ember planet over a cool moonlight-cyan structure teaches the *ember = warm/alive, cyan = your own works* palette in one frame. Reference only: it seeds all 70 plates × 2 crops; the generated plates are the shipped assets and live under `client/`, not here. |
+| Session zero — world reveal | `01-01-world-reveal.png` | **Adopted** — in repo | Tidally-locked terminator world rendered correctly — the grounding pillar as an image. Caveat (logged in ui-design.md): session-zero fields must be generated from the cradle's real profile, not placeholder numbers (the mock's "1.37 AU" contradicts a red-dwarf tidal lock), and should lead with fingerprint facts (gravity, the fixed sun) over orbital elements. This mock is a *layout* target, not a data source. |
+| Act 1 — beat, decision moment | `01-02-decision-moment.png` | **Adopted** — in repo | The beat frame's decision movement (brief screen 2): garden cards cool, the intervention card ember. Feeds M1.2. |
+| Act 1 — the roll | `01-03-the-roll.png` | **Adopted** — in repo | The roll movement (brief screen 3) — the Act-1-only signature interaction. Feeds M1.2. |
+| First sky / contact | *(not in repo)* | **Superseded** — reference only | Beautiful but off-model: a K-type star drawn as a spiral galaxy (breaks the grounding pillar + "no galaxies-as-stars"), a 2D diagram rather than the 3D Model, missing light-age/belief epistemics, and v1-illegal choices ("Strengthen Defenses"; hail-vs-broadcast collapsed into "Send a Greeting"). Kept as a lesson, not a candidate. |
+| Session zero — inheritance | `03-00-inheritance.png` | **Adopted** — in repo | Keeping the original render — layout, succession feeling, and charters all land (the strongest emotional hit of the set; it beats the inherited-vs-owned risk). Its dial labels (Ritual/Tide/Memory…) are **placeholder text**; the real UI renders the pinned in-world set from data — **Reach·Depth, Voice·Silence, Garden·Forge, Monolith·Chorus, Memory·Renewal** (act2-design.md § In-world labels) — and archetypes stay canonical (Herald ✓; the render's Keeper/Gardener → Monument/Shepherd). Add as `03-00-inheritance.png`. |
+| Session zero — the BECOME hold | `03-00b-become-hold.png` | **Adopted** — in repo | Variant of `03-00`, Screen 16: the ceremony's commit moment isolated — the hold-to-commit ring closing around "BECOME," the charter epigraph ghosted behind it. Feeds the hold-to-commit interaction rule (ui-design.md's ceremony rule; act3-map.md). |
+| Act 3 — Sky + source card | `03-01-the-sky.png` | **Adopted — in repo, one build note** | Screen 7. Nails the emptiness (the Teeming Dark thesis), the age chip, belief+confidence (DARK NODE · 71%), the sharpening thumbnail — and avoids the galaxy trap. Build fix: the light-history scrubber runs symmetrically into the future (−300…+300 Y), but a source card shows *received* light, which is past-only — anchor "now" at the right edge (or, if it's the Model's global time-scrub, render the future half as extrapolation with growing fuzz, not an equal ruler; act3-map.md § Time, scrubbable — the map is the past). |
+| Act 3 — the Sky, many beliefs | `03-01b-the-sky-many-beliefs.png` | **Adopted** — in repo | Variant of `03-01`, Screen 7: several detected sources visible at once around HOME, each a soft amber fuzz-cloud of differing size — reads uncertainty-as-fuzz as a population, not a single specimen. |
+| Act 3 — the Model pull-back | `03-07-the-model.png` | **Adopted** — in repo | Screen 13. Best scale/depth shot of the set — real parallax volume, true star colors, HOME as a cyan mote, the "WHAT WE BELIEVE" framing; nails the pull-back's one job (feel the size change). Note for the set: this reads as beautiful *space* — the specifically-Holos layer (depth = staleness, sources as condensing amber fuzz, the echo shell) is verbal-only here and must land visually in screens 14–15 and the build, or the Model looks generic. Build: background catalog stars (crisp) must be distinguishable from detected sources (fuzzy amber belief). |
+| Act 3 — home system (present tense) | `03-02-home-system.png` | **Adopted — two build notes** | Screen 17. Nails the three risks — small crisp star (not a giant orb), delicate filigree works (not a megastructure), crisp center vs soft edges — plus the amber visibility halo, exact caption, and the pinch-out affordance. Build notes: (1) tint the civ's **own works moonlight-cyan** — here they read gold/neutral, but *cyan = you, amber = warm/other*, and the pull-back's HOME mote (`03-07`) is already cyan; keep it consistent or zooming out is a color discontinuity. (2) The crisp-present / soft-past contrast leans on the caption; the real pull-back transition sells it dynamically as the edges resolve into the sky. |
+| Act 3 — the observatory | `03-03-case-board.png` | **Adopted — in repo, two build notes** | Screen 7b, A2.1's visual target. Won on epistemics and system rhyme: the header smudge is a genuinely formless warm blot (the instrument's honest product — no core, no surface, nothing the 41% doesn't know), and the hypothesis tracks echo the dial-band component (track + marker), so the study sheet and the character sheet speak one visual language. Annotation line adopted verbatim ("No hypothesis exceeds the threshold. Continue the watch."). The rejected sibling had a near-stellar core in its smudge (implies a resolved point source) and a busier tick-strip allocation — but its leader bar, a thin amber gradient line with a bright tip, is worth stealing in build. Build notes: (1) the leader's amber end-dot reads like a draggable slider handle — confidence bars are a view, not a control; render the marker as a glow, not a knob. (2) "12 H INSTRUMENT" beside "12 H · ≈140 Y" states the same hours twice — show cost once and let the clock pair carry the duration. |
+| Act 3 — the work list (TEND) | `03-04-docket.png` | **Adopted — in repo, layout target only** | Screen 18, the A2.2 work list — named **the Docket** when this plate was generated, renamed **TEND** in A2.2b (the filename keeps the old word as a record). Adopted for its visual language, which solves the row: a **hairline track with a bright travelling tip** (the leader-bar idea flagged as worth stealing in the `03-03` row above, realized here), a **broken track** for a silent mission — absence rendered as absence, no red, no alarm — an **unlabeled tick** for the amendment horizon with the fill approaching it, and one level of hairline-bracketed nesting. Amber and ink only; cyan stays home, as the shipped screen already does. **Its data is wrong throughout and must not be read as spec** — the same caveat `01-01-world-reveal.png` carries. Build fixes, all content, none compositional: (1) clock pairs must satisfy `realMinutes = gameYears × 5` (`REAL_MS_PER_GAME_YEAR`) — only row 1's `41 MIN · 8.2 Y` does; the rest disagree with themselves, and three rows share `71 Y` at three different real times. (2) The next-date label is per state — LANDS / ANSWERS / ARRIVES / FIRST WORD / NEXT WORD (`tend.ts`) — not `ARRIVES IN` on every row; `AWAITING LIGHT · ARRIVES IN` is self-contradictory, since the probe is already there and the light is what is crossing. (3) Class chips and states are scrambled: a project is IN HAND and has **no star** (`starId: null`), the Assay is Ambient not Endeavor, a question is Investment not Ambient, and `ANALYSIS` is not one of the four classes. (4) The hierarchy is inverted — the parent is always a **study** (`study/${starId}`), with questions *and* missions on that star as its children; an Assay is a sibling of a bought question, not its parent. (5) Sub-lines are all locations; in the code a question's sub is its gloss ("whether it is cooling the way nature cools, or being held") and only a mission's is `at <star>` — the line where the row says what the work is *for*. (6) Drop the row numbers: the work list sorts by soonest-next-date and is rebuilt every sky send, so ordinals renumber constantly and `3.1 / 3.2` implies two levels where there is exactly one. Open question for a regeneration: with real glosses restored, does the row still carry title + purpose + track + two chips + clock pair without tipping into the dashboard density the brief bans? |
+| Act 3 — TEND, as built | `03-04b-docket-built.png` | **Shipped screen, not concept art** | The A2.2b build of screen 18 — TEND, captured from the running client at 430×932 against a live cohort — kept beside the plate above so the decision log shows what the concept became. Reads: three studies (two with work under way, one `WATCHING` with nothing bought — no date, no track), a bought question counting down under its study, and an Assay in flight with its horizon ticked. Earlier captures in the same session showed the Sentinel standing on its cadence and an Assay gone dark drawn as a broken rail — fill, gap, faint tail. What the plate got right survived (travelling tip, broken silence, one level of nesting, amber and ink); what it got wrong was fixed in the build (per-state labels, real class chips, study-parented hierarchy, purpose in the sub-line). One open question against the plate: the SILENT chip renders in `--holos-error` here, a pre-A2.2b choice, while the plate deliberately used no red. Worth a call — a silence is a probe obeying its charter, not a fault. |
+| Act 3 — the Model: echo shell + depth | *(generate next)* | **Wanted now — the differentiator** | Screens 14 (echo shell, the poster) & 15 (depth-of-knowledge). These are where the Model stops looking like a starfield and becomes *belief*: the light echo as an orbitable shell, and depth rendered as antiqued/older. Highest-leverage remaining Act 3 art. |
+| Act 3 — contact, expansion, sleep | — | Wanted soon (A2–A5) | Screens 8–12 (choice ceremony, letters, Ledger, sleep, wake). Generate as those slices approach. |
+| The pivot · Act 2 | — | Phase B — wait | Screens 4–6, plus the world-reveal variants across contrasting cradle types, belong to the origin path (Phase B). The three adopted Act 1 renders above stay adopted; their build slice just moved later. |
+
+## Adding an image
+
+```sh
+# name it {group}-{seq}-name, then log it in the table above
+cp <render>.png docs/concepts/01-04-world-reveal-oceanworld.png
+git add docs/concepts/01-04-world-reveal-oceanworld.png
+```
+
+Then update the table's **File** and **Status**, and add one line on why it
+won (or what's still wrong). An image without a table row is noise; a row
+without a rationale is just a filename.

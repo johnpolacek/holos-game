@@ -1,0 +1,373 @@
+# HOLOS
+### The Observatory — the vigil as an activity
+
+*The quiet half of the contact loop, designed as gameplay. A vigil is not
+a wait-state with a percentage on it; it is a detective study run against a
+budget, a clock, and — when the target is somebody — an opponent who is
+spending too. This document specifies the study, the questions a player
+buys, the contest that can push knowledge backward, and the findings the
+whole activity produces.*
+
+---
+
+## About this document
+
+act3-design.md defines the Sky, the five signal classes, and the contact
+protocol whose first two stages — detect, vigil — this document expands.
+playstyles.md flags the vigil as the design's thinnest load-bearing verb
+set (*"Silence needs the vigil designed as an activity … otherwise its
+optimal play collapses toward inaction"*); this is that design.
+economy-design.md's mask-versus-instrument rule (opposed, open-ended
+investments; never certainty) is the contest's economics, unchanged.
+ui-design.md's observatory panel is the surface this fills in.
+[missions-design.md](./missions-design.md) supplies the study's escape
+hatch — the Assay — and the work list rows every bought question lives on.
+
+Six calls were settled in design review (2026-07) and are marked
+**settled** where they land below: portfolio pacing, no certainty at
+range, the plain regression tell, wrong calls playing out, creativity by
+composition, and tradeable findings (and, in time, understandings).
+
+**The design target, stated once (settled):** the observatory is played
+as a **portfolio**. Any single study may go quiet for sessions at a
+stretch — dry spells are common, and honest — but the study *load* must
+always offer a real decision: something to buy, hold, probe, shelve,
+call, or re-aim. If the whole board's best play is ever "do nothing and
+wait," this document has failed and gets revised. The fun is breadth
+plus composition: lots of asynchronous watches running at once, and a
+toolset that combines in ways this document does not enumerate.
+
+---
+
+## The study
+
+Flagging a source opens a **study** — the observatory desk's unit of work,
+one per source under active vigil. A study holds:
+
+- **The record so far.** Everything your instruments have ever received
+  from the source — the light archive the source card already scrubs —
+  now annotated: which arrivals moved which beliefs.
+- **The hypotheses.** The candidate identities still in play, each with
+  its share of the mind's confidence.
+- **The open questions.** What would tell the hypotheses apart, and what
+  each answer costs.
+- **The contest state.** Whether the answers are getting sharper or
+  stranger (see *The contest*, below).
+- **The study tripwires.** Standing wake conditions scoped to this source.
+
+The observatory (the Desk panel) is the set of open studies with
+their confidence bars and next checkpoints — the sky as a study load, which
+is exactly the session texture playstyles.md promises the Silence lean.
+
+## Hypotheses
+
+A hypothesis is a **story about the light**: a candidate identity that
+predicts what future light should look like. Each signal class opens with
+a small typed menu — the mind proposes; the player prioritizes:
+
+| Signal class | Opening hypotheses (v1 menus) |
+|---|---|
+| `DARK NODE` | brown dwarf · rogue world · cooled remnant · somebody's heart |
+| `TRANSIT SHADOWS` | debris and rings · natural transits · construction under way |
+| `BROADCAST LEAKAGE` | young and sloppy · deliberate shine · a performance (a mask worn loud) |
+| `LIVING WORLD` | stable biosphere · biosphere in crisis · pre-industrial civilization · industrial rise |
+| `DIRECTED BEAM` | meant for us · meant for someone near us · a repeat of an old message |
+
+Confidence is a distribution across the open hypotheses, never a single
+number — the source card's headline (`DARK NODE · 71%`) is just the
+leader. No hypothesis ever reaches zero or one hundred (**settled**):
+watching alone never delivers certainty, however long and however deep —
+the observatory outputs beliefs (act3-design.md), an empty patch of sky
+stays permanently ambiguous (economy-design.md), and going there is the
+only way to truly know. Hypotheses come from the menus (**settled**):
+players do not author free-text theories — their creativity lives in how
+the tools compose (below), which is buildable, honest, and ships sooner.
+
+Hypotheses interlock with the wider game: *somebody's heart* at high
+confidence is a contact study in waiting; *construction under way* feeds
+the forecast desk's arrival spreads; *biosphere in crisis* is a Custodian
+beat with a clock on it. Calling a study reprices everything, which is why
+the activity matters while changing no stat.
+
+## Questions — the verb
+
+The player's move in a vigil is buying a **question**: an observation
+program that discriminates between two or more live hypotheses. Questions
+are purpose-level (*which uncertainty do we attack*), never
+instrument-level (*which telescope, which filter*) — the altitude
+principle applied to astronomy.
+
+The v1 question types, each mapping to real observational practice:
+
+- **Weigh it.** Astrometric wobble or lensing — mass separates a brown
+  dwarf from a rogue world from a built thing.
+- **Take its temperature over time.** Thermal steadiness — nature cools
+  on a curve; a maintained temperature is a maintained thing.
+- **Read its lines.** Spectroscopy — composition, biosignature gases,
+  industrial chemistry, the difference between debris and hull.
+- **Time its shadows.** Transit periodicity — orbits are clockwork;
+  construction is not.
+- **Catch its edges.** Polarization and glint — surfaces answer
+  differently than atmospheres, and mirrors differently than rock.
+- **Listen off-axis.** Sidelobe leakage around a directed beam — who
+  else might it be meant for.
+
+Each question carries a **cost in compute** (economy-design.md's price of
+knowing; an Investment) and nothing else. **As built, there is no time to
+answer**: every question resolves the year it is bought, and the answer
+speaks to the light-cone edge of that year. Earlier drafts of this
+document gave each one an integration clock on real time, hours to days,
+with a clock pair always shown; the 2026-08 physics retune deleted it
+(docs/physics-audit.md §P0-1 — compute may price a question, it may never
+date one). The archive is continuous and already spans millennia at
+purchase time, so the swing, the curve and the crossings are in hand
+before anyone asks; where a record genuinely is too short, the answer
+says so in words instead of counting down to it. Buying a question puts
+no row on the work list, because nothing about it is ever under way: the
+finding lands on the study and in the report in the same breath.
+
+**The spend is the inference, not the looking.** A civilization at this
+stage collects everything its instruments can reach, continuously; the
+photons are free and arrive whether or not anyone attends to them. What is
+finite is the capacity to *reason* about what came in — to turn a light
+curve into a claim about who lives there. That is why the currency is
+Compute and why the surface never denominates it in telescope hours: it is
+an allocation of thinking, not a rationing of sight. (Earlier drafts of
+this document called it "instrument time"; same mechanic, wrong noun.)
+
+**Compute is an allocation, not a slot — and not a bank.** (Enforced
+2026-07 as the attention ceiling: uncommitted compute saturates at about a
+century of income, so away-time cannot stockpile past what the mind can
+hold — systems-a.md §2.2b.) The observatory
+has an income (raised by instrument-family projects, which buy the
+inference capacity to make use of themselves; the gravitational-lens
+observatory is the deep end), and the player allocates it across studies.
+It is spendable on one thing — knowing — and converts to nothing else, so
+it never becomes the universal medium economy-design.md § *No money*
+refuses. Scarcity does the design work: with three live studies and income
+for one deep question, *which question, on which study* is a real decision
+every session. There is no cap on open studies — only on how fast any of
+them can move.
+
+**Sequencing is the skill.** A cheap question that halves the hypothesis
+space beats an expensive one that polishes the leader. The observatory
+surfaces this by showing, per question, *which hypotheses it separates* —
+the player learns to read a study like a bracket, and the learning is the
+gameplay deepening.
+
+## The toolset composes
+
+Creativity lives in combination (**settled**), and the pieces are built
+to combine — none of the following is a feature; each is a consequence
+the design must preserve:
+
+- **Watch the neighbors.** Suspect a quiet mass? Open cheap studies on the
+  systems around it — construction shadows, probe traffic, and beam
+  sidelobes show up *near* a hider before the hider does.
+- **Calibrate by grounding.** Ground one look-alike (an Assay to a
+  boring brown-dwarf candidate) and every study of that class sharpens —
+  spending a probe on a nobody to buy confidence about a somebody.
+- **Instrument the calendar.** Chain holds and study tripwires into a
+  self-running program: *hold this study for the conjunction; if the
+  answer regresses, wake me; if it sharpens, auto-buy the follow-up
+  question* (a standing order, missions-design.md).
+- **Breadth as strategy.** Run wide and shallow to map a neighborhood,
+  or narrow and deep to break one mask — the instrument budget prices
+  the choice; nothing else constrains it.
+- **Bait the light.** Your own visible acts are evidence *you* control:
+  go briefly loud, or launch something watchable, and see which studies
+  flinch — the Daybreak lesson from the walkthrough, weaponized.
+
+The list is illustrative, not exhaustive — the parity test is that
+playtesters keep finding combinations this document did not.
+
+## The contest
+
+Against a live opponent, the vigil is a duel of budgets
+(economy-design.md, *the mask-versus-instrument contest*): your
+instrument spend against their mask upkeep, open-ended on both sides,
+certainty never reached.
+
+What the observatory shows of it — three shapes an answer can take:
+
+- **Sharpen.** The question landed; the distribution moves; fuzz on the
+  Model condenses. Nature mostly sharpens.
+- **Plateau.** The answer came back consistent with everything and
+  informative about nothing. Could be the limit of your instruments;
+  could be money on the other side. Buying a deeper question — or
+  waiting for a better geometry — is the reply.
+- **Regress.** The signature moment. A confidence that *retreats* — the
+  thermal profile that was steady last month and is noisy now, the lines
+  that got cleaner in the wrong way. **Nature does not get better at
+  hiding.** A regression is evidence of spending, and the observatory
+  says so plainly (**settled**) — not a wobble left for experts to
+  notice, but the implication stated in the observatory's deadpan: *this
+  does not happen naturally; something is working against the look.* The
+  mind reclassifies the study from *what is it* toward *why does it mind
+  being looked at*. Losing ground on a study is the moment a vigil
+  becomes a thriller, and it is information no honest sharpening could
+  have bought.
+
+The opponent's side needs no new machinery: an AI civilization's mask
+spend is an archetype rule (a Cloister pays the upkeep forever; a young
+Beacon never does), and a human's is their own "Masks (dark)" row.
+
+## Free evidence — the sky acts
+
+Some discrimination cannot be bought, only awaited. Events — a flare
+backlighting the neighborhood, an occultation by a known body, a
+conjunction that lends a natural lens — hand every study in the right
+geometry a free question. The observatory renders these as **holds**: *the
+conjunction in 9 h · ≈110 y would weigh this for free.* Patience becomes
+a priced strategy with a date on it, not a default. (v1 ships holds as
+authored content on seeded studies; systemic event generation arrives with
+A5's living galaxy.)
+
+## The exits
+
+A study ends four ways, all of them choices or events — never a bar
+filling to 100:
+
+- **Called.** The player accepts the leading belief and closes the study
+  at whatever confidence they can live with. Calling is a real act:
+  priorities reprice against the called belief, beats key off it, and a
+  wrongly called study is a story the game is allowed to tell. **A called
+  study stays called** (**settled**): later light accrues to the archive
+  but never auto-reopens the study, never warns of contradiction, and
+  never charges a penalty — the wrong belief just sits there shaping
+  choices until reality corrects it, as an event, maybe years later.
+  The player can always reopen a study on their own suspicion; the game
+  will not do their doubting for them.
+- **Grounded.** The Assay — a probe goes and looks
+  (missions-design.md). Ground truth for the price of a mission and the
+  years it takes; the study's escape hatch, and the observatory's
+  standing advertisement for the work list.
+- **Shelved.** The vigil goes passive: allocation drops to zero, study
+  tripwires stay armed (*wake this study if the leakage stops; if
+  confidence regresses; if a beam*). Shelving is how a study load stays
+  finite without ever quite letting go — and a shelved study waking
+  itself is a beat.
+- **Overtaken.** The source acts first — it hails, goes dark, moves, or
+  stops existing. The study converts into whatever the event demands: a
+  contact choice, a mourning, a threat assessment.
+
+## Findings and understandings
+
+*(Renamed 2026-07, superseding "the dossier" throughout: the old word
+was off-register — bureaucratic, terrestrial, surveillance-of-persons —
+and it flattened two different objects into one folder. The trade layer
+has two object kinds, with different lifetimes.)*
+
+**A finding is what I know** — the one-shot good. A called or grounded
+study yields a shareable finding: the belief, its confidence, the
+evidence chain, and the light-ages it rests on — the observatory's
+finished good, named in the game's own voice (a *finding* is already
+what a question or a probe brings back). Findings are:
+
+- **The repricing instrument.** The forecast desk, the beat engine, and
+  the player's own priorities consume them.
+- **The quiet civilization's export.** A shared finding is a payload
+  (act3-design.md, *what signals carry* — third-party coordinates are
+  finding fragments). The intelligence economy playstyles.md asks for
+  is the trade in these: knowing things about civilizations that do
+  not know you exist, and choosing who else gets to know them.
+  Hearth's gift in the walkthrough — coordinates and a light-curve, no
+  comment — is a finding changing hands, with all the motive ambiguity
+  the no-enforcement rules guarantee.
+- **Stale by construction.** A finding carries its light-ages; a traded
+  finding ages in transit. Old intelligence is not worthless — it is
+  the past, which is the only thing anyone ever knows here — but the
+  chip is always on it.
+- **Testimony, never evidence.** A received finding lands as a foreign
+  finding, provenance-marked, never auto-merged into the recipient's
+  own studies. They can act on it, verify it with their own
+  instruments, or distrust it entirely.
+
+**An understanding is what we agree** — the standing arrangement. It
+has a lifetime, both parties hold a copy, and the physics dictates the
+whole enforcement model: **the only understandings that can exist are
+ones light can verify.** There is no referee and no real-time
+enforcement across light-years; an understanding is a mutual
+expectation each side checks with their own instruments, years in
+arrears. That keeps the enforceable vocabulary small and concrete:
+
+- *We both hold dark* — each watches the other's emission history; a
+  breach is visible in light, years later, and the discovery arrives
+  on the same delay as everything else here.
+- *I keep you informed about X* — a standing exchange of findings on a
+  cadence (the sentinel pattern applied to a thread).
+- *We watch each other's flanks* — warnings delivered on a cadence,
+  each covering part of the other's sky.
+
+Breach needs no punishment system: the whisperer already shipped the
+pattern. An understanding **ends** — the counterpart withdraws, and
+your telescope told you why. Not a contract, not a treaty with a
+tribunal behind it: two minds who each know what the other expects,
+checked by starlight.
+
+**Findings trade in v1** (**settled**): a shared finding is a payload
+block in the composed-signal grammar — sendable, withholdable,
+tradeable, and as deniable as anything else on a beam. Comparing notes
+on a shared worry is the safest first deal two nervous strangers can
+make, and the quiet civilization's whole export economy starts here.
+The A2.6 design note's first decision came back: **the thin mutual
+quiet shipped in A2.6** (offer/accept/decline/withdraw on the act log,
+breach by light, no cadence forms). What matures later is the market's
+depth — brokering, pricing against the compensation menu, forged
+findings and their unmasking — not the existence of the trade.
+
+## Session texture
+
+A vigil session, five to fifteen minutes, phone, and it is a *portfolio*
+session: read the new light across the whole board (which questions
+landed, what moved, anything regress, which studies said nothing at all —
+nothing is a normal answer), buy one or two questions wherever they buy
+the most, set or adjust a hold, maybe call or shelve something, and
+leave with the next checkpoints visible on the strip. A single study may
+be mid-dry-spell for a week; the board never is. The observatory speaks its register throughout — instrument
+deadpan, beliefs with ages, no adjectives — and the one flourish it is
+allowed stays true: the light you are reading left before you were
+watching.
+
+---
+
+## v1 scope
+
+The hypothesis menus above (2–4 per signal class); the six question
+types; compute income + allocation on the observatory; sharpen /
+plateau / regress with archetype-rule opponent spend, the regression
+tell stated plainly; study tripwires; called / shelved / overtaken /
+grounded exits (grounded moved *into* A2 — 2026-07 — once the Assay
+shipped early with A2.2's work engine; it lands as stage A2.2b, ahead of
+the contest); findings produced, consumed, and
+**tradeable as signal payloads**; holds as authored content. Deferred:
+systemic event evidence (A5), the finding-market's depth (brokering, forgery —
+with the compensation menu), multi-observer joint studies (with joint
+missions). Free-text hypotheses are not deferred; they are declined
+(creativity by composition, settled).
+
+## Open questions
+
+- **Confidence math.** *(Settled 2026-07, A2.3 — designed twice per the
+  stage's double-Opus call and synthesized; systems-a.md §2.7 is the
+  as-built record.)* The board's multiplicative role-weight update
+  stands as the one belief engine; the contest resolves outside it and
+  regression enters as temperature: a regressing answer carries no
+  shift and lowers the sharpness exponent, so the board loses
+  definition without changing its mind. Earned structurally: mask
+  upkeep is an archetype rule over the seed, the regressed branch is
+  unreachable for a never-masking target, and the first look on a
+  study has no window to regress from.
+- **Pacing constants.** Questions per study before the cheap ones are
+  exhausted; how often a study *should* plateau; how rare regression must
+  stay to keep its charge. Tuning targets for A2's fun gate, not
+  specifiable here.
+- **Shared studies, formally.** Finding exchange ships in v1 (settled);
+  the open half is the *joint study* — two civilizations pooling
+  compute on one source with a shared board, which needs joint
+  missions' co-authorship machinery. Design when joint nodes ship.
+- **Forged findings.** If findings trade, findings can lie — a forged
+  finding is deception's cheapest new weapon, and light-cone
+  verification (act3-design.md, § Contact) is its natural check. How
+  early the forgery play should exist is a tone question as much as a
+  systems one.

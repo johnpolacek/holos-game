@@ -1,0 +1,5001 @@
+/* Holos — shared visual tokens.
+ *
+ * Near-black stage, letterspaced Cinzel caps for headings, hairline gold
+ * rules, warm amber for the civ, cyan reserved as the accent of *becoming*
+ * (cyan = your own civ — an invariant carried across every later slice).
+ * Fonts are self-hosted (public/fonts) so the Worker ships them with dist/
+ * and never depends on a font CDN at runtime.
+ */
+
+/* Cinzel — the titling face (caps only; no italic). Variable weight. */
+@font-face {
+  font-family: "Cinzel";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/cinzel.woff2") format("woff2");
+}
+/* Source Sans 3 — the text face, upright + italic. Variable weight. */
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/fonts/source-sans-3.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: italic;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("/fonts/source-sans-3-italic.woff2") format("woff2");
+}
+/* JetBrains Mono — the instrument face (S0.2 type pass). Machine readouts
+   only: scale, clocks, chips, designations. Variable weight, latin subset. */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url("/fonts/jetbrains-mono.woff2") format("woff2");
+}
+
+:root {
+  --holos-bg: #07060a;
+  --holos-bg-raised: #100d15;
+
+  /* Ink tiers. The stage is near-black, so these are tuned for the worst
+     case — a phone screen outdoors in daylight, where screen glare lifts the
+     black floor and low-alpha text disappears. The three tiers still read as
+     a hierarchy; the dim/faint steps just never fall below what sunlight
+     leaves resolvable. Do not push them back down for "mood": the mood is
+     carried by the near-black stage and the gold rules, not by dim prose. */
+  --holos-ink: #efe9db;
+  --holos-ink-dim: rgba(239, 233, 219, 0.8);
+  --holos-ink-faint: rgba(239, 233, 219, 0.6);
+  --holos-gold: #d3b982;
+  --holos-gold-dim: rgba(211, 185, 130, 0.55);
+  --holos-amber: #f0ac66;
+  --holos-amber-dim: rgba(240, 172, 102, 0.62);
+  /* Muted indigo — the compute meter's own color (designer call, 2026-08):
+     an instrument that is neither you (cyan), other (amber), nor the gold
+     chrome, so its readout does not borrow any of their meanings. */
+  --holos-indigo: #8087c0;
+  --holos-indigo-dim: rgba(128, 135, 192, 0.35);
+
+  /* VERB SURFACES. A verb on a card is a thing a thumb presses, and it has
+     to look like one: a lit face rather than a line of text that happens to
+     be tappable. Each is mixed from the verb's OWN semantic color, so a
+     button can never invent a hue the color rules do not already own — gold
+     is chrome (the workbench verb), amber is the outward act, cyan is your
+     own voice leaving. Mixed rather than restated so the hex stays defined
+     exactly once, above. */
+  --holos-verb-gold: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--holos-gold) 24%, transparent),
+    color-mix(in srgb, var(--holos-gold) 8%, transparent)
+  );
+  --holos-verb-amber: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--holos-amber) 26%, transparent),
+    color-mix(in srgb, var(--holos-amber) 9%, transparent)
+  );
+  --holos-verb-cyan: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--holos-cyan) 22%, transparent),
+    color-mix(in srgb, var(--holos-cyan) 8%, transparent)
+  );
+  --holos-cyan: #7ee9ef;
+  --holos-cyan-dim: rgba(126, 233, 239, 0.45);
+  --holos-error: #f0836a;
+
+  /* Cinzel is a titling face: caps only, no italic. Use it for display
+     headings; run all prose (incl. the italic charter) in Source Sans. */
+  --holos-font-display: "Cinzel", Georgia, "Palatino Linotype", serif;
+  --holos-font-body: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  /* The instrument register's own voice: numbers a player watches tick.
+     Mono keeps a changing digit from shifting its neighbors. */
+  --holos-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Type scale. One ladder for the whole UI — never hard-code a font-size in
+     a component rule.
+
+     --holos-text-xs (0.8rem ≈ 13px) is the floor for anything a player READS:
+     small enough to stay subordinate, large enough to hold up on a phone
+     screen in daylight. Prose, sub-lines and label lines bottom out there,
+     and something that wants to feel quieter than xs does it with color or
+     letterspacing, not by going smaller.
+
+     --holos-text-xxs (0.7rem ≈ 11px) sits below that floor and is NOT for
+     reading — it is for the enclosed, one- or two-word classifiers a thumb
+     recognises by shape and position rather than by reading them letter by
+     letter (the Tend row badges). Two conditions come with it, both
+     load-bearing: the mark must be short and repeated often enough to be
+     learned, and it must be enclosed or otherwise separated so it is never
+     mistaken for the prose around it. A sentence at xxs is a bug. */
+  --holos-text-xxs: 0.7rem;
+  --holos-text-xs: 0.8rem;
+  --holos-text-sm: 0.9rem;
+  --holos-text-md: 1rem;
+  --holos-text-lg: 1.12rem;
+  --holos-text-xl: 1.35rem;
+  --holos-text-2xl: 1.75rem;
+  --holos-text-3xl: 2.3rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: var(--holos-bg);
+  color: var(--holos-ink);
+  font-family: var(--holos-font-body);
+  font-size: var(--holos-text-md);
+  line-height: 1.45;
+  /* Source Sans is a variable face; 400 hairlines out against a near-black
+     stage in daylight. 450 thickens the stems without reading as bold. */
+  font-weight: 450;
+  -webkit-text-size-adjust: 100%;
+  /* Prose is the inherited default (see the wrapping block below): running
+     text never ends on an orphan. Headings opt out into `balance`. */
+  text-wrap: pretty;
+}
+
+#app {
+  font-family: var(--holos-font-body);
+}
+
+.holos-caps {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--holos-text-xs);
+  /* Letterspaced caps lose more to glare than lowercase prose does — carry
+     them a weight step heavier than surrounding text. */
+  font-weight: 600;
+  color: var(--holos-ink-dim);
+}
+
+.holos-hairline {
+  border: none;
+  border-top: 1px solid var(--holos-gold-dim);
+  width: 100%;
+  margin: 0;
+}
+
+.holos-serif {
+  font-family: var(--holos-font-display);
+}
+
+/* The mono sprinkle (S0.2 type pass): machine readouts wear the instrument
+   face. A readout is a value an instrument produced — a distance, a clock, a
+   count, a machine ID — never a sentence; prose and labels stay in the body
+   and display faces. Grouped here so "what is a readout?" is answerable by
+   reading one list. Mono runs wide, so nothing here gains letterspacing. */
+.model-scale,
+.source-card-age,
+.home-standing-designation,
+.home-standing-year,
+.rail-badge,
+.study-focus-designation,
+/* The source card is the observatory's own readout, so all of it wears the
+   instrument face: the catalog designation, the belief line (a class and the
+   confidence in it are one reading, and splitting the face across them would
+   read as two), and the light history's year axis. */
+.source-card-designation,
+.source-card-class,
+.source-card-confidence,
+.source-card-axis,
+/* The same reading at list scale. `study-row-name` is deliberately absent:
+   it shows the name a PLAYER gave the source when there is one, and a name
+   is not a readout. */
+.source-card-belief-sep,
+.study-row-age,
+.study-row-class,
+.study-row-conf,
+/* The board's own numeric hook, already applied wherever it prints a figure:
+   clocks, counts, spans, stamps, the account key. One selector rather than
+   thirty, and a surface that adopts it later is covered without an edit. */
+.study-tabular,
+/* The remaining instrument strings outside the board: a beam's stamps, a
+   send's price and physics, the label a probe wears in flight. */
+.contact-stamp,
+.contact-cost-chip,
+.thread-stamp,
+.thread-rail,
+.composer-send-physics,
+.model-outbound-label {
+  font-family: var(--holos-font-mono);
+  letter-spacing: 0;
+}
+
+/* ── Wrapping ─────────────────────────────────────────────────────────────
+ * One policy for the whole UI, kept here rather than scattered through the
+ * component rules so "is this covered?" is answerable by reading one block.
+ *
+ * Titles, subtitles, headers and the short label lines BALANCE. These are
+ * lines you read as a shape, not a paragraph: a display-face name that drops
+ * one word onto a second line, or a letterspaced caps header that leaves a
+ * lone "SKY" under it, reads as a layout fault rather than a heading. Balance
+ * evens the measure instead.
+ *
+ * Everything else — running prose — is PRETTY, inherited from `body` above,
+ * so a chronicle, a charter, a gloss or an annotation never closes on an
+ * orphan. The prose block below restates it on the classes that carry actual
+ * sentences: those are the ones that must not pick up `balance` by
+ * inheritance if any of them ever move under a heading container.
+ *
+ * Both properties degrade to normal wrapping where unsupported — nothing
+ * here is load-bearing for layout, only for how a line breaks. */
+
+/* Balance — titles, subtitles, headers, labels. Includes the two type
+   utilities (`.holos-caps` is label voice, `.holos-serif` is the titling
+   face), which covers the places those are applied to a bare div. */
+.holos-caps,
+.holos-serif,
+/* The observatory: panel titles, section heads, dividers, row names. */
+.study-board-header,
+.study-picker-subtitle,
+.study-section-header,
+.study-board-divider,
+.study-hub-label,
+.study-hub-sub,
+/* The hub masthead: the civilization's name, and the star-and-year line under
+   it. A title and a label line; the charter below them is prose and joins the
+   pretty list instead. */
+.hub-masthead-name,
+.hub-masthead-standing,
+.study-row-name,
+.study-row-class,
+.study-focus-designation,
+.study-focus-name,
+.study-project-label,
+.study-hyp-label,
+.study-archive-tag,
+/* A2.3: the overtaken card's from/to class flag, and a tripwire row's
+   chrome label ("IF IT REGRESSES" etc.) — both short chrome, never prose. */
+.study-row-overtaken-flag,
+.study-tripwire-label,
+/* Tend: row titles, a report's headline, and the row's class/state badges. */
+.tend-row-label,
+.tend-report-headline,
+.tend-badge,
+/* The chips and the one-word verbs — a pill must never break mid-phrase. */
+.study-chip,
+.study-verb-btn,
+/* AV3: a proposal's decline. Its accept twin is .holos-caps, above. */
+.proposal-decline,
+.source-card-study-affordance,
+.source-card-mission-affordance,
+/* A4: the founding verb, and the launch side's own short chrome — a clock
+   line, a prior's class and band, the pin, a clause group's question and the
+   press that commits. Every one of them a label a thumb reads as a shape. */
+.source-card-voyage-affordance,
+.voyage-clock,
+.voyage-survey-clock,
+.voyage-occupied,
+.voyage-prior-name,
+.voyage-prior-band,
+.voyage-pin,
+.voyage-group-header,
+.voyage-hold-label,
+/* A4, the aftermath: a founding's name in THE LEDGER, the sample the band
+   rests on, the row's staleness/thread line and a reading's dial question.
+   Short label lines and enclosed classifiers; the band badge itself is on the
+   .tend-badge contract above. */
+.ledger-name,
+.ledger-sample,
+.ledger-row-meta,
+.ledger-reading-question, /* the ceremony's .dial-question, one surface over */
+/* A2.4: the contact verb, the hub's one voice row, and the ceremony's own
+   chrome — the press affordance, the word that refuses, the coherence chip
+   and a year stamped out on the sky. Every one of them short and enclosed. */
+.source-card-contact-affordance,
+.study-voice-row,
+.contact-hint,
+.contact-staydark,
+.contact-cost-chip,
+.contact-stamp,
+/* A2.5: a thread row's name and state chip, and the composer's SEND pill.
+   Short label lines and an enclosed verb; none of them is prose. */
+.study-thread-name,
+.study-thread-state,
+/* A2.6: a part block's one reading line, said in the catalog's own words. A
+   label, not a sentence — the gloss under it is the sentence. */
+.part-title,
+/* The source card's header. */
+.source-card-name,
+.source-card-belief,
+/* The ceremony: the civ's name, and the dial band's question and hint. */
+.civ-name,
+.dial-question,
+.dial-hint,
+.dial-pole,
+/* A2.6: the key sheet's title and the ceremony's quiet sign-in line — both
+   short label-voice lines, never prose. */
+.study-account-title,
+.ceremony-signin-toggle,
+/* A5: the watch sheet's header and its quiet refusal. Both short chrome, and
+   both on the .holos-caps contract above anyway; listed so a later restyle
+   that drops the utility class does not silently drop the policy with it. */
+.study-watch-title,
+.study-watch-decline,
+/* S0.1: the intro's two chrome words. One word each and both on the
+   .holos-caps contract above; listed for the same reason the watch's pair is,
+   and because a two-word label that broke in half would read as a fault. */
+.intro-skip,
+.intro-begin,
+/* S0.2: the hybrid home shell. The civ's name beside the cyan mark, the
+   standing lines beside it, and a rail tab's own word: every one a short
+   label line, never prose, same reasoning as the pairs above it. */
+.home-name,
+.home-standing-year,
+.home-standing-compute,
+.rail-tab,
+.rail-badge,
+/* S0.1: the beat lines too, though they are sentences — the one place prose
+   takes balance. Each shows alone, centered, two or three rows on a phone,
+   and a widowed last word under a centered block reads as a fault where a
+   ragged edge in a paragraph would not (designer call, 2026-08 phone check). */
+.intro-line {
+  text-wrap: balance;
+}
+
+/* Pretty — running prose. */
+.chronicle,
+.charter,
+/* The same charter, restated at the head of the hub. */
+.hub-masthead-charter,
+.dial-reading,
+.study-brief-body,
+.study-brief-conf-gloss,
+.study-hyp-gloss,
+.study-annotation,
+/* A2.3: the mind's regress line, and a frozen call/overtaking's gloss —
+   both server prose, sentences like the rest of this list. */
+.study-contest-line,
+.study-row-gloss,
+.study-archive-text,
+.study-focus-lightage,
+.study-board-empty,
+.study-archive-empty,
+.study-project-line,
+/* An offered question's drill-in: how the observation is actually made. */
+.study-question-method,
+.tend-row-sub,
+.name-hint,
+.source-card-name-hint,
+.voice-note,
+/* AV2: the report — a triage header, a record sentence, an archetype
+   remark. All running prose. */
+.report-header,
+.report-row-line,
+.report-remark,
+/* AV3: a proposal's reason and (AV4-only) the mind's stance — both
+   sentences, never the caps chrome beside them. */
+.proposal-line,
+.proposal-stance,
+/* A2.4: the mind's objection to an act, and a server refusal stated back —
+   both sentences, spoken over the sky. */
+.contact-objection,
+.contact-reason,
+/* A2.5: a signal's payload (player prose, or a counterpart's), the pinned
+   silence line, and the line that stands in for a composer. Sentences. */
+.thread-payload,
+.thread-state-line,
+.thread-closed-line,
+/* A2.6: a part block's gloss and its catalog prose, and the composer's two
+   running lines — the carrier note and a picker row's title, which is often a
+   whole charter sentence. Sentences, every one. */
+.part-gloss,
+.part-prose,
+.composer-empty,
+.composer-row-title,
+/* A2.6: the claim ceremony's write-it-down sentence, and the re-onboard
+   sheet's line — both running prose, sentences like the rest of this list. */
+.study-account-ceremony-line,
+.reclaim-line,
+/* A5: what the watch would do while you are away. Two sentences, so prose. */
+.study-watch-line,
+/* A4: the survey's one qualitative line about arriving second, straight from
+   the server. A sentence, like the rest of this list. */
+.voyage-risk,
+/* A4, the aftermath: a founding's charter said as one sentence, and the band's
+   own sentence from the server's bank. Both server prose, rendered verbatim. */
+.ledger-charter,
+.ledger-band-line,
+/* The playtest reset's page: what starting over costs, and the refusal. */
+.study-startover-note {
+  text-wrap: pretty;
+}
+
+/* ── The Model (the 3D sky) ──────────────────────────────────────────── */
+.model-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--holos-bg);
+}
+
+.model-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* DOM overlay: prose over places. Non-interactive — the canvas owns input.
+   A2.4 dims the whole layer while a ceremony is armed (the Model sets the
+   opacity directly): the scale readout, the HOME word and the landmark names
+   all stand down together, because during a ceremony none of them is what
+   you are looking at. */
+.model-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 320ms ease;
+}
+
+.model-home-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--holos-cyan);
+  font-size: var(--holos-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  will-change: transform, opacity;
+  transition: opacity 320ms ease;
+}
+
+/* The names of the places in the backdrop (cosmos.ts): Andromeda, the
+   Magellanic Clouds, Virgo, Coma. They are scenery, so they sit a tier below
+   the game's own ink and never take the cyan (HOME) or the amber (sources).
+   Each one is faded in and out by the Model, per zoom band. */
+.model-landmark-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--holos-ink-faint);
+  letter-spacing: 0.18em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  will-change: transform, opacity;
+  transition: opacity 400ms ease;
+}
+
+/* A2.5: the one tracking label on an outbound act still crossing. Cyan and
+   nowrap, on the HOME label's anatomy — what you sent is yours and is
+   happening now, so it takes the same light the mote does. Size and
+   letterspacing come from .holos-caps; only the color and the shadow are
+   this rule's business. */
+.model-outbound-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--holos-cyan);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  will-change: transform, opacity;
+  transition: opacity 320ms ease;
+}
+
+/* The scale readout — how far out the camera is, as an honest distance. The
+   zoom crosses eight orders of magnitude, and without a number on it the
+   middle of that range stops meaning anything. */
+.model-scale {
+  position: absolute;
+  left: max(0.9rem, env(safe-area-inset-left));
+  bottom: max(0.9rem, env(safe-area-inset-bottom));
+  color: var(--holos-ink-faint);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+}
+
+/* ── Source card (the thin observatory, Act 3 A1) ────────────────────── */
+/* While a thumb drives the sheet, the drag is the only thing moving it —
+   otherwise every frame eases over 320ms and the sheet lags the finger. */
+.source-card-sheet.dragging,
+.study-board-sheet.dragging {
+  transition: none;
+}
+
+.source-card-root {
+  position: absolute;
+  inset: 0;
+  z-index: 2; /* above .model-overlay */
+  pointer-events: none;
+}
+
+.source-card-backdrop {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.source-card-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* S0.2 put a rail under this card, and the rail paints over it: a sheet
+     bottomed at zero hides its own last verb behind the tabs. It stops at
+     the rail's top edge instead, and the rail owns the safe-area inset. */
+  bottom: var(--home-rail-h);
+  /* All the room there is between the HUD and the rail. The old cap was
+     52dvh, which cut the verb rows off the bottom of a card whose chart and
+     explainer had pushed them down — and a verb a thumb cannot see is a verb
+     that does not exist, however scrollable it is. Overflow is still allowed
+     (a long light history can outrun any screen), but the common card now
+     fits whole, which is the point. */
+  max-height: calc(100vh - var(--home-hud-h) - var(--home-rail-h) - 0.5rem);
+  max-height: calc(100dvh - var(--home-hud-h) - var(--home-rail-h) - 0.5rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.35rem 1.1rem 1rem;
+  background: var(--holos-bg-raised);
+  border-top: 1px solid var(--holos-gold-dim);
+  border-radius: 1rem 1rem 0 0;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.55);
+  transform: translateY(100%);
+  transition: transform 320ms cubic-bezier(0.22, 0.9, 0.32, 1);
+}
+
+/* S0.4: the card's second job. It carries a focused study's detail, all of
+   it, because a study is read at the star it is about and the board's docked
+   page is nowhere near one. `display: contents` is what keeps that from
+   costing the plain card anything: in a card with no study on it this wrapper
+   is not a box at all, so the card's own rows are still direct flex items of
+   the sheet and inherit its column, gap and scrolling exactly as they did
+   before the wrapper existed (the detail box is [hidden] there, so it is not
+   even a flex item and contributes no gap). Only the detail rules below turn
+   the wrapper back into a real element. */
+.source-card-scroll {
+  display: contents;
+}
+
+.source-card-sheet--detail {
+  /* `height`, NOT `max-height`. The focused study rebuilds itself every
+     second and its countdowns change width as they run ("in 9 years" ->
+     "in 10 years"), so a card sized to its contents would breathe under a
+     thumb that is trying to read it. A fixed frame with the scrolling on the
+     inside holds still while the numbers move. */
+  height: calc(100vh - var(--home-hud-h) - var(--home-rail-h) - var(--card-detail-sky));
+  height: calc(100dvh - var(--home-hud-h) - var(--home-rail-h) - var(--card-detail-sky));
+  overflow: hidden;
+}
+
+.source-card-sheet--detail .source-card-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* The card's own anatomy stands down while the detail has the surface: the
+   study's header already names the source, and two headers about the same
+   system is one more than the question needs. Hidden rather than unbuilt, so
+   releasing the detail restores the card without rebuilding anything. */
+.source-card-sheet--detail .source-card-scroll > *:not(.source-card-detail) {
+  display: none;
+}
+
+/* Block flow, not a flex column: every other page the board draws sits inside
+   .study-board-body, which is a plain block, and the study's rows carry the
+   spacing they were authored with there. A flex column here would re-space
+   them for no reason but which surface they landed on. [hidden] is spelled
+   out for the reason the class explainer's rule below gives. */
+.source-card-detail {
+  display: block;
+  min-width: 0;
+}
+
+.source-card-detail[hidden] {
+  display: none;
+}
+
+.source-card-root.open {
+  pointer-events: auto;
+}
+
+.source-card-root.open .source-card-backdrop {
+  opacity: 1;
+}
+
+.source-card-root.open .source-card-sheet {
+  transform: translateY(0);
+}
+
+/* The swipe listens on the zone, not the pill: the pill is 0.28rem tall and
+   a thumb aimed at it misses far more often than it lands. */
+.source-card-grabzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.8rem;
+  margin-bottom: -0.35rem;
+  flex-shrink: 0;
+  touch-action: none;
+  cursor: grab;
+}
+
+.source-card-grabber {
+  width: 2.4rem;
+  height: 0.28rem;
+  border-radius: 999px;
+  background: var(--holos-gold-dim);
+  pointer-events: none;
+}
+
+.source-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.source-card-idline {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.source-card-designation {
+  color: var(--holos-ink-dim);
+  white-space: nowrap;
+}
+
+.source-card-idsep {
+  color: var(--holos-gold-dim);
+}
+
+.source-card-name-area {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.source-card-name {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--holos-ink);
+  font-size: var(--holos-text-lg);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-align: left;
+}
+
+/* ── Small icon affordances (S0 card-polish) ──────────────────────────────
+ * The pen (rename) and info ("what this class means") buttons share one
+ * anatomy: an inline SVG glyph a few px across, sitting inside a tap target
+ * no smaller than 40px so a thumb never has to aim carefully for it. Faint
+ * ink at rest, one step dimmer on hover/active — the same two-tier idiom the
+ * rest of the card's ink already uses, never the bright ink itself (an icon
+ * this small stays quiet even when pressed). */
+.source-card-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--holos-ink-faint);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 160ms ease;
+}
+
+.source-card-icon-btn:hover,
+.source-card-icon-btn:active {
+  color: var(--holos-ink-dim);
+}
+
+.source-card-name-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--holos-cyan-dim);
+  color: var(--holos-ink);
+  font-family: var(--holos-font-body);
+  font-size: var(--holos-text-md);
+  padding: 0.1rem 0;
+  min-width: 8rem;
+  max-width: 12rem;
+}
+
+.source-card-name-input:focus {
+  outline: none;
+  border-bottom-color: var(--holos-cyan);
+}
+
+.source-card-name-hint {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-error);
+  visibility: hidden;
+}
+
+.source-card-name-hint.visible {
+  visibility: visible;
+}
+
+.source-card-age {
+  flex-shrink: 0;
+  padding: 0.28rem 0.55rem;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  color: var(--holos-ink-dim);
+  white-space: nowrap;
+}
+
+.source-card-hairline {
+  margin: 0;
+}
+
+.source-card-belief-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.source-card-thumb {
+  flex-shrink: 0;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+}
+
+.source-card-belief {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+  font-size: var(--holos-text-sm);
+  letter-spacing: 0.08em;
+}
+
+.source-card-class {
+  color: var(--holos-ink-dim);
+}
+
+.source-card-belief-sep {
+  color: var(--holos-gold-dim);
+  margin: 0 0.35rem;
+}
+
+.source-card-confidence {
+  color: var(--holos-amber);
+  font-weight: 600;
+}
+
+/* The info toggle after the confidence: its own box is the tap target, so no
+   extra margin closes the gap on top of that padding. */
+.source-card-class-info {
+  margin-left: 0.1rem;
+}
+
+/* The class explainer: setExplainer's note anatomy (`.voice-note`), landing
+   under the belief row rather than the header. [hidden] is spelled out
+   rather than left to the UA default — the accord rail's own rule does the
+   same, for the same reason (a stray `display` elsewhere in the cascade
+   should never win over an explicit one here). */
+.source-card-class-explainer[hidden] {
+  display: none;
+}
+
+/* The chart block is a single tap target now (role="button" in sourcecard.ts):
+   small by default, roughly 2.2x taller when expanded. No chrome text says
+   so — the pointer cursor is the only affordance, same as the dial rows'. */
+.source-card-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.source-card-canvas {
+  display: block;
+  width: 100%;
+}
+
+.source-card-axis {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--holos-text-xs);
+  letter-spacing: 0.04em;
+  color: var(--holos-ink-faint);
+}
+
+/* ── The card's verbs ─────────────────────────────────────────────────────
+ * All four rows share one anatomy, declared once here rather than four times
+ * apart: a full-width lit face, a thumb-sized target, the caps label. They
+ * were bare centered text and read as captions rather than as things to
+ * press (2026-08 phone check). Each keeps its own semantic color — gold for
+ * the workbench verb, amber for an outward act, cyan for the beam, which is
+ * the one cyan this card earns (sourcecard.ts's header says why). */
+.source-card-study-row,
+.source-card-mission-row,
+.source-card-contact-row,
+.source-card-voyage-row {
+  display: flex;
+  justify-content: stretch;
+  /* The verbs are one stack, so they sit tighter to each other than the
+     sheet's own rhythm: pulling the row up against the sheet's gap buys back
+     the height that pushed the last verb off a short screen, and reads as a
+     group besides. */
+  margin-top: -0.3rem;
+}
+
+.source-card-study-affordance,
+.source-card-mission-affordance,
+.source-card-contact-affordance,
+.source-card-voyage-affordance {
+  flex: 1 1 auto;
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border-radius: 0.7rem;
+  border: 1px solid transparent;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--holos-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: filter 160ms ease;
+}
+
+.source-card-study-affordance:active,
+.source-card-mission-affordance:active,
+.source-card-contact-affordance:active,
+.source-card-voyage-affordance:active {
+  filter: brightness(1.25);
+}
+
+.source-card-study-affordance {
+  background: var(--holos-verb-gold);
+  border-color: var(--holos-gold-dim);
+  color: var(--holos-gold);
+}
+
+.source-card-study-affordance--active {
+  color: var(--holos-ink);
+}
+
+/* ── The observatory (the inference workbench, a Desk panel, Act 3 A2.1) ─
+ * List of open/shelved studies + the focused study (docs/concepts/03-03).
+ * Amber/ink only — never --holos-cyan; cyan is HOME-only. */
+.study-board-root {
+  position: absolute;
+  inset: 0;
+  z-index: 3; /* above .source-card-root */
+  pointer-events: none;
+}
+
+/* The chip is the game's single action verb ("+ Start") and always reads as
+ * the amber call-to-action — it opens the hub menu, never varies by state. */
+/* The only verb visible before the player opens anything, so it is sized and
+   set to be read rather than scanned: the display face at its lightest
+   weight, and a glint that walks the rim. */
+.study-chip {
+  position: absolute;
+  top: max(0.9rem, env(safe-area-inset-top));
+  right: max(0.9rem, env(safe-area-inset-right));
+  pointer-events: auto;
+  background: var(--holos-bg-raised);
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.5rem 1.15rem;
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-xl);
+  /* Cinzel's variable range bottoms out at 400 — the thinnest it draws. */
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.15;
+  color: var(--holos-amber);
+  cursor: pointer;
+  /* A steady warmth under the moving highlight, so the chip still sits in
+     the dark rather than blinking in and out of it. */
+  box-shadow: 0 0 10px rgba(240, 172, 102, 0.13);
+  /* Android paints a grey rectangle over a tapped control, which on a pill
+     is a square flash of the wrong color; the press state below is the
+     acknowledgement instead. */
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    transform 120ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+/* Guarded: on a touch screen :hover sticks after the tap, which would leave
+   the chip lit long after the finger has gone. */
+@media (hover: hover) {
+  .study-chip:hover {
+    border-color: var(--holos-gold);
+    box-shadow: 0 0 16px rgba(240, 172, 102, 0.22);
+  }
+}
+
+/* Pressed: the chip takes the light rather than moving away from it — it
+   sinks a little, the rim comes up to full amber, and the warmth turns
+   inward, as though the thing being touched has lit from inside. */
+.study-chip:active {
+  transform: scale(0.96);
+  border-color: var(--holos-amber);
+  box-shadow:
+    0 0 22px rgba(240, 172, 102, 0.3),
+    inset 0 0 14px rgba(240, 172, 102, 0.18);
+}
+
+/* The travelling glint's bloom comes up with the press, so the highlight
+   belongs to the same gesture instead of carrying on indifferent to it. */
+.study-chip:active::after {
+  opacity: 1;
+}
+
+/* Keyboard focus gets its own ring — the press state is a transient, and a
+   focused-but-not-pressed chip must still say where the keyboard is. */
+.study-chip:focus-visible {
+  outline: none;
+  border-color: var(--holos-amber);
+  box-shadow:
+    0 0 0 2px rgba(240, 172, 102, 0.3),
+    0 0 16px rgba(240, 172, 102, 0.2);
+}
+
+/* The angle the glint rides. Registered so it interpolates — a bare custom
+   property is a string to the animator and would jump, not travel. */
+@property --holos-glint-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* The rim itself: a conic sweep clipped to a one-pixel ring by masking the
+   padding box out of the border box. Mostly empty, with one comet — dim
+   ramp, bright head, quick fade — so what travels is a highlight and not a
+   rotating gradient. */
+.study-chip::before,
+.study-chip::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--holos-glint-angle),
+    transparent 0deg,
+    transparent 232deg,
+    rgba(240, 172, 102, 0.3) 288deg,
+    rgba(255, 238, 214, 0.95) 326deg,
+    rgba(240, 172, 102, 0.35) 344deg,
+    transparent 360deg
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  animation: study-chip-glint 7s linear infinite;
+}
+
+/* Crisp rim. */
+.study-chip::before {
+  padding: 1px;
+}
+
+/* The bloom the glint throws — the same comet, thicker and blurred, sitting
+   under the crisp one so the highlight has some light around it. */
+.study-chip::after {
+  padding: 2px;
+  filter: blur(4px);
+  opacity: 0.75;
+}
+
+@keyframes study-chip-glint {
+  to {
+    --holos-glint-angle: 360deg;
+  }
+}
+
+/* Motion is decoration here — the chip is just as legible held still, with
+   the glint parked where it reads as a highlight rather than an artifact. */
+@media (prefers-reduced-motion: reduce) {
+  .study-chip::before,
+  .study-chip::after {
+    animation: none;
+    --holos-glint-angle: 296deg;
+  }
+  /* The press still has to be felt, so the light stays and only the movement
+     goes. */
+  .study-chip,
+  .study-chip:active {
+    transform: none;
+  }
+}
+
+/* The second chip: same pill, other corner, and its own ink. Amber is the
+   sky's call to begin; cyan is what is already yours and already under way,
+   so the pair reads as two verbs rather than one repeated. It carries the
+   same travelling glint at half the rate — both chips are alive, but this
+   one turns at the pace of something being watched rather than something
+   waiting to be started. Quieter in the rim and the warmth than + Start,
+   which stays the brighter of the two.
+   These rules sit after the whole .study-chip block on purpose: the
+   overrides tie on specificity, so order is what decides them. */
+.study-chip--tend {
+  right: auto;
+  left: max(0.9rem, env(safe-area-inset-left));
+  /* The mark and the word are one line. Trimmed on the mark's side, since
+     the icon carries less optical weight to its left edge than a glyph
+     does and the pill would otherwise look lopsided. */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-left: 0.95rem;
+  color: var(--holos-cyan);
+  border-color: var(--holos-cyan-dim);
+  box-shadow: 0 0 10px rgba(126, 233, 239, 0.1);
+}
+
+/* Sized to Cinzel's cap height rather than the em box — at 1em the mark
+   overshoots the word it sits beside and reads as the louder half of the
+   pair. The svg inherits the chip's color through fill="currentColor". */
+.study-chip-icon {
+  display: inline-flex;
+  width: 0.82em;
+  height: 0.82em;
+  flex: none;
+}
+
+.study-chip-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (hover: hover) {
+  .study-chip--tend:hover {
+    border-color: var(--holos-cyan);
+    box-shadow: 0 0 16px rgba(126, 233, 239, 0.18);
+  }
+}
+
+.study-chip--tend:active {
+  border-color: var(--holos-cyan);
+  box-shadow:
+    0 0 22px rgba(126, 233, 239, 0.26),
+    inset 0 0 14px rgba(126, 233, 239, 0.16);
+}
+
+.study-chip--tend:focus-visible {
+  border-color: var(--holos-cyan);
+  box-shadow:
+    0 0 0 2px rgba(126, 233, 239, 0.3),
+    0 0 16px rgba(126, 233, 239, 0.2);
+}
+
+/* The same comet, recolored to this chip's ink and walking the rim at half
+   the rate. Only the duration longhand is set, never the `animation`
+   shorthand: the reduced-motion block above kills the name, and a shorthand
+   here would resurrect it. With no name, the duration is inert. */
+.study-chip--tend::before,
+.study-chip--tend::after {
+  background: conic-gradient(
+    from var(--holos-glint-angle),
+    transparent 0deg,
+    transparent 232deg,
+    rgba(126, 233, 239, 0.3) 288deg,
+    rgba(226, 253, 255, 0.95) 326deg,
+    rgba(126, 233, 239, 0.35) 344deg,
+    transparent 360deg
+  );
+  animation-duration: 14s;
+}
+
+.study-chip--tend[hidden] {
+  display: none;
+}
+
+.study-board-backdrop {
+  position: absolute;
+  inset: 0;
+  /* Covered entirely by the sheet on a phone; on a wide screen the sheet
+     docks to one side and this scrim is what says the sky behind is still
+     there and tapping it returns you. Light-handed — the sheet itself is
+     translucent now, and this stacks under it on a phone. */
+  background: rgba(7, 6, 10, 0.35);
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.study-board-sheet {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* A2.6: plain bottom again. A2.5 lifted the sheet by however much of it an
+     on-screen keyboard was covering, because the thread composer was a text
+     field; the composed-signal composer is selectors only and THE KEYBOARD
+     NEVER OPENS on this surface, so there is nothing left to dodge. */
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  /* The gutter lives on the BODY (and on the topbar's own close button), not
+     here: the hub masthead bleeds its world plate to the sheet's edges, and it
+     can only do that by cancelling a gutter its own scroller owns. The three
+     overlay sheets that mount as siblings of the body — the key sheet, the
+     watch sheet, the composer — all position against left/right 0 and carry
+     their own padding, so none of them moves. */
+  padding: max(0.6rem, env(safe-area-inset-top)) 0
+    max(1rem, env(safe-area-inset-bottom));
+  /* Translucent over the sky: the stars stay in view behind the menu. The
+     blur softens them into glows under the type instead of crisp points
+     competing with it — dark enough (with the backdrop underneath) that the
+     ink tiers still clear daylight. */
+  background: rgba(7, 6, 10, 0.62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  border-left: 1px solid var(--holos-gold-dim);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.55);
+  transform: translateY(100%);
+  transition: transform 320ms cubic-bezier(0.22, 0.9, 0.32, 1);
+}
+
+.study-board-root.open {
+  pointer-events: auto;
+}
+
+.study-board-root.open .study-board-backdrop {
+  opacity: 1;
+}
+
+.study-board-root.open .study-board-sheet {
+  transform: translateY(0);
+}
+
+@media (min-width: 720px) {
+  .study-board-sheet {
+    left: auto;
+    width: 28rem;
+    max-width: 28rem;
+  }
+}
+
+/* S0.2: the home shell's rail. When the board's root carries this class
+ * (studyboard.ts's call — a page is open under a lit rail tab) the sheet
+ * docks between the HUD and the rail instead of covering the full height:
+ * only the two insets this changes, everything else about the sheet
+ * (background, blur, slide) is untouched.
+ *
+ * The same top/bottom pair covers both breakpoints, because neither the
+ * shell's HUD nor its rail changes shape at 720px — the existing media query
+ * above only narrows the sheet into the docked column, and this rule's own
+ * top/bottom carry over unchanged into that column, stopping it short of the
+ * rail the way the brief calls for ("its bottom edge above the rail"). On a
+ * phone the same two insets are what make the sheet "a page between the HUD
+ * and the rail" rather than the old full-height bottom sheet: the map is
+ * still fully covered, because the HUD and rail bands (each opaque, each
+ * above this sheet's z-index-3 layer) already own the strips this leaves
+ * bare. */
+.study-board-root.study-board--railed .study-board-sheet {
+  top: var(--home-hud-h);
+  bottom: var(--home-rail-h);
+}
+
+/* Top bar: the swipe grabber centered, the explicit exit at the right.
+   The sheet covers the backdrop on a phone, so this button is the only
+   discoverable way out and is sized as a real touch target. */
+.study-board-topbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  flex-shrink: 0;
+  /* The whole bar is the swipe surface — the pill alone is 0.28rem tall. */
+  touch-action: none;
+  cursor: grab;
+}
+
+.study-board-grabber {
+  width: 2.4rem;
+  height: 0.28rem;
+  border-radius: 999px;
+  background: var(--holos-gold-dim);
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.study-board-close {
+  position: absolute;
+  /* The sheet's gutter moved to the body (see its padding), so the topbar now
+     runs edge to edge and this carries the gutter itself. */
+  right: 1.1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--holos-ink-dim);
+  font-size: var(--holos-text-lg);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.study-board-close:hover {
+  color: var(--holos-ink);
+}
+
+.study-board-body {
+  flex: 1;
+  min-height: 0;
+  /* The sheet's gutter, carried here so the hub masthead can cancel it and
+     bleed its world plate to the sheet's edges. */
+  padding: 0 1.1rem;
+  overflow-y: auto;
+  /* The masthead bleeds exactly this padding and no more, so nothing is
+     clipped. Without the declaration the scroller computes its unset axis to
+     `auto` and the sheet gains a sideways scroll nothing in it wants. */
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── The hub masthead ─────────────────────────────────────────────────────
+ * The front of a civilization, not a panel title: the world it came from, its
+ * name, its charter, and where and when it is standing. See
+ * StudyBoard.buildHubMasthead for why the sheet opens this way.
+ *
+ * It bleeds to the sheet's edges — the plate is the only full-width thing in
+ * the panel, and a world inset by a gutter reads as an illustration rather
+ * than as somewhere you are. */
+.hub-masthead {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 14rem;
+  margin: 0 -1.1rem 0.2rem;
+  padding: 3.5rem 1.1rem 0;
+}
+
+/* The plate, dissolved downward into the sheet by a mask rather than covered
+   by a scrim: a scrim that reached full opacity would leave an opaque patch
+   against a sheet that is deliberately translucent over the sky, and the seam
+   would read as a box. Where the mask is unsupported the band simply ends on
+   a hard edge, which is a plainer masthead and not a broken one. */
+.hub-masthead-plate {
+  position: absolute;
+  inset: 0;
+  opacity: 0.92;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.55) 0%,
+    #000 14%,
+    #000 38%,
+    rgba(0, 0, 0, 0.5) 68%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.55) 0%,
+    #000 14%,
+    #000 38%,
+    rgba(0, 0, 0, 0.5) 68%,
+    transparent 100%
+  );
+}
+
+.hub-masthead-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* The name the player kept or chose, in the face and size the inheritance
+   card set it in: the same name, the same voice, one surface on. Left-aligned
+   rather than centered, because everything under it is a left-aligned sheet
+   and a centered name would float free of it. The shadow is for the tail of
+   the plate still behind it, not for mood. */
+.hub-masthead-name {
+  font-size: var(--holos-text-2xl);
+  letter-spacing: 0.06em;
+  color: var(--holos-ink);
+  text-shadow: 0 2px 14px rgba(7, 6, 10, 0.9);
+  overflow-wrap: anywhere;
+}
+
+/* The founding epigraph, in the ceremony's .charter register a size down: the
+   one line on this sheet that asks nothing of the reader. */
+.hub-masthead-charter {
+  margin: 0;
+  font-style: italic;
+  font-size: var(--holos-text-sm);
+  line-height: 1.5;
+  color: var(--holos-ink-dim);
+  text-shadow: 0 2px 12px rgba(7, 6, 10, 0.9);
+}
+
+.hub-masthead-standing {
+  padding-top: 0.35rem;
+  color: var(--holos-gold);
+}
+
+/* Panel titles carry the display face: these are the names of places in the
+   game, and at caps-xs they read as form labels instead. Amber, with a faint
+   warm halo — the title shares the chip's light, not the prose's ink. */
+.study-board-header {
+  padding: 0.2rem 0 0.6rem;
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-xl);
+  letter-spacing: 0.12em;
+  color: var(--holos-amber);
+  text-shadow: 0 0 18px rgba(240, 172, 102, 0.35);
+}
+
+.study-board-empty,
+.study-archive-empty {
+  color: var(--holos-ink-faint);
+  font-size: var(--holos-text-sm);
+  padding: 0.4rem 0;
+}
+
+.study-board-divider {
+  padding: 0.9rem 0 0.4rem;
+  color: var(--holos-ink-faint);
+}
+
+.study-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  min-height: 76px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.85rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--holos-ink);
+}
+
+.study-row--dim {
+  opacity: 0.72;
+}
+
+
+.study-row-designation {
+  color: var(--holos-ink-faint);
+}
+
+.study-row-name {
+  font-size: var(--holos-text-lg);
+  color: var(--holos-ink);
+}
+
+
+
+.study-row-age {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.study-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* A2.3: a CALLED/OVERTAKEN card's frozen gloss — the plain-language phrase
+ * under the frozen label, .study-hyp-gloss's own anatomy at list-row scale. */
+.study-row-gloss {
+  font-size: var(--holos-text-xs);
+  line-height: 1.3;
+  color: var(--holos-ink-faint);
+}
+
+/* A2.3: OVERTAKEN's from/to class flag, the .study-explore-flag/
+ * .study-project-flag "one small marker on the row" precedent. */
+.study-row-overtaken-flag {
+  color: var(--holos-ink-faint);
+}
+
+/* Hub view — the "+ START" chip's menu, one glance at everything the game
+ * lets you start. Rows are sentence case (not holos-caps): this is a list of
+ * verbs, not designations. */
+.study-hub-row {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  width: 100%;
+  min-height: 52px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.5rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Hub labels share the panel title's voice — display face, amber — a size
+   down. Cinzel sets lowercase as small caps, so sentence case comes out as
+   engraved titling rather than shouting full-size caps. */
+.study-hub-label {
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-lg);
+  letter-spacing: 0.05em;
+  color: var(--holos-amber);
+}
+
+.study-hub-sub {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-faint);
+}
+
+/* Inert rows (not yet built) — visible, legible, not tappable. */
+.study-hub-row--inert {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.study-hub-row--inert .study-hub-label {
+  /* Dim within the amber family — a switch to faint ink would read as a
+     different kind of row, not a quieter one. */
+  color: rgba(240, 172, 102, 0.5);
+}
+
+/* ── A2.6: durable identity — the key sheet ───────────────────────────────
+ * A child of the board's own sheet, the composer-sheet mold, but full-height
+ * rather than two-thirds: there is no preview/controls split, just a key,
+ * a copy, and (fresh) one mandatory tap. No separate scrim — the sheet
+ * already covers the backdrop entirely on a phone (this file's own header
+ * comment) — so "no tap-outside dismiss" for the claim ceremony is simply
+ * the absence of a close button, not a second dismiss layer to suppress. */
+.study-account-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(7, 6, 10, 0.94);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid var(--holos-cyan-dim);
+  padding: 0 1.1rem max(1rem, env(safe-area-inset-bottom));
+}
+
+.study-account-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  min-height: 2.75rem;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--holos-gold-dim);
+}
+
+.study-account-close {
+  background: none;
+  border: none;
+  padding: 0.5rem 0.2rem;
+  min-height: 2.75rem;
+  color: var(--holos-cyan);
+  font-family: inherit;
+  font-size: var(--holos-text-lg);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.study-account-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem 0 1.5rem;
+  text-align: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* The key itself: display face, the largest reading size on the ladder,
+   generously spaced so twenty symbols read as four held groups rather than
+   a cramped string. Cyan, not amber — this is the one credential a player
+   can carry off this sheet, closer kin to the ceremony's "become cyan" beat
+   than to the panel's own amber chrome. */
+.study-account-key {
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-3xl);
+  letter-spacing: 0.12em;
+  color: var(--holos-cyan);
+  text-shadow: 0 0 18px var(--holos-cyan-dim);
+  word-break: keep-all;
+  max-width: 100%;
+}
+
+.study-account-copy,
+.study-account-ack {
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.55rem 1.4rem;
+  color: var(--holos-amber);
+  cursor: pointer;
+}
+
+/* The one mandatory exit from the claim ceremony — warmer than a plain
+   COPY, closer to the panel's own primary-verb chrome, so it reads as the
+   button that actually leaves rather than a third option beside it. */
+.study-account-ack {
+  color: var(--holos-ink);
+  border-color: var(--holos-gold);
+}
+
+.study-account-ceremony-line {
+  max-width: 24em;
+  color: var(--holos-ink-dim);
+}
+
+/* ── A5: the watch's ask ──────────────────────────────────────────────────
+ * The key sheet's chassis exactly (.study-account-sheet, .study-account-bar,
+ * .study-account-body), because it is the same kind of moment: one question,
+ * two answers, nothing else on screen. The only differences are the ones the
+ * content forces — this sheet has no secret in it, so the border is the
+ * panel's own gold rather than the credential cyan, and the sentence is set
+ * at reading size rather than as a display object. */
+.study-watch-sheet {
+  border-top-color: var(--holos-gold-dim);
+}
+
+.study-watch-line {
+  max-width: 26em;
+  font-size: var(--holos-text-md);
+  color: var(--holos-ink-dim);
+}
+
+/* The quiet answer. Not a button-shaped pill: ALLOW is the verb the sheet is
+   here for, and "not now" is the way out, so it wears the aside voice the hub
+   reset already uses rather than competing with the pill above it. */
+.study-watch-decline {
+  background: none;
+  border: none;
+  padding: 0.6rem 1rem;
+  min-height: 2.75rem;
+  color: var(--holos-ink-faint);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* A2.4: THE VOICE's one row. On the hub-row chassis but in the verb voice
+   rather than the browse voice — letterspaced caps, ink, no sublabel. The
+   other rows open a list; this one opens the only irreversible thing in the
+   hub, and it should not read as one more place to go. Ink and not cyan:
+   this sheet's two cyan exceptions are named in studyboard.ts's header and
+   nothing else rendered into it may follow them. */
+.study-voice-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 52px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.5rem 0.1rem;
+  font-family: inherit;
+  font-size: var(--holos-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--holos-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* A shout already holds the channel: the row states since when and stops
+   being a verb, rather than offering a tap the server would refuse. */
+.study-voice-row--inert {
+  cursor: default;
+  color: var(--holos-ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+/* An aside row — live and tappable, but not one of the verbs the panel
+   exists to offer (today: the playtest reset). This is the case the note
+   above rules out for inertness, and it wants exactly what that note
+   refuses: leaving the amber family IS the point, because this is a
+   different KIND of row rather than a quieter one. Ink, not opacity, so it
+   stays at the readable floor. */
+.study-hub-row--aside .study-hub-label {
+  color: var(--holos-ink-dim);
+}
+
+/* Hub view — AV3: the mind's proposals, above the standing rows and only
+ * present when there is something to say. A proposal is a sentence from a
+ * different speaker, not a place-over-sublabel browse row, so it is its own
+ * block rather than another .study-hub-row. The reason (and, from AV4 on,
+ * the mind's own stance) is plain prose; the two answers sit on one row
+ * under it as SIBLING buttons, never nested — `.proposal-accept` is the
+ * verb as a visible pill, `.proposal-decline` the quiet one-tap "no" at the
+ * far end of the same line. */
+.proposal-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.65rem 0.1rem;
+}
+
+/* The reason and the stance, and the row's larger tap target: clicking the
+   prose does what the verb pill does. It owns the gap between its two lines
+   so the spacing is the same as when they were the row's own children. */
+.proposal-reason {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+/* Yes and no on one line: the pill leads at the left, the free decline sits
+   at the far right, so the weight of the two answers reads off their
+   treatment rather than off their order down the column. */
+.proposal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  margin-top: 0.2rem;
+}
+
+/* The one verb a proposal row exists to offer — the study-verb-btn--primary
+   precedent: an outlined pill holding the amber, not a call-to-action slab. */
+.proposal-accept {
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-family: var(--holos-font-body);
+  color: var(--holos-amber);
+  cursor: pointer;
+}
+
+/* The reason and the stance read at one size — the stance is quieter by ink,
+   not by type, which is the rule everywhere else in this file. Both sit two
+   steps above the body size: this is the mind speaking unprompted, the
+   loudest prose on the hub and the only thing there with a claim on you. */
+.proposal-line {
+  font-size: var(--holos-text-xl);
+  font-weight: 200;
+  line-height: 1.35;
+  color: var(--holos-ink);
+}
+
+/* AV4-only (always omitted at the AV3 floor, where stance is null) — the
+   mind's own free-standing sentence, styled like the report's own remark:
+   a little air, a step quieter than the reason above it. */
+.proposal-stance {
+  font-size: var(--holos-text-xl);
+  line-height: 1.35;
+  color: var(--holos-ink-dim);
+  margin-top: 0.1rem;
+}
+
+/* Quiet, one tap, no confirmation — title case and body weight beside the
+   accept pill's caps, so declining never competes for the eye. Never
+   --holos-text-xxs: this is a sentence-length affordance, not an enclosed
+   classifier a thumb reads by shape. */
+.proposal-decline {
+  background: none;
+  border: none;
+  padding: 0.2rem 0;
+  font-family: var(--holos-font-body);
+  font-size: var(--holos-text-sm);
+  font-weight: 450;
+  letter-spacing: 0.04em;
+  color: var(--holos-ink-faint);
+  cursor: pointer;
+}
+
+/* Start-over view — what the reset costs, said plainly before the verb.
+ * Body ink rather than the panel's amber: this is the game telling the
+ * PLAYER about the run, not the mind speaking to the civilization. */
+.study-startover-note {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  padding: 0.2rem 0 0.6rem;
+}
+
+/* The refusal. Same prose, one ink tier up, because it is the only line on
+ * the page that is news. */
+.study-startover-note--error {
+  color: var(--holos-ink);
+}
+
+/* Explore view — an UNDER STUDY marker on a picker-style row for a source
+ * that already has a study open or shelved. */
+.study-explore-flag {
+  align-self: flex-start;
+  margin-top: 0.2rem;
+  color: var(--holos-amber);
+}
+
+/* Picker view — the discoverable "start a study" list. */
+.study-picker-subtitle {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  padding: 0 0 0.4rem;
+}
+
+/* A source row is the instrument's own product, not a table cell: the blot
+   first, the belief loud, the catalog number and the light-age quiet around
+   it. The blot's size and brightness follow the same law the Model uses in
+   the sky, so a source reads as itself in either place. */
+.study-picker-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  min-height: 76px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.85rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--holos-ink);
+}
+
+.study-row-smudgecell {
+  flex: 0 0 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Three offset lobes, blurred together — no core, no edge, nothing the
+   percentage does not know. Sized and lit inline, per source. */
+.study-row-smudge {
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 44% 58%, rgba(240, 172, 102, 0.75) 0%, transparent 62%),
+    radial-gradient(circle at 58% 42%, rgba(240, 172, 102, 0.5) 0%, transparent 68%),
+    radial-gradient(circle at 50% 50%, rgba(240, 172, 102, 0.3) 0%, transparent 78%);
+}
+
+.study-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.study-row-idline {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.study-row-beliefline {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+/* The belief leads the row — the one thing worth reading at a glance. */
+.study-row-class {
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-lg);
+  letter-spacing: 0.07em;
+  line-height: 1.15;
+  color: var(--holos-amber);
+}
+
+.study-row-conf {
+  font-variant-numeric: tabular-nums;
+  color: var(--holos-ink-dim);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Hub + projects view — the compute allocation line, ticked live once a
+ * second while the panel is open (see StudyBoard's startTicking). */
+.study-budget-line {
+  padding: 0.1rem 0 0.5rem;
+}
+
+/* Projects view — one row per buildable project. */
+.study-project-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  min-height: 44px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.6rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--holos-ink);
+}
+
+.study-project-label {
+  font-size: var(--holos-text-lg);
+  color: var(--holos-ink);
+}
+
+.study-project-line {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+}
+
+.study-project-meta {
+  color: var(--holos-ink-faint);
+}
+
+/* The amber STANDING marker on a completed project's row. */
+.study-project-flag {
+  align-self: flex-start;
+  color: var(--holos-amber);
+}
+
+/* Inert rows — unaffordable or already running/standing: visible, legible,
+ * not tappable. */
+.study-project-row--disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* Muted, but still a door. An OPEN QUESTIONS row you cannot buy right now
+   reads exactly as inert as it always did — the dim is what says "not from
+   here" while you scan the menu — but the tap it answers is the drill-in,
+   not the spend, so it keeps a pointer and stays tappable. */
+.study-project-row--muted {
+  opacity: 0.6;
+}
+
+/* ── An offered question: head, then the fold ────────────────────────────
+ * The row is a disclosure, never a buy button. The wrapper carries the
+ * divider so the fold sits INSIDE the question rather than under the line
+ * that ends it. */
+.study-question {
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+}
+
+.study-question-head {
+  border-bottom: none;
+}
+
+/* The name, and the caret that says the row opens. */
+.study-question-headline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
+  width: 100%;
+}
+
+.study-question-caret {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-faint);
+  flex-shrink: 0;
+}
+
+/* The fold: how the question is answered, what it can separate, and the one
+   button that spends the compute. Ruled off on the left, the brief's
+   reading-block precedent, so it reads as belonging to the row above it. */
+.study-question-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  border-left: 1px solid var(--holos-gold-dim);
+  padding: 0.1rem 0.1rem 0.6rem 0.7rem;
+  margin-bottom: 0.5rem;
+}
+
+/* The method paragraph — what this observation program actually is. Body
+   prose, one ink tier down from the row's name. */
+.study-question-method {
+  font-size: var(--holos-text-md);
+  color: var(--holos-ink-dim);
+  line-height: 1.5;
+}
+
+.study-question-subheader {
+  color: var(--holos-ink-faint);
+  padding-top: 0.15rem;
+}
+
+/* The receipt under a discounted cost/clock row: catalog base and the
+   landed project that granted the reduction. Faint and tucked against the
+   row it explains — provenance, not a number to act on. */
+.study-question-provenance {
+  color: var(--holos-ink-faint);
+  margin-top: -0.25rem;
+}
+
+/* Why the BUY under it is dark: a shortfall, or a grounded study. */
+.study-question-hint {
+  text-align: center;
+  color: var(--holos-ink-faint);
+}
+
+/* A2.3: TRIPWIRES — the study-question-head anatomy (chrome label left,
+ * one small state pill right), never a second copy of the hypothesis rows'
+ * track/glow: a tripwire is a standing order, not a share. */
+.study-tripwire-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  width: 100%;
+  min-height: 44px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.6rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--holos-ink);
+}
+
+/* A closed study's rows (or one already mid-round-trip): visible, legible,
+ * not tappable — the OPEN QUESTIONS rows' own inert dress just above. */
+.study-tripwire-row--inert {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.study-tripwire-badge {
+  flex-shrink: 0;
+}
+
+.study-tripwire-badge--available {
+  color: var(--holos-ink-faint);
+  border-color: rgba(211, 185, 130, 0.34);
+}
+
+.study-tripwire-badge--armed {
+  color: var(--holos-amber);
+  border-color: rgba(240, 172, 102, 0.5);
+}
+
+.study-tripwire-badge--tripped {
+  color: var(--holos-error);
+  border-color: rgba(240, 131, 106, 0.5);
+}
+
+/* Focused view */
+.study-back {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0.3rem 0;
+  color: var(--holos-ink-dim);
+  cursor: pointer;
+}
+
+.study-smudge {
+  width: min(40vw, 220px);
+  height: min(40vw, 180px);
+  margin: 1rem auto 0.4rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 44% 58%, rgba(217, 154, 83, 0.6) 0%, transparent 62%),
+    radial-gradient(circle at 58% 42%, rgba(217, 154, 83, 0.4) 0%, transparent 68%),
+    radial-gradient(circle at 50% 50%, rgba(217, 154, 83, 0.25) 0%, transparent 78%);
+  filter: blur(22px);
+}
+
+.study-focus-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.2rem 0 0.7rem;
+}
+
+.study-focus-designation {
+  color: var(--holos-ink-dim);
+}
+
+.study-focus-name {
+  font-size: var(--holos-text-3xl);
+  line-height: 1.05;
+  color: var(--holos-amber);
+}
+
+/* The plain-language light-delay sentence under the focused header, and the
+ * archive's explanatory line — quiet and secondary, same voice as the
+ * annotation line below the hypotheses. */
+.study-focus-lightage {
+  font-family: var(--holos-font-body);
+  font-style: italic;
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  padding: 0 0 0.3rem;
+}
+
+.study-hairline {
+  margin: 0.3rem 0;
+}
+
+.study-section {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0 0.1rem;
+}
+
+.study-section-header {
+  padding-bottom: 0.5rem;
+}
+
+.study-hyp-row {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 9.5rem) 1fr auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.4rem 0;
+}
+
+.study-hyp-labelcol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.study-hyp-label {
+  color: var(--holos-ink);
+}
+
+/* The plain-language phrase for what this reading would mean — quiet,
+ * a second line under the label, never caps (it is a phrase, not a tag). */
+.study-hyp-gloss {
+  font-size: var(--holos-text-xs);
+  line-height: 1.3;
+  color: var(--holos-ink-faint);
+}
+
+.study-hyp-track {
+  position: relative;
+  height: 1px;
+  background: var(--holos-gold-dim);
+}
+
+.study-hyp-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(211, 185, 130, 0.65);
+}
+
+.study-hyp-fill--leading {
+  background: var(--holos-amber);
+}
+
+/* The GLOW — a soft radial-gradient spot on the hairline track, never a
+ * knob/handle: no border, no solid-fill circle, no box-shadow, nothing that
+ * reads draggable. */
+.study-hyp-glow {
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(217, 154, 83, 0.5) 0%,
+    rgba(217, 154, 83, 0) 70%
+  );
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.study-hyp-glow--leading {
+  background: radial-gradient(
+    circle,
+    rgba(217, 154, 83, 0.95) 0%,
+    rgba(217, 154, 83, 0) 72%
+  );
+  filter: blur(1px);
+}
+
+.study-hyp-pct {
+  text-align: right;
+  color: var(--holos-ink);
+}
+
+.study-annotation {
+  font-family: var(--holos-font-body);
+  font-style: italic;
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  padding: 0.6rem 0;
+}
+
+/* A2.3: the mind's own line about a study that has regressed, verbatim
+ * server prose. A tier dimmer and a size down from .study-annotation right
+ * above it, upright rather than italic — the two claims read as two
+ * different registers, not two sizes of the same one. */
+.study-contest-line {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-faint);
+  padding: 0 0 0.6rem;
+}
+
+.study-archive-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.24);
+}
+
+.study-archive-age {
+  color: var(--holos-ink-faint);
+}
+
+.study-archive-text {
+  font-size: var(--holos-text-sm);
+  line-height: 1.4;
+  color: var(--holos-ink);
+}
+
+.study-archive-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.study-archive-tag {
+  padding: 0.15rem 0.45rem;
+  border: 1px solid rgba(211, 185, 130, 0.4);
+  border-radius: 999px;
+  color: var(--holos-ink-faint);
+}
+
+/* Marks the entry with latest === true, so the player can see where the
+ * record stops without counting rows. */
+.study-archive-newest {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-faint);
+  margin-top: 0.15rem;
+}
+
+/* Nothing buyable ships here yet (StudySnapshot.openQuestions is always []);
+ * the container carries the state-of-the-watch line until A2.2 fills it. */
+.study-open-questions {
+  padding-top: 0.4rem;
+}
+
+/* A2.3: always exactly three rows (protocol.ts's tripwires comment). */
+.study-tripwires {
+  padding-top: 0.4rem;
+}
+
+/* ── The hybrid home shell (S0.2) ──────────────────────────────────────────
+ * The HUD band above the map and the five-tab rail below (home.ts). Both are
+ * `position: fixed`, safe-area aware, and siblings of .model-root /
+ * .source-card-root / .study-board-root on the App's own root — chrome only,
+ * nothing here originates a gameplay value. The counsel seam sat between them
+ * from S0.3 until it was cut in 2026-08; the sky has that height back.
+ *
+ * The two custom properties below size the HUD and rail bands. They live in
+ * :root, not scoped to .home-hud/.home-rail, because .study-board--railed
+ * (this file's .study-board-sheet block) is a SIBLING, not a descendant, and
+ * needs the same numbers to dock a page between the two without covering
+ * either — a custom property only inherits down the tree, so a shared
+ * ancestor is the only way two siblings can agree on one number.
+ *
+ * Stacking: z-index 4 is a new slot, above .study-board-root (3, the board
+ * and the map beneath it) and below what was .voice-beat-root. Slotting it in
+ * pushed every root above the board up by one — voice-beat-root 4→5, contact-
+ * ceremony-root 5→6, reclaim-root 6→7, intro-root 7→8 (each still comments
+ * its own place in the stack); nothing between .study-board-root and
+ * .voice-beat-root existed for the shell to reuse, and the shell must sit
+ * below all four of those, which are heavier interruptions than a persistent
+ * chrome band ever is. S0.3 retired the voice beat and moved its line to the
+ * counsel seam; 2026-08 cut that seam too, so the arrival line currently has
+ * no surface at all. Slot 5 stays unused and unreclaimed, as it has been
+ * since the beat went — renumbering four roots to close a gap buys nothing. */
+:root {
+  /* Two grid rows at every width: top padding + the name row (md line) + the
+     row gap + the chip row. 3.9rem is that sum with breathing room — the old
+     3.4rem was sized to the flex layout's shorter right-hand column and
+     clipped the chip once the band wrapped. */
+  --home-hud-h: calc(env(safe-area-inset-top) + 3.9rem);
+  --home-rail-h: calc(env(safe-area-inset-bottom) + 3.6rem);
+  /* S0.4: the strip of map the source card leaves visible above itself while
+     it is carrying a focused study's detail. It lives beside the two numbers
+     it is subtracted from, for the reason this block's header gives.
+     5.5rem IS A DECIDED TRADE, not a spare number: it was turned by thumb on
+     a phone through 2026-08 and settled where the sky above the card is still
+     wide enough to read as the map the study is anchored to, and no wider,
+     because every rem of it is a row of the study the reader has to scroll
+     for. Taller is a page that has forgotten where it came from; shorter is a
+     study read through a slot. Anyone retuning it owes it the same thumb. */
+  --card-detail-sky: 5.5rem;
+}
+
+/* No box of its own: the three children below are all `position: fixed` and
+   sit outside normal flow regardless of this element's own layout. It exists
+   only so setHidden() has one node to hide — a fixed descendant still honors
+   an ancestor's `visibility`, even though it never honors its `display`. */
+.home-root--hidden {
+  visibility: hidden;
+}
+
+.home-hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 4; /* above .study-board-root (3); 5, once .voice-beat-root,
+                 is unused since S0.3 retired the voice beat */
+  height: var(--home-hud-h);
+  padding: calc(env(safe-area-inset-top) + 0.5rem)
+    max(0.9rem, env(safe-area-inset-right)) 0
+    max(0.9rem, env(safe-area-inset-left));
+  /* ONE layout at every width — a fixed two-row grid, never a wrap. Row one:
+     the name (ellipsizing, never pushing) with the year line pinned to the
+     right margin on the same baseline. Row two: the compute chip alone on
+     the right margin. A narrow screen shortens the name; it never reflows
+     the band (the 2026-08 phone check found the wrap reading as two
+     different navs). */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 0.75rem;
+  row-gap: 0.3rem;
+  align-content: start;
+  overflow: hidden;
+  /* Nothing in the band is interactive in S0.2 — a thumb reaches straight
+     through it to the map underneath, everywhere the band covers. */
+  pointer-events: none;
+}
+
+.home-identity {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.home-mark {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 999px;
+  background: var(--holos-cyan);
+  box-shadow: 0 0 0 2px var(--holos-cyan-dim);
+  flex-shrink: 0;
+}
+
+.home-name {
+  /* The titling face: the name over the sky is the same face the ceremony
+     crowned it in (S0.2 type pass). */
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-md);
+  color: var(--holos-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The standing lines place themselves on the grid: the wrapper dissolves
+   (display: contents) so its two children are the grid items — the star's
+   designation shares the name's row and baseline, the ticking year takes
+   the second row's right margin under it. */
+.home-standing {
+  display: contents;
+}
+
+.home-standing-designation {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.home-standing-year {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: end;
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* The compute meter — in the HUD band, under the name (moved from bottom
+   right, 2026-08: down there it shared the then-live counsel strip's zone and
+   overlapped TALK). A tiny label over a thin bar: the bar is the reading
+   (how much of the attention ceiling is uncommitted); the label carries the
+   number and the rate. Fill eases so the accrual creeps instead of
+   stepping. */
+.home-meter {
+  grid-column: 1;
+  grid-row: 2;
+  justify-self: start;
+  width: clamp(6.5rem, 22vw, 9.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  pointer-events: none;
+}
+
+.home-meter--empty {
+  display: none;
+}
+
+.home-meter-label {
+  font-family: var(--holos-font-mono);
+  letter-spacing: 0;
+  /* xxs by designer call (2026-08 phone check): the label rides its own bar
+     the way a badge rides its tab, so it takes the enclosed-classifier step
+     below the reading floor, quieted a further step by opacity. */
+  font-size: var(--holos-text-xxs);
+  opacity: 0.8;
+  color: var(--holos-indigo);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.home-meter-track {
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--holos-indigo-dim);
+  overflow: hidden;
+}
+
+.home-meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--holos-indigo);
+  transition: width 900ms linear;
+}
+
+.home-rail {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4; /* the HUD's own slot; see the block header above */
+  height: var(--home-rail-h);
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: max(0.5rem, env(safe-area-inset-left));
+  padding-right: max(0.5rem, env(safe-area-inset-right));
+  background: rgba(7, 6, 10, 0.86);
+  border-top: 1px solid var(--holos-gold-dim);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  /* The rail stays this same full-width bar at the desktop breakpoint too —
+     .study-board--railed (below) is what stops short of it, not the other
+     way around, so there is no 720px override here. */
+}
+
+.rail-tab {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  background: none;
+  border: none;
+  /* The titling face in light amber (S0.2 type pass): the rail is the home's
+     own chrome, warm against the sky, and Cinzel's caps carry a one-word
+     label without needing letterspacing. */
+  font-family: var(--holos-font-display);
+  font-weight: 550;
+  /* xs, never xxs — a rail label is a lone unenclosed word, not the enclosed
+     classifier xxs is for (this file's own token comment, top of file). */
+  font-size: var(--holos-text-xs);
+  color: var(--holos-amber-dim);
+  padding: 0.3rem 0.2rem;
+  position: relative;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Calm by design: a tab switch eases only its own ink, never the rail's
+     shape, position, or the badge beside it. */
+  transition: color 240ms ease;
+}
+
+.rail-tab--active {
+  color: var(--holos-amber);
+}
+
+.rail-badge {
+  position: absolute;
+  top: 0.05rem;
+  right: 22%;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--holos-bg-raised);
+  border: 1px solid var(--holos-gold-dim);
+  color: var(--holos-gold);
+  /* Enclosed and short (a bare count), so xxs is this file's own exception
+     for a classifier a thumb reads by shape, not letter by letter. */
+  font-size: var(--holos-text-xxs);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* ── Inline explainers (AV1) ───────────────────────────────────────────────
+ * S0.3 retired the arrival beat that once lived here (voicebeat.ts, and the
+ * .voice-beat-root/.voice-beat-scrim/.voice-beat/.voice-beat-line/
+ * .voice-beat-dismiss rules that styled it) and moved the arrival line to the
+ * counsel seam; cutting that seam in 2026-08 left the line with nowhere to
+ * land. z-index 5 is unused, not reclaimed (the home shell block's own
+ * header comment says why). What remains is the inline one-time explainer
+ * note (sourcecard's age chip; studyboard's hub, Projects and report) — a
+ * step quieter than surrounding prose, never below the ink floor. */
+.voice-note {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-dim);
+}
+
+/* ── The study briefing ──────────────────────────────────────────────────
+ * Between tapping a candidate and opening the watch. A study costs nothing
+ * and runs on no clock, so this screen states that plainly rather than
+ * dressing up a transaction that does not exist. */
+/* The briefing's starmap: HOME and the source at their true bearing, the
+   neighborhood's other stars scattered at their real projected offsets
+   behind. The canvas draws the marks and the dotted sightline (studyboard.ts
+   mirrors the ink tokens there); only the labels are type, so they live in
+   the DOM on the tokens. The HOME label's cyan is the Tend-chip exception —
+   the one present-tense, yours thing this sheet ever charts (see
+   studyboard.ts's register note). */
+.study-brief-map {
+  position: relative;
+  height: 120px;
+  margin-top: 0.3rem;
+}
+
+.study-brief-map canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.study-brief-map-home,
+.study-brief-map-source,
+.study-brief-map-dist {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: var(--holos-text-xs);
+  white-space: nowrap;
+}
+
+.study-brief-map-home {
+  color: var(--holos-cyan);
+}
+
+.study-brief-map-source {
+  color: var(--holos-ink-dim);
+}
+
+.study-brief-map-dist {
+  color: var(--holos-ink-faint);
+}
+
+/* No smudge here — the starmap above already draws the source. The block is
+   the identity text with the confidence gloss under it. */
+.study-brief-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.6rem 0.1rem 0.9rem;
+}
+
+/* What the percentage on the belief line actually claims. Quiet, but still
+   reading type — the gloss tier the hypothesis rows use. */
+.study-brief-conf-gloss {
+  font-size: var(--holos-text-xs);
+  line-height: 1.4;
+  color: var(--holos-ink-faint);
+}
+
+.study-brief-section {
+  padding: 0.7rem 0 0.2rem;
+}
+
+.study-brief-body {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  line-height: 1.5;
+}
+
+/* The readings on offer, label over plain gloss — the same anatomy the
+   board's hypothesis rows use, minus the share, which does not exist until
+   the study does. */
+.study-brief-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.7rem;
+}
+
+.study-brief-reading {
+  border-left: 1px solid var(--holos-gold-dim);
+  padding-left: 0.7rem;
+}
+
+.study-brief-meta {
+  padding: 0.9rem 0 0.2rem;
+  color: var(--holos-ink-faint);
+}
+
+.study-verb-row {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0 0.2rem;
+}
+
+.study-verb-btn {
+  background: none;
+  border: none;
+  font-family: var(--holos-font-body);
+  font-size: var(--holos-text-sm);
+  letter-spacing: 0.04em;
+  color: var(--holos-ink-faint);
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+}
+
+/* The ember modifier opts out: its text is the warm white of a lit surface,
+   and lifting it to ink on hover would put unlit prose on burning stone. */
+.study-verb-btn:not(.study-verb-btn--ember):hover {
+  color: var(--holos-ink-dim);
+}
+
+/* The one verb on a screen that exists to offer it — the briefing's begin.
+   Still a word, not a call-to-action slab; it just holds the amber. */
+.study-verb-btn--primary {
+  color: var(--holos-amber);
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.55rem 1.1rem;
+}
+
+.study-verb-btn--primary:disabled {
+  color: var(--holos-ink-faint);
+  border-color: rgba(211, 185, 130, 0.25);
+  cursor: default;
+}
+
+/* A2.3: CALL IT's confirm step — the tend-row-state--silent/error-color
+ * precedent, so the one tap that actually closes the study reads as the
+ * moment of attention it is, without a second ceremony. */
+.study-verb-btn--confirm {
+  color: var(--holos-error);
+  border-color: rgba(240, 131, 106, 0.5);
+}
+
+/* ── The Tend, mission detail, and the launch sheet (Act 3, A2.2) ─────
+ * Amber/ink only, same rule as the observatory — never --holos-cyan. */
+
+/* The Tend title line: TEND on the left, the live count in its upper right.
+   Baselines are aligned so the count sits ON the title's line rather than
+   floating above it; it stays quiet ink so the amber title still leads. */
+.tend-titlerow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.tend-summary {
+  color: var(--holos-ink-dim);
+  font-size: var(--holos-text-sm);
+  text-align: right;
+}
+
+/* Tend rows: label+sub on the left, class chip + state + next-date on the
+   right. One level of indent for a row hanging under a study parent. */
+.tend-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
+  width: 100%;
+  min-height: 60px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.7rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--holos-ink);
+}
+
+.tend-row--child {
+  padding-left: 1.6rem;
+}
+
+.tend-row-top {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+  width: 100%;
+}
+
+/* The track — a hairline the work crosses, in the study board's own idiom
+ * (study-hyp-track): 1px rail, amber fill, a soft radial tip that is a
+ * glow and never a handle. Nothing here is draggable and nothing here is a
+ * capsule; the row is a clock lying on its side. */
+.tend-track {
+  position: relative;
+  height: 1px;
+  width: 100%;
+  background: var(--holos-gold-dim);
+}
+
+.tend-track-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--holos-amber);
+}
+
+.tend-track-tip {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(240, 172, 102, 0.55) 0%,
+    rgba(240, 172, 102, 0) 70%
+  );
+  filter: blur(1.5px);
+  pointer-events: none;
+}
+
+/* The amendment horizon: a bare tick standing ON the rail, unlabeled. Past
+ * it, nothing sent from here can overtake what is already going. */
+.tend-track-mark {
+  position: absolute;
+  top: 50%;
+  width: 1px;
+  height: 7px;
+  transform: translate(-50%, -50%);
+  background: var(--holos-gold-dim);
+  pointer-events: none;
+}
+
+/* Silence: the rail itself stops. The fill runs to the year the schedule
+ * broke and the remainder is a gap — no tip, because nothing is
+ * travelling, and no red, because a silence is not an error. */
+.tend-track--broken {
+  background: none;
+}
+
+.tend-track--broken .tend-track-fill {
+  background: var(--holos-gold-dim);
+}
+
+/* Belief, not time: a study's rail carries the leading reading's share, in
+   the study sheet's own gold rather than the live amber, so a glance can
+   tell a settling vigil from a running clock without reading a word. */
+.tend-track--belief .tend-track-fill {
+  background: rgba(211, 185, 130, 0.65);
+}
+
+.tend-track-tip--belief {
+  background: radial-gradient(
+    circle,
+    rgba(217, 154, 83, 0.34) 0%,
+    rgba(217, 154, 83, 0) 70%
+  );
+}
+
+/* Done: the whole rail, in the quiet gold rather than the live amber —
+   nothing is travelling along it any more. */
+.tend-track--done .tend-track-fill {
+  background: var(--holos-gold-dim);
+}
+
+.tend-track-tail {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  background: rgba(211, 185, 130, 0.22);
+  pointer-events: none;
+}
+
+.tend-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Row titles take the amber the hub rows took: on a list this dense the
+   name is what a thumb scans for, and off-white put it in the same ink as
+   the sub-line beneath it. Every row is a destination now — a project row
+   opens its own detail sheet — so there is no dimmed non-destination tier. */
+.tend-row-label {
+  font-size: var(--holos-text-lg);
+  color: var(--holos-amber);
+}
+
+/* Two lines, then an ellipsis. A study row's sub is its whole annotation
+ * line, which runs to four lines on a phone and turns a work list into an
+ * essay; the study's own sheet is where that sentence is read in full. */
+.tend-row-sub {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+/* The class and the state ride side by side and wrap to a second line when
+   they do not fit — a long state ("BEYOND THE HORIZON") drops under its
+   class rather than eating the label's column. Capped so the badges can
+   never take more of the row than the name they annotate. */
+.tend-row-meta {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.28rem;
+  flex-shrink: 0;
+  max-width: 46%;
+}
+
+/* Badges, not label lines: the titling face inside a hairline pill, in the
+   same gold the row's rule is drawn in. The one surface that takes
+   --holos-text-xxs, and it meets both conditions the token carries — one or
+   two words, the same handful of them on every row, and enclosed so the
+   size reads as a classifier's rather than as undersized prose. Never
+   breaks mid-word. */
+.tend-badge {
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-xxs);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.2rem 0.42rem;
+}
+
+.tend-chip {
+  color: var(--holos-ink-faint);
+  border-color: rgba(211, 185, 130, 0.34);
+}
+
+.tend-row-state {
+  color: var(--holos-ink-dim);
+}
+
+.tend-row-state--silent {
+  color: var(--holos-error);
+  border-color: rgba(240, 131, 106, 0.5);
+}
+
+.tend-row-next {
+  color: var(--holos-ink-faint);
+  align-self: flex-end;
+}
+
+/* Mission detail — the clock trio, plain two-column rows. */
+.tend-mission-clock-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.24);
+}
+
+.tend-mission-clock-label {
+  color: var(--holos-ink-faint);
+}
+
+.tend-mission-clock-value {
+  color: var(--holos-ink);
+}
+
+.tend-mission-silent {
+  padding: 0.4rem 0;
+  color: var(--holos-error);
+}
+
+/* Mission detail — a report's headline, full ink against the quieter detail
+   text below it (reuses .study-archive-row/-text/-age). */
+.tend-report-headline {
+  color: var(--holos-ink);
+}
+
+/* The launch sheet — a selected kind row (reuses .study-project-row). */
+.tend-launch-kind-row--selected {
+  border-left: 2px solid var(--holos-amber);
+  padding-left: 0.6rem;
+}
+
+/* The launch sheet — one selectable charter clause (reuses the briefing's
+   label+gloss reading anatomy, with button resets and a selected state). */
+.tend-launch-clause-row {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  border-left: 1px solid var(--holos-gold-dim);
+  padding: 0.4rem 0 0.4rem 0.7rem;
+  margin: 0.35rem 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tend-launch-clause-row--selected {
+  border-left-color: var(--holos-amber);
+}
+
+.tend-launch-clause-row--selected .study-hyp-label {
+  color: var(--holos-amber);
+}
+
+/* ── A4: THE SURVEY and the founding sheet ───────────────────────────────
+ * The launch sheet's own family, one act on, and it borrows nearly all of
+ * it: survey rows are .tend-row, ship rows are .study-project-row, clause
+ * rows are .tend-launch-clause-row, and the dials are the ceremony's own
+ * .dial-* band. What is new below is only what a founding adds — a clock
+ * line, a prior's three-step bar, the departure light's warning, the pin,
+ * and the press that commits an Endeavor.
+ *
+ * Amber and ink, never --holos-cyan: everything the forecast says is a guess
+ * about somewhere nobody has been, which is the observatory's own rule and
+ * not a new one. */
+
+/* A clock or an age, under the row it belongs to. Tabular so three ships'
+   numbers line up and the comparison can be read down the column. */
+.voyage-clock {
+  color: var(--holos-ink-faint);
+}
+
+/* The lines that are a price rather than a schedule: the light a torch or a
+   sail pays in at each end of the crossing, and the project a sail waits on.
+   Amber, because they are the reason to choose differently. */
+.voyage-clock--loud {
+  color: var(--holos-amber);
+}
+
+/* The survey row's per-kind staleness lines. */
+.voyage-survey-clock {
+  color: var(--holos-ink-faint);
+}
+
+/* Something is already at the far end. Not an error — a founding aimed at an
+   occupied world is a legal act with a known outcome — so it takes the amber
+   of a thing worth reading twice rather than the refusal red. */
+.voyage-occupied {
+  color: var(--holos-amber);
+}
+
+/* The forecast panel. */
+.voyage-forecast {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* One class of destination, its bar, and the band as a word. The bar is a
+   rendering of the ORDINAL the wire sent (three words, three steps) and
+   never of a percentage: the survey sends bands precisely so no surface can
+   dress a guess as a measurement. */
+.voyage-prior {
+  display: grid;
+  grid-template-columns: 5.4rem 1fr 5rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.voyage-prior-name {
+  color: var(--holos-ink-dim);
+}
+
+.voyage-prior-track {
+  position: relative;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: rgba(239, 233, 219, 0.14);
+  overflow: hidden;
+}
+
+.voyage-prior-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--holos-gold-dim);
+}
+
+.voyage-prior-band {
+  color: var(--holos-ink-faint);
+  text-align: right;
+}
+
+/* How tight the spread is: a label and the wire's own chip. */
+.voyage-spread {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+/* The occupied-risk line — the server's sentence, stated on every row
+   because a line that varied with what is inbound would leak. */
+.voyage-risk {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  padding: 0.2rem 0 0.1rem;
+}
+
+/* One charter dial: the ceremony's band, plus the pin that decides how far
+   the colony's descendants may reconsider it. */
+.voyage-dial-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.voyage-pin {
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  color: var(--holos-ink-faint);
+  font-family: var(--holos-font-body);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.voyage-pin--on {
+  color: var(--holos-amber);
+  border-color: var(--holos-amber);
+}
+
+/* The clause groups' sub-headers: quieter than a section header, because
+   what they head is a pair of choices inside one, not a new part of the
+   sheet. */
+.voyage-group-header {
+  color: var(--holos-gold);
+  padding: 0.7rem 0 0.1rem;
+}
+
+.voyage-name-field {
+  padding: 0.8rem 0 0.2rem;
+}
+
+/* THE HOLD. The pill is the launch sheet's own primary verb; what is new is
+   the fill sweeping through it, which IS the press — it is drawn from the
+   wall clock by the frame loop, so a dropped frame costs fidelity and never
+   correctness. */
+.voyage-verb-row {
+  position: relative;
+}
+
+.voyage-hold {
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.voyage-hold-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: rgba(240, 172, 102, 0.28);
+  pointer-events: none;
+}
+
+.voyage-hold-label {
+  position: relative;
+}
+
+/* The commit beat, reused wholesale from BECOME (holos-bloom, below). */
+.voyage-bloom {
+  position: absolute;
+  inset: -1rem;
+  pointer-events: none;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 50%, var(--holos-cyan-dim), transparent 62%);
+  animation: holos-bloom 1100ms ease forwards;
+}
+
+/* ── A4: THE LEDGER and the standing order ───────────────────────────────
+ * What became of the foundings. The panel's existing families do nearly all
+ * of it — a row is the thread row's chassis, a badge is .tend-badge, a
+ * label/value line is the mission sheet's clock row, and the arming sheet's
+ * clause rows are the launch sheet's own. What is new below is only what a
+ * child adds: the band as an enclosed word, the sample line beside it, and a
+ * reading's two poles set against each other.
+ *
+ * NO --holos-cyan ANYWHERE IN THIS BLOCK, and it is not the observatory's
+ * ordinary amber-and-ink rule being restated: it is the sharper claim under
+ * it. A child was written by this civilization and carries its charter, and
+ * cyan is what this game uses to say "you". A child is not you, and a Ledger
+ * that said otherwise would be making the one claim the whole surface exists
+ * to withhold. Nothing here may follow the charter composer's exception. */
+
+/* One founding on the hub, under THE LEDGER. The thread row's chassis with a
+   second and third line, because a child carries more than a state: the whole
+   row is the verb, and there is no badge on it that has to be cleared. */
+.ledger-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
+  width: 100%;
+  min-height: 60px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.6rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--holos-ink);
+}
+
+.ledger-row-top {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
+  width: 100%;
+}
+
+/* The name a founding was given, in the amber every row title on this sheet
+   takes. Never cyan: see this block's header. */
+.ledger-name {
+  font-size: var(--holos-text-lg);
+  color: var(--holos-amber);
+  min-width: 0;
+}
+
+.ledger-marks {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.28rem;
+  flex-shrink: 0;
+}
+
+.ledger-state-badge {
+  color: var(--holos-ink-dim);
+}
+
+/* A child gone dark to. The row stays and says so, a tier quieter — the mute
+   is undone from THE VOICE's own list, never from here. */
+.ledger-muted-badge {
+  color: var(--holos-ink-faint);
+  border-color: rgba(211, 185, 130, 0.34);
+}
+
+/* The band and the sample it rests on, side by side. */
+.ledger-band-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* THE BAND, AS A WORD. An enclosed classifier on the .tend-badge contract,
+   which is what earns it --holos-text-xxs: one word, the same five of them on
+   every row, and enclosed so the size reads as a classifier's. There is no
+   bar behind it and there never may be — a band is a tally over dated
+   observations, and a track would dress it as a measurement. */
+.ledger-band-badge {
+  color: var(--holos-ink-dim);
+}
+
+/* Nothing has come back that speaks to this. Quieter than a reading, because
+   it is the absence of one. */
+.ledger-band-badge--unread {
+  color: var(--holos-ink-faint);
+  border-color: rgba(211, 185, 130, 0.34);
+}
+
+/* The two that say the charter is still being kept. */
+.ledger-band-badge--close,
+.ledger-band-badge--kindred {
+  color: var(--holos-ink-dim);
+}
+
+/* The two that say it is not. Amber rather than the refusal red: a child that
+   has walked away from its charter is not an error, it is the thing this game
+   is about. */
+.ledger-band-badge--estranged,
+.ledger-band-badge--independent {
+  color: var(--holos-amber);
+  border-color: rgba(240, 172, 102, 0.5);
+}
+
+/* How much has been read. The one number a band is allowed, and it says the
+   size of the sample and never the size of the difference. */
+.ledger-sample {
+  color: var(--holos-ink-faint);
+}
+
+/* The row's last line: the staleness chip when there is a reading to date, and
+   where the conversation stands. NOTHING when the wire sent null — before
+   anything has come back there is no date, and a zero would be a claim. */
+.ledger-row-meta {
+  color: var(--holos-ink-faint);
+}
+
+/* The charter as written, and the band's own sentence — both server prose,
+   set as prose rather than as chrome. */
+.ledger-charter {
+  font-size: var(--holos-text-sm);
+  line-height: 1.45;
+  color: var(--holos-ink);
+  padding: 0.2rem 0 0.4rem;
+}
+
+.ledger-band-line {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  padding: 0.3rem 0 0.4rem;
+}
+
+/* One dial axis the parent has actually read something about. */
+.ledger-reading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.6rem 0 0.4rem;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.24);
+}
+
+.ledger-reading-question {
+  color: var(--holos-ink);
+}
+
+.ledger-reading-marks {
+  justify-content: flex-start;
+  padding-top: 0.3rem;
+}
+
+/* The charter's lean survived the reading. */
+.ledger-verdict-badge {
+  color: var(--holos-ink-dim);
+}
+
+/* It did not. Amber, for the estranged band's reason. */
+.ledger-verdict-badge--parted {
+  color: var(--holos-amber);
+  border-color: rgba(240, 172, 102, 0.5);
+}
+
+/* One order class on the arming sheet. */
+.ledger-order {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.4rem 0 0.8rem;
+}
+
+.ledger-order-badge {
+  color: var(--holos-ink-faint);
+  border-color: rgba(211, 185, 130, 0.34);
+}
+
+/* Armed: something may happen without you, and the sheet says so in the same
+   amber a live tripwire takes. */
+.ledger-order-badge--armed {
+  color: var(--holos-amber);
+  border-color: rgba(240, 172, 102, 0.5);
+}
+
+/* Fired: the arming is spent. A record, not an alarm. */
+.ledger-order-badge--fired {
+  color: var(--holos-ink-dim);
+}
+
+/* ── The report (AV2) ────────────────────────────────────────────────────
+ * The observatory's annal — frozen record sentences, never re-rendered.
+ * Rows reuse .tend-row for spacing/border (buildTendRow's skeleton minus
+ * the track and the state badge). NEVER cyan here: everything the report
+ * shows is remote and old, same rule as the rest of the sheet. */
+.report-header {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  padding: 0.4rem 0 0.6rem;
+}
+
+.report-row-line {
+  font-size: var(--holos-text-sm);
+  line-height: 1.4;
+  color: var(--holos-ink);
+}
+
+/* The mind's voice, set apart from the frozen record line above it — a
+   little air, a step quieter, no em dash (the server text carries its own
+   punctuation). */
+.report-remark {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-dim);
+  margin-top: 0.3rem;
+}
+
+/* The stamp chip: the caps/tabular chrome family (tend-mission-clock-
+   value's precedent — .holos-caps + .study-tabular alongside this class)
+   at --holos-text-xs, never --holos-text-xxs — a date is a reading, not an
+   enclosed classifier. */
+.report-stamp {
+  display: inline-block;
+  color: var(--holos-ink-faint);
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+/* ── Threads (A2.5) ──────────────────────────────────────────────────────
+ * The sky answers, and the texture is ASTRONOMY, never mail. There are no
+ * bubbles here, no avatars and no left/right conversation gutter: a received
+ * signal is an instrument readout with prose under it, and a sent one is a
+ * beam on a rail. Amber and ink throughout, like the rest of this sheet —
+ * everything they sent is old light. The ONE cyan is the sent rail, on the
+ * source card's contact-row precedent: a beam you aimed is yours and is
+ * happening now. Nothing else in this block may follow it. */
+
+/* A thread on the hub, under SPEAK TO EVERYONE. The .study-hub-row chassis
+   with the name and the state on one line — a thread is a place you return
+   to, so it reads as a destination rather than as a verb. */
+.study-thread-row {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
+  width: 100%;
+  min-height: 52px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.5rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.study-thread-name {
+  font-size: var(--holos-text-lg);
+  color: var(--holos-amber);
+  min-width: 0;
+}
+
+/* A2.6: a thread gone dark. It carries no state and no count — the wire sends
+   a star id and nothing else — so the row reads a tier down from a live one
+   and offers only the undo. */
+.study-thread-row--muted .study-thread-name {
+  color: var(--holos-ink-faint);
+}
+
+.study-thread-state {
+  flex-shrink: 0;
+  color: var(--holos-ink-faint);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* The thread header's chips: the light-age, the source's own classification,
+   and where the thread stands. Enclosed classifiers on the .tend-badge
+   contract, which is what earns them --holos-text-xxs. */
+.thread-chips {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.1rem 0 0.5rem;
+}
+
+.thread-chip {
+  color: var(--holos-ink-dim);
+}
+
+/* The wire holds the newest signals only, and says so once. */
+.thread-truncated {
+  color: var(--holos-ink-faint);
+  padding: 0.3rem 0 0.5rem;
+}
+
+.thread-signal {
+  padding: 0.55rem 0 0.7rem;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.2);
+}
+
+/* What arrived. The measurement is the header of the message, so the block
+   is indented off a gold rule the way an archive entry is. */
+.thread-signal--received {
+  border-left: 1px solid var(--holos-gold-dim);
+  padding-left: 0.7rem;
+}
+
+/* What left. The one cyan rail in the panel. */
+.thread-signal--sent {
+  border-left: 1px solid var(--holos-cyan-dim);
+  padding-left: 0.7rem;
+}
+
+/* One row of instrument readout. Caps/tabular chrome at --holos-text-xs (via
+   .holos-caps), never xxs: a measurement is a reading, not a one-word
+   classifier — the .report-stamp ruling, applied to the thing it was written
+   about. Two of these stack above every received payload. */
+.thread-stamp {
+  color: var(--holos-ink-faint);
+  line-height: 1.5;
+}
+
+/* Your own arithmetic on your own beam: in flight, then landed. Cyan,
+   because it is the rail's own line and not a reading of anything remote. */
+.thread-rail {
+  color: var(--holos-cyan);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The payload. UNTRUSTED PROSE, set through textContent only — so it is
+   sized and broken like prose and given a hard wrap, because 280 characters
+   with no space in them must not push the sheet sideways.
+   A2.6: quoted, in CSS rather than in the string, because the string is not
+   ours to punctuate. What arrives is what was said, and the marks around it
+   are the page saying so. */
+.thread-payload {
+  margin-top: 0.35rem;
+  font-size: var(--holos-text-sm);
+  line-height: 1.45;
+  color: var(--holos-amber);
+  overflow-wrap: anywhere;
+  quotes: "\201C" "\201D";
+}
+
+.thread-payload::before {
+  content: open-quote;
+}
+
+.thread-payload::after {
+  content: close-quote;
+}
+
+/* The silence. Quiet ink, a little air, no rule under it: there is nothing
+   after this. */
+.thread-state-line {
+  padding: 0.8rem 0 0.4rem;
+  font-size: var(--holos-text-sm);
+  line-height: 1.45;
+  color: var(--holos-ink-faint);
+}
+
+/* A2.6: the tone, as one more row of instrument readout. It sits between the
+   stamp and what was said because that is what it is — a property of the
+   beam, not a feeling about it. `plain` renders no row at all, which is why
+   there is no "plain" variant here to write. */
+.thread-tone {
+  color: var(--holos-amber);
+  line-height: 1.5;
+}
+
+/* Going dark to one thread. Deliberately the quietest affordance on the
+   screen: it notifies nobody, it changes nothing on the other side, and it
+   is undone from the hub with one tap. */
+.thread-mute-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 0 0.3rem;
+}
+
+.thread-mute {
+  background: none;
+  border: none;
+  padding: 0.4rem 0.2rem;
+  min-height: 2.2rem;
+  color: var(--holos-ink-faint);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* THE COMPLIANCE RAIL. A state of the thread rather than something said in
+   it, so it stands above the conversation inside a hairline box, in gold —
+   the panel's own structural ink, not the amber of somebody's light. */
+.thread-accord {
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 2px;
+  padding: 0.5rem 0.65rem;
+  margin: 0.2rem 0 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.thread-accord-head {
+  color: var(--holos-ink);
+}
+
+.thread-accord-line {
+  color: var(--holos-ink-faint);
+}
+
+/* ── The part blocks (A2.6) ──────────────────────────────────────────────
+ * An instrument block, never a message bubble: a pinned label, the subject as
+ * this reader's own instruments name it, and the readings under it. Amber and
+ * gold like the rest of the sheet — a part is a record of light, including
+ * one of your own that has not left yet. */
+.part-block {
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 2px;
+  padding: 0.5rem 0.65rem;
+  margin-top: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.part-head {
+  color: var(--holos-gold);
+}
+
+/* Subject on the left, the one reading that belongs beside it on the right.
+   Wraps rather than truncating: a designation plus a player's own name for a
+   source is longer than a phone, and neither half may be cut. */
+.part-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.part-desig {
+  color: var(--holos-ink);
+  min-width: 0;
+}
+
+.part-share {
+  color: var(--holos-amber);
+  flex-shrink: 0;
+}
+
+/* What the reading SAYS, in the catalog's own words — the one line on a block
+   set as reading type rather than as chrome. */
+.part-title {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-amber);
+  overflow-wrap: anywhere;
+}
+
+.part-gloss {
+  font-size: var(--holos-text-xs);
+  line-height: 1.35;
+  color: var(--holos-ink-faint);
+}
+
+/* Catalog prose that travelled whole: a charter, a chronicle line, a dial's
+   reading. Set like the observatory's own annotation, one tier quieter. */
+.part-prose {
+  font-size: var(--holos-text-sm);
+  line-height: 1.45;
+  color: var(--holos-ink-dim);
+  overflow-wrap: anywhere;
+}
+
+.part-line {
+  color: var(--holos-ink-faint);
+  line-height: 1.5;
+}
+
+/* Provenance and the notes that qualify a reading rather than being one. */
+.part-line--faint {
+  color: var(--holos-gold-dim);
+}
+
+.part-track {
+  margin: 0.15rem 0 0.1rem;
+}
+
+/* THE LIGHT RECORD. An inline SVG stretched to the block's width, so it
+   redraws at any size with no resize pass; the strokes opt out of that
+   stretch so a hairline stays a hairline however wide the phone is. */
+.part-spark {
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin: 0.2rem 0 0.1rem;
+  overflow: visible;
+}
+
+.part-spark-area {
+  fill: rgba(240, 172, 102, 0.16);
+}
+
+.part-spark-line {
+  fill: none;
+  stroke: var(--holos-amber);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The newest sample's edge — the source card's NOW hairline, at block scale.
+   Nothing is ever drawn to its right, because there is nothing there. */
+.part-spark-edge {
+  stroke: rgba(239, 233, 219, 0.55);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ── The composer (A2.6) ─────────────────────────────────────────────────
+ * The foot of the thread is one pill; everything else is an overlay on the
+ * sheet. Cyan throughout, the sent rail's exception: what is being assembled
+ * here is yours and is the next thing to leave. */
+.thread-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.8rem 0 0.3rem;
+}
+
+.thread-compose-pill {
+  align-self: flex-end;
+  background: none;
+  border: 1px solid var(--holos-cyan-dim);
+  border-radius: 999px;
+  padding: 0.55rem 1.3rem;
+  min-height: 2.75rem;
+  color: var(--holos-cyan);
+  font-family: var(--holos-font-body);
+  cursor: pointer;
+}
+
+/* No composer: they spoke first and answering costs the ceremony, the thread
+   is simply full, or the last beam is still being read. One line, and at most
+   one way onward. */
+.thread-closed {
+  padding: 0.8rem 0 0.3rem;
+}
+
+.thread-closed-line {
+  font-size: var(--holos-text-sm);
+  line-height: 1.45;
+  color: var(--holos-ink-dim);
+}
+
+/* The composer sheet: a child of the board's own sheet, covering most of it.
+   Two thirds preview, one third controls — the preview IS the composer, and
+   it gets the room to prove it. */
+.composer-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 12%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(7, 6, 10, 0.94);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid var(--holos-cyan-dim);
+  padding: 0 1.1rem max(1rem, env(safe-area-inset-bottom));
+}
+
+.composer-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  min-height: 2.75rem;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--holos-gold-dim);
+}
+
+.composer-bar-title {
+  color: var(--holos-ink-faint);
+  min-width: 0;
+}
+
+.composer-bar-btn {
+  background: none;
+  border: none;
+  padding: 0.5rem 0.2rem;
+  min-height: 2.75rem;
+  color: var(--holos-cyan);
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--holos-text-xs);
+  cursor: pointer;
+}
+
+/* The signal so far, in receive rendering. Scrolls on its own so the controls
+   below it never leave the thumb's reach. */
+.composer-preview {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.5rem 0 0.7rem;
+}
+
+.composer-empty {
+  font-size: var(--holos-text-sm);
+  line-height: 1.45;
+  color: var(--holos-ink-faint);
+  padding: 0.6rem 0;
+}
+
+/* One filled slot. `pan-y` keeps the column scrolling under a vertical thumb,
+   so only a sideways drag reaches the swipe-to-remove handler. */
+.composer-slot {
+  position: relative;
+  touch-action: pan-y;
+}
+
+.composer-slot-remove {
+  display: block;
+  margin: 0.25rem 0 0 auto;
+  background: none;
+  border: none;
+  padding: 0.4rem 0.2rem;
+  min-height: 2.2rem;
+  color: var(--holos-ink-faint);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.composer-controls {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.5rem 0 0;
+  border-top: 1px solid var(--holos-gold-dim);
+}
+
+/* The four slots, filling left to right. Not a control and not a label — a
+   count at a glance, drawn as the beam it stands for: gold hairlines that
+   take the cyan as they fill. */
+.composer-slots {
+  display: flex;
+  flex-direction: row;
+  gap: 0.35rem;
+  padding: 0.1rem 0 0.15rem;
+}
+
+.composer-slot-mark {
+  flex: 1 1 0;
+  height: 2px;
+  background: var(--holos-gold-dim);
+}
+
+.composer-slot-mark--on {
+  background: var(--holos-cyan);
+}
+
+/* The chip rows scroll sideways rather than wrapping to three lines: seven
+   sources and five tones have to stay one thumb-sweep apart. */
+.composer-chips {
+  display: flex;
+  flex-direction: row;
+  gap: 0.35rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 0.1rem;
+}
+
+.composer-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.composer-chips--inline {
+  padding: 0.35rem 0 0.5rem;
+}
+
+/* A chip is a control, so it stays at the reading floor (--holos-text-xs, via
+   .holos-caps) and never at xxs: xxs is for enclosed classifiers a thumb
+   recognises, and these are things a thumb presses. */
+.composer-chip {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.5rem 0.8rem;
+  min-height: 2.4rem;
+  color: var(--holos-ink-dim);
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.composer-chip--on {
+  border-color: var(--holos-cyan-dim);
+  color: var(--holos-cyan);
+}
+
+.composer-chip:disabled {
+  border-color: rgba(211, 185, 130, 0.2);
+  color: var(--holos-ink-faint);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.composer-send-row {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.1rem;
+}
+
+/* SEND STATES THE PHYSICS: the verb, and under it the only thing about this
+   beam anybody will ever be able to check. */
+.composer-send {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  background: none;
+  border: 1px solid var(--holos-cyan-dim);
+  border-radius: 999px;
+  padding: 0.5rem 1.3rem;
+  min-height: 2.75rem;
+  font-family: var(--holos-font-body);
+  cursor: pointer;
+}
+
+.composer-send:disabled {
+  border-color: rgba(211, 185, 130, 0.25);
+  cursor: default;
+}
+
+.composer-send-verb {
+  color: var(--holos-cyan);
+}
+
+.composer-send-physics {
+  color: var(--holos-ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.composer-send:disabled .composer-send-verb {
+  color: var(--holos-ink-faint);
+}
+
+/* A picker: the player's own eligible items, full width, one tap each. */
+.composer-picker {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.3rem 0 0.8rem;
+}
+
+.composer-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  width: 100%;
+  min-height: 3rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
+  padding: 0.55rem 0.1rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.composer-row-title {
+  font-size: var(--holos-text-sm);
+  line-height: 1.35;
+  color: var(--holos-ink);
+  overflow-wrap: anywhere;
+}
+
+.composer-row-sub {
+  color: var(--holos-ink-faint);
+}
+
+/* ── Source card — the mission (dispatch) affordance row ─────────────── */
+/* The row's own layout and the button anatomy live with the study row above;
+   only the color is this row's business. */
+.source-card-mission-affordance {
+  background: var(--holos-verb-amber);
+  border-color: color-mix(in srgb, var(--holos-amber) 40%, transparent);
+  color: var(--holos-amber);
+}
+
+.source-card-mission-affordance--active {
+  font-weight: 700;
+}
+
+/* A2.4: the contact row. Cyan, and the only cyan on this card — see
+   sourcecard.ts's header for why it earns the exception the rest of the
+   sheet does not get. The in-flight variant is a date rather than a verb,
+   so it drops the pointer entirely. */
+.source-card-contact-affordance {
+  background: var(--holos-verb-cyan);
+  border-color: var(--holos-cyan-dim);
+  color: var(--holos-cyan);
+}
+
+/* A beam already aimed is a DATE, not a verb: it drops the lit face along
+   with the pointer, because nothing here is pressable any more. */
+.source-card-contact-affordance--active {
+  background: none;
+  border-color: transparent;
+  color: var(--holos-cyan-dim);
+  cursor: default;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A4: the founding row. Amber like the study and probe rows, not cyan — the
+   cyan exception on this card belongs to the beam alone (a beam is your voice
+   leaving now; a ship is a century of somebody else's sky). The in-flight
+   variant is a state rather than a verb, so it drops the pointer. */
+.source-card-voyage-affordance {
+  background: var(--holos-verb-amber);
+  border-color: color-mix(in srgb, var(--holos-amber) 40%, transparent);
+  color: var(--holos-amber);
+}
+
+/* A ship already crossing is a STATE, not a verb — same rule as the beam's
+   date above. */
+.source-card-voyage-affordance--active {
+  background: none;
+  border-color: transparent;
+  color: var(--holos-ink-faint);
+  cursor: default;
+}
+
+/* A2.6: the mutual quiet's rail. Above the three verbs, because it is a state
+   of the relationship rather than something to do about it — and gold rather
+   than cyan, because the second line is a reading of THEIR light. Hidden
+   entirely when no understanding stands, which is the common case. */
+.source-card-accord {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.45rem 0 0.15rem;
+  border-top: 1px solid var(--holos-gold-dim);
+}
+
+.source-card-accord[hidden] {
+  display: none;
+}
+
+.source-card-accord-line {
+  color: var(--holos-ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.source-card-accord-line--quiet {
+  color: var(--holos-ink-faint);
+}
+
+/* ── Ceremony carousel ───────────────────────────────────────────────── */
+.ceremony {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--holos-bg);
+}
+
+.ceremony-carousel {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.ceremony-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.ceremony-spacer {
+  scroll-snap-align: none;
+  width: 100%;
+  height: 11vh;
+  min-height: 11dvh;
+  flex-shrink: 0;
+}
+
+.card-slot {
+  height: 78vh;
+  min-height: 78dvh;
+  scroll-snap-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5vw;
+}
+
+.civ-card {
+  position: relative;
+  width: 100%;
+  max-width: 30rem;
+  height: 100%;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 0.9rem;
+  background: var(--holos-bg-raised);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 320ms ease, transform 320ms ease;
+  cursor: pointer;
+}
+
+.civ-card:not(.focused) {
+  opacity: 0.4;
+  transform: scale(0.92);
+}
+
+.civ-card.focused {
+  opacity: 1;
+  transform: scale(1);
+  cursor: default;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+}
+
+.civ-card-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.civ-card.focused .civ-card-scroll {
+  touch-action: pan-y;
+}
+
+.civ-card:not(.focused) .civ-card-scroll {
+  overflow: hidden;
+}
+
+.world-panel {
+  width: 100%;
+  height: 34%;
+  min-height: 8rem;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.card-body {
+  padding: 0.9rem 1.1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.chronicle {
+  font-size: var(--holos-text-sm);
+  line-height: 1.5;
+  color: var(--holos-ink-dim);
+}
+
+.chronicle p {
+  margin: 0 0 0.35rem;
+}
+
+.detail-extra {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.civ-card:not(.focused) .detail-extra {
+  display: none;
+}
+
+/* ── Dial band ───────────────────────────────────────────────────────── */
+.dial-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.4rem 0;
+}
+
+.dial-row {
+  display: grid;
+  /* Wide enough that the longest in-world pole label (CURATOR) stays on one
+     line at the daylight type scale. */
+  grid-template-columns: 4.6rem 1fr 4.6rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0.3rem;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 200ms ease;
+}
+
+.dial-row:hover,
+.dial-item.open > .dial-row {
+  background: rgba(211, 185, 130, 0.1);
+}
+
+.dial-row:focus-visible {
+  outline: 1px solid var(--holos-gold-dim);
+}
+
+.dial-explain {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 280ms ease, opacity 220ms ease;
+}
+
+.dial-item.open > .dial-explain {
+  max-height: 18rem;
+  opacity: 1;
+}
+
+.dial-question {
+  font-family: var(--holos-font-body);
+  font-style: italic;
+  font-size: var(--holos-text-sm);
+  text-align: center;
+  color: var(--holos-ink);
+  margin: 0.5rem 0 0.55rem;
+}
+
+.dial-reading {
+  font-size: var(--holos-text-sm);
+  line-height: 1.45;
+  color: var(--holos-ink-dim);
+  margin: 0 0.3rem 0.4rem;
+}
+
+.dial-reading-term {
+  color: var(--holos-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: var(--holos-text-xs);
+  margin-right: 0.45rem;
+}
+
+.dial-hint {
+  font-family: var(--holos-font-body);
+  font-size: var(--holos-text-xs);
+  letter-spacing: 0.05em;
+  text-align: center;
+  color: var(--holos-ink-faint);
+  margin: 0.55rem 0 0;
+}
+
+.dial-pole {
+  font-size: var(--holos-text-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--holos-ink-dim);
+}
+
+.dial-pole--right {
+  text-align: right;
+}
+
+.dial-track {
+  position: relative;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: rgba(239, 233, 219, 0.14);
+}
+
+.dial-range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: var(--holos-gold-dim);
+}
+
+.dial-marker {
+  position: absolute;
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--holos-cyan);
+  box-shadow: 0 0 8px var(--holos-cyan-dim);
+  transform: translate(-50%, -50%);
+}
+
+/* A4: the parent's own position, behind the child's on a charter dial. Gold
+   rather than cyan and unlit: it is a record of where this civilization
+   already stands, not the live notch the thumb is moving. Painted before the
+   marker in the DOM, so the two coincide invisibly until you move one. */
+.dial-marker--ghost {
+  background: var(--holos-gold-dim);
+  box-shadow: none;
+  width: 0.4rem;
+  height: 0.4rem;
+}
+
+/* A4: an editable track takes the thumb, so it says so — a taller hit area
+   and no text selection fighting the drag. */
+.dial-track--editable {
+  height: 0.55rem;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Civ name / charter ──────────────────────────────────────────────── */
+.civ-name {
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-2xl);
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: var(--holos-ink);
+  /* Follows the name field live, so it must not reflow the card as it grows. */
+  overflow-wrap: anywhere;
+}
+
+/* The founding document you accept — one of the three things carrying the
+   ownership beat, so it reads at full ink rather than as a caption. */
+.charter {
+  font-family: var(--holos-font-body);
+  font-style: italic;
+  text-align: center;
+  font-size: var(--holos-text-lg);
+  line-height: 1.55;
+  color: var(--holos-ink);
+  transition: opacity 700ms ease;
+}
+
+/* ── Name field + BECOME ─────────────────────────────────────────────── */
+.name-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+.name-field input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--holos-gold-dim);
+  color: var(--holos-ink);
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-lg);
+  text-align: center;
+  padding: 0.4rem 0.2rem;
+  letter-spacing: 0.04em;
+}
+
+.name-field input:focus {
+  outline: none;
+  border-bottom-color: var(--holos-cyan);
+}
+
+.name-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px 0 2px;
+}
+
+.name-chip {
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 4px 12px;
+  color: var(--holos-ink-dim);
+  font-family: var(--holos-font-body);
+  font-size: var(--holos-text-sm);
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: border-color 200ms ease, color 200ms ease;
+}
+
+.name-chip:active {
+  border-color: var(--holos-gold);
+  color: var(--holos-ink);
+}
+
+.name-chip-reroll {
+  padding: 4px 9px;
+  border-color: transparent;
+  color: var(--holos-ink-faint);
+  font-size: var(--holos-text-md);
+}
+
+.committing .name-chips {
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+.name-hint {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-error);
+  min-height: 1em;
+  visibility: hidden;
+}
+
+.name-hint.visible {
+  visibility: visible;
+}
+
+.become-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 0.3rem 0 0.5rem;
+}
+
+/* ── A2.6: durable identity — the ceremony's sign-in line ─────────────────
+ * Sits below the carousel, never competing with a candidate card: a quiet
+ * one-line affordance for a RETURNING player, not one more thing to choose. */
+.ceremony-signin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 1.2rem max(1rem, env(safe-area-inset-bottom));
+  flex-shrink: 0;
+}
+
+.ceremony-signin-toggle {
+  background: none;
+  border: none;
+  padding: 0.4rem 0.2rem;
+  color: var(--holos-ink-faint);
+  font-family: var(--holos-font-body);
+  font-size: var(--holos-text-sm);
+  cursor: pointer;
+}
+
+.ceremony-signin-toggle:hover {
+  color: var(--holos-ink-dim);
+}
+
+/* A2.6: the key-entry field itself, shared by the ceremony's sign-in line
+ * and app.ts's re-onboard sheet (mountSignIn's one construction, two
+ * mounting points). A single row on a wide screen, stacked on a phone. */
+.signin-field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 22rem;
+}
+
+.signin-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--holos-gold-dim);
+  color: var(--holos-ink);
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-md);
+  text-align: center;
+  letter-spacing: 0.08em;
+  padding: 0.4rem 0.2rem;
+}
+
+.signin-input:focus {
+  outline: none;
+  border-bottom-color: var(--holos-cyan);
+}
+
+/* A rejected key reddens toward the same error token the name field uses —
+ * the border, not a fill, so the key already typed stays legible. */
+.signin-input--error {
+  border-bottom-color: var(--holos-error);
+}
+
+.signin-button {
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.5rem 1.2rem;
+  color: var(--holos-amber);
+  cursor: pointer;
+}
+
+.signin-button:disabled {
+  color: var(--holos-ink-faint);
+  border-color: rgba(211, 185, 130, 0.25);
+  cursor: default;
+}
+
+.signin-hint {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-error);
+  min-height: 1em;
+}
+
+/* ── A2.6: durable identity — the re-onboard sheet ─────────────────────────
+ * A sibling overlay on the App's own root, the voicebeat.ts mold: z-index 7
+ * (S0.2 bumped this from 6, along with the contact ceremony's and the
+ * intro's, to make room for the home shell's slot, 4) puts it over
+ * everything else this file stacks (the contact ceremony's 6 is the highest
+ * below it). No ambient dismiss — [Sign in] or [Begin again]
+ * is the only way down, so there is no scrim click handler here at all. */
+.reclaim-root {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(1.5rem, env(safe-area-inset-top))
+    max(1.5rem, env(safe-area-inset-right))
+    max(1.5rem, env(safe-area-inset-bottom))
+    max(1.5rem, env(safe-area-inset-left));
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.reclaim-root.open {
+  opacity: 1;
+}
+
+.reclaim-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 6, 10, 0.75);
+}
+
+.reclaim-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  max-width: 24em;
+  padding: 2rem 1.6rem;
+  background: var(--holos-bg-raised);
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 0.9rem;
+  text-align: center;
+}
+
+.reclaim-line {
+  color: var(--holos-ink);
+}
+
+.reclaim-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+}
+
+.reclaim-signin-toggle,
+.reclaim-begin-btn {
+  background: none;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.55rem 1.2rem;
+  color: var(--holos-amber);
+  cursor: pointer;
+}
+
+/* ── The ember stone ──────────────────────────────────────────────────
+ * The one lit surface in the game, shared by the only two buttons that
+ * commit you to something: the ceremony's BECOME and the brief's "Begin the
+ * Watch". Everything in this rule is the stone itself; size and label voice
+ * differ between the two and live in their own rules below. Keep the club
+ * small — a third ember button would spend the surface's whole meaning,
+ * which is "this one is not a browse row". */
+.become-button,
+.study-verb-btn--ember {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  border: 1px solid #ffb35c;
+  border-radius: 999px;
+  /* Molten orange stone: veined marble on top for a mythic, carved surface,
+     a hot spot bleeding in from above, then the ember-to-char gradient. The
+     marble is a grayscale turbulence layer whose luminance is pushed toward
+     black/white veins (a table transfer) so soft-light blending actually
+     lightens and darkens the stone instead of washing to a flat orange. */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='120'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.016 0.055' numOctaves='5' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='table' tableValues='0 0.45 0.85 0.25 0'/%3E%3CfeFuncG type='table' tableValues='0 0.45 0.85 0.25 0'/%3E%3CfeFuncB type='table' tableValues='0 0.45 0.85 0.25 0'/%3E%3CfeFuncA type='linear' slope='0' intercept='0.85'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E"),
+    radial-gradient(
+      ellipse 120% 90% at 50% -35%,
+      rgba(235, 160, 80, 0.5),
+      rgba(235, 160, 80, 0) 55%
+    ),
+    linear-gradient(180deg, #a1560f 0%, #7c380a 48%, #3a1303 100%);
+  background-size: 300px 120px, auto, auto;
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-position: center;
+  background-blend-mode: overlay, normal, normal;
+  /* Warm white, not pure — the only text on a lit surface in the whole UI,
+     and pure #fff on the ember stone glares where a warm white doesn't. */
+  color: #fdf7ee;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: inset 0 1px 0 rgba(255, 224, 170, 0.55),
+    0 0 18px rgba(242, 138, 30, 0.55), 0 0 46px rgba(217, 95, 19, 0.3),
+    0 8px 26px rgba(0, 0, 0, 0.55);
+  transition: border-color 240ms ease, box-shadow 240ms ease,
+    transform 120ms ease, color 240ms ease, opacity 240ms ease;
+}
+
+/* Dramatic click-to-commit button — the ceremony's hero, alone on its
+   stage, so it takes the full size. */
+.become-button {
+  min-width: 17rem;
+  height: 4.4rem;
+  padding: 0 1.6rem;
+  touch-action: none;
+}
+
+/* The brief's begin: the same stone a size down. It closes a scrolling
+   sheet rather than owning a stage, and the ceremony's proportions here
+   would read as a second BECOME. Cinzel sets lowercase as small caps, so
+   "Begin the Watch" comes out engraved rather than shouted — the hub
+   labels' trick, lit. */
+.study-verb-btn--ember {
+  min-width: 14rem;
+  height: 3.6rem;
+  padding: 0 1.4rem;
+  font-family: var(--holos-font-display);
+  font-size: var(--holos-text-lg);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-indent: 0.18em; /* optical centering against the tracking */
+  /* Dark translucent stroke around the warm white, painted behind the fill
+     so it hugs the glyph edges rather than thinning them (the become-label
+     precedent). */
+  -webkit-text-stroke: 0.7px rgba(0, 0, 0, 0.45);
+  paint-order: stroke fill;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.become-button:not(:disabled):hover,
+.study-verb-btn--ember:not(:disabled):hover {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: inset 0 1px 0 rgba(255, 232, 185, 0.65),
+    0 0 24px rgba(242, 138, 30, 0.7), 0 0 58px rgba(217, 95, 19, 0.38),
+    0 10px 30px rgba(0, 0, 0, 0.55);
+}
+
+.become-button:not(:disabled):active,
+.study-verb-btn--ember:not(:disabled):active {
+  transform: translateY(0) scale(0.995);
+}
+
+.become-button:disabled,
+.study-verb-btn--ember:disabled {
+  /* Reads as "not yet" without going invisible — a disabled BECOME still has
+     to be legible enough to tell you what you're waiting on. */
+  opacity: 0.55;
+  border-color: rgba(211, 185, 130, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  /* Keep some of the ember hue: fully desaturating a lifted-opacity stone
+     turns it into a flat tan slab rather than a banked fire. */
+  filter: saturate(0.5) brightness(0.8);
+  cursor: default;
+  box-shadow: none;
+}
+
+.become-label {
+  position: relative;
+  font-family: var(--holos-font-display);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-size: var(--holos-text-2xl);
+  padding-left: 0.3em; /* optical centering against the tracking */
+  /* Dark translucent stroke around the white text — painted behind the
+     fill so it hugs the glyph edges rather than thinning them. */
+  -webkit-text-stroke: 0.9px rgba(0, 0, 0, 0.5);
+  paint-order: stroke fill;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* committed: full cyan consummation, in step with the card bloom */
+.become-button.committing {
+  border-color: var(--holos-cyan);
+  background: linear-gradient(180deg, #3a1804 0%, #1a0a02 100%);
+  box-shadow: 0 0 34px var(--holos-cyan);
+  color: var(--holos-cyan);
+}
+
+/* Cyan bloom / dissolve beat on commit (concept 03-00b). */
+.civ-card.committing {
+  animation: holos-dissolve 1100ms ease forwards;
+}
+
+.civ-card.committing .charter,
+.civ-card.committing .chronicle,
+.civ-card.committing .dial-sheet {
+  opacity: 0;
+}
+
+.civ-card.committing::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 85%,
+    var(--holos-cyan-dim),
+    transparent 60%
+  );
+  animation: holos-bloom 1100ms ease forwards;
+}
+
+@keyframes holos-dissolve {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-2.5rem) scale(0.98);
+    opacity: 0.05;
+  }
+}
+
+@keyframes holos-bloom {
+  0% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+/* ── Glare / high-contrast escalation ────────────────────────────────────
+ * The tokens above are already sized and lit for daylight. This block is the
+ * next step up, for a screen the sun is actually washing out: it flattens the
+ * ink hierarchy to full-strength ink, solidifies the hairlines, and drops the
+ * decorative opacity cuts. Fires on the OS "increase contrast" setting, so a
+ * user who has already asked their phone for this gets it here without a
+ * game-specific toggle. */
+@media (prefers-contrast: more) {
+  :root {
+    --holos-ink-dim: rgba(239, 233, 219, 0.95);
+    --holos-ink-faint: rgba(239, 233, 219, 0.85);
+    --holos-gold: #e8d3a2;
+    --holos-gold-dim: rgba(232, 211, 162, 0.8);
+    --holos-amber: #ffc078;
+    --holos-cyan: #a5f3f7;
+    --holos-cyan-dim: rgba(165, 243, 247, 0.8);
+  }
+
+  .study-row--dim {
+    opacity: 0.9;
+  }
+
+  /* The see-through menu is a mood, and glare mode trades mood for ink:
+     back to the solid raised stage so text never fights the stars. */
+  .study-board-sheet {
+    background: var(--holos-bg-raised);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .civ-card:not(.focused) {
+    opacity: 0.7;
+  }
+}
+
+/* ── The choice ceremony (A2.4) ───────────────────────────────────────────
+ * Hail one, speak to everyone, or stay dark — staged out on the Model, not
+ * inside a sheet. A sibling overlay root in the voicebeat.ts mold, and for
+ * the same reason: .model-overlay is pointer-events: none by contract and
+ * carries the HOME/landmark labels, which this dims rather than joins.
+ *
+ * z-index 6 (S0.2 bumped this from 5, along with the voice beat's and the
+ * re-onboard sheet's/intro's, to make room for the home shell's slot, 4)
+ * puts it over the unused 5 (once the voice beat's, retired in S0.3), which
+ * is over the home shell's 4, which is over the board page's 3. The board is
+ * also hidden outright while a ceremony is armed (.chrome-hidden below) —
+ * belt and braces, since the staging funnel closes it before arming — and
+ * this layer is deliberately transparent to a thumb so the canvas underneath
+ * can be the press target.
+ *
+ * EVERYTHING HERE IS POINTER-TRANSPARENT except the one word that refuses. */
+.contact-ceremony-root {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.study-board-root.chrome-hidden .study-board-sheet {
+  display: none;
+}
+
+/* The mind's objection, in the top third and above HOME: it has to stay
+   readable while a thumb is parked at the bottom of the screen. */
+.contact-objection-wrap {
+  position: absolute;
+  top: 22%;
+  left: max(1.1rem, env(safe-area-inset-left));
+  right: max(1.1rem, env(safe-area-inset-right));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  max-width: 26em;
+}
+
+.contact-objection,
+.contact-reason {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  transform: translateY(0.4rem);
+  transition:
+    opacity 440ms ease 260ms,
+    transform 440ms ease 260ms;
+}
+
+.contact-reason {
+  color: var(--holos-error);
+  transition:
+    opacity 260ms ease,
+    transform 260ms ease;
+}
+
+.contact-objection.visible,
+.contact-reason.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* The price of forcing it, said once and never again. Enclosed, so it reads
+   as a figure rather than as part of the sentence above it. */
+.contact-cost-chip {
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  color: var(--holos-ink-dim);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  transition: opacity 440ms ease 320ms;
+}
+
+.contact-cost-chip.visible {
+  opacity: 1;
+}
+
+/* The press affordance and its one alternative, bottom center. */
+.contact-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: max(1.4rem, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.contact-hint {
+  color: var(--holos-ink-faint);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  /* 260ms: the beat after the frame has settled and before anything is
+     asked of the player (storyboard §2). */
+  transition: opacity 320ms ease 260ms;
+}
+
+.contact-hint.visible {
+  opacity: 1;
+}
+
+/* Once the press lands the instruction has done its job and gets out of the
+   way — quickly, and with no delay to serve. */
+.contact-hint.pressed {
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+/* A press that arrived before the ceremony was ready: the line brightens
+   once and says nothing. */
+.contact-hint.nudge {
+  color: var(--holos-ink);
+}
+
+/* STAY DARK. One word, no border, no fill, no ember — the ember club is
+   capped at two and this is not a third member of it. It is not a cancel and
+   is never styled as one: choosing silence is a choice, and ranking it below
+   the other two with a dismissal's clothes would be the wrong claim. */
+.contact-staydark {
+  pointer-events: none;
+  background: none;
+  border: none;
+  padding: 0.5rem 0.9rem;
+  font-family: inherit;
+  font-size: var(--holos-text-xs);
+  font-weight: 450;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--holos-ink-dim);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0;
+  transition: opacity 320ms ease 260ms;
+}
+
+.contact-ceremony-root.open .contact-staydark.visible {
+  pointer-events: auto;
+}
+
+.contact-staydark.visible {
+  opacity: 1;
+}
+
+/* The years, stamped out on the sky at the wavefront and beside each source
+   it crosses. Ink and tabular, never cyan: the beam is yours, but a date is
+   just a date. The transform idiom is the landmark labels'. */
+.contact-stamps {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.contact-stamp {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: var(--holos-text-xs);
+  letter-spacing: 0.12em;
+  color: var(--holos-ink-dim);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  will-change: transform, opacity;
+}
+
+/* The leading edge's readout rides the top of the shell rather than sitting
+   beside a place. The inline transform owns the vertical offset, so the
+   horizontal centering is a negative margin here — about half the width of
+   the two stamped years and the arrow between them. */
+.contact-stamp--edge {
+  margin-left: -4em;
+}
+
+/* The commit: BECOME's beat, at HOME instead of on a card. The delay and the
+   duration are set inline from the timings in contactceremony.ts, so the one
+   place the ceremony's clock is written down stays the one place. */
+.contact-bloom {
+  position: absolute;
+  width: 46vmin;
+  height: 46vmin;
+  margin-left: -23vmin;
+  margin-top: -23vmin;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 50%, var(--holos-cyan-dim), transparent 62%);
+  animation-name: holos-bloom;
+  animation-timing-function: ease;
+  animation-fill-mode: forwards;
+}
+
+/* Each arrival year, announced once as it lands — the sweep is a sequence of
+   dates rather than a silent light show. */
+.contact-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Reduced motion: the hold stays a hold (the invariant does not bend) and
+   the stamps still land. What goes is the decoration — the writing-in, the
+   nudge, and the bloom's ramp, which becomes a plain presence. */
+@media (prefers-reduced-motion: reduce) {
+  .contact-objection,
+  .contact-reason,
+  .contact-cost-chip,
+  .contact-hint,
+  .contact-staydark {
+    transition: none;
+    transform: none;
+  }
+
+  .contact-bloom {
+    animation: none;
+    opacity: 0.3;
+  }
+}
+
+/* ── The intro (S0.1) ─────────────────────────────────────────────────────
+ * The four beats between BECOME and the home screen, staged on the Model as
+ * one continuous camera move. A sibling overlay root in the voicebeat.ts
+ * mold, and for the same reason: .model-overlay is pointer-events: none by
+ * contract and carries the HOME/landmark labels, which the intro takes off
+ * the screen outright (setOverlayHidden) rather than drawing over.
+ *
+ * z-index 8 (S0.2 bumped this from 7, along with the three below it, to make
+ * room for the home shell's slot, 4) is the top of this file's stack — the
+ * re-onboard sheet's 7 is the highest below it. The intro runs alone, before
+ * any other surface is up, and nothing may stack over the four lines.
+ *
+ * EVERYTHING HERE IS POINTER-TRANSPARENT except the two chrome words: the
+ * canvas underneath is the press target, and a tap on it advances a beat. */
+.intro-root {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  /* How long the prose takes to leave. 220ms between beats; each exit sets
+     its own from intro.ts (700ms at Begin, 400ms at a skip), so the fade the
+     player sees is the one the camera is moving to. */
+  --intro-out-ms: 220ms;
+}
+
+/* The words: bottom third, and FIXED there. One node carries all four beats,
+ * so the lines replace each other in place and the eye never chases them. The
+ * vignette is the same one the retired voice beat used (S0.3 removed that
+ * class; this copy of the gradient outlives it), for the same reason it
+ * existed there — it quiets whatever is directly behind the text without
+ * darkening the sky the line is spoken over. */
+.intro-line {
+  position: absolute;
+  left: max(1.2rem, env(safe-area-inset-left));
+  right: max(1.2rem, env(safe-area-inset-right));
+  bottom: max(4.6rem, env(safe-area-inset-bottom));
+  margin: 0 auto;
+  max-width: 24em;
+  padding: 1.4rem 1.5rem;
+  background: radial-gradient(
+    closest-side,
+    rgba(9, 11, 16, 0.82),
+    rgba(9, 11, 16, 0)
+  );
+  font-size: var(--holos-text-lg);
+  color: var(--holos-ink);
+  text-align: center;
+  opacity: 0;
+  transition: opacity var(--intro-out-ms) ease;
+}
+
+/* Arriving is the slower half: the line fades in while the camera is still
+   travelling, and leaves the moment the next leg is asked for. */
+.intro-line.visible {
+  opacity: 1;
+  transition: opacity 320ms ease;
+}
+
+/* The way out, offered from the first beat and quiet about it. Top corner,
+   out of the thumb's path and well clear of the words. */
+.intro-skip {
+  position: absolute;
+  top: max(0.5rem, env(safe-area-inset-top));
+  right: max(0.5rem, env(safe-area-inset-right));
+  min-width: 44px;
+  min-height: 44px;
+  background: none;
+  border: none;
+  padding: 0.7rem 0.9rem;
+  font-family: inherit;
+  color: var(--holos-ink-faint);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+
+/* The way on, on the voice beat's dismiss pattern: the same pill, the same
+   gold hairline, under the last line rather than beside it. */
+.intro-begin {
+  position: absolute;
+  left: 50%;
+  bottom: max(1.1rem, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  min-height: 44px;
+  padding: 0.55rem 1.4rem;
+  background: transparent;
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 999px;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+
+/* Neither word answers a thumb until it is on the screen — the canvas under
+   it owns every tap the intro takes. */
+.intro-skip.visible,
+.intro-begin.visible {
+  opacity: 1;
+  pointer-events: auto;
+}

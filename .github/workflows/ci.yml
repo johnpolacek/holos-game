@@ -23,5 +23,84 @@ jobs:
       - name: Typecheck (client + server)
         run: npm run typecheck
 
+      # AV4, prose-style.md §6 ↔ bannedterms.ts. The generated module is the
+      # runtime projection of the guide's banned-terms list; this fails if §6
+      # was edited without regenerating, or if the module was hand-edited.
+      - name: Audit banned terms (§6 sync)
+        run: npm run audit:banned
+
+      # AV4, prose-style.md §3 R-37 — the generated voice reaches nothing.
+      # (a) is the denylist: no truth-bearing or catalog module. (b) is the
+      # allowlist, which fails CLOSED when someone adds a new module and
+      # imports it. Both read every `from "..."` specifier, so a multi-line
+      # import cannot slip past either one.
+      - name: R-37 import allowlist (voicegen + stylegate)
+        run: |
+          set -euo pipefail
+          FILES="server/src/voicegen.ts server/src/stylegate.ts"
+          if grep -nE 'from "\./(knowledge|galaxy|studies|missions|questions|projects|tend|clock|rng|cradles|lineages|dials|names)(\.js)?"' $FILES; then
+            echo "R-37 violation: a generation module imports a truth-bearing or catalog module"
+            exit 1
+          fi
+          LEFTOVER=$(grep -hoE 'from "[^"]+"' $FILES \
+            | sed -E 's/^from //' | sort -u \
+            | grep -vxE '"(\./(voice|stylegate|bannedterms|minds|civseed|report|proposals|protocol)(\.js)?|@anthropic-ai/sdk)"' || true)
+          if [ -n "$LEFTOVER" ]; then
+            echo "R-37 violation: import specifier(s) outside the allowlist:"
+            echo "$LEFTOVER"
+            exit 1
+          fi
+
+      # prose-style.md §3 R-8 — no em dash reaches a player surface. Reads
+      # every string literal in the client and server sources (comments and
+      # regexes excluded; a comment is not a surface), plus the document head,
+      # the web manifest and the social-card tagline. Its runtime half is the
+      # style gate's EM_DASH rule, which covers the lines AV4 generates.
+      - name: Audit dashes (R-8)
+        run: npm run audit:dashes
+
+      # A2.6, the indistinguishability ledger. Asserts PART_PARITY is total in
+      # BOTH directions: every part kind a human can compose is emitted by some
+      # seeded counterpart class, and every kind a counterpart emits is offered
+      # in the human composer's own selector vocabulary. A kind that only ever
+      # arrives from one side is a population-level tell no wire shape covers.
+      # Source-scraping (audit-names.mjs's mould), so it runs before `build`.
+      - name: Audit part parity (A2.6)
+        run: npm run audit:parity
+
       - name: Build (client + server)
         run: npm run build
+
+      # AV4, prose-style.md §3 R-38. Runs after `build` because it imports the
+      # COMPILED gate, so the audit can never drift from the code that ships.
+      # If this fails, the gate is wrong, not the banks.
+      - name: Audit the style gate against every shipped bank string
+        run: npm run audit:voice
+
+      # prose-style.md §6, over the banks audit:voice does not reach. That one
+      # runs the whole gate but scrapes voice.ts alone; this runs the §6 rule
+      # table over the catalogs (cradles, lineages, dials, civseed, minds,
+      # studies, missions, projects, questions, signalparts), which met §6
+      # nowhere in CI before. Imports the COMPILED bannedterms, so it runs
+      # after `build` for the same reason audit:voice does.
+      - name: Audit the catalogs against §6
+        run: npm run audit:catalog
+
+      # prose-style.md R-1/R-29, over the catalogs R-29 does not reach. A
+      # project's effectLine and a standing order's line are plain strings
+      # authored beside the structured fields they describe, so each is a
+      # hand-maintained echo of a number the game actually runs on. Needs no
+      # build: it reads sources.
+      - name: Audit restated facts (R-1)
+        run: npm run audit:facts
+
+      # Deploy validation, run on every PR and push to main. `--dry-run`
+      # bundles the Worker and validates wrangler.jsonc + every binding
+      # WITHOUT contacting Cloudflare, so it needs no account secrets. It
+      # fails the check if the config breaks, the bundle won't build, or a
+      # Durable Object binding references a class the migrations don't
+      # create — catching deploy breakage at PR time, in our own CI,
+      # independent of Cloudflare's preview build (which red-flags DO
+      # migrations for reasons unrelated to correctness; see CLAUDE.md).
+      - name: Validate deploy (wrangler dry-run)
+        run: npx wrangler deploy --dry-run --outdir /tmp/deploy-dryrun

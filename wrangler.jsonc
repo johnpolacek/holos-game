@@ -1,0 +1,113 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Must match the Worker name in the Cloudflare dashboard.
+  "name": "holos-game",
+  "compatibility_date": "2025-01-01",
+  // AV4: @anthropic-ai/sdk's credential chain statically imports node:fs and
+  // node:path (for the on-disk credential file we never use — the key is
+  // passed explicitly from the env binding). Without this flag the Worker
+  // fails to start on those specifiers, flags off included, so the flag is
+  // load-bearing for the whole Worker rather than only for generation. It is
+  // a config change, not a Durable Object migration, so per-PR preview builds
+  // stay green.
+  "compatibility_flags": ["nodejs_compat"],
+  // One Worker serves the whole game: the partyserver Durable Object room
+  // (game traffic under /parties/*) plus the built client as static assets.
+  // This config lives at the repo root (Workers Builds Path "/") so the
+  // install step covers every npm workspace the bundle imports from.
+  "main": "server/src/index.ts",
+  "assets": {
+    "directory": "client/dist",
+    "binding": "ASSETS",
+    // Serve index.html for unknown non-game paths so refreshes keep working.
+    "not_found_handling": "single-page-application"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        // Binding name is kebab-cased into the URL: /parties/room/:roomName.
+        "name": "Room",
+        "class_name": "Room"
+      },
+      {
+        // The Act 3 truth shard: one DO per cohort holds the galaxy, the
+        // shared clock, and the light-delay computation (A0).
+        "name": "Cohort",
+        "class_name": "Cohort"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["Room"]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["Cohort"]
+    }
+  ],
+  // AV4 — the generated voice (docs/build-voice.md § AV4). "on" enables;
+  // every other value, including absence, is off. The production default is
+  // OFF: the templated banks in voice.ts are the shipped prose, and every
+  // generated path has one underneath it. Two flags, not one, because bad
+  // counsel is worse than plain counsel — the renderer can go on while the
+  // counsel is still being judged on a dev cohort.
+  //
+  // ANTHROPIC_API_KEY is a Workers secret
+  // (`npx wrangler secret put ANTHROPIC_API_KEY`) and NEVER appears here.
+  // A key on its own turns nothing on; both the flag and the key are
+  // preconditions. Locally, override both in `.dev.vars` (gitignored).
+  "vars": {
+    // Renderer on (2026-07): generated remark pools, gate + template
+    // underneath.
+    //
+    // Counsel on (2026-07), by the owner's call. Note what that call did
+    // and did not rest on: the seam is verified structurally — gates,
+    // R-37, an offline run against a stubbed transport — and the prompt
+    // was rewritten after a seventy-call evaluation found the archetypes
+    // interchangeable. But no stance produced by the CURRENT prompt has
+    // been read by anyone; the key used for that evaluation was rotated
+    // before the decoupling landed. The floor still picks and serves, the
+    // model's authority is nil, and every stance passes the same gate
+    // with the template underneath it, so the exposure is one sentence
+    // beside a correct move. If a stance ever reads wrong, that is the
+    // thing to check first — and `wrangler tail` prints every accepted
+    // line (build-voice.md § AV4).
+    "HOLOS_VOICE_GEN": "on",
+    "HOLOS_COUNSEL_GEN": "on",
+    // A5, web push. The VAPID `sub` claim: who to contact about this
+    // application server, sent inside every JWT to every push service. It is
+    // public by definition, which is why it lives here and the two keys do
+    // not — HOLOS_VAPID_PRIVATE_JWK and HOLOS_VAPID_PUBLIC_KEY are Workers
+    // secrets (`npx wrangler secret put …`) and must NEVER appear in this
+    // file. Both absent is the silent-absence case: welcome.push is null and
+    // notifications are simply not offered.
+    //
+    // It must parse as a mailto: or https: URI. A malformed one is the single
+    // most common first-run failure (Apple answers 400 and names nothing
+    // useful), so push.ts refuses to sign with anything else.
+    "HOLOS_VAPID_SUBJECT": "https://playholos.com/"
+    // HOLOS_DEV_ENDPOINTS is deliberately ABSENT: it opens the Cohort's
+    // local-only dev HTTP surface, which hands out other civilizations'
+    // present. It belongs in `.dev.vars` and nowhere else. Anything set
+    // here ships.
+  },
+  "dev": {
+    "port": 8787
+  },
+  // The custom domain. Live: the playholos.com zone went ACTIVE on this
+  // account on 2026-07-27 (registrar stays Porkbun; only DNS moved), which
+  // is the precondition for shipping this block — `wrangler deploy`
+  // resolves each route's zone at deploy time and fails with "Could not
+  // find zone" when it is absent, and `main` auto-deploys, so a route
+  // ahead of its zone breaks production. `--dry-run` never contacts
+  // Cloudflare, so CI cannot catch that; docs/deploy.md carries the check.
+  //
+  // Apex is canonical (client/index.html); www serves the same Worker so
+  // no one lands on a dead hostname.
+  "routes": [
+    { "pattern": "playholos.com", "custom_domain": true },
+    { "pattern": "www.playholos.com", "custom_domain": true }
+  ]
+}

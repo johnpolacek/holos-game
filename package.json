@@ -7,9 +7,26 @@
     "server"
   ],
   "scripts": {
-    "dev:server": "npm run dev --workspace server",
+    "dev:server": "npm run build --workspace client && npm run dev --workspace server",
     "dev:client": "npm run dev --workspace client",
     "typecheck": "npm run typecheck --workspaces",
-    "build": "npm run build --workspaces"
+    "build": "npm run build --workspaces",
+    "art:manifest": "node scripts/build-art-manifest.mjs",
+    "icons": "node scripts/build-icons.mjs",
+    "og": "node scripts/build-og.mjs",
+    "audit:names": "node scripts/audit-names.mjs",
+    "sync:banned": "node scripts/sync-banned-terms.mjs",
+    "audit:banned": "node scripts/sync-banned-terms.mjs --check",
+    "audit:voice": "node scripts/audit-voice.mjs",
+    "audit:catalog": "node scripts/audit-catalog.mjs",
+    "audit:facts": "node scripts/audit-facts.mjs",
+    "audit:dashes": "node scripts/audit-dashes.mjs",
+    "audit:parity": "node scripts/audit-parity.mjs",
+    "playtest:bots": "node scripts/playtest-bot.mjs",
+    "eval:counsel": "node scripts/eval-counsel.mjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.3",
+    "wrangler": "^4.120.0"
   }
 }

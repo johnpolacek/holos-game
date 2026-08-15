@@ -1,0 +1,716 @@
+// The inheritance ceremony (concepts/03-00-inheritance.png). DOM, not canvas
+// — "canvas for places, DOM for prose". A vertical carousel of CivCards; the
+// focused card is the full read, neighbors peek (world + species + archetype
+// only); clicking BECOME commits the player's civilization.
+
+import {
+  DIAL_AXES,
+  MAX_NAME_LEN,
+  NAME_HEADS,
+  NAME_TAILS,
+  validateName,
+  type CivCard,
+  type DialAxis,
+  type DialSetting,
+} from "@holos/protocol";
+import { worldArt } from "./art";
+import type { CohortSocket } from "./net";
+
+const PENDING_KEY = "holos.pendingBecome";
+
+interface PendingBecome {
+  readonly candidateId: string;
+  readonly name: string;
+}
+
+function readPending(): PendingBecome | null {
+  const raw = localStorage.getItem(PENDING_KEY);
+  if (raw === null) return null;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      typeof (parsed as Record<string, unknown>)["candidateId"] === "string" &&
+      typeof (parsed as Record<string, unknown>)["name"] === "string"
+    ) {
+      return parsed as PendingBecome;
+    }
+  } catch {
+    /* fall through */
+  }
+  return null;
+}
+
+function writePending(pending: PendingBecome): void {
+  localStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+}
+
+function clearPending(): void {
+  localStorage.removeItem(PENDING_KEY);
+}
+
+/** Called by the router once the player is confirmed placed, so a stale
+ * in-flight marker never lingers past a successful `become`. */
+export function clearPendingBecome(): void {
+  clearPending();
+}
+
+/** A2.6: what mountSignIn hands back — the element to place, and a cleanup
+ *  that drops its socket subscription (the caller owns removing the
+ *  element itself, the composer-sheet precedent). */
+export interface SignInMount {
+  readonly el: HTMLElement;
+  readonly destroy: () => void;
+}
+
+/**
+ * A2.6: the single-line key entry + SIGN IN, shared by the ceremony's quiet
+ * "I already have an account" line and app.ts's re-onboard sheet (the design
+ * note's "same key input flow" for both). Owns nothing about WHERE it is
+ * shown, only the submit/error contract: `bad-account` reddens the field,
+ * `too-many-attempts` disables it behind a flat line. Both reactions are
+ * gated on `pending` so a stray error from some OTHER cause (a corrupt
+ * stored account key retried automatically at connect, say) never paints a
+ * field the player never touched.
+ *
+ * The raw typing is sent as-is: folding and validating a key is
+ * normalizeAccountKey's job, on the server, where the answer is
+ * authoritative (net.ts's signIn comment, restated here for the caller).
+ */
+export function mountSignIn(socket: CohortSocket): SignInMount {
+  const wrap = document.createElement("div");
+  wrap.className = "signin-field";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.inputMode = "text";
+  input.autocapitalize = "characters";
+  input.autocomplete = "off";
+  input.spellcheck = false;
+  input.placeholder = "Your key";
+  input.className = "signin-input";
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "signin-button holos-caps";
+  button.textContent = "Sign in";
+
+  const hint = document.createElement("div");
+  hint.className = "signin-hint";
+
+  wrap.append(input, button, hint);
+
+  let pending = false;
+  let locked = false;
+
+  const submit = (): void => {
+    if (locked || pending) return;
+    const raw = input.value.trim();
+    if (raw.length === 0) return;
+    pending = true;
+    hint.textContent = "";
+    input.classList.remove("signin-input--error");
+    socket.signIn(raw);
+  };
+
+  button.addEventListener("click", submit);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") submit();
+  });
+  input.addEventListener("input", () => {
+    // Typing again after a rejection clears the redden — the field is live
+    // again, not stuck showing an old verdict.
+    if (input.classList.contains("signin-input--error")) {
+      input.classList.remove("signin-input--error");
+      hint.textContent = "";
+    }
+  });
+
+  const unsubscribe = socket.onMessage((message) => {
+    if (message.type !== "error" || !pending) return;
+    if (message.code === "bad-account") {
+      pending = false;
+      input.classList.add("signin-input--error");
+      hint.textContent = "No account with that key.";
+    } else if (message.code === "too-many-attempts") {
+      pending = false;
+      locked = true;
+      input.disabled = true;
+      button.disabled = true;
+      hint.textContent = "Too many attempts. Wait and try again.";
+    }
+  });
+
+  return {
+    el: wrap,
+    destroy: () => unsubscribe(),
+  };
+}
+
+/** True when a `become` was committed this session but not yet consumed by
+ * the sky — the router reads this to choose the pull-back vs. resume beat. */
+export function hasPendingBecome(): boolean {
+  return readPending() !== null;
+}
+
+/** Cradle-tinted gradient for the world panel — the base layer, shown on its
+ * own for cradles without a plate (id 41) and as the fallback beneath the real
+ * planet plate if it fails to load. Exported because the study board's hub
+ * masthead shows the same world one surface on, and a world that falls back to
+ * one color there and another here would be two worlds. */
+export function cradleGradient(cradleId: number): string {
+  const hue = (cradleId * 47) % 360;
+  return (
+    `radial-gradient(120% 90% at 50% 15%, hsl(${hue} 50% 24%) 0%, ` +
+    `hsl(${hue} 42% 11%) 55%, #050308 100%)`
+  );
+}
+
+function dialPct(position: number): number {
+  return ((position + 1) / 2) * 100;
+}
+
+/**
+ * A4: what turns a read-only band into a written one (the charter composer's
+ * dial rows, studyboard.ts). The band's own markup does not change — the
+ * PARENT'S range is still the track and the parent's position is still drawn,
+ * now as a ghost notch behind the child's — so the two surfaces cannot drift
+ * apart: BECOME reads a card, the charter writes one, and they are the same
+ * furniture seen from opposite sides.
+ *
+ * `onChange` receives a position ALREADY SNAPPED to one of `steps` notches
+ * inside [min,max] and already clamped: a caller can send it to the wire
+ * without re-deriving anything. Nothing here re-renders — the marker moves
+ * itself, so a drag never rebuilds the sheet under the thumb.
+ */
+export interface DialBandEdit {
+  /** The parent's own position, drawn behind the child's as a ghost. */
+  readonly ghostPosition: number;
+  /** Notches spanning [min,max] (the catalog's `dialSteps`). */
+  readonly steps: number;
+  readonly onChange: (position: number) => void;
+}
+
+/** The nearest of `steps` notches spanning [min,max] — voyages.ts's
+ *  `snapToNotch`, client side, so the sheet shows the position the server
+ *  will store rather than one it will quietly move. */
+function snapDial(position: number, min: number, max: number, steps: number): number {
+  const span = max - min;
+  if (span <= 0 || steps < 2) return min;
+  const step = span / (steps - 1);
+  const notch = Math.round((position - min) / step);
+  const clamped = Math.min(steps - 1, Math.max(0, notch));
+  return min + clamped * step;
+}
+
+/** Reusable dial band: pole labels (in-world only) + earned position + the
+ * allowed range it was drawn from. Tapping the row expands an in-world
+ * explanation — the axis question and what leaning each way means. */
+export function renderDialBand(
+  axis: DialAxis,
+  setting: DialSetting,
+  edit?: DialBandEdit,
+): HTMLElement {
+  const item = document.createElement("div");
+  item.className = "dial-item";
+
+  const row = document.createElement("div");
+  row.className = "dial-row";
+  row.setAttribute("role", "button");
+  row.setAttribute("tabindex", "0");
+  row.setAttribute("aria-expanded", "false");
+
+  const left = document.createElement("span");
+  left.className = "dial-pole dial-pole--left";
+  left.textContent = axis.left.inWorld;
+
+  const track = document.createElement("div");
+  track.className = "dial-track";
+
+  const range = document.createElement("div");
+  range.className = "dial-range";
+  const minPct = dialPct(setting.min);
+  const maxPct = dialPct(setting.max);
+  range.style.left = `${minPct}%`;
+  range.style.width = `${Math.max(0, maxPct - minPct)}%`;
+
+  const marker = document.createElement("div");
+  marker.className = "dial-marker";
+  marker.style.left = `${dialPct(setting.position)}%`;
+
+  track.append(range, marker);
+
+  if (edit !== undefined) {
+    // The ghost sits BEHIND the child's notch (appended first, so the live
+    // marker paints over it where the two coincide): the parent's own
+    // position, kept on screen so a charter reads as a departure from
+    // somewhere rather than a set of numbers picked in the dark.
+    const ghost = document.createElement("div");
+    ghost.className = "dial-marker dial-marker--ghost";
+    ghost.style.left = `${dialPct(edit.ghostPosition)}%`;
+    track.insertBefore(ghost, marker);
+    track.classList.add("dial-track--editable");
+
+    const put = (clientX: number): void => {
+      const rect = track.getBoundingClientRect();
+      if (rect.width <= 0) return;
+      const fraction = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      const raw = fraction * 2 - 1;
+      const bounded = Math.min(setting.max, Math.max(setting.min, raw));
+      const snapped = snapDial(bounded, setting.min, setting.max, edit.steps);
+      marker.style.left = `${dialPct(snapped)}%`;
+      edit.onChange(snapped);
+    };
+
+    track.addEventListener("pointerdown", (e) => {
+      // The track owns the gesture; the row underneath keeps its tap-to-read
+      // toggle, which is why this stops here rather than bubbling.
+      e.stopPropagation();
+      e.preventDefault();
+      track.setPointerCapture(e.pointerId);
+      put(e.clientX);
+    });
+    track.addEventListener("pointermove", (e) => {
+      if (!track.hasPointerCapture(e.pointerId)) return;
+      put(e.clientX);
+    });
+    track.addEventListener("click", (e) => e.stopPropagation());
+  }
+
+  const right = document.createElement("span");
+  right.className = "dial-pole dial-pole--right";
+  right.textContent = axis.right.inWorld;
+
+  row.append(left, track, right);
+
+  const explain = document.createElement("div");
+  explain.className = "dial-explain";
+  const question = document.createElement("p");
+  question.className = "dial-question";
+  question.textContent = axis.question;
+  explain.append(question);
+  for (const pole of [axis.left, axis.right]) {
+    const reading = document.createElement("p");
+    reading.className = "dial-reading";
+    const term = document.createElement("span");
+    term.className = "dial-reading-term";
+    term.textContent = pole.inWorld;
+    reading.append(term, document.createTextNode(pole.gloss));
+    explain.append(reading);
+  }
+
+  const toggle = (e: Event): void => {
+    e.stopPropagation(); // don't re-trigger the card's focus/scroll handler
+    const open = item.classList.toggle("open");
+    row.setAttribute("aria-expanded", open ? "true" : "false");
+  };
+  row.addEventListener("click", toggle);
+  row.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggle(e);
+    }
+  });
+
+  item.append(row, explain);
+  return item;
+}
+
+interface CardState {
+  readonly card: CivCard;
+  readonly el: HTMLElement;
+  readonly title: HTMLElement;
+  readonly nameInput: HTMLInputElement;
+  readonly nameHint: HTMLElement;
+  readonly becomeButton: HTMLButtonElement;
+  committed: boolean;
+}
+
+function updateBecomeEnabled(state: CardState): void {
+  const value = state.nameInput.value;
+  const valid = validateName(value) !== null;
+  state.becomeButton.disabled = !valid || state.committed;
+  if (value.length > 0 && !valid) {
+    state.nameHint.textContent = `Name must be 1–${MAX_NAME_LEN} characters.`;
+    state.nameHint.classList.add("visible");
+  } else {
+    state.nameHint.textContent = "";
+    state.nameHint.classList.remove("visible");
+  }
+}
+
+function buildCard(card: CivCard): CardState {
+  const el = document.createElement("div");
+  el.className = "civ-card";
+
+  const scroll = document.createElement("div");
+  scroll.className = "civ-card-scroll";
+
+  const worldPanel = document.createElement("div");
+  worldPanel.className = "world-panel";
+  // The wide crop suits the panel's banner shape; the gradient sits under it as
+  // a fallback so a missing/failed plate (or unplated cradle 41) still tints.
+  const worldPlate = worldArt(card.seed.cradleId, "wide");
+  const worldGradient = cradleGradient(card.seed.cradleId);
+  worldPanel.style.background =
+    worldPlate !== null
+      ? `url("${worldPlate}") center / cover no-repeat, ${worldGradient}`
+      : worldGradient;
+
+  const body = document.createElement("div");
+  body.className = "card-body";
+
+  // Always visible (peek + focused): the identity read — cradle + lineage
+  // lines of the chronicle, the civilization's own name, and its first read.
+  // Everything else lives in .detail-extra, hidden for unfocused neighbors.
+  const identity = document.createElement("div");
+  identity.className = "chronicle chronicle-identity";
+  for (const line of card.seed.chronicle.slice(0, 2)) {
+    const p = document.createElement("p");
+    p.textContent = line;
+    identity.append(p);
+  }
+
+  // The card's title is the name this civilization already bears — not its
+  // archetype. Archetype is a nearest-fit region of dial-space (minds.ts):
+  // designer vocabulary, and two candidates can share one, which would title
+  // two cards identically. The archetype's first read says the same thing in
+  // the game's own voice, so that line carries it and the label stays
+  // internal (act2-design.md leaves "archetypes named in-game" open).
+  const title = document.createElement("div");
+  title.className = "civ-name holos-serif";
+  title.textContent = card.seed.name;
+
+  const archetypeFirstRead = document.createElement("div");
+  archetypeFirstRead.className = "chronicle";
+  archetypeFirstRead.style.textAlign = "center";
+  archetypeFirstRead.textContent = card.archetypeFirstRead;
+
+  const detailExtra = document.createElement("div");
+  detailExtra.className = "detail-extra";
+
+  const restOfChronicle = card.seed.chronicle.slice(2);
+  if (restOfChronicle.length > 0) {
+    const rest = document.createElement("div");
+    rest.className = "chronicle";
+    for (const line of restOfChronicle) {
+      const p = document.createElement("p");
+      p.textContent = line;
+      rest.append(p);
+    }
+    detailExtra.append(rest);
+  }
+
+  const dialSheet = document.createElement("div");
+  dialSheet.className = "dial-sheet";
+  for (const axis of DIAL_AXES) {
+    dialSheet.append(renderDialBand(axis, card.seed.dials[axis.id]));
+  }
+  const dialHint = document.createElement("p");
+  dialHint.className = "dial-hint";
+  dialHint.textContent = "Tap a dial to read what it means.";
+  dialSheet.append(dialHint);
+  detailExtra.append(dialSheet);
+
+  const charter = document.createElement("div");
+  charter.className = "charter";
+  charter.textContent = `"${card.seed.charter}"`;
+  detailExtra.append(charter);
+
+  const nameField = document.createElement("div");
+  nameField.className = "name-field";
+  const nameCaption = document.createElement("div");
+  nameCaption.className = "holos-caps";
+  nameCaption.textContent = "Keep its name or choose another";
+  const nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.maxLength = MAX_NAME_LEN * 2; // allow raw typing; validateName trims/collapses
+  nameInput.autocomplete = "off";
+  nameInput.spellcheck = false;
+  // Prefilled with the name it already bears: the act here is renaming
+  // something inherited, which claims it harder than filling a blank does
+  // (roadmap.md's "inherited ≠ owned" risk). The title above follows what
+  // you type, so a rename lands on the card while you make it.
+  nameInput.value = card.seed.name;
+  nameInput.addEventListener("input", () => {
+    const typed = nameInput.value.trim();
+    title.textContent = typed.length > 0 ? typed : card.seed.name;
+  });
+  const nameHint = document.createElement("div");
+  nameHint.className = "name-hint";
+
+  // Suggested names: the name this civilization already bore (tap to undo a
+  // rename), plus fresh pairings from the shared lexicon. Tapping a chip
+  // fills the field, still editable.
+  const chipsRow = document.createElement("div");
+  chipsRow.className = "name-chips";
+  const composeSuggestion = (taken: ReadonlySet<string>): string => {
+    for (let attempt = 0; attempt < 10; attempt++) {
+      // One flavor, mirroring the server generator: a head+tail compound.
+      const head = NAME_HEADS[Math.floor(Math.random() * NAME_HEADS.length)] ?? "Dawn";
+      const tail = NAME_TAILS[Math.floor(Math.random() * NAME_TAILS.length)] ?? "keepers";
+      const name = `${head}${tail}`;
+      if (!taken.has(name)) return name;
+    }
+    return `${NAME_HEADS[0] ?? "Stone"}${NAME_TAILS[0] ?? "binders"}`;
+  };
+  const makeChip = (name: string): HTMLButtonElement => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "name-chip";
+    chip.textContent = name;
+    chip.addEventListener("click", () => {
+      nameInput.value = chip.textContent ?? "";
+      nameInput.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    return chip;
+  };
+  const inheritedChip = makeChip(card.seed.name);
+  const rolledA = makeChip("");
+  const rolledB = makeChip("");
+  const reroll = (): void => {
+    const taken = new Set([card.seed.name]);
+    rolledA.textContent = composeSuggestion(taken);
+    taken.add(rolledA.textContent ?? "");
+    rolledB.textContent = composeSuggestion(taken);
+  };
+  reroll();
+  const rerollButton = document.createElement("button");
+  rerollButton.type = "button";
+  rerollButton.className = "name-chip name-chip-reroll";
+  rerollButton.textContent = "⟳";
+  rerollButton.setAttribute("aria-label", "other names");
+  rerollButton.addEventListener("click", reroll);
+  chipsRow.append(inheritedChip, rolledA, rolledB, rerollButton);
+
+  nameField.append(nameCaption, nameInput, chipsRow, nameHint);
+  detailExtra.append(nameField);
+
+  // Dramatic commit button: a single click/tap consummates the choice into
+  // the cyan bloom on the card.
+  const becomeWrap = document.createElement("div");
+  becomeWrap.className = "become-wrap";
+  const becomeButton = document.createElement("button");
+  becomeButton.type = "button";
+  becomeButton.className = "become-button";
+  becomeButton.disabled = true;
+  const becomeLabel = document.createElement("span");
+  becomeLabel.className = "become-label";
+  becomeLabel.textContent = "Become";
+  becomeButton.append(becomeLabel);
+  becomeWrap.append(becomeButton);
+  detailExtra.append(becomeWrap);
+
+  body.append(identity, title, archetypeFirstRead, detailExtra);
+  scroll.append(worldPanel, body);
+  el.append(scroll);
+
+  return {
+    card,
+    el,
+    title,
+    nameInput,
+    nameHint,
+    becomeButton,
+    committed: false,
+  };
+}
+
+/**
+ * Mounts the ceremony into `root`. Returns a cleanup function (unsubscribes
+ * from the socket) for the router to call on screen swap.
+ */
+export function renderCeremony(
+  root: HTMLElement,
+  candidates: readonly CivCard[],
+  socket: CohortSocket,
+): () => void {
+  const ceremony = document.createElement("div");
+  ceremony.className = "ceremony";
+
+  const carousel = document.createElement("div");
+  carousel.className = "ceremony-carousel";
+
+  const topSpacer = document.createElement("div");
+  topSpacer.className = "ceremony-spacer";
+  const bottomSpacer = document.createElement("div");
+  bottomSpacer.className = "ceremony-spacer";
+
+  const slots: HTMLElement[] = [];
+  const cardStates: CardState[] = [];
+
+  for (const card of candidates) {
+    const state = buildCard(card);
+    cardStates.push(state);
+
+    const slot = document.createElement("div");
+    slot.className = "card-slot";
+    slot.append(state.el);
+    slots.push(slot);
+  }
+
+  carousel.append(topSpacer, ...slots, bottomSpacer);
+  ceremony.append(carousel);
+
+  // A2.6: the quiet way in for a returning player — not a candidate, so it
+  // sits below the carousel rather than competing with any card for the
+  // thumb. Collapsed to one tappable line until touched.
+  const signinWrap = document.createElement("div");
+  signinWrap.className = "ceremony-signin";
+  const signinToggle = document.createElement("button");
+  signinToggle.type = "button";
+  signinToggle.className = "ceremony-signin-toggle";
+  signinToggle.textContent = "I already have an account";
+  signinWrap.append(signinToggle);
+  ceremony.append(signinWrap);
+
+  let signinMount: SignInMount | null = null;
+  signinToggle.addEventListener("click", () => {
+    if (signinMount !== null) return;
+    signinToggle.hidden = true;
+    signinMount = mountSignIn(socket);
+    signinWrap.append(signinMount.el);
+  });
+
+  root.append(ceremony);
+
+  let focusedIndex = 0;
+
+  function setFocus(index: number): void {
+    focusedIndex = index;
+    cardStates.forEach((state, i) => {
+      state.el.classList.toggle("focused", i === index);
+    });
+  }
+
+  function nearestIndexToCenter(): number {
+    const carouselRect = carousel.getBoundingClientRect();
+    const centerY = carouselRect.top + carouselRect.height / 2;
+    let best = 0;
+    let bestDist = Number.POSITIVE_INFINITY;
+    slots.forEach((slot, i) => {
+      const r = slot.getBoundingClientRect();
+      const dist = Math.abs(r.top + r.height / 2 - centerY);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = i;
+      }
+    });
+    return best;
+  }
+
+  let scrollRaf: number | null = null;
+  function onScroll(): void {
+    if (scrollRaf !== null) return;
+    scrollRaf = requestAnimationFrame(() => {
+      scrollRaf = null;
+      const idx = nearestIndexToCenter();
+      if (idx !== focusedIndex) setFocus(idx);
+    });
+  }
+  carousel.addEventListener("scroll", onScroll, { passive: true });
+
+  cardStates.forEach((state, i) => {
+    state.el.addEventListener("click", () => {
+      if (focusedIndex === i) return;
+      const slot = slots[i];
+      if (slot === undefined) return;
+      slot.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  });
+
+  // Restore an in-flight commit across a refresh (best-effort: we cannot
+  // know whether the original `become` reached the server, so we just show
+  // the same optimistic beat again rather than flashing an interactive
+  // ceremony back at the player mid-commit).
+  const pending = readPending();
+  if (pending !== null) {
+    const idx = cardStates.findIndex((s) => s.card.candidateId === pending.candidateId);
+    if (idx !== -1) {
+      const state = cardStates[idx];
+      if (state !== undefined) {
+        state.committed = true;
+        state.nameInput.value = pending.name;
+        state.title.textContent = pending.name;
+        state.becomeButton.disabled = true;
+        state.el.classList.add("committing");
+        state.becomeButton.classList.add("committing");
+        // Re-send the become: it is idempotent per token server-side (an
+        // already-placed run just gets its sky again), so a commit lost to
+        // a flaky network retries instead of freezing this card forever.
+        socket.send({
+          type: "become",
+          candidateId: pending.candidateId,
+          name: pending.name,
+        });
+      }
+    }
+  }
+
+  setFocus(0);
+  // Center the first card without an animated jump on first paint.
+  requestAnimationFrame(() => {
+    const first = slots[0];
+    if (first !== undefined) first.scrollIntoView({ block: "center" });
+  });
+
+  function commit(state: CardState): void {
+    if (state.committed || state.becomeButton.disabled) return;
+    const name = validateName(state.nameInput.value);
+    if (name === null) return; // guarded by disabled button; defensive only
+    state.committed = true;
+    state.becomeButton.disabled = true;
+    writePending({ candidateId: state.card.candidateId, name });
+    state.el.classList.add("committing");
+    state.becomeButton.classList.add("committing");
+    socket.send({ type: "become", candidateId: state.card.candidateId, name });
+  }
+
+  const buttonCleanups: Array<() => void> = [];
+  for (const state of cardStates) {
+    const onClick = (): void => commit(state);
+    const onInput = (): void => {
+      // Typing again after a server rejection re-enables the field.
+      updateBecomeEnabled(state);
+    };
+
+    state.becomeButton.addEventListener("click", onClick);
+    state.nameInput.addEventListener("input", onInput);
+
+    buttonCleanups.push(() => {
+      state.becomeButton.removeEventListener("click", onClick);
+      state.nameInput.removeEventListener("input", onInput);
+    });
+
+    updateBecomeEnabled(state);
+  }
+
+  const unsubscribe = socket.onMessage((message) => {
+    if (message.type !== "error") return;
+    if (message.code !== "bad-name" && message.code !== "unknown-candidate" && message.code !== "cohort-full") {
+      return;
+    }
+    const currentPending = readPending();
+    if (currentPending === null) return;
+    const state = cardStates.find((s) => s.card.candidateId === currentPending.candidateId);
+    if (state === undefined) return;
+
+    // Reverse the optimistic commit beat and surface the reason inline.
+    clearPending();
+    state.committed = false;
+    state.el.classList.remove("committing");
+    state.becomeButton.classList.remove("committing");
+    state.nameHint.textContent = message.message;
+    state.nameHint.classList.add("visible");
+    updateBecomeEnabled(state);
+  });
+
+  return () => {
+    unsubscribe();
+    signinMount?.destroy();
+    carousel.removeEventListener("scroll", onScroll);
+    if (scrollRaf !== null) cancelAnimationFrame(scrollRaf);
+    for (const cleanup of buttonCleanups) cleanup();
+  };
+}

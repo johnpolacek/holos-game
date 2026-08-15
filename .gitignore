@@ -7,3 +7,18 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Local wrangler secrets. The API key is a Workers secret in production
+# and must never be committed; copy .dev.vars.example to get started.
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+art-test/
+
+# Playtest bot seats (docs/playtest.md): one run token per bot, so a rerun
+# resumes the same civilizations instead of filling the cohort with abandoned
+# ones. Local to a dev machine, and a credential — never committed.
+.playtest/
+
+# Claude Code agent worktrees (transient)
+.claude/worktrees/
