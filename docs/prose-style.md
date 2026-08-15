@@ -136,7 +136,7 @@ actually land — a string at the wall is legal and usually still too long.
 | Signal / contact voice clause | `voice.ts` SIGNAL_VOICE, TONE_CLAUSE, ACCORD_CLAUSE, SIGNAL_OBSERVATIONS; composed in `traffic.ts` | Archetype voice, free-standing, fact-free; one pool clause | 1 | 12 · aim 8, one sentence |
 | Contest tell | `voice.ts` CONTEST_LINES | Observatory deadpan; what the look is doing, never which source | 0 | 12 · aim 8, one sentence |
 | Proposal stance (AV4) | `voicegen.ts` counsel seam when `HOLOS_COUNSEL_GEN=on`; otherwise `null` | Archetype voice, free-standing, fact-free | 1 | 12 · aim 8, one sentence |
-| Intro beat | `voice.ts` INTRO_LINES | The mind stating scale; shared across archetypes, the clock line's family; copy still pinned by build-s0.md, so the wall lands only when that pin is lifted | 1 | 12 each |
+| Intro beat | `voice.ts` INTRO_LINES | The mind stating scale; shared across archetypes, the clock line's family; copy pinned by build-s0.md (repinned 2026-08-15, flat terse) | 1 | 12 each · aim 9 |
 | Counsel line (served, no surface) | `voice.ts` COUNSEL_LINES, or the AV4 stance when `HOLOS_COUNSEL_GEN=on` | Archetype voice, free-standing, fact-free (R-36a) | 1 | 12 · aim 8, one sentence |
 | Home HUD / rail chrome | `home.ts` | Instrument register: labels and readouts, numerals from shipped formats | 0 | 6 (R-24) |
 | Frame explainer — HUD readouts | `home.ts` HUD_NOTE | Observatory deadpan; what a readout is, never a reading of it; numeral-free (the readout carries the numbers) | 0 | 20 · aim 12 |
