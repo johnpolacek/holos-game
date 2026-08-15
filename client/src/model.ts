@@ -117,6 +117,27 @@ const DIST_MAX = 4e8;
 /** Wheel zoom rate — one notch (~100 deltaY) is about ×1.15. */
 const WHEEL_K = 0.0014;
 
+// ── Zoom ladder ───────────────────────────────────────────────────────────
+//
+// The [-]/[+] buttons step between these stops: one per thing the layer
+// bands can put on screen, not one per factor of two. A pinch or a wheel
+// still reaches everything in between; the ladder is for a thumb that wants
+// the next PLACE. Each stop sits where its layer is fully faded in.
+const ZOOM_STOPS: readonly number[] = [
+  5e-4, // the home system: the whole orrery, well inside SYS_FADE_LO
+  DIST_VOLUME, // the field the game is played in
+  3_000, // the neighborhood closes (NEAR_FADE_HI); the galaxy's interior
+  1e5, // the Milky Way whole, a disk with a far rim
+  4e6, // the Local Group at rest (MW_BILLBOARD_HI)
+  DIST_MAX, // the web
+];
+/** A step's dolly time scales with the decades it crosses, clamped so a hop
+ *  to the neighboring stop still reads as a move and the five-decade leap
+ *  from the orrery to the field is not a tour. */
+const ZOOM_STEP_MS_PER_DECADE = 260;
+const ZOOM_STEP_MS_MIN = 420;
+const ZOOM_STEP_MS_MAX = 1500;
+
 // ── Layer hand-off ────────────────────────────────────────────────────────
 //
 // Every band below is a pair of camera distances in light-years, crossfaded
@@ -893,6 +914,11 @@ export class Model {
   private readonly pointers = new Map<number, { x: number; y: number }>();
   private lastOrbit: { x: number; y: number } | null = null;
   private pinchDist = 0;
+  /** Non-null while a [-]/[+] step's own dolly runs: the stop it is headed
+   *  to, so a quick second tap steps from there and crosses two levels
+   *  instead of re-aiming at the first. Any OTHER scripted move nulls it
+   *  (see startDolly) and gets the cutscene treatment: steps ignore it. */
+  private zoomTargetLy: number | null = null;
   private tapDown: { x: number; y: number; t: number; moved: boolean } | null = null;
   private selectedStarId: string | null = null;
   private selectCb: SelectSourceCallback | null = null;
@@ -969,6 +995,25 @@ export class Model {
     this.scaleLabel.className = "model-scale holos-caps";
     this.scaleLabel.textContent = formatDistance(this.dist);
 
+    // The ladder's controls flank the readout they change. Text-only: the
+    // brackets are the whole button, in the instrument face like the number
+    // between them.
+    const zoomOut = document.createElement("button");
+    zoomOut.type = "button";
+    zoomOut.className = "model-zoom-btn";
+    zoomOut.textContent = "[-]";
+    zoomOut.setAttribute("aria-label", "Zoom out");
+    zoomOut.addEventListener("click", () => this.stepZoom(-1));
+    const zoomIn = document.createElement("button");
+    zoomIn.type = "button";
+    zoomIn.className = "model-zoom-btn";
+    zoomIn.textContent = "[+]";
+    zoomIn.setAttribute("aria-label", "Zoom in");
+    zoomIn.addEventListener("click", () => this.stepZoom(1));
+    const zoom = document.createElement("div");
+    zoom.className = "model-zoom";
+    zoom.append(zoomOut, this.scaleLabel, zoomIn);
+
     // Cyan, like the mote it follows: what you sent is yours and is
     // happening now. It carries the clock pair, so the sky says the same
     // thing about a beam in flight that the thread does.
@@ -976,7 +1021,7 @@ export class Model {
     this.outboundLabel.className = "model-outbound-label holos-caps";
     this.outboundLabel.style.opacity = "0";
 
-    this.overlay.append(this.homeLabel, this.scaleLabel, this.outboundLabel);
+    this.overlay.append(this.homeLabel, zoom, this.outboundLabel);
     this.root.append(this.overlay);
     this.container.append(this.root);
 
@@ -1670,6 +1715,9 @@ export class Model {
     drivesPullT: boolean,
     done: (() => void) | null,
   ): void {
+    // Whatever move this is, it outranks a zoom step in flight; stepZoom
+    // reclaims the flag right after calling in, when the move IS a step.
+    this.zoomTargetLy = null;
     // Shortest way round, so a script never spins the sky the long way — the
     // same settle the arming ease makes on its own target.
     const toAz = this.az + wrapPi(az - this.az);
@@ -2738,6 +2786,32 @@ export class Model {
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
     this.dist = clamp(this.dist * Math.exp(e.deltaY * unit * WHEEL_K), DIST_MIN, DIST_MAX);
   };
+
+  /** One tap of [-] or [+]: dolly to the next stop on ZOOM_STOPS, angles
+   *  untouched. `dir` +1 zooms in (distance falls), -1 zooms out. Steps from
+   *  a running step's own target so quick taps cross several levels; any
+   *  other scripted move is a cutscene and is not a control, same as the
+   *  wheel. Past either end of the ladder a tap does nothing. */
+  private stepZoom(dir: -1 | 1): void {
+    if (this.ceremonyInput !== null) return; // the camera is frozen while armed
+    if (this.dolly !== null && this.zoomTargetLy === null) return;
+    const base = this.zoomTargetLy ?? this.dist;
+    // The 1.05 tolerance keeps a stop just landed on (or a hair past, after
+    // a pinch) from counting as the next one over.
+    const next =
+      dir > 0
+        ? ZOOM_STOPS.filter((s) => s < base / 1.05).at(-1)
+        : ZOOM_STOPS.find((s) => s > base * 1.05);
+    if (next === undefined) return;
+    const decades = Math.abs(Math.log10(next / base));
+    const ms = clamp(decades * ZOOM_STEP_MS_PER_DECADE, ZOOM_STEP_MS_MIN, ZOOM_STEP_MS_MAX);
+    this.dollyTo(next, this.az, this.el, ms, () => {
+      this.zoomTargetLy = null;
+    });
+    // After the call: startDolly cleared the flag, and before the renderer
+    // exists the move lands at once (dolly stays null), leaving it cleared.
+    this.zoomTargetLy = this.dolly !== null ? next : null;
+  }
 
   private localPoint(e: PointerEvent): { x: number; y: number } {
     const rect = this.app.canvas.getBoundingClientRect();
