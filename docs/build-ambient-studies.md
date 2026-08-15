@@ -93,6 +93,64 @@ Opus twice with different framings and synthesize — are:
 Fable — not the subagents — holds the invariants below, verifies them in
 every subagent's output, keeps checks green, and commits.
 
+## Decisions (settled — Opus x2 per call, synthesized; do not reopen)
+
+1. **Wire shape: a second array of the same type.** The `sky` payload gains
+   `ambient: readonly StudySnapshot[]` — a full board for every visible
+   source with no stored record — beside `studies`, whose meaning (engaged,
+   stored-record boards) does not change. Engagement is array membership,
+   not a flag and not a status value. `StudySnapshot`, `StudyStatus`,
+   `StoredStudy`, `isClosed`, and `DetectedSource` are all untouched;
+   `report.ts` keeps its engaged-only input by construction. An ambient
+   board is assembled by the same `buildStudySnapshot` over a synthetic
+   never-persisted record (`bought: []`, `tripwires: []`,
+   `openedClass: null`, `openedYear: Infinity` — cannot ground, cannot
+   overtake, cannot reach `resolveQuestion`), and its write outputs are
+   discarded. The ambient board's `status` is `"open"`: honest at the level
+   the field means (nothing has closed this board).
+2. **First acts: `buyQuestion`, `launchMission`, `armTripwire`,
+   `callStudy`.** The generating rule: materialize on an act the server
+   must remember; refuse an act that only takes something away. Shelve
+   refuses where no record exists and is not offered on an un-acted board;
+   `launchVoyage` never materializes. A standing order's dispatch is a
+   delegated launch and materializes exactly as a hand launch does.
+   `openedYear` is the home year of the act that took the study up,
+   restamped only on explicit reopen; `openedClass` stamps beside it,
+   always together. The grounded exit's strictly-after rule is unchanged
+   and needs no special case: a probe launched as a first act stamps at
+   launch, so its own report grounds the study (the walkthrough's Assay);
+   a report already home when the player first acts closes nothing.
+   Calling as a first act is allowed and closes in the same write. The
+   `openStudy` wire verb SURVIVES as the reopen/resume verb (closed cards
+   still need "watch it again"): absent record → materialize open;
+   shelved/closed → today's reopen (restamp, clear frozen exits, keep
+   `bought`/`tripwires`); already open → **no-op, no write** (today's
+   unconditional restamp is a live bug: a stale tab could push the
+   grounding horizon past a probe in flight). `OVERTAKEN_LINE`'s "since
+   you opened the study" is re-authored: the player took the study up,
+   they did not "open" it.
+3. **Client IA: the sky is the picker; the Desk is the portfolio.** The
+   picker (`renderPicker`) and briefing (`renderBrief`) die; the
+   `.study-picker-subtitle` class and rule survive as the R-40 caption
+   mold. Doors: map → source card → the study row (always present, idle
+   string re-authored); Explore rows reach the same board; the Desk's
+   `+ START A STUDY` foot becomes a quiet hub row into Explore ("the rest
+   of the sky"). The Desk lists engaged studies only; its caption and
+   empty state are re-authored to say what the Desk now is (the sources
+   you have put something into). The ambient board face carries the
+   brief's relocated starmap at its head, no verb row (no shelve/call
+   until materialized), and OPEN QUESTIONS with prices as the call to
+   action; the brief's teaching collapses into one one-shot `voice-note`
+   (new voice key, AV1 intro pattern). Engagement marks are chrome and
+   amber only (`.study-explore-flag` keys on engagement; no cyan; no xxs
+   badge). `updateStudyCount` and every `studiesByStarId.has()` site are
+   re-audited so "has" keeps meaning engaged. The AV3 `study-brief`
+   proposal route keeps its id and retargets to focusing the board
+   (`from: "mind"`, the `focusProject` precedent); the proposal's bank
+   verb naming the dead brief screen is re-authored (`audit:voice`).
+   No pager across the sky: the sweep is Report → Desk → the rest of the
+   sky, and the Desk's foot row is the hinge.
+
 ## Stages
 
 Each stage is a small, single-purpose PR, and **every merge is shippable**
@@ -120,10 +178,10 @@ last stage, after no shipped client sends it.
   retargets to the ambient board (route id kept); `home.ts` entry points
   audited. New chrome strings obey R-8/R-25/R-40; register per
   prose-style.md §2 (observatory deadpan, wit 0).
-- **AS3 — cleanup, bots, docs.** Remove `openStudy` from the client wire
-  and (per the AS1 decision) retire or fully repurpose the server verb,
-  tolerant of stale tabs; update `scripts/playtest-bot.mjs` (`tryOpenStudy`
-  and `studyTarget` become engagement-by-first-act); update
+- **AS3 — cleanup, bots, docs.** The `openStudy` verb stays on the wire as
+  reopen (settled above); AS3 instead retires the client's dead code paths
+  and vestigial payload reads; update `scripts/playtest-bot.mjs`
+  (`tryOpenStudy` and `studyTarget` become engagement-by-first-act); update
   [observatory-design.md](./observatory-design.md) ("Flagging a source
   opens a study" → universal board / lazy record, and the four-endings
   list), [walkthrough.md](./walkthrough.md)'s vigil-on-Hearth beat,
