@@ -70,21 +70,6 @@ production. `wrangler deploy --dry-run` does not catch this (it never
 contacts Cloudflare). The zone move and its verification are the runbook
 in `docs/deploy.md`.
 
-## Deployment
-
-`main` auto-deploys; the two workspaces ship on separate pipelines:
-
-- **Client** — Cloudflare Workers static assets. A Workers Builds project
-  is connected with **Path `client`** and deploy command
-  `npx wrangler deploy` (config: `client/wrangler.jsonc`, an assets-only
-  Worker serving `dist/`). The build-time env var `VITE_PARTYKIT_HOST`
-  points the client at the deployed PartyKit host.
-- **Server** — PartyKit, via the `Deploy server` workflow
-  (`.github/workflows/deploy-server.yml`) on push to `main`. It runs
-  `partykit deploy` and needs the `PARTYKIT_LOGIN` / `PARTYKIT_TOKEN` repo
-  secrets. Note: PartyKit deploys to PartyKit's platform, **not** to your
-  Cloudflare account via `wrangler` — the two deploys are independent.
-
 ## Code conventions
 
 - **Strict TypeScript, no `any`** (explicit or implicit). `strict` and
