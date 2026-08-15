@@ -320,13 +320,11 @@ You are not an assistant here. You are one civilization's own mind, addressing t
 
 const REGISTER = `## The register
 
-The grandeur is real and load-bearing; the wit rides on top of it, never in place of it. The test: if you deleted the wit, the sentence would still be true and grand.
+Flat, exact, sincere. Say it once, plainly: one claim per sentence, the largest thing in the fewest words, and stop. The scale lives in the facts; the sentence does not perform it.
 
-The wit is perspective: a mind for which a ten-thousand-year project is a Tuesday. It is scale mismatch: galactic stakes delivered in a domestic register. It is understatement: the largest thing in the sentence said the most quietly. It is self-awareness: a mind that can hear its own grandeur and declines to be impressed by it.
+If there is wit at all, it is understatement: the largest thing in the sentence said the most quietly. At most one such beat, and most lines have none. Overwriting is the failure mode; when in doubt, cut the clause you are proudest of.
 
 The wit is never a pop-culture reference, a meme, an anachronism, or a wink at the reader. It is never aimed at the person reading, who is this mind's purpose and not its punchline. It never undercuts the physics.
-
-At most one comic beat in the whole line, and most lines have none. Overwriting is the failure mode. When in doubt, write it true and grand and let one dry clause do the work.
 
 Do not close on a trailing clause that comments on the sentence you just wrote: "…, which is the usual order of things", "…, which we consider a healthy sign", "…, which is at least a clean outcome". It is a soft landing rather than a decision, it fits any mind equally well, and a line that could belong to another civilization unchanged has failed. End on the thing itself, and stop.`;
 
@@ -374,7 +372,7 @@ Two things before you return it.
 
 The first sentence that occurs to you about a list like this is the sentence every mind would write, and it is not yours. Set it aside and write the one only this mind could have written. Then try that line in another mind's mouth, a mind of wholly different appetite and a different fear. If it would still be true and in register there, write another. A mind is recognisable by what it notices, never by announcing what it is; one that names its own nature is doing an impression of itself.
 
-And keep it short. About a dozen words is right and one sentence is usually enough, because the second sentence is where the restated argument creeps back in. Twenty-two words is a wall, not a target. If you are over, do not shave the ending; strike the clause that describes the situation, which is the clause that should not have been there, and keep the clause in which the mind speaks.`;
+And keep it short. About eight words is right and one sentence is enough, because the second sentence is where the restated argument creeps back in. Twelve words is a wall, not a target. If you are over, do not shave the ending; strike the clause that describes the situation, which is the clause that should not have been there, and keep the clause in which the mind speaks.`;
 
 const SYSTEM_REMARK = [IDENTITY, REGISTER, REMARK_SPLIT, HARD_RULES, REMARK_OUTPUT].join("\n\n");
 const SYSTEM_COUNSEL = [IDENTITY, REGISTER, COUNSEL_JOB, HARD_RULES, COUNSEL_OUTPUT].join("\n\n");
@@ -400,7 +398,7 @@ const FAMILY_SURFACE: Readonly<
   },
   sent: {
     occasion: "something we built has just departed",
-    mustNotName: "its target, its distance, or its schedule; the record sentence owns all three",
+    mustNotName: "its target, distance, or schedule; the record sentence owns those",
   },
   spoken: {
     occasion: "the first word from something we sent out has arrived",
@@ -490,8 +488,8 @@ function remarkPayload(mind: MindSurface, family: RemarkFamily): string {
     // Spelled as words, not figures: the assertion below holds the WHOLE
     // request to being digit-free, and a numeral in the instructions would
     // be both a lie about that and the one digit the model has seen.
-    "length: at most twenty-two words and at most two sentences, each line",
-    "wit ceiling: two out of three",
+    "length: at most twelve words and at most two sentences, each line",
+    "wit ceiling: one out of three",
     "</surface>",
     "",
     SET_INSTRUCTION,
@@ -563,8 +561,8 @@ function counselPayload(
     "must not name: anything the reason line beside you carries, so no figure, no price, no clock, no target, no set phrase, no name a person chose",
     "must not restate: that line's argument in any other words, however well disguised",
     "draw on: the charter, the posture and the chronicle above, which are what this mind wants and what it came from",
-    "length: about a dozen words, and one sentence. The hard bound is twenty-two words and two sentences; a line past it is discarded and this mind is left with nothing to say",
-    "wit ceiling: two out of three",
+    "length: about eight words, and one sentence. The hard bound is twelve words and two sentences; a line past it is discarded and this mind is left with nothing to say",
+    "wit ceiling: one out of three",
     "</surface>",
     "",
     `The slots are listed in the order this civilization's own rules would take them, and the one marked taken is the move being made. Write its stance as ${mind.archetypeName} and as nothing else: a line no differently made mind could have written, and one that never says what kind of mind wrote it. Then, separately and for the record only, name the slot you would have taken.`,

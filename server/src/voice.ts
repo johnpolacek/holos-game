@@ -828,7 +828,7 @@ export type RemarkFamily = "settled" | "refused" | "sent" | "spoken" | "unspoken
  *
  * Every string here obeys, without exception (R-29a, R-31):
  *  - a plain string, not a PinnedLine: there is nothing in it to pin;
- *  - ≤ 22 words, 1–2 sentences, wit ceiling 2, at most one craft move;
+ *  - ≤ 12 words, 1–2 sentences, wit ceiling 1, at most one wit beat (R-41);
  *  - NO numerals, no §8 pinned label, no designation, no source name, no
  *    mission or question name — none of which it could carry safely,
  *    because the remark is exactly the part AV4 is allowed to rewrite;
