@@ -835,13 +835,19 @@ export interface LedgerWire {
 
 export type VoiceKey =
   | "arrival" | "age" | "compute" | "clock" | "epoch" | "silence"
+  // AS2: the board's own frame line, shown once on the first study board this
+  // player opens (ambient or engaged — the board is the first face of the
+  // watch either way). It carries what the retired briefing screen used to
+  // teach: that a watch stands on every source found, and what attending to
+  // one costs.
+  | "study"
   // S0.1: the four intro beats after the ceremony's BECOME. Kept as four
   // keys, not one, so `seen` tracks each beat independently the way every
   // other frame line does — a client that dismissed beat three but dropped
   // its connection before beat four gets exactly the tail on reconnect.
   | "intro1" | "intro2" | "intro3" | "intro4";
 export const VOICE_KEYS: readonly VoiceKey[] = [
-  "arrival", "age", "compute", "clock", "epoch", "silence",
+  "arrival", "age", "compute", "clock", "epoch", "silence", "study",
   "intro1", "intro2", "intro3", "intro4",
 ];
 export function isVoiceKey(v: unknown): v is VoiceKey {

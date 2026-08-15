@@ -17,7 +17,6 @@ import type {
   Star,
   ProjectSnapshot,
   ComputeBudget,
-  HypothesisMenus,
   MissionSnapshot,
   MissionCatalog,
   WorkState,
@@ -124,11 +123,14 @@ export class App {
   private mountedScreen: "none" | "ceremony" | "sky" = "none";
 
   private catalog: readonly Star[] = [];
-  // The opening hypothesis menus, retained from `welcome` (which always
-  // precedes the first `sky`) for the study briefing's "what it can tell
-  // apart". Null only if the board somehow mounts before a welcome lands.
-  private menus: HypothesisMenus | null = null;
-  // The launch sheet's vocabulary, retained from `welcome` like `menus`.
+  // The launch sheet's vocabulary, retained from `welcome` (which always
+  // precedes the first `sky`). Null only if the board somehow mounts before a
+  // welcome lands.
+  //
+  // AS2: `welcome.menus` is no longer read here. It was the study briefing's
+  // "what it can tell apart", and the briefing is gone — every board carries
+  // its own hypotheses on the wire. The field stays ON THE WIRE (the server
+  // still serves it); nothing on the client retains it any more.
   private missionCatalog: MissionCatalog | null = null;
   // A4: the founding sheet's vocabulary, retained the same way.
   private voyageCatalog: VoyageCatalog | null = null;
@@ -151,8 +153,15 @@ export class App {
 
   // Latest `sky` payload's studies/sources, kept for the observatory (mounted
   // separately from the Model/SourceCard's own copies) and for looking up a
-  // source's study by starId (setStudyStatus, the pending-focus handoff).
+  // source's study by starId (setStudyStatus).
+  //
+  // `studies` is the ENGAGED set and stays that: findStudy reads it, and the
+  // source card's status row asks it what this player has going on here.
+  // AS2's `ambient` is the sky's other half — a board for every source with
+  // no stored record yet — and it is forwarded to the board and read nowhere
+  // else here.
   private studies: readonly StudySnapshot[] = [];
+  private ambient: readonly StudySnapshot[] = [];
   private sources: readonly DetectedSource[] = [];
   private projects: readonly ProjectSnapshot[] = [];
   private budget: ComputeBudget = { free: 0, ratePerYear: 0, cap: 0, asOfYear: 0 };
@@ -206,11 +215,6 @@ export class App {
   // also the source refreshReportBadge() counts against.
   private reportPayload: ReportPayload | null = null;
 
-  // Set when the source card fires onStudyAction for a source with no study
-  // yet: we've sent `openStudy` and are waiting for the confirming `sky` to
-  // carry it, at which point the observatory opens focused on it.
-  private pendingStudyFocus: string | null = null;
-
   // The canonical client-side store of the player's private source labels —
   // one Map instance, mutated in place from `sky` (wholesale replace) and
   // `sourceNamed` (single-key update), and shared by reference with
@@ -260,7 +264,6 @@ export class App {
         // star's position. A placed welcome is followed immediately by `sky`,
         // which is what actually mounts the Model.
         this.catalog = message.catalog;
-        this.menus = message.menus;
         this.missionCatalog = message.missionCatalog;
         this.voyageCatalog = message.voyageCatalog;
         setClockAnchor(message.clock);
@@ -293,6 +296,7 @@ export class App {
           this.localNames.set(starId, name);
         }
         this.studies = message.studies;
+        this.ambient = message.ambient;
         this.sources = message.sources;
         this.projects = message.projects;
         this.budget = message.budget;
@@ -518,18 +522,6 @@ export class App {
     return this.missions.find((m) => m.starId === starId && isLiveMissionState(m.state));
   }
 
-  /** If a study was just requested (onStudyAction, no prior study) and the
-   * confirming sky has now arrived carrying it, hand focus to the
-   * observatory — the phone-checklist beat "flag a source; a study opens". */
-  private maybeFocusPendingStudy(): void {
-    const starId = this.pendingStudyFocus;
-    if (starId === null || this.findStudy(starId) === undefined) return;
-    this.sourceCard?.close();
-    this.model?.clearSelection();
-    this.studyBoard?.focusStudy(starId);
-    this.pendingStudyFocus = null;
-  }
-
   /** Take a one-time line if still held: returns it once, reports it shown,
    *  never returns it again this session. */
   private takeVoice(key: VoiceKey): string | null {
@@ -661,6 +653,7 @@ export class App {
       this.home?.setIdentity(self.seed.name);
       this.studyBoard?.setVoyages(this.voyages, this.survey);
       this.studyBoard?.setLedger(this.ledger);
+      this.studyBoard?.setAmbient(this.ambient);
       this.sourceCard?.setLocalNames(this.localNames);
       const openId = this.sourceCard?.currentStarId() ?? null;
       if (openId !== null) {
@@ -688,7 +681,6 @@ export class App {
         this.proposals,
         this.contact,
       );
-      this.maybeFocusPendingStudy();
       return;
     }
 
@@ -710,7 +702,6 @@ export class App {
       const studyBoard = new StudyBoard(
         this.root,
         this.socket,
-        this.menus,
         this.missionCatalog,
         this.voyageCatalog,
         this.catalog,
@@ -831,15 +822,14 @@ export class App {
         sourceCard.setAccord(this.findAccord(starId));
         sourceCard.setExplainer(this.takeSourceCardVoice());
       });
+      // AS2: the card's study row is a door and never a verb. Every detected
+      // source carries a board already, so there is nothing to ask the server
+      // for and nothing to wait on — the tap hands straight to the board,
+      // ambient or engaged alike.
       sourceCard.onStudyAction((starId) => {
-        if (this.findStudy(starId) !== undefined) {
-          sourceCard.close();
-          model.clearSelection();
-          studyBoard.focusStudy(starId);
-        } else {
-          this.socket.send({ type: "openStudy", starId });
-          this.pendingStudyFocus = starId;
-        }
+        sourceCard.close();
+        model.clearSelection();
+        studyBoard.focusStudy(starId);
       });
       // A2.4: AIM A BEAM. The stance rides the same `sky` that produced this
       // source, so the mind's objection (if it has one) is already in hand
@@ -923,6 +913,15 @@ export class App {
         }
         home.setReportBadge(0);
       });
+      // AS2: the board explainer — shown once, on the first board this player
+      // opens, ambient or engaged. It says what a standing watch is and what
+      // attending to one costs, which is the whole of what the retired
+      // briefing screen taught. Unguarded like the work and report notes: a
+      // later open takes the field back to null of its own accord, and the
+      // line itself never comes back (takeVoice is idempotent).
+      studyBoard.onStudyOpen(() => {
+        studyBoard.setStudyExplainer(this.takeVoice("study"));
+      });
       // S0.1: THE MIND's one row, replaying the intro. Guarded against a
       // double-arm the same way the ceremony's three entry points are
       // guarded by having only one live thing to stage at a time.
@@ -947,6 +946,7 @@ export class App {
       studyBoard.setSelf(self);
       studyBoard.setVoyages(this.voyages, this.survey);
       studyBoard.setLedger(this.ledger);
+      studyBoard.setAmbient(this.ambient);
       studyBoard.setPushSubscribed(this.pushSubscribed);
       studyBoard.update(
         this.studies,

@@ -275,6 +275,27 @@ export function silenceLine(): string {
   return render(SILENCE_LINE);
 }
 
+/**
+ * Observatory deadpan, wit 0 (R-27). AS2's frame line, shown once on the
+ * first study board this player opens. It replaces a whole screen: the
+ * briefing used to spend three sections saying what a standing watch is,
+ * what it can tell apart, and what it costs, and the first two of those are
+ * now simply the board the player is reading while this line sits on it. So
+ * the line states the one thing the board cannot show by existing — that it
+ * has been standing since the source was found, and that the standing is
+ * free while the asking is not.
+ *
+ * Numeral-free by construction: the price of a question is on the question's
+ * own row, effective (a landed project discounts it), and a figure here could
+ * be made false by one.
+ */
+const STUDY_LINE: PinnedLine =
+  line`We watch every source from the moment we find it: its light is filed as it arrives and read against the stories still in play. Watching costs nothing; questions cost compute.`;
+
+export function studyLine(): string {
+  return render(STUDY_LINE);
+}
+
 /** S0.1's four intro keys, in play order. */
 export type IntroKey = "intro1" | "intro2" | "intro3" | "intro4";
 
@@ -1413,11 +1434,17 @@ export const TRIPWIRE_PROSE_NAME: Readonly<Record<TripwireKind, string>> = {
  * `acceptProposal` message).
  */
 export const PROPOSAL_VERBS: Readonly<Record<ProposalKind, string>> = {
-  "first-watch": "READ THE BRIEF",
+  // AS2: the two source-side verbs used to say READ THE BRIEF, and the brief
+  // is gone — the `study-brief` route now opens the source's own board, which
+  // stands whether or not anything has been spent on it. READ, not OPEN,
+  // because on those two the study is already there: a tap is going to look
+  // at it, and the opening is the player's first act inside it, if they make
+  // one. `question` keeps OPEN THE STUDY, where a record already exists.
+  "first-watch": "READ THE STUDY",
   question: "OPEN THE STUDY",
   probe: "OPEN THE LAUNCH SHEET",
   project: "READ THE PROJECT",
-  widen: "READ THE BRIEF",
+  widen: "READ THE STUDY",
 };
 
 /**

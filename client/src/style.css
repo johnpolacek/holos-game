@@ -349,7 +349,6 @@ body {
 .hub-masthead-charter,
 .dial-reading,
 .study-brief-body,
-.study-brief-conf-gloss,
 .study-hyp-gloss,
 .study-annotation,
 /* A2.3: the mind's regress line, and a frozen call/overtaking's gloss —
@@ -2485,18 +2484,20 @@ body {
  * counsel seam; cutting that seam in 2026-08 left the line with nowhere to
  * land. z-index 5 is unused, not reclaimed (the home shell block's own
  * header comment says why). What remains is the inline one-time explainer
- * note (sourcecard's age chip; studyboard's hub, Projects and report) — a
- * step quieter than surrounding prose, never below the ink floor. */
+ * note (sourcecard's age chip; studyboard's hub, Projects, report and, from
+ * AS2, the first study board opened) — a step quieter than surrounding
+ * prose, never below the ink floor. */
 .voice-note {
   font-size: var(--holos-text-xs);
   color: var(--holos-ink-dim);
 }
 
-/* ── The study briefing ──────────────────────────────────────────────────
- * Between tapping a candidate and opening the watch. A study costs nothing
- * and runs on no clock, so this screen states that plainly rather than
- * dressing up a transaction that does not exist. */
-/* The briefing's starmap: HOME and the source at their true bearing, the
+/* ── The board's starmap and its reading lists ───────────────────────────
+ * AS2 retired the briefing screen these were written for (a study is not
+ * begun any more) and kept its furniture: the starmap now heads an un-acted
+ * board, and the section/menu rules below are shared with the project sheet
+ * and the charter lists. */
+/* The starmap: HOME and the source at their true bearing, the
    neighborhood's other stars scattered at their real projected offsets
    behind. The canvas draws the marks and the dotted sightline (studyboard.ts
    mirrors the ink tokens there); only the labels are type, so they live in
@@ -2534,23 +2535,6 @@ body {
 }
 
 .study-brief-map-dist {
-  color: var(--holos-ink-faint);
-}
-
-/* No smudge here — the starmap above already draws the source. The block is
-   the identity text with the confidence gloss under it. */
-.study-brief-identity {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  padding: 0.6rem 0.1rem 0.9rem;
-}
-
-/* What the percentage on the belief line actually claims. Quiet, but still
-   reading type — the gloss tier the hypothesis rows use. */
-.study-brief-conf-gloss {
-  font-size: var(--holos-text-xs);
-  line-height: 1.4;
   color: var(--holos-ink-faint);
 }
 
@@ -2601,9 +2585,7 @@ body {
   padding: 0.3rem 0.6rem;
 }
 
-/* The ember modifier opts out: its text is the warm white of a lit surface,
-   and lifting it to ink on hover would put unlit prose on burning stone. */
-.study-verb-btn:not(.study-verb-btn--ember):hover {
+.study-verb-btn:hover {
   color: var(--holos-ink-dim);
 }
 
@@ -4460,14 +4442,14 @@ body {
 }
 
 /* ── The ember stone ──────────────────────────────────────────────────
- * The one lit surface in the game, shared by the only two buttons that
- * commit you to something: the ceremony's BECOME and the brief's "Begin the
- * Watch". Everything in this rule is the stone itself; size and label voice
- * differ between the two and live in their own rules below. Keep the club
- * small — a third ember button would spend the surface's whole meaning,
- * which is "this one is not a browse row". */
-.become-button,
-.study-verb-btn--ember {
+ * The one lit surface in the game, and now a club of one: the ceremony's
+ * BECOME. The brief's "Begin the Watch" wore the same stone a size down
+ * until AS2 retired the act (every source carries a study; there is nothing
+ * to begin), and its rules went with it. Everything here is the stone
+ * itself; the size lives in .become-button below. Keep the club small — a
+ * second ember button would spend the surface's whole meaning, which is
+ * "this one is not a browse row". */
+.become-button {
   position: relative;
   overflow: hidden;
   display: flex;
@@ -4513,43 +4495,18 @@ body {
   touch-action: none;
 }
 
-/* The brief's begin: the same stone a size down. It closes a scrolling
-   sheet rather than owning a stage, and the ceremony's proportions here
-   would read as a second BECOME. Cinzel sets lowercase as small caps, so
-   "Begin the Watch" comes out engraved rather than shouted — the hub
-   labels' trick, lit. */
-.study-verb-btn--ember {
-  min-width: 14rem;
-  height: 3.6rem;
-  padding: 0 1.4rem;
-  font-family: var(--holos-font-display);
-  font-size: var(--holos-text-lg);
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-indent: 0.18em; /* optical centering against the tracking */
-  /* Dark translucent stroke around the warm white, painted behind the fill
-     so it hugs the glyph edges rather than thinning them (the become-label
-     precedent). */
-  -webkit-text-stroke: 0.7px rgba(0, 0, 0, 0.45);
-  paint-order: stroke fill;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-}
-
-.become-button:not(:disabled):hover,
-.study-verb-btn--ember:not(:disabled):hover {
+.become-button:not(:disabled):hover {
   transform: translateY(-1px) scale(1.01);
   box-shadow: inset 0 1px 0 rgba(255, 232, 185, 0.65),
     0 0 24px rgba(242, 138, 30, 0.7), 0 0 58px rgba(217, 95, 19, 0.38),
     0 10px 30px rgba(0, 0, 0, 0.55);
 }
 
-.become-button:not(:disabled):active,
-.study-verb-btn--ember:not(:disabled):active {
+.become-button:not(:disabled):active {
   transform: translateY(0) scale(0.995);
 }
 
-.become-button:disabled,
-.study-verb-btn--ember:disabled {
+.become-button:disabled {
   /* Reads as "not yet" without going invisible — a disabled BECOME still has
      to be legible enough to tell you what you're waiting on. */
   opacity: 0.55;

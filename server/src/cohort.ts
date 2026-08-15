@@ -156,7 +156,7 @@ import {
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
-import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine, silenceLine, introLine, counselLine } from "./voice";
+import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine, silenceLine, studyLine, introLine, counselLine } from "./voice";
 import {
   buildStudySnapshot,
   hypothesisMenus,
@@ -3694,7 +3694,7 @@ export class Cohort extends Server<CohortEnv> {
   /**
    * AV1: send the lines this player has not yet been shown — arrival (this
    * civ's archetype), the frame explainers (age chip, compute, clock,
-   * epoch, silence), and S0.1's four intro beats. Sent on placement only,
+   * epoch, silence, study), and S0.1's four intro beats. Sent on placement only,
    * right before that path's sendSky — never from sendSky itself, which
    * repeats on every alarm-driven resend and every verb; the voice message
    * would otherwise replay endlessly. THE CLIENT'S INTRO AUTOPLAY DEPENDS
@@ -3731,6 +3731,9 @@ export class Cohort extends Server<CohortEnv> {
     // The Fermi stance — shown once, on a source card, after the age-chip
     // line has been taken (act3-design.md, *The silence, kept*).
     if (!seen.has("silence")) lines.silence = silenceLine();
+    // AS2: the board's frame line — the client shows it once, on the first
+    // study board opened, which is where a watch is first read.
+    if (!seen.has("study")) lines.study = studyLine();
     // S0.1: the four beats. `forceIntro` bypasses `seen` entirely — the
     // Mind page's replay path re-requests lines this player already
     // dismissed, and the replace-not-patch contract above is what makes

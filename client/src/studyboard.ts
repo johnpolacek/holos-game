@@ -31,7 +31,7 @@
 //
 // Three exceptions, and they prove the rule — every one of them is
 // present-tense and yours. The rail out on the shell is chrome, not panel,
-// and what WORK opens is the list of YOUR work. The HOME end of the briefing's
+// and what WORK opens is the list of YOUR work. The HOME end of the board's
 // starmap is your own star, charted so the source's distance reads as
 // geometry; the deeper rule (cyan = you / amber = other) wins there, because
 // an amber HOME would say "someone else".
@@ -52,7 +52,6 @@ import type {
   DetectedSource,
   Hypothesis,
   HypothesisId,
-  HypothesisMenus,
   ProjectSnapshot,
   ComputeBudget,
   OpenQuestion,
@@ -204,6 +203,23 @@ const TRIPWIRE_STATE_LABEL: Record<"available" | "armed" | "tripped", string> = 
   available: "ARM",
   armed: "ARMED",
   tripped: "TRIPPED",
+};
+
+/**
+ * AS2: what an ENGAGED study's status is called out on an explore row. The
+ * four closed words are the Desk's own dividers, so a study reads the same
+ * either side of the tap; "open" is the one that is not a state word, because
+ * the row is answering "what is this player doing here" and the answer is
+ * that they are working on it. A source with no engaged study gets no flag at
+ * all — every source in the sky has a board, so a flag on all of them would
+ * mark nothing.
+ */
+const STUDY_STATUS_FLAG: Record<StudyStatus, string> = {
+  open: "UNDER STUDY",
+  shelved: "SHELVED",
+  grounded: "GROUNDED",
+  called: "CALLED",
+  overtaken: "OVERTAKEN",
 };
 
 // ── A4: the launch side, as chrome ───────────────────────────────────────
@@ -764,10 +780,13 @@ type View =
   // Sky's drill-ins: the studies and the sources they are made of, plus the
   // conversations — a conversation is with a source at a distance, and the
   // map is the surface that addresses one.
+  //
+  // AS2: the picker and the briefing are gone. Every detected source carries
+  // a board from the moment it is seen, so there is nothing to pick between
+  // and no watch to begin — `explore` is the flat index and `focused` is the
+  // board, ambient or engaged alike.
   | "list"
   | "focused"
-  | "picker"
-  | "brief"
   | "explore"
   // A2.5: one thread, in full. Its own view rather than a fold inside a
   // landing — a conversation is read top to bottom, and the composer needs
@@ -806,8 +825,6 @@ const VIEW_TAB: Record<View, RailTab> = {
   sky: "sky",
   list: "sky",
   focused: "sky",
-  picker: "sky",
-  brief: "sky",
   explore: "sky",
   thread: "sky",
   // The survey and the founding sheet are Sky's (2026-08 revision): the
@@ -830,18 +847,15 @@ const VIEW_TAB: Record<View, RailTab> = {
 
 export class StudyBoard {
   private readonly socket: CohortSocket;
-  /** Opening menu labels per signal class, from `welcome` — the briefing's
-   *  "what it can tell apart". Null omits that section rather than guessing. */
-  private readonly menus: HypothesisMenus | null;
-  /** The launch sheet's vocabulary (kinds + charter clauses), from `welcome`
-   *  like `menus`. Null omits the sheet's catalog rows rather than guessing. */
+  /** The launch sheet's vocabulary (kinds + charter clauses), from `welcome`.
+   *  Null omits the sheet's catalog rows rather than guessing. */
   private readonly missionCatalog: MissionCatalog | null;
   /** A4: the founding sheet's vocabulary (ship kinds, charter clauses, the
    *  dial-notch count, the cap and the occupied-risk line), from `welcome`
    *  like `missionCatalog`. Null omits the sheet rather than guessing. */
   private readonly voyageCatalog: VoyageCatalog | null;
-  /** The public star catalog by id, from `welcome` like `menus` — the
-   *  briefing starmap's geometry. A DetectedSource carries no position (the
+  /** The public star catalog by id, from `welcome` like `missionCatalog` —
+   *  the board starmap's geometry. A DetectedSource carries no position (the
    *  ObservedCiv boundary), but its STAR is public sky. */
   private readonly starsById: ReadonlyMap<string, Star>;
 
@@ -851,7 +865,16 @@ export class StudyBoard {
   private readonly topbar: HTMLDivElement;
   private readonly body: HTMLDivElement;
 
+  /** THE ENGAGED HALF, and it stays that: a study in here is one the player
+   *  has put something into, and every count, flag and list that says "your
+   *  studies" reads this map and never `ambientByStarId`. */
   private studiesByStarId = new Map<string, StudySnapshot>();
+  /** AS2: the boards for sources with no stored record yet — the sky's other
+   *  half, disjoint from `studiesByStarId` by construction (the server sends
+   *  them as two arrays). Read by `boardFor` alone, which is what every
+   *  surface that means "a board for this source, whoever keeps it" goes
+   *  through. */
+  private ambientByStarId = new Map<string, StudySnapshot>();
   private sourcesByStarId = new Map<string, DetectedSource>();
   private localNames: ReadonlyMap<string, string> = new Map();
   private projects: readonly ProjectSnapshot[] = [];
@@ -876,7 +899,6 @@ export class StudyBoard {
   private openFlag = false;
   private view: View = "list";
   private focusedStarId: string | null = null;
-  private briefStarId: string | null = null;
   private focusedMissionId: string | null = null;
   // The project detail sheet: which catalog entry, and which panel the tap
   // came from — the back button returns there, so Tend, Projects and the
@@ -887,10 +909,14 @@ export class StudyBoard {
   // must come home there. "work" is the work list, which is the Work
   // landing's lower half.
   private projectReturn: "work" | "projects" | "report" | "mind" = "projects";
-  // AV3: same rule for the brief — a proposal's `study-brief` route opens it
-  // from the Mind page, and backing out must come home there, not to a picker
-  // the player never visited.
-  private briefReturn: "picker" | "mind" = "picker";
+  // AS2: the same rule for a board, on the projectReturn precedent. A board
+  // is reached from the Desk (the studies the player keeps), from a proposal
+  // on the Mind page, and from a report entry; backing out of one comes home
+  // where the tap came from rather than always to the Desk, which a player
+  // arriving from the mind never visited.
+  private studyReturn: "list" | "mind" | "report" = "list";
+  /** How many ENGAGED studies are open — Sky's "Your studies" count. Ambient
+   *  boards are not in it: it would otherwise report the size of the sky. */
   private openStudyCount = 0;
 
   // The reset's two transient bits. `pending` disables the verb for the one
@@ -996,13 +1022,6 @@ export class StudyBoard {
    *  an `error`, which handleServerError has already caught). */
   private pendingOrderClass: string | null = null;
 
-  // The star a `begin the watch` is in flight for. The confirming `sky`
-  // carries the new study and hands straight to the focused board — without
-  // this the picker row simply vanished in place and the tap read as a
-  // dead end. Cleared by any sky that does not confirm, and by any server
-  // error, so the verb can never sit stuck mid-flight.
-  private pendingBeginStarId: string | null = null;
-
   // The latest SelfView, handed over by the App just before every update()
   // — the starmap's HOME end. Null only before the first sky, when nothing
   // renders anyway; the map simply omits itself rather than guess.
@@ -1031,8 +1050,7 @@ export class StudyBoard {
   // A launchMission in flight: the star plus a snapshot of the mission ids
   // already on the wire at send time, so the confirming sky can pick out
   // the ONE new mission it carries (by id difference) and hand focus
-  // straight to its detail view — the monitor page, same beat as
-  // pendingBeginStarId's "begin the watch" → focusStudy.
+  // straight to its detail view — the monitor page.
   private pendingLaunchStarId: string | null = null;
   private pendingLaunchPriorMissionIds: ReadonlySet<string> = new Set();
 
@@ -1174,6 +1192,16 @@ export class StudyBoard {
   // it back.
   private reportExplainerText: string | null = null;
 
+  // AS2: the board's one-time note — what a standing watch is and what
+  // attending to one costs, which is what the retired briefing screen used to
+  // spend three sections saying. Same field-only contract as the three above:
+  // the App sets it via setStudyExplainer when onStudyOpen fires, and
+  // renderFocused only reads it back. It shows on the first board a civ ever
+  // opens, ambient or engaged alike — the board is the first face of the
+  // watch either way.
+  private studyExplainerText: string | null = null;
+  private onStudyOpenCb: (() => void) | null = null;
+
   // ── A2.6: durable identity ────────────────────────────────────────────
   // Whether THIS SEAT has an account, from `welcome.account` (App forwards
   // it via setHasAccount) — decides which of the two Mind rows renders. A
@@ -1218,14 +1246,12 @@ export class StudyBoard {
   constructor(
     container: HTMLElement,
     socket: CohortSocket,
-    menus: HypothesisMenus | null,
     missionCatalog: MissionCatalog | null,
     voyageCatalog: VoyageCatalog | null,
     catalog: readonly Star[],
     focusHost: FocusHost,
   ) {
     this.socket = socket;
-    this.menus = menus;
     this.missionCatalog = missionCatalog;
     this.voyageCatalog = voyageCatalog;
     this.starsById = new Map(catalog.map((s) => [s.id, s] as const));
@@ -1310,6 +1336,23 @@ export class StudyBoard {
   setPushKey(publicKey: string | null): void {
     this.pushPublicKey = publicKey;
     if (publicKey !== null) void this.refreshWatchState();
+  }
+
+  /** AS2: the ambient half of the sky — a full board for every detected
+   *  source with no stored record behind it yet. Handed over just before
+   *  update(), exactly as setLedger is, and kept apart from `studies` so that
+   *  everything reading "your studies" keeps meaning the engaged set. */
+  setAmbient(ambient: readonly StudySnapshot[]): void {
+    this.ambientByStarId = new Map(ambient.map((s) => [s.starId, s] as const));
+  }
+
+  /** The board for a source, whoever keeps it: the engaged study if the
+   *  player has put something into this source, otherwise the ambient board
+   *  the observatory has been keeping all along. The two sets are disjoint,
+   *  so the order here is a tie-break that can never fire. Undefined only for
+   *  a star that is not a detected source at all. */
+  private boardFor(starId: string): StudySnapshot | undefined {
+    return this.studiesByStarId.get(starId) ?? this.ambientByStarId.get(starId);
   }
 
   /** A5: whether the SEAT holds a subscription, from every `sky`. Handed over
@@ -1402,18 +1445,6 @@ export class StudyBoard {
       }
     }
 
-    // A begin sent from the briefing: this sky either carries the new study
-    // — hand straight to it, which is the monitor page — or it does not, in
-    // which case the request went nowhere and the verb is released.
-    if (this.pendingBeginStarId !== null) {
-      const starId = this.pendingBeginStarId;
-      this.pendingBeginStarId = null;
-      if (this.studiesByStarId.has(starId)) {
-        this.focusStudy(starId);
-        return;
-      }
-    }
-
     // A startProject in flight: released the moment the project's own state
     // moves past "available" (running or, same sky, already landed).
     if (this.pendingProjectId !== null) {
@@ -1497,19 +1528,16 @@ export class StudyBoard {
     }
 
     if (this.view === "focused" && this.focusedStarId !== null) {
-      if (this.studiesByStarId.has(this.focusedStarId)) {
+      // AS2: a board exists for every detected source, so this only falls
+      // through when the SOURCE itself has gone from the payload.
+      if (this.boardFor(this.focusedStarId) !== undefined) {
         this.renderFocused(this.focusedStarId);
       } else {
-        // The focused study vanished from this payload — fall back to list.
+        // The focused board vanished from this payload — fall back to list.
         this.view = "list";
         this.focusedStarId = null;
         this.renderList();
       }
-    } else if (this.view === "picker") {
-      // Re-render so a row disappears the moment its study exists.
-      this.renderPicker();
-    } else if (this.view === "brief") {
-      this.renderBrief();
     } else if (this.view === "sky") {
       this.renderSky();
     } else if (this.view === "explore") {
@@ -1673,15 +1701,6 @@ export class StudyBoard {
     }
   }
 
-  openPicker(): void {
-    this.view = "picker";
-    this.focusedStarId = null;
-    this.renderPicker();
-    this.openFlag = true;
-    this.root.classList.add("open");
-    this.startTicking();
-  }
-
   openProjects(): void {
     this.view = "projects";
     this.focusedStarId = null;
@@ -1691,7 +1710,8 @@ export class StudyBoard {
     this.startTicking();
   }
 
-  /** Everything the instruments can see. Sky's, like the picker beside it. */
+  /** Everything the instruments can see, and the flat index into every board
+   *  in the sky — Sky's own drill-in. */
   private openExplore(): void {
     this.view = "explore";
     this.focusedStarId = null;
@@ -1701,9 +1721,20 @@ export class StudyBoard {
     this.startTicking();
   }
 
-  focusStudy(starId: string): void {
+  /**
+   * The board for one source, ambient or engaged. `from` is the leg back out
+   * (the focusProject precedent): the Desk by default, the Mind page for a
+   * board a proposal opened, the report for a board a record entry opened.
+   *
+   * `onStudyOpenCb` fires FIRST, before renderFocused(), so a
+   * setStudyExplainer() the callback makes is already in `studyExplainerText`
+   * for the very first render — the openReport/openWork mold.
+   */
+  focusStudy(starId: string, from: "list" | "mind" | "report" = "list"): void {
+    this.onStudyOpenCb?.();
     this.view = "focused";
     this.focusedStarId = starId;
+    this.studyReturn = from;
     // A board opened fresh opens with every question folded and no CALL IT
     // confirm armed.
     this.expandedQuestion = null;
@@ -1745,7 +1776,7 @@ export class StudyBoard {
    * already being assembled while this render puts the header up (openReport's
    * requestReport precedent); the confirming sky fills the column in.
    * Always opens clean — a half-written signal never survives a close/reopen,
-   * the openLaunch/openBrief rule.
+   * the openLaunch rule.
    */
   openThread(starId: string): void {
     this.threadStarId = starId;
@@ -1795,7 +1826,7 @@ export class StudyBoard {
 
   /** A composer opened fresh is empty and plain-spoken. Called on every way
    *  in and every way out — a half-assembled signal never survives a
-   *  close/reopen, the openLaunch/openBrief rule. */
+   *  close/reopen, the openLaunch rule. */
   private resetComposer(): void {
     this.composerParts = [];
     this.composerTone = "plain";
@@ -1818,8 +1849,8 @@ export class StudyBoard {
   }
 
   /** Opens the two-step launch sheet for `starId`. Always starts clean — a
-   *  half-written charter never survives a close/reopen (openBrief's
-   *  precedent: `pendingBeginStarId` reset on entry). */
+   *  half-written charter never survives a close/reopen (openThread's
+   *  precedent: the composer is reset on entry). */
   openLaunch(starId: string): void {
     this.view = "launch";
     this.launchStarId = starId;
@@ -1869,20 +1900,22 @@ export class StudyBoard {
     this.startTicking();
   }
 
-  /** AV3: a proposal's `question` route — focuses the study and scrolls its
-   *  matching OPEN QUESTIONS row into view. Guards on the study still being
+  /** AV3: a proposal's `question` route — focuses the board and scrolls its
+   *  matching OPEN QUESTIONS row into view. Guards on the source still being
    *  in this session's sky (the AV3 design's "target fades mid-session"
    *  edge case) and falls back to the page it was proposed on rather than
    *  opening a focus view
-   *  for a study that no longer exists. The scroll itself is one-shot: see
+   *  for a board that no longer exists. The scroll itself is one-shot: see
    *  `highlightQuestionId` and renderFocused's oqSection loop. */
   private focusStudyQuestion(starId: string, questionId: string): void {
-    if (!this.studiesByStarId.has(starId)) {
+    if (this.boardFor(starId) === undefined) {
       this.openMind();
       return;
     }
+    this.onStudyOpenCb?.();
     this.view = "focused";
     this.focusedStarId = starId;
+    this.studyReturn = "mind";
     this.highlightQuestionId = questionId;
     // The route means "look at this question", so it lands on the drill-in
     // rather than on a folded row the player would have to tap again. The
@@ -1958,8 +1991,6 @@ export class StudyBoard {
     switch (this.view) {
       case "focused":
         return this.focusedStarId;
-      case "brief":
-        return this.briefStarId;
       case "thread":
         return this.threadStarId;
       case "launch":
@@ -2252,9 +2283,27 @@ export class StudyBoard {
     this.reportExplainerText = text;
   }
 
+  /** Registers the callback fired as the FIRST step of every focusStudy()
+   *  and of a proposal's question route — the onReportOpen mold, so a
+   *  setStudyExplainer() the callback makes is already in
+   *  `studyExplainerText` for the very first render. */
+  onStudyOpen(cb: () => void): void {
+    this.onStudyOpenCb = cb;
+  }
+
+  /** AS2: the board's one-time note (what a standing watch is, what
+   *  attending to one costs), or null for none. Same field-only contract as
+   *  setReportExplainer — renderFocused() only ever reads it back. */
+  setStudyExplainer(text: string | null): void {
+    this.studyExplainerText = text;
+  }
+
   // ── Render: chrome ──────────────────────────────────────────────────
 
-  /** Keeps the open-study count fresh for Sky's "Your studies" row. */
+  /** Keeps the open-study count fresh for Sky's "Your studies" row. Counts
+   *  the ENGAGED map only (AS2): every source in the sky carries a board, so
+   *  counting boards would report the size of the sky and call it a
+   *  portfolio. */
   private updateStudyCount(): void {
     let n = 0;
     for (const s of this.studiesByStarId.values()) {
@@ -2344,25 +2393,20 @@ export class StudyBoard {
       this.body.append(note);
     }
 
+    // AS2: the door to the Desk, which is the ENGAGED set — the sources this
+    // player has put something into. The row is absent until there is one,
+    // and the sky's other boards are reached through Explore below.
     if (this.studiesByStarId.size > 0) {
       this.body.append(
         this.buildHubRow(
           `Your studies · ${this.openStudyCount}`,
-          "Open and shelved.",
+          "The sources you have put something into.",
           true,
           () => this.openBoard(),
         ),
       );
     }
 
-    this.body.append(
-      this.buildHubRow(
-        "Start a study",
-        "Watch a source and work out what it is.",
-        true,
-        () => this.openPicker(),
-      ),
-    );
     this.body.append(
       this.buildHubRow(
         "Explore the sky",
@@ -3097,8 +3141,11 @@ export class StudyBoard {
    *  case — "accept-then-don't-commit"). */
   private followProposalRoute(route: ProposalRoute): void {
     switch (route.kind) {
+      // AS2: the route id outlives the briefing screen it was named for. It
+      // always meant "look at this source's study" and now goes to the board
+      // itself, with the Mind page as its way back out.
       case "study-brief":
-        this.openBrief(route.starId, "mind");
+        this.focusStudy(route.starId, "mind");
         break;
       case "question":
         this.focusStudyQuestion(route.starId, route.questionId);
@@ -3337,7 +3384,8 @@ export class StudyBoard {
 
     const subtitle = document.createElement("div");
     subtitle.className = "study-picker-subtitle";
-    subtitle.textContent = "Everything your instruments have found. Tap one to look closer.";
+    subtitle.textContent =
+      "Everything your instruments have found. Each one is already under a study you can read.";
     this.body.append(subtitle);
 
     this.body.append(this.hairline());
@@ -3387,8 +3435,7 @@ export class StudyBoard {
   }
 
   /** The text half of a source row — designation, local name, belief, light
-   *  age. Shared with the briefing so a source reads identically either side
-   *  of the tap that opens it. */
+   *  age. */
   private buildSourceIdentity(source: DetectedSource): HTMLDivElement {
     const text = document.createElement("div");
     text.className = "study-row-text";
@@ -3426,6 +3473,13 @@ export class StudyBoard {
     return text;
   }
 
+  /** The row's tap target is the source card, which is the door to the board
+   *  — the explore list is an index, not a second board list.
+   *
+   *  AS2: the flag marks ENGAGEMENT and nothing else. Every source on this
+   *  page carries a board, so a flag on all of them would say nothing; what
+   *  it says instead is which of them this player has put something into,
+   *  and what became of it. */
   private buildExploreRow(source: DetectedSource): HTMLButtonElement {
     const btn = this.buildSourceRow(source);
     btn.addEventListener("click", () => {
@@ -3433,10 +3487,11 @@ export class StudyBoard {
       this.close();
     });
 
-    if (this.studiesByStarId.has(source.starId)) {
+    const engaged = this.studiesByStarId.get(source.starId);
+    if (engaged !== undefined) {
       const flag = document.createElement("span");
       flag.className = "study-explore-flag holos-caps";
-      flag.textContent = "UNDER STUDY";
+      flag.textContent = STUDY_STATUS_FLAG[engaged.status];
       btn.append(flag);
     }
 
@@ -3445,6 +3500,12 @@ export class StudyBoard {
 
   // ── Render: list view ────────────────────────────────────────────────
 
+  /**
+   * THE DESK: the studies this player keeps. Engaged only, and that is the
+   * whole point of the page (AS2) — the sky's other boards are all still
+   * there, standing, and this is the shorter list of the ones a question, a
+   * tripwire or a probe has been spent on.
+   */
   private renderList(): void {
     this.body.innerHTML = "";
 
@@ -3453,13 +3514,23 @@ export class StudyBoard {
     header.textContent = "THE OBSERVATORY";
     this.body.append(header);
 
+    // The section caption, the sibling pages' idiom (R-40): what this page
+    // holds, and where it stops. It stops at engagement, and the foot row
+    // below is where the rest of the sky is.
+    const subtitle = document.createElement("div");
+    subtitle.className = "study-picker-subtitle";
+    subtitle.textContent =
+      "The sources you have put something into, and what the light has made of them since.";
+    this.body.append(subtitle);
+
     const all = [...this.studiesByStarId.values()];
     if (all.length === 0) {
       const empty = document.createElement("div");
       empty.className = "study-board-empty";
-      empty.textContent = "No studies open.";
+      empty.textContent =
+        "Nothing here yet. A source joins this page when you buy a question, arm a tripwire, or send a probe.";
       this.body.append(empty);
-      this.body.append(this.buildStartStudyButton());
+      this.body.append(this.buildSkyHubRow());
       return;
     }
 
@@ -3496,19 +3567,24 @@ export class StudyBoard {
       }
     }
 
-    this.body.append(this.buildStartStudyButton());
+    this.body.append(this.buildSkyHubRow());
   }
 
-  private buildStartStudyButton(): HTMLDivElement {
-    const row = document.createElement("div");
-    row.className = "study-verb-row";
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "study-verb-btn";
-    btn.textContent = "+ START A STUDY";
-    btn.addEventListener("click", () => this.openPicker());
-    row.append(btn);
-    return row;
+  /**
+   * The Desk's foot. It used to be START A STUDY, which was a verb for an act
+   * that no longer exists; what stands there now is the hinge of the sweep
+   * (Report, then the Desk, then the rest of the sky) — a quiet browse row
+   * into the index, in the aside tone, because looking is not one of the
+   * game's verbs.
+   */
+  private buildSkyHubRow(): HTMLButtonElement {
+    return this.buildHubRow(
+      "The rest of the sky",
+      "Every other source, and the study standing on it.",
+      true,
+      () => this.openExplore(),
+      "aside",
+    );
   }
 
   /** A study with no matching DetectedSource is skipped entirely (defensive:
@@ -3618,203 +3694,13 @@ export class StudyBoard {
     return btn;
   }
 
-  // ── Render: picker view ──────────────────────────────────────────────
-
-  private renderPicker(): void {
-    this.body.innerHTML = "";
-
-    const back = document.createElement("button");
-    back.type = "button";
-    back.className = "study-back holos-caps";
-    back.textContent = "‹ BACK";
-    back.addEventListener("click", () => this.openSkyPage());
-    this.body.append(back);
-
-    const header = document.createElement("div");
-    header.className = "study-board-header holos-caps";
-    header.textContent = "START A STUDY";
-    this.body.append(header);
-
-    const subtitle = document.createElement("div");
-    subtitle.className = "study-picker-subtitle";
-    subtitle.textContent = "Sources your instruments have found. Tap one to read the brief.";
-    this.body.append(subtitle);
-
-    this.body.append(this.hairline());
-
-    const candidates = [...this.sourcesByStarId.values()]
-      .filter((source) => !this.studiesByStarId.has(source.starId))
-      .sort((a, b) => a.lightAgeYears - b.lightAgeYears);
-
-    if (candidates.length === 0) {
-      const empty = document.createElement("div");
-      empty.className = "study-board-empty";
-      empty.textContent = "Nothing new in reach. Every source found is already under study.";
-      this.body.append(empty);
-      return;
-    }
-
-    for (const source of candidates) {
-      this.body.append(this.buildPickerRow(source));
-    }
-  }
-
-  private buildPickerRow(source: DetectedSource): HTMLButtonElement {
-    const btn = this.buildSourceRow(source);
-    btn.addEventListener("click", () => this.openBrief(source.starId));
-    return btn;
-  }
-
-  // ── Render: briefing view ────────────────────────────────────────────
-  // Tapping a candidate does not open a study — it opens the brief. A study
-  // is free, uncapped and reversible, so the brief's job is not to price a
-  // transaction (there is none) but to say what the watch is, what it can
-  // tell apart, and what it will and will not cost. Nothing here invents a
-  // spend: compute buys questions, and questions are their own slice.
-
-  /** AV3: public — a proposal's `study-brief` route (followProposalRoute)
-   *  is the mind's own affordance for opening this same brief, alongside
-   *  the picker row's tap. */
-  openBrief(starId: string, from: "picker" | "mind" = "picker"): void {
-    this.view = "brief";
-    this.briefStarId = starId;
-    this.briefReturn = from;
-    this.pendingBeginStarId = null;
-    this.renderBrief();
-    // The sheet body keeps its scroll across view swaps, and a picker
-    // scrolled deep would otherwise open the brief past its own starmap.
-    // Entry only — the sky-driven re-render must never yank a reader.
-    this.body.scrollTop = 0;
-    this.openFlag = true;
-    this.root.classList.add("open");
-    this.startTicking();
-  }
-
-  private renderBrief(): void {
-    const starId = this.briefStarId;
-    const source = starId === null ? undefined : this.sourcesByStarId.get(starId);
-    this.body.innerHTML = "";
-
-    // The source faded between the picker and here — there is nothing to
-    // brief, so fall back rather than render a card about nothing.
-    if (starId === null || source === undefined) {
-      this.briefStarId = null;
-      if (this.briefReturn === "mind") {
-        this.view = "mind";
-        this.renderMind();
-      } else {
-        this.view = "picker";
-        this.renderPicker();
-      }
-      return;
-    }
-
-    const back = document.createElement("button");
-    back.type = "button";
-    back.className = "study-back holos-caps";
-    back.textContent = "‹ BACK";
-    back.addEventListener("click", () => {
-      if (this.briefReturn === "mind") this.openMind();
-      else this.openPicker();
-    });
-    this.body.append(back);
-
-    // The chart first: where this source actually sits relative to home —
-    // the brief opens on the geometry the whole watch is about.
-    const map = this.buildBriefStarmap(source);
-    if (map !== null) this.body.append(map);
-
-    // The same identity block the picker row carries, so the source reads as
-    // itself across the tap — minus the smudge, which the starmap directly
-    // above already draws (under the same sizing law), and which said the
-    // percentage a second time in a form nobody had asked for. The gloss
-    // takes its place: the one number on this screen, stated in words.
-    const identity = document.createElement("div");
-    identity.className = "study-brief-identity";
-    identity.append(this.buildSourceIdentity(source));
-    const confGloss = document.createElement("div");
-    confGloss.className = "study-brief-conf-gloss";
-    confGloss.textContent =
-      "The percentage is confidence in the reading, not a measure of the source: " +
-      "nearer and brighter light reads surer. The remainder belongs to the other " +
-      "stories the same light still allows.";
-    identity.append(confGloss);
-    this.body.append(identity);
-
-    this.body.append(this.hairline());
-
-    this.body.append(
-      this.buildBriefSection(
-        "WHAT A STUDY IS",
-        "A standing watch on one source. Its light reaches us at its own delay, and every arrival is filed here and read against the stories still in play.",
-      ),
-    );
-
-    const menu = this.menus === null ? [] : this.menus[source.signal.classification];
-    if (menu.length > 0) {
-      const section = this.buildBriefSection(
-        "WHAT IT COULD TELL APART",
-        // No class name in this sentence: the labels are not all count nouns
-        // ("a transit shadows"), and the class already sits in the identity
-        // block directly above.
-        "At this range the reading admits more than one story. The watch holds them all at once, each with its share of the confidence.",
-      );
-      const list = document.createElement("div");
-      list.className = "study-brief-menu";
-      // Label over gloss, exactly as the board's hypothesis rows carry them —
-      // the same reading in the same words on both sides of the tap.
-      for (const entry of menu) {
-        const item = document.createElement("div");
-        item.className = "study-hyp-labelcol study-brief-reading";
-        const label = document.createElement("span");
-        label.className = "study-hyp-label holos-caps";
-        label.textContent = entry.label;
-        const gloss = document.createElement("span");
-        gloss.className = "study-hyp-gloss";
-        gloss.textContent = entry.gloss;
-        item.append(label, gloss);
-        list.append(item);
-      }
-      section.append(list);
-      this.body.append(section);
-    }
-
-    this.body.append(
-      this.buildBriefSection(
-        "WHAT IT COSTS",
-        "Nothing to open, nothing to hold, and no limit on how many stand at once. The light arrives whether or not you attend to it, so watching spends only patience. Compute buys questions, the inference that separates one reading from another, and no question has been put to this source.",
-      ),
-    );
-
-    const meta = document.createElement("div");
-    meta.className = "study-brief-meta holos-caps";
-    meta.textContent = "NO COMPUTE · NO CLOCK · REVERSIBLE";
-    this.body.append(meta);
-
-    this.body.append(this.hairline());
-
-    const verbRow = document.createElement("div");
-    verbRow.className = "study-verb-row";
-    const verbBtn = document.createElement("button");
-    verbBtn.type = "button";
-    // The one commit on this screen, and the only one outside the ceremony
-    // that costs the player a decision — so it wears the ceremony's lit
-    // stone rather than the outlined pill the lesser verbs share.
-    verbBtn.className = "study-verb-btn study-verb-btn--ember";
-    if (this.pendingBeginStarId === starId) {
-      verbBtn.disabled = true;
-      verbBtn.textContent = "Opening the Watch…";
-    } else {
-      verbBtn.textContent = "Begin the Watch";
-      verbBtn.addEventListener("click", () => {
-        this.pendingBeginStarId = starId;
-        this.socket.send({ type: "openStudy", starId });
-        this.renderBrief();
-      });
-    }
-    verbRow.append(verbBtn);
-    this.body.append(verbRow);
-  }
+  // ── Render: the board's own furniture ────────────────────────────────
+  // AS2 retired the picker and the briefing screen with it. A study is not
+  // begun any more (every detected source carries one from the moment it is
+  // seen), so the screen between "tap a candidate" and "open the watch" had
+  // nothing left to stand between. What the brief taught survives in two
+  // places: its starmap is the head of an un-acted board, and its three
+  // sections are one line the mind says once (the board explainer).
 
   private buildBriefSection(header: string, body: string): HTMLDivElement {
     const section = document.createElement("div");
@@ -3833,9 +3719,14 @@ export class StudyBoard {
   }
 
   /**
-   * The chart at the top of the briefing: HOME and this source at their true
-   * bearing through the neighborhood, joined by the sightline the light
-   * actually crosses. Everything on it is re-used vocabulary — the public
+   * The chart at the head of an un-acted board (the briefing's, inherited —
+   * AS2): HOME and this source at their true bearing through the
+   * neighborhood, joined by the sightline the light actually crosses. It
+   * stands where the engaged board draws its smudge, because a board nobody
+   * has spent anything on opens on the geometry the whole watch is about, and
+   * the smudge is drawn inside the chart anyway.
+   *
+   * Everything on it is re-used vocabulary — the public
    * catalog's positions, the Model's point-in-a-thin-cyan-ring HOME and its
    * amber smudge law, the panel's hairline gold for the path — so it reads
    * as the sky folded flat, not a new diagram. Null (no map at all) when the
@@ -4017,11 +3908,6 @@ export class StudyBoard {
    * something to say. Every other code still releases the same silent way.
    */
   handleServerError(code?: CohortErrorCode): void {
-    let releasedBegin = false;
-    if (this.pendingBeginStarId !== null) {
-      this.pendingBeginStarId = null;
-      releasedBegin = true;
-    }
     let releasedQuestion = false;
     if (this.pendingQuestion !== null) {
       this.pendingQuestion = null;
@@ -4103,7 +3989,6 @@ export class StudyBoard {
       this.pendingAccountAction = null;
     }
 
-    if (releasedBegin && this.view === "brief") this.renderBrief();
     if (
       (releasedQuestion || releasedCall || releasedTripwire) &&
       this.view === "focused" &&
@@ -4872,12 +4757,14 @@ export class StudyBoard {
   /** AV2 routing: study/mission focus the board directly; source is the
    *  Tend-row idiom (inspect the source card, then close the sheet);
    *  project opens the detail sheet with "report" as its return leg, so its
-   *  own back button comes home here. `kind: "none"` never reaches this —
+   *  own back button comes home here. AS2: the study arm takes the same
+   *  return leg, for the same reason — a board opened off a record entry
+   *  belongs back on the record. `kind: "none"` never reaches this —
    *  buildReportRow renders it as a non-interactive div. */
   private followReportRoute(route: ReportRoute): void {
     switch (route.kind) {
       case "study":
-        this.focusStudy(route.starId);
+        this.focusStudy(route.starId, "report");
         break;
       case "mission":
         this.focusMission(route.missionId);
@@ -6558,8 +6445,9 @@ export class StudyBoard {
 
     this.body.append(this.hairline());
 
-    // Charter — the same reading anatomy the briefing's menu uses (label
-    // over quiet gloss), reused wholesale rather than a new quiet-list style.
+    // Charter — the same reading anatomy the board's hypothesis rows use
+    // (label over quiet gloss), reused wholesale rather than a new
+    // quiet-list style.
     const charterHeader = document.createElement("div");
     charterHeader.className = "study-section-header holos-caps";
     charterHeader.textContent = "CHARTER";
@@ -6723,7 +6611,7 @@ export class StudyBoard {
 
     // The source faded before the sheet opened (or between renders) — there
     // is nothing to launch at, so fall back rather than render about nothing
-    // (renderBrief's precedent).
+    // (renderFocused's precedent).
     if (starId === null || source === undefined) {
       this.view = "work";
       this.launchStarId = null;
@@ -8453,16 +8341,35 @@ export class StudyBoard {
   }
 
   // ── Render: focused view ─────────────────────────────────────────────
+  //
+  // AS2: ONE render for both faces of a board. The board itself is the same
+  // object either way — `boardFor` hands back the engaged study if the player
+  // keeps one and the observatory's own standing board if they do not — and
+  // the two faces differ in CHROME only:
+  //
+  //   ambient   the starmap at the head in place of the smudge, one caption
+  //             line saying whose study this is, and NO VERB ROW: there is no
+  //             record to shelve, nothing to call off, and no watch to take
+  //             up that is not already being kept.
+  //   engaged   the smudge, no caption, and the verbs it has always carried.
+  //
+  // Everything between those — the readings, the archive, OPEN QUESTIONS with
+  // their prices, the tripwires — is identical, because it is identical. The
+  // questions are the call to action on an un-acted board: buying one is the
+  // first act, and the record materializes under it.
 
   private renderFocused(starId: string): void {
-    const s = this.studiesByStarId.get(starId);
+    const s = this.boardFor(starId);
     const source = s === undefined ? undefined : this.sourcesByStarId.get(starId);
     if (s === undefined || source === undefined) {
-      // Defensive; see update(). A study that is not there any more has no
+      // Defensive; see update(). A board that is not there any more has no
       // detail to host either, so the card gets itself back.
       this.focusHost.release();
       return;
     }
+    // Engagement is map membership and nothing on the snapshot (the wire's
+    // own rule — the two arrays are the distinction).
+    const engaged = this.studiesByStarId.has(starId);
 
     // S0.4: this render is the one that never touches `this.body` — the study
     // is on the card, and the panel's own page is whatever it was showing
@@ -8476,16 +8383,30 @@ export class StudyBoard {
     const back = document.createElement("button");
     back.type = "button";
     back.className = "study-back holos-caps";
-    back.textContent = "‹ STUDIES";
-    back.addEventListener("click", () => this.openBoard());
+    // The way out is the way in (`studyReturn`, the projectReturn precedent).
+    back.textContent = this.studyReturn === "list" ? "‹ STUDIES" : "‹ BACK";
+    back.addEventListener("click", () => {
+      if (this.studyReturn === "mind") this.openMind();
+      else if (this.studyReturn === "report") this.openReport();
+      else this.openBoard();
+    });
     host.append(back);
 
-    const leader = leadingHypothesis(s.hypotheses);
-    const leaderShare = clamp01(leader?.share ?? 0);
-    const smudge = document.createElement("div");
-    smudge.className = "study-smudge";
-    smudge.style.opacity = (0.3 + leaderShare * 0.6).toFixed(2);
-    host.append(smudge);
+    if (engaged) {
+      const leader = leadingHypothesis(s.hypotheses);
+      const leaderShare = clamp01(leader?.share ?? 0);
+      const smudge = document.createElement("div");
+      smudge.className = "study-smudge";
+      smudge.style.opacity = (0.3 + leaderShare * 0.6).toFixed(2);
+      host.append(smudge);
+    } else {
+      // The chart the briefing used to open on, in the smudge's place: a
+      // board nobody has spent anything on opens on where this source
+      // actually is. Absent (and the head simply starts at the name) when the
+      // geometry is not known — buildBriefStarmap's own rule.
+      const map = this.buildBriefStarmap(source);
+      if (map !== null) host.append(map);
+    }
 
     const header = document.createElement("div");
     header.className = "study-focus-header";
@@ -8503,10 +8424,33 @@ export class StudyBoard {
     header.append(nameEl);
     host.append(header);
 
+    // The caption (R-40, the sibling pages' mold): what a player is looking
+    // at on a board they have never touched. Only on the ambient face — on an
+    // engaged board the answer is on the Desk and in the verbs below.
+    if (!engaged) {
+      const caption = document.createElement("div");
+      caption.className = "study-picker-subtitle";
+      caption.textContent =
+        "A study the observatory already keeps. It stands whether or not you spend anything on it.";
+      host.append(caption);
+    }
+
     const lightAgeLine = document.createElement("div");
     lightAgeLine.className = "study-focus-lightage";
     lightAgeLine.textContent = `The light you are reading left it ${source.lightAgeYears.toFixed(1)} years ago.`;
     host.append(lightAgeLine);
+
+    // AV1: the one-time note, on the first board this civ ever opens. It says
+    // what a standing watch is and what attending to one costs — the three
+    // sections the briefing screen used to spend on it — and it sits under
+    // the identity block so it is read after the thing it explains, never
+    // before it (renderReport's placement).
+    if (this.studyExplainerText !== null) {
+      const note = document.createElement("div");
+      note.className = "voice-note";
+      note.textContent = this.studyExplainerText;
+      host.append(note);
+    }
 
     host.append(this.hairline());
 
@@ -8692,43 +8636,51 @@ export class StudyBoard {
 
     host.append(this.hairline());
 
-    // Verb row — reversible, a tap, no confirmation.
-    const verbRow = document.createElement("div");
-    verbRow.className = "study-verb-row";
-    const verbBtn = document.createElement("button");
-    verbBtn.type = "button";
-    verbBtn.className = "study-verb-btn";
-    if (s.status === "open") {
-      verbBtn.textContent = "shelve the study";
-      verbBtn.addEventListener("click", () => {
-        this.socket.send({ type: "shelveStudy", starId });
-      });
-    } else if (s.status === "shelved") {
-      // Grounded/called/overtaken and shelved both reopen through openStudy,
-      // but they are not the same act: resuming a shelved vigil picks the
-      // watch back up, while reopening a closed one is doubting (or
-      // outliving) a verdict that was there. The reopen stamps a new
-      // openedYear server-side (and clears called/overtaken — studies.ts's
-      // openStudy), so whatever closed this study can never close it again
-      // — only the next word can.
-      verbBtn.textContent = "resume the watch";
-      verbBtn.addEventListener("click", () => {
-        this.socket.send({ type: "openStudy", starId });
-      });
-    } else {
-      verbBtn.textContent = "reopen the study";
-      verbBtn.addEventListener("click", () => {
-        this.socket.send({ type: "openStudy", starId });
-      });
+    // AS2: the verbs belong to a RECORD, and an ambient board has none. There
+    // is nothing to shelve (the server refuses a shelve with no record behind
+    // it), nothing to call, and no watch to take up that is not already being
+    // kept — so the un-acted face simply ends here, with the questions above
+    // it as the one thing to do. The first act materializes the record and
+    // the verbs arrive with it.
+    if (engaged) {
+      // Verb row — reversible, a tap, no confirmation.
+      const verbRow = document.createElement("div");
+      verbRow.className = "study-verb-row";
+      const verbBtn = document.createElement("button");
+      verbBtn.type = "button";
+      verbBtn.className = "study-verb-btn";
+      if (s.status === "open") {
+        verbBtn.textContent = "shelve the study";
+        verbBtn.addEventListener("click", () => {
+          this.socket.send({ type: "shelveStudy", starId });
+        });
+      } else if (s.status === "shelved") {
+        // Grounded/called/overtaken and shelved both resume through
+        // openStudy, but they are not the same act: resuming a shelved vigil
+        // picks the watch back up, while taking up a closed one is doubting
+        // (or outliving) a verdict that was there. Either way the study is
+        // STAMPED anew server-side (and called/overtaken cleared —
+        // studies.ts's openStudy), so whatever closed it can never close it
+        // again; only the next word can.
+        verbBtn.textContent = "resume the watch";
+        verbBtn.addEventListener("click", () => {
+          this.socket.send({ type: "openStudy", starId });
+        });
+      } else {
+        verbBtn.textContent = "take the watch up again";
+        verbBtn.addEventListener("click", () => {
+          this.socket.send({ type: "openStudy", starId });
+        });
+      }
+      verbRow.append(verbBtn);
+      host.append(verbRow);
     }
-    verbRow.append(verbBtn);
-    host.append(verbRow);
 
     // A2.3: CALL IT — legal from open or shelved (protocol.ts's callStudy
     // comment; a closed study cannot be closed again, "study-unavailable").
     // Two-tap confirm, no hold-to-commit ceremony: the first tap only arms
     // the button, the second actually sends.
-    if (s.status === "open" || s.status === "shelved") {
+    if (engaged && (s.status === "open" || s.status === "shelved")) {
       const callRow = document.createElement("div");
       callRow.className = "study-verb-row";
       const callBtn = document.createElement("button");
