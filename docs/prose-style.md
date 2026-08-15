@@ -96,6 +96,7 @@ The ceiling is a *maximum* per string, not a quota; most strings sit below it.
 | Intro beat | `voice.ts` INTRO_LINES | The mind stating scale; shared across archetypes, the clock line's family; copy pinned by build-s0.md | 1 |
 | Counsel line (served, no surface) | `voice.ts` COUNSEL_LINES, or the AV4 stance when `HOLOS_COUNSEL_GEN=on` | Archetype voice, free-standing, fact-free (R-36a) | 2 |
 | Home HUD / rail chrome | `home.ts` | Instrument register: labels and readouts, numerals from shipped formats | 0 |
+| Frame explainer — HUD readouts | `home.ts` HUD_NOTE | Observatory deadpan; what a readout is, never a reading of it; numeral-free (the readout carries the numbers) | 0 |
 | Docs narration | `docs/*.md` prose | Essayist, analytical | 1 |
 | In-doc quoted interface prose | walkthrough scene quotes | The quoted archetype's own voice | 3 |
 
