@@ -162,13 +162,13 @@ last stage, after no shipped client sends it.
   synthesizing an unengaged record for sources without one (no write);
   exits, tripwire evaluation, and `studyWrites` run only on materialized
   records; `report.ts` keeps receiving engaged studies only; first-act
-  materialization lands in the acting handlers (`onBuyQuestion`,
-  `onArmTripwire`, `onCallStudy`, `onShelveStudy`, per the design call
-  possibly `onLaunchMission`), stamping `openedYear`/`openedClass` at the
-  act; `onOpenStudy` stays accepted and becomes "materialize" (the shipped
-  client still sends it until AS2 lands). Protocol changes in
-  `protocol.ts` only, with guards. Mostly Sonnet against the settled spec;
-  the materialization helper and exit-path review are Opus-checked.
+  materialization lands in the acting handlers per Decision 2
+  (`onBuyQuestion`, `onArmTripwire`, `onCallStudy`, `onLaunchMission`,
+  and the standing-order dispatch; shelve refuses), stamping
+  `openedYear`/`openedClass` at the act; `onOpenStudy` becomes
+  reopen/resume per Decision 2, materializing open on an absent record
+  (the shipped client still sends it until AS2 lands). Protocol changes
+  in `protocol.ts` only, with guards.
 - **AS2 — client: the sky is the picker.** Ambient boards open from the
   sky page and source card; the board's un-acted face absorbs the brief's
   teaching content (hypothesis menu, what the watch can tell apart, what
