@@ -210,7 +210,7 @@ export function arrivalLine(a: ArchetypeId): string {
 /** Observatory deadpan, wit 0 (prose-style.md §2). Shown once, first
  *  source-card open. */
 const AGE_CHIP_LINE: PinnedLine =
-  line`The age on the chip is the light's own: this source is shown as it was when that light left, not as it is. Nothing outside this system is ever current.`;
+  line`This source is shown as its light left it. Nothing outside this system is current.`;
 
 export function ageChipLine(): string {
   return render(AGE_CHIP_LINE);
@@ -220,7 +220,7 @@ export function ageChipLine(): string {
  *  numeral-free — the rate and the ceiling are printed on the budget chip
  *  an inch above it. */
 const COMPUTE_LINE: PinnedLine =
-  line`Compute is this civilization's attention: instrument time, and the thinking done with it. It buys questions and pays for projects, and it accrues on its own up to what the mind can hold unspent. Attention is not savings; past the ceiling, waiting buys nothing.`;
+  line`Compute is our attention. It buys questions and projects, and stops accruing at the ceiling.`;
 
 export function computeLine(): string {
   return render(COMPUTE_LINE);
@@ -233,7 +233,7 @@ export function computeLine(): string {
  * is its inverse, "how many game years an hour of your day is".
  */
 const CLOCK_LINE: PinnedLine =
-  line`A year of ours takes ${F.realDuration(REAL_MS_PER_GAME_YEAR)} of yours; an hour of your day is ${F.ratio(3_600_000 / REAL_MS_PER_GAME_YEAR)} of our years. We go on without you.`;
+  line`Our year takes ${F.realDuration(REAL_MS_PER_GAME_YEAR)} of yours; your hour is ${F.ratio(3_600_000 / REAL_MS_PER_GAME_YEAR)} of our years. We go on without you.`;
 
 export function clockLine(): string {
   return render(CLOCK_LINE);
@@ -248,7 +248,7 @@ export function clockLine(): string {
  * offer a conversion; there is nothing to convert to.
  */
 const EPOCH_LINE: PinnedLine =
-  line`Every date in this record is counted from our own ascension. It is our year; no one else keeps it, and nothing else's calendar appears here.`;
+  line`Every date here is counted from our own ascension. No other calendar appears.`;
 
 export function epochLine(): string {
   return render(EPOCH_LINE);
@@ -269,7 +269,7 @@ export function epochLine(): string {
  * work. Numeral-free, so nothing in it can drift against the sky.
  */
 const SILENCE_LINE: PinnedLine =
-  line`The sky was never empty. It is slow, and most of what lives in it has learned not to shine; you can hear it at all only because of what you have become.`;
+  line`The sky was never empty. Most of what lives there chose quiet; hearing it is what you became.`;
 
 export function silenceLine(): string {
   return render(SILENCE_LINE);
@@ -422,10 +422,12 @@ export function epochStamp(stampYear: number, ascensionYear: number): PinnedLine
 
 // --- Record sentences, one builder per report kind -------------------------
 //
-// House rules for every string in this block (R-32): observatory deadpan,
-// wit 0, PAST tense, 1–2 sentences, ≤ 34 words, colon for a reveal, comma
-// for an aside, no exclamation mark, no §6 term, and none of the epistolary
-// vocabulary §8's comms register rules out.
+// House rules for every string in this block (R-32, and §2's "Report record
+// sentence" row for the wall): observatory deadpan, wit 0, PAST tense, 1–2
+// sentences, ≤ 18 words and aim 12 — counted §2's way, each interpolation
+// charged one word — colon for a reveal, comma for an aside, no exclamation
+// mark, no §6 term, and none of the epistolary vocabulary §8's comms register
+// rules out.
 //
 // That aside rule used to read "spaced em-dash", and R-8 withdrew it. The
 // line is corrected here rather than left as history because it is an
@@ -449,7 +451,7 @@ export function recordQuestionAnswered(
   readingLabel: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back. It moved the study toward ${F.label(readingLabel)}, on light ${F.years(distanceLy)} old.`;
+  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} moved the study toward ${F.label(readingLabel)}, on light ${F.years(distanceLy)} old.`;
 }
 
 /**
@@ -463,7 +465,7 @@ export function recordQuestionPlateaued(
   sourceName: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back empty. On light ${F.years(distanceLy)} old, the instrument could not separate one explanation from another.`;
+  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back empty. On light ${F.years(distanceLy)} old, the instrument separated nothing.`;
 }
 
 /**
@@ -476,7 +478,7 @@ export function recordStudyGrounded(
   readingLabel: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`${F.label(missionName)} reported from ${F.source(sourceName)} and closed the study: it named a reading, ${F.label(readingLabel)}, on light ${F.years(distanceLy)} old.`;
+  return line`${F.label(missionName)} reported from ${F.source(sourceName)} and closed the study: ${F.label(readingLabel)}, on light ${F.years(distanceLy)} old.`;
 }
 
 /**
@@ -495,7 +497,7 @@ export function recordStudyRegressed(
   sourceName: string,
   lightAgeYears: number,
 ): PinnedLine {
-  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back worse than the look before it, on light ${F.years(lightAgeYears)} old. This does not happen naturally; something there is working against the look.`;
+  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back worse, on light ${F.years(lightAgeYears)} old. Something there is working against the look.`;
 }
 
 /**
@@ -509,7 +511,7 @@ export function recordStudyCalled(
   readingLabel: string,
   lightAgeYears: number,
 ): PinnedLine {
-  return line`The study on ${F.source(sourceName)} was called: ${F.label(readingLabel)}, on light ${F.years(lightAgeYears)} old. Nothing that arrives after this is asked to change it.`;
+  return line`The study on ${F.source(sourceName)} was called: ${F.label(readingLabel)}, on light ${F.years(lightAgeYears)} old. Nothing later changes it.`;
 }
 
 /**
@@ -524,7 +526,7 @@ export function recordStudyOvertaken(
   toClassLabel: string,
   lightAgeYears: number,
 ): PinnedLine {
-  return line`The light from ${F.source(sourceName)} changed what it reads as: ${F.label(fromClassLabel)} became ${F.label(toClassLabel)}, on light ${F.years(lightAgeYears)} old. The study closed; it had been opened on the other one.`;
+  return line`The light from ${F.source(sourceName)} changed class: ${F.label(fromClassLabel)} became ${F.label(toClassLabel)}, on light ${F.years(lightAgeYears)} old. The study closed with it.`;
 }
 
 /**
@@ -539,7 +541,7 @@ export function recordTripwireTripped(
   sourceName: string,
   lightAgeYears: number,
 ): PinnedLine {
-  return line`The watch left standing on ${F.source(sourceName)} caught what it was set for: ${F.label(tripwireProseName)}, on light ${F.years(lightAgeYears)} old.`;
+  return line`The watch on ${F.source(sourceName)} caught what it was set for: ${F.label(tripwireProseName)}, on light ${F.years(lightAgeYears)} old.`;
 }
 
 /**
@@ -554,7 +556,7 @@ export function recordProbeLaunched(
   distanceLy: number,
   firstWordYears: number,
 ): PinnedLine {
-  return line`${F.label(missionName)} departed for ${F.source(sourceName)}, ${F.years(distanceLy)} away. Nothing it says can reach us for ${F.years(firstWordYears)}.`;
+  return line`${F.label(missionName)} departed for ${F.source(sourceName)}, ${F.years(distanceLy)} away. Its first word takes ${F.years(firstWordYears)}.`;
 }
 
 /**
@@ -569,7 +571,7 @@ export function recordProbeFirstWord(
   headline: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`${F.label(missionName)} sent its first word from ${F.source(sourceName)}: ${F.label(headline)}. That word is ${F.years(distanceLy)} old.`;
+  return line`${F.label(missionName)} sent its first word from ${F.source(sourceName)}: ${F.label(headline)}, ${F.years(distanceLy)} old.`;
 }
 
 /** A routine cadence report — the same shape, drier, because by now it is
@@ -580,7 +582,7 @@ export function recordProbeReport(
   headline: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`${F.label(missionName)} reported again from ${F.source(sourceName)}: ${F.label(headline)}. The report is ${F.years(distanceLy)} old.`;
+  return line`${F.label(missionName)} reported again from ${F.source(sourceName)}: ${F.label(headline)}, ${F.years(distanceLy)} old.`;
 }
 
 /**
@@ -596,7 +598,7 @@ export function recordProbeSilent(
   missedEpochYear: number,
   distanceLy: number,
 ): PinnedLine {
-  return line`${F.label(missionName)} at ${F.source(sourceName)} did not send the word it promised for ${F.epochYear(missedEpochYear)}. Nothing has come since, and anything that explains it is ${F.years(distanceLy)} away.`;
+  return line`${F.label(missionName)} at ${F.source(sourceName)} missed its word for ${F.epochYear(missedEpochYear)}. Nothing has come since; an explanation is ${F.years(distanceLy)} away.`;
 }
 
 /**
@@ -614,7 +616,7 @@ export function recordVoyageLaunched(
   distanceLy: number,
   firstWordYears: number,
 ): PinnedLine {
-  return line`${F.label(shipName)} left for ${F.source(sourceName)}, ${F.years(distanceLy)} away, carrying the charter of ${F.source(childName)}. Nothing about it can reach us for ${F.years(firstWordYears)}.`;
+  return line`${F.label(shipName)} left for ${F.source(sourceName)}, ${F.years(distanceLy)} away, carrying the charter of ${F.source(childName)}. Its first word takes ${F.years(firstWordYears)}.`;
 }
 
 /**
@@ -633,7 +635,7 @@ export function recordVoyageLandfall(
   headline: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`The word from ${F.source(sourceName)} came home: ${F.label(headline)}. What ${F.source(childName)} is now, it has been for ${F.years(distanceLy)}.`;
+  return line`The word from ${F.source(sourceName)} came home: ${F.label(headline)}. ${F.source(childName)} has been that for ${F.years(distanceLy)}.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -660,13 +662,10 @@ export function recordVoyageLandfall(
  */
 export const LEDGER_BAND_LINES: Readonly<Record<DriftBand, string>> = {
   unread: "Nothing has come back that speaks to this.",
-  close: "What has come back still reads the way the charter was written.",
-  kindred:
-    "Most of what has come back still agrees with the charter, and some of it does not.",
-  estranged:
-    "More of what has come back disagrees with the charter than agrees with it.",
-  independent:
-    "What is out there answers to itself now. It was ours when it left, and the record of that stands.",
+  close: "What has come back still matches the charter.",
+  kindred: "Some of what came back no longer agrees with the charter.",
+  estranged: "More of what came back disagrees with the charter than agrees.",
+  independent: "It answers to itself now. It was ours when it left.",
 };
 
 /** The band's own sentence, rendered. */
@@ -685,7 +684,7 @@ export function recordOrderFired(
   sourceName: string,
   evidenceAgeYears: number,
 ): PinnedLine {
-  return line`${F.label(missionName)} left for ${F.source(sourceName)} on ${F.label(orderName)}, without waiting to be asked. What set it off is ${F.years(evidenceAgeYears)} old.`;
+  return line`${F.label(missionName)} left for ${F.source(sourceName)} on ${F.label(orderName)}, unasked. What set it off is ${F.years(evidenceAgeYears)} old.`;
 }
 
 /**
@@ -698,7 +697,7 @@ export function recordOrderUnaffordable(
   sourceName: string,
   costCompute: number,
 ): PinnedLine {
-  return line`Nothing left for ${F.source(sourceName)}: ${F.label(orderName)} came due and there was not ${F.compute(costCompute)} free to pay for it. Nothing is owed.`;
+  return line`Nothing left for ${F.source(sourceName)}: ${F.label(orderName)} came due with less than ${F.compute(costCompute)} free. Nothing is owed.`;
 }
 
 /**
@@ -707,7 +706,7 @@ export function recordOrderUnaffordable(
  * above: spent, and not carried.
  */
 export function recordOrderBlocked(orderName: string, sourceName: string): PinnedLine {
-  return line`Nothing left for ${F.source(sourceName)}: ${F.label(orderName)} came due with nothing free to send. The arming is spent, and nothing is waiting behind it.`;
+  return line`Nothing left for ${F.source(sourceName)}: ${F.label(orderName)} came due with nothing free to send. The arming is spent.`;
 }
 
 /**
@@ -720,7 +719,7 @@ export function recordLineageLandfall(
   sourceName: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`The first light from ${F.source(childName)} reached us from ${F.source(sourceName)}, ${F.years(distanceLy)} after it was made. Everything the Ledger says about it from here is that old.`;
+  return line`First light from ${F.source(childName)} reached us from ${F.source(sourceName)}, ${F.years(distanceLy)} after it left. The Ledger says nothing fresher.`;
 }
 
 /**
@@ -735,7 +734,7 @@ export function recordLineageBand(
   bandSentence: string,
   lightAgeYears: number,
 ): PinnedLine {
-  return line`What comes back from ${F.source(childName)} reads differently now: ${F.label(bandWord)}, on light ${F.years(lightAgeYears)} old. ${F.label(bandSentence)}`;
+  return line`What comes back from ${F.source(childName)} reads differently: ${F.label(bandWord)}, on light ${F.years(lightAgeYears)} old. ${F.label(bandSentence)}`;
 }
 
 /**
@@ -749,7 +748,7 @@ export function recordLineageDark(
   sourceName: string,
   distanceLy: number,
 ): PinnedLine {
-  return line`Nothing has come from ${F.source(sourceName)}, where ${F.source(childName)} was to have been founded. The word would have been ${F.years(distanceLy)} old on arrival; there is no word.`;
+  return line`${F.source(childName)} was to have been founded at ${F.source(sourceName)}. Nothing has come; any word would be ${F.years(distanceLy)} old.`;
 }
 
 /**
@@ -782,8 +781,9 @@ export function recordProjectLanded(projectLabel: string, effectLine: string): P
 /**
  * The one-line header a long absence earns (thin triage). Observatory
  * deadpan, wit 0; the span and the tally are Facts. It also states the one
- * thing the ordering would otherwise be lying about: the promoted entry
- * sits first out of chronological order.
+ * thing the ordering would otherwise be lying about, and states it as the
+ * RULE rather than as an apology for breaking chronology: the entry that
+ * changes the most is the one on top.
  *
  * `trimmed` appends a single clause about the record's cap. It reports NO
  * COUNT of what was lost and offers no apology for it — a number there
@@ -795,9 +795,9 @@ export function reportHeader(
   trimmed: boolean,
 ): PinnedLine {
   if (trimmed) {
-    return line`${F.years(spanYears)} passed unread. ${F.tally(newCount, "entry", "entries")} landed in that time; the first stands out of order because it changes the most. The record keeps a fixed number of entries, and the oldest have been let go.`;
+    return line`${F.years(spanYears)} passed unread. ${F.tally(newCount, "entry", "entries")} landed; the one that changes most stands first, and the oldest are gone.`;
   }
-  return line`${F.years(spanYears)} passed unread. ${F.tally(newCount, "entry", "entries")} landed in that time; the first stands out of order because it changes the most.`;
+  return line`${F.years(spanYears)} passed unread. ${F.tally(newCount, "entry", "entries")} landed; the one that changes most stands first.`;
 }
 
 // --- The remarks -----------------------------------------------------------
@@ -1425,11 +1425,11 @@ export const PROPOSAL_VERBS: Readonly<Record<ProposalKind, string>> = {
  * tail used to restate the brief's cost chrome ("NO COMPUTE · NO CLOCK ·
  * REVERSIBLE") and read as a price tag on the one surface that has to earn
  * the tap (prose-audit.md, A11). It now restates the brief's OTHER sentence
- * instead — "the light arrives whether or not you attend to it" — said as
- * `we`, so the same reading holds on both sides of the tap, and closes on
- * the observatory's one licensed flourish: a true statement of physics.
- * Still R-35a-clean; the costs answer lives on the brief, where a costs
- * question belongs.
+ * instead — "the light arrives whether or not you attend to it", compressed
+ * under the §2 wall to "Its light arrives regardless" — so the same reading
+ * holds on both sides of the tap, and it closes on the observatory's one
+ * licensed flourish: a true statement of physics. Still R-35a-clean; the
+ * costs answer lives on the brief, where a costs question belongs.
  */
 export function reasonFirstWatch(
   sourceName: string,
@@ -1437,21 +1437,22 @@ export function reasonFirstWatch(
   distanceLy: number,
   confidence: number,
 ): PinnedLine {
-  return line`${F.source(sourceName)} carries one reading and no study: ${F.label(classLabel)}, ${F.years(distanceLy)} away, at ${F.percent(confidence)} confidence. Its light keeps arriving whether we look or not. A watch is the looking.`;
+  return line`${F.source(sourceName)} carries one reading, no study: ${F.label(classLabel)}, ${F.years(distanceLy)} away, ${F.percent(confidence)} confidence. Its light arrives regardless.`;
 }
 
 /**
  * The returning-player case: every open study is waiting on light and
- * nothing is affordable. The first sentence keeps "affordable" because that
+ * nothing is affordable. The first clause keeps "affordable" because that
  * bookkeeping fact is the OCCASION, but the argument is no longer the price
  * (prose-audit.md, A12): it is that this source's light is landing,
  * continuously, with nobody at the far end — which is the same thing the
- * stalled studies are waiting for, being delivered here, unread. Closes on
- * a different beat than `reasonFirstWatch`'s tail, and first-watch is
+ * stalled studies are waiting for, being delivered here, unread. Under the
+ * §2 wall that argument is carried by the one word "unwatched", which is
+ * also what keeps it off `reasonFirstWatch`'s beat; first-watch is
  * serve-exclusive besides, so the two never co-render.
  */
 export function reasonWiden(sourceName: string, classLabel: string, distanceLy: number): PinnedLine {
-  return line`Every open study is waiting on light, and nothing on any of them is affordable. ${F.source(sourceName)} is unwatched: ${F.label(classLabel)}, ${F.years(distanceLy)} away. Its light is arriving now, and no one here is reading it.`;
+  return line`Every study waits on light; nothing is affordable. ${F.source(sourceName)} is unwatched: ${F.label(classLabel)}, ${F.years(distanceLy)} away.`;
 }
 
 /**
@@ -1467,14 +1468,14 @@ export function reasonQuestion(
   questionLine: string,
   costCompute: number,
 ): PinnedLine {
-  return line`Nothing is under way on the ${F.source(sourceName)} study. The ${F.label(questionProseName)} asks ${F.label(questionLine)}; it costs ${F.compute(costCompute)} and answers on the record already in hand.`;
+  return line`${F.source(sourceName)} has nothing under way. The ${F.label(questionProseName)} asks ${F.label(questionLine)}, at ${F.compute(costCompute)}, on light already here.`;
 }
 
 /**
  * The instrument plateaued — questions.ts's own limit, not a die roll (see
- * `recordQuestionPlateaued`'s "the instrument could not separate one
- * explanation from another") — and the ground is the honest next step.
- * `missionName` is always `The Assay` at this stage (§8-pinned).
+ * `recordQuestionPlateaued`'s "the instrument separated nothing") — and the
+ * ground is the honest next step. `missionName` is always `The Assay` at
+ * this stage (§8-pinned).
  */
 export function reasonProbePlateau(
   sourceName: string,
@@ -1483,7 +1484,7 @@ export function reasonProbePlateau(
   costCompute: number,
   firstWordYears: number,
 ): PinnedLine {
-  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back empty, and the board has not moved. ${F.label(missionName)} costs ${F.compute(costCompute)}, and its first word reaches us ${F.years(firstWordYears)} after launch.`;
+  return line`The ${F.label(questionProseName)} on ${F.source(sourceName)} came back empty. ${F.label(missionName)} costs ${F.compute(costCompute)}, first word ${F.years(firstWordYears)} after launch.`;
 }
 
 /**
@@ -1497,7 +1498,7 @@ export function reasonProbeExhausted(
   costCompute: number,
   firstWordYears: number,
 ): PinnedLine {
-  return line`Every question this class admits has been put to ${F.source(sourceName)}, and no reading holds. ${F.label(missionName)} costs ${F.compute(costCompute)}, and its first word reaches us ${F.years(firstWordYears)} after launch.`;
+  return line`${F.source(sourceName)} has taken every question; no reading holds. ${F.label(missionName)} costs ${F.compute(costCompute)}, first word ${F.years(firstWordYears)} after launch.`;
 }
 
 /**
@@ -1512,7 +1513,7 @@ export function reasonProject(
   durationYears: number,
   effectLine: string,
 ): PinnedLine {
-  return line`Nothing is being built. One project is within the allocation: ${F.label(projectLabel)}, ${F.compute(costCompute)}, standing ${F.years(durationYears)} later. ${F.label(effectLine)}`;
+  return line`Nothing is being built. One project is affordable: ${F.label(projectLabel)}, ${F.compute(costCompute)}, standing ${F.years(durationYears)} later. ${F.label(effectLine)}`;
 }
 
 // ---------------------------------------------------------------------------

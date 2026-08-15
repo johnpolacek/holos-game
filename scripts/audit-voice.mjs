@@ -65,6 +65,14 @@ const { gateFactFree, gateFactCarrying, LIMITS } = gate;
  * bank's measured maximum; the arrow is the §2 wall it is being walked down
  * to, LOWERED AS THE REWRITE LANDS, PHASE BY PHASE. A bank with no entry here
  * fails the audit rather than skipping the check.
+ *
+ * Every entry is a KEYED BANK, because a keyed bank is what `block()` can
+ * find and `quoted()`/`tagged()` can pull strings out of. voice.ts's other
+ * half is not reachable that way: the frame explainers are standalone consts,
+ * and the record sentences and proposal reasons are assembled inside their
+ * builder functions from interpolated Facts. Those have no entry here and are
+ * held to their §2 walls AT REVIEW, exactly as R-41 says of every surface
+ * outside this bank file.
  */
 const WALLS = {
   "arrival line": 33, // -> 16 (aim 12), lowered as the rewrite lands, phase by phase
@@ -76,7 +84,7 @@ const WALLS = {
   "signal voice": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
   "tone clause": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
   "accord clause": 22, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
-  "ledger band line": 20, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
+  "ledger band line": 12, // AT its §2 wall (aim 8) — the flat-terse pass landed this bank
   "counsel line": 21, // -> 12 (aim 8), lowered as the rewrite lands, phase by phase
   // Not a bank: the worst-case COMPOSITION checked at the bottom of this
   // file, two clauses joined. It falls out of the two banks above it, so it

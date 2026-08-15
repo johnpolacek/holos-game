@@ -121,7 +121,7 @@ actually land — a string at the wall is legal and usually still too long.
 | Frame explainer — silence | `voice.ts` silenceLine | The mind stating physics; shared across archetypes | 1 | 20 · aim 12 |
 | Report record sentence | `voice.ts` record builders | Observatory deadpan; dated, past tense | 0 | 18 · aim 12 |
 | Report epoch stamp | `voice.ts` epochStamp | Observatory deadpan | 0 | 6 (R-24) |
-| Report triage header | `voice.ts` reportHeader | Observatory deadpan | 0 | 6 (R-24) |
+| Report triage header | `voice.ts` reportHeader | Observatory deadpan | 0 | 18 (record-sentence wall: it carries two Facts and the ordering rule, which chrome's 6 cannot) |
 | Report remark | `voice.ts` REPORT_REMARKS, or `voicegen.ts` when `HOLOS_VOICE_GEN=on` | Archetype voice, free-standing, fact-free | 1 | 12 · aim 8, one sentence |
 | Proposal reason | `voice.ts` reason builders | Observatory deadpan; present tense | 0 | 16 · aim 11 |
 | Proposal accept verb | `voice.ts` PROPOSAL_VERBS | Observatory deadpan (chrome) | 0 | 6 (R-24) |
