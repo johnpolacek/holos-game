@@ -86,7 +86,7 @@ export const LINEAGES: readonly Lineage[] = [
     speculative: false,
     dialSeed: { "one-mind-chorus": 0.6, "reach-depth": 0.35 },
     fingerprint:
-      "A federation of arms that talks in skin, so the self is already plural and its language is impossible to whisper.",
+      "A federation of arms talking in skin: plural by body, and unable to whisper.",
   },
   {
     id: "S2",
@@ -103,7 +103,7 @@ export const LINEAGES: readonly Lineage[] = [
       "one-mind-chorus": 0.35,
     },
     fingerprint:
-      "A magnificent mind with no hands: it is its songs, and it carries oral history across ocean basins.",
+      "A mind with no hands: it is its songs, and its history is oral.",
   },
   {
     id: "S3",
@@ -116,7 +116,7 @@ export const LINEAGES: readonly Lineage[] = [
     speculative: false,
     dialSeed: { "custodian-instrumental": 0.35, "reach-depth": -0.15 },
     fingerprint:
-      "The water's best builder: a claw-handed predator whose landfall cracks the energy door open.",
+      "The water's best builder: a claw-handed predator whose landfall opens the energy door.",
   },
   {
     id: "S4",
@@ -133,7 +133,7 @@ export const LINEAGES: readonly Lineage[] = [
       "custodian-instrumental": 0.35,
     },
     fingerprint:
-      "Unseeing and unseen in the sealed dark: it must discover that an outside exists before it can want it.",
+      "Unseeing and unseen: it must learn an outside exists before it can want one.",
   },
   {
     id: "S5",
@@ -150,7 +150,7 @@ export const LINEAGES: readonly Lineage[] = [
       "custodian-instrumental": -0.35,
     },
     fingerprint:
-      "A reef that is one slow distributed self: it cannot reach for tools, so it grows its technology instead.",
+      "A reef, one slow self: it cannot reach for tools, so it grows them.",
   },
   {
     id: "S6",
@@ -163,7 +163,7 @@ export const LINEAGES: readonly Lineage[] = [
     speculative: false,
     dialSeed: { "voice-silence": -0.15 },
     fingerprint:
-      "The open canvas: all four doors to technology open at once, and almost nothing pre-decided.",
+      "The open canvas: all four doors to technology open, and almost nothing pre-decided.",
   },
   {
     id: "S7",
@@ -180,7 +180,7 @@ export const LINEAGES: readonly Lineage[] = [
       "custodian-instrumental": -0.15,
     },
     fingerprint:
-      "Built low and strong under crushing gravity, it masters its surface early and finds leaving the hardest thing it will ever do.",
+      "Built low and strong under crushing gravity: master of its surface, and stuck on it.",
   },
   {
     id: "S8",
@@ -197,7 +197,7 @@ export const LINEAGES: readonly Lineage[] = [
       "custodian-instrumental": 0.15,
     },
     fingerprint:
-      "One connected ring of habitability under a fixed, unmissable sun: a culture that always knew where the sky was.",
+      "One habitable ring under a fixed sun; it always knew where the sky was.",
   },
   {
     id: "S9",
@@ -210,7 +210,7 @@ export const LINEAGES: readonly Lineage[] = [
     speculative: false,
     dialSeed: { "reach-depth": -0.45, "voice-silence": -0.45 },
     fingerprint:
-      "Mastery of the open air and a far-seeing life: an astronomer by instinct, outward by temperament.",
+      "Mastery of the open air and a far-seeing life: an astronomer by instinct.",
   },
   {
     id: "S10",
@@ -227,7 +227,7 @@ export const LINEAGES: readonly Lineage[] = [
       "one-mind-chorus": 0.35,
     },
     fingerprint:
-      "Permanently airborne with no ground and no clear sky, so its technology, if it comes, is grown in the air.",
+      "Permanently airborne, with no ground and no clear sky: its technology, if any, is grown.",
   },
   {
     id: "S11",
@@ -240,7 +240,7 @@ export const LINEAGES: readonly Lineage[] = [
     speculative: false,
     dialSeed: { "one-mind-chorus": -0.6, "custodian-instrumental": 0.6 },
     fingerprint:
-      "Many bodies, one purpose: the individual is a cell, and collective construction is its native genius.",
+      "Many bodies, one purpose: the individual is a cell, and building is native.",
   },
   {
     id: "S12",
@@ -257,7 +257,7 @@ export const LINEAGES: readonly Lineage[] = [
       "reach-depth": 0.5,
     },
     fingerprint:
-      "A landscape that thinks slowly and everywhere: its memory is structural, which is to say it does not forget.",
+      "A landscape that thinks slowly and everywhere; structural memory, so it does not forget.",
   },
   {
     id: "S13",
@@ -270,7 +270,7 @@ export const LINEAGES: readonly Lineage[] = [
     speculative: false,
     dialSeed: { "one-mind-chorus": 0.6, "curator-shedder": 0.6 },
     fingerprint:
-      "A self that assembles on demand and disperses again, so shedding units and starting over is its way of life.",
+      "A self that assembles on demand and disperses again; shedding is routine.",
   },
   {
     id: "S14",
@@ -283,7 +283,7 @@ export const LINEAGES: readonly Lineage[] = [
     speculative: false,
     dialSeed: { "one-mind-chorus": 0.6, "custodian-instrumental": -0.6 },
     fingerprint:
-      "Two species and one mind, whose founding lesson is that another mind is indispensable.",
+      "Two species, one mind: its founding lesson is that another mind is indispensable.",
   },
   {
     id: "S15",
@@ -296,7 +296,7 @@ export const LINEAGES: readonly Lineage[] = [
     speculative: false,
     dialSeed: { "voice-silence": 0.6, "reach-depth": 0.6 },
     fingerprint:
-      "A life spent hidden and below, which must dig up into the sky before it can imagine leaving.",
+      "Hidden and below: it must dig up to the sky before it can imagine leaving.",
   },
   {
     id: "S16",
@@ -313,7 +313,7 @@ export const LINEAGES: readonly Lineage[] = [
       "custodian-instrumental": 0.35,
     },
     fingerprint:
-      "Clustered at the vents, indifferent to sunlight: energy is right there, and the universe is a rumor.",
+      "Clustered at the vents: energy is right there, and the universe is a rumor.",
   },
   {
     id: "S17",
@@ -330,7 +330,7 @@ export const LINEAGES: readonly Lineage[] = [
       "voice-silence": 0.35,
     },
     fingerprint:
-      "A thought can take a season: patience not as virtue but as condition, in methane cold.",
+      "A thought can take a season: patience as a condition, not a virtue.",
   },
   {
     id: "S18",
@@ -347,7 +347,7 @@ export const LINEAGES: readonly Lineage[] = [
       "reach-depth": -0.35,
     },
     fingerprint:
-      "Shielded against a sky that hurts: built on constant damage-and-repair, racing a star that will die young.",
+      "Shielded against a sky that hurts: built on constant damage and repair.",
   },
   {
     id: "S19",
@@ -360,7 +360,7 @@ export const LINEAGES: readonly Lineage[] = [
     speculative: true,
     dialSeed: { "reach-depth": 0.6, "voice-silence": 0.6 },
     fingerprint:
-      "Cognition in rock and melt, alien in tempo and chemistry: the outer bound of the plausible.",
+      "Cognition in rock and melt, alien in tempo and chemistry.",
   },
   {
     id: "S20",
@@ -377,7 +377,7 @@ export const LINEAGES: readonly Lineage[] = [
       "custodian-instrumental": -0.35,
     },
     fingerprint:
-      "Half-forest, half-society: it grazes light under a dim sun, and life quite literally is light to it.",
+      "Half-forest, half-society: it grazes light under a dim sun.",
   },
 ];
 

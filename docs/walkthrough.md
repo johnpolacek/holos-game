@@ -125,22 +125,19 @@ Theo reads all three.
 
 The first is a bright life: **Ross 128 b**, `Temperate`, a twilight-band
 species under an unusually kind red sun, dial notches leaning hard into
-Voice, the archetype line reading *Kindness at full volume; it builds
-bright and greets the dark first*, and a charter that says
-*We shine so none need wake alone; that we are seen doing it, we can live
-with.* The second is stranger and plural: an ocean world, a tentacled
-lineage whose wake line reads like a parliament discovering it is in
-session, a charter beginning *Another mind is indispensable.*
+Voice, the archetype line reading *Kindness at full volume; it greets the
+dark first*, and a charter that says *We shine so none wake alone, and
+accept being seen.* The second is stranger and plural: an ocean world, a
+tentacled lineage whose wake line reads like an argument already under way,
+a charter beginning *Another mind is indispensable.*
 
 The third card holds him. **Teegarden's Star b** — `Testing` — *an ancient
-world under a faint ancient star: deep time, little energy, a civilization
-that grows slow, patient, thrifty with light.* The species is a **networked
-substrate mind**: *a landscape that thinks slowly and everywhere: its
-memory is structural, which is to say it does not forget.* The wake line
+world under a faint star: little energy, and growth slow and thrifty.* The
+species is a **networked substrate mind**: *a landscape that thinks slowly
+and everywhere; structural memory, so it does not forget.* The wake line
 is the quietest thing he has ever read in a game:
 
-> *The least discontinuous pivot there is: already planet-scale, already
-> storing everything, it does not so much wake as notice.*
+> *A planet-wide mind does not wake; it notices.*
 
 The dial sheet reads like a portrait of that sentence: the notch deep
 toward Depth (a band of roughly 0.5–0.85 — the dim star never taught it to
@@ -149,7 +146,7 @@ its history left open), a mild lean to Garden, Monolith at 0.8 in a narrow
 band (it is literally one network), and Memory at 0.85, pinned almost to
 the pole. The archetype line: *A civilization that keeps everything,
 itself included.* The chronicle's last entry: *When the choice came, it
-chose the dark; the light of its bright years had not yet arrived.*
+chose the dark, its bright light still in flight.*
 
 He does not fully understand that last line yet. He will by tonight.
 

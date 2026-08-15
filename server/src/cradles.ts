@@ -89,7 +89,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S8", "S6"],
     fingerprint:
-      "Life in a thin livable band under a huge dim sun that never moves; six sister worlds hang close, so astronomy is native.",
+      "A thin livable band under a fixed dim sun; six sister worlds make astronomy native.",
   },
   {
     id: 2,
@@ -103,7 +103,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S1", "S4", "S20"],
     fingerprint:
-      "An eyeball ocean: a warm meltwater pupil facing the sun, ice everywhere else; life pools where the light lands.",
+      "An eyeball ocean: open water facing the sun, ice everywhere else, life pooled there.",
   },
   {
     id: 3,
@@ -117,7 +117,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S15", "S8", "S18"],
     fingerprint:
-      "Life under a dangerous sky, sheltering from flares in caves, deep water, or shadow. The lesson written into everything: do not be exposed.",
+      "Life shelters from flares in caves, water, or shadow. The lesson: do not be exposed.",
   },
   {
     id: 4,
@@ -131,7 +131,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S7", "S3"],
     fingerprint:
-      "A crushing high-pressure world under a calm sun; nothing stands tall and orbit is a nearly impossible height to climb.",
+      "Crushing pressure under a calm sun; nothing stands tall, and orbit is nearly unreachable.",
   },
   {
     id: 5,
@@ -145,7 +145,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S6", "S8"],
     fingerprint:
-      "A red-dwarf world that got lucky: steady light, a survivable sky, time to develop without constant catastrophe.",
+      "A red-dwarf world that got lucky: steady light, a survivable sky, time to develop.",
   },
   {
     id: 6,
@@ -159,7 +159,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S1", "S3", "S2"],
     fingerprint:
-      "A mild waterworld under a steady red sun: global seas, weather driven by the eternal day-night contrast.",
+      "Global seas under a steady red sun; the fixed day-night contrast drives the weather.",
   },
   {
     id: 7,
@@ -173,7 +173,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S20", "S12"],
     fingerprint:
-      "An ancient world under a faint ancient star: deep time, little energy, a civilization that grows slow, patient, thrifty with light.",
+      "An ancient world under a faint star: little energy, and growth slow and thrifty.",
   },
   {
     id: 8,
@@ -187,7 +187,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S6", "S9"],
     fingerprint:
-      "A world with three suns and no true darkness; a civilization that always knew it was not alone in the heavens.",
+      "Three suns and no true night: the sky was never a single star.",
   },
   {
     id: 9,
@@ -201,7 +201,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S15", "S16", "S20"],
     fingerprint:
-      "A cold-edge world clinging to the far habitable rim; life gathers around geothermal warmth and equatorial thaw. Heat is scarce.",
+      "A world on the cold habitable rim; life gathers at geothermal warmth and equatorial thaw.",
   },
   {
     id: 10,
@@ -215,7 +215,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S8", "S6"],
     fingerprint:
-      "A warm terminator world where the day side runs hot; life tracks the shifting margin where water stays liquid.",
+      "A warm terminator world, day side hot; life tracks the margin where water stays liquid.",
   },
   {
     id: 11,
@@ -229,7 +229,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S7", "S6"],
     fingerprint:
-      "A steady, weighty world with a fixed sun and no single savage pressure; endurance over drama.",
+      "A weighty world under a fixed sun, no single savage pressure; endurance over drama.",
   },
   {
     id: 12,
@@ -243,7 +243,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S1", "S4", "S10"],
     fingerprint:
-      "A drowned civilization under a hydrogen sky it can never see through; the road to space skips fire entirely.",
+      "A drowned civilization under an opaque hydrogen sky; its road to space skips fire.",
   },
   {
     id: 13,
@@ -257,7 +257,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S8", "S7", "S15"],
     fingerprint:
-      "A world of endless terminator storms where the only calm is the lee of terrain; built low, braced, and wind-wise.",
+      "Storms without end; the only calm is the lee of terrain, so it builds low.",
   },
   {
     id: 14,
@@ -271,7 +271,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S1", "S4", "S20"],
     fingerprint:
-      "All life in one sunlit eye of open water, hemmed by ice on every side; a crowded origin with nowhere to spread.",
+      "All life in one sunlit pool, hemmed by ice; crowded, with nowhere to spread.",
   },
   {
     id: 15,
@@ -285,7 +285,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S16", "S3", "S4"],
     fingerprint:
-      "Life around volcanic vents keyed to the giant that fills half the sky; chemistry, not sunlight, is the source of everything.",
+      "Life at volcanic vents worked by the giant overhead; chemistry, not sunlight, feeds everything.",
   },
   {
     id: 16,
@@ -299,7 +299,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S1", "S2", "S3"],
     fingerprint:
-      "An aquatic, mineral-poor civilization that never had rock, fire, or metal within reach; technology invented from biology and water alone.",
+      "An aquatic world without rock, fire, or metal; technology comes from biology and water.",
   },
   {
     id: 17,
@@ -313,7 +313,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S6", "S7", "S11"],
     fingerprint:
-      "A stable, weighty, well-lit world with days and seasons; close to Earth's rhythm, heavy enough to remember it is not Earth.",
+      "A stable, well-lit world with days and seasons; Earth's rhythm at heavier gravity.",
   },
   {
     id: 18,
@@ -327,7 +327,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S1", "S3", "S2"],
     fingerprint:
-      "A deep cool sea-world with little or no land; life spread through a single planetary ocean, ice defining the livable latitudes.",
+      "A cool sea-world with little land: one planetary ocean, ice setting the livable latitudes.",
   },
   {
     id: 19,
@@ -341,7 +341,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S7", "S6", "S11"],
     fingerprint:
-      "A rotating super-Earth with proper days, seasons, and continents under heavy gravity; life low-slung and strong.",
+      "A rotating super-Earth: days, seasons, continents, and heavy gravity that keeps life low.",
   },
   {
     id: 20,
@@ -355,7 +355,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: true,
     candidateLineages: ["S6", "S9"],
     fingerprint:
-      "A temperate world with an uncanny stellar pair in the sky, a nearby white dwarf that once was a sun: a permanent reminder that stars die.",
+      "A temperate world with a white dwarf in its sky: proof that stars die.",
   },
   {
     id: 21,
@@ -369,7 +369,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S11", "S15", "S6"],
     fingerprint:
-      "A desert pushed to the frost line: every drop is counted, life clusters at ice margins and meltwater springs, conservation baked in from the first cell.",
+      "A desert at the frost line: every drop is counted, life clusters at meltwater springs.",
   },
   {
     id: 22,
@@ -383,7 +383,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S6", "S9", "S11", "S1", "S14"],
     fingerprint:
-      "The blue marble the galaxy rarely makes: land and sea both, a legible sky; life diversifies freely, inheriting abundance and options.",
+      "The rare blue marble: land and sea both, a legible sky, life free to diversify.",
   },
   {
     id: 23,
@@ -397,7 +397,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S6", "S11"],
     fingerprint:
-      "A civilization racing a warming sun, a biosphere that peaked and is now being cooked from above; the future is visibly finite.",
+      "A warming sun and a biosphere past its peak; the future is visibly finite.",
   },
   {
     id: 24,
@@ -411,7 +411,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S1", "S3", "S5"],
     fingerprint:
-      "A warm world-ocean under a familiar yellow sun, continents absent: an aquatic civilization with a clear view of the stars. Rare, and important.",
+      "A warm world-ocean under a yellow sun: no continents, and a clear view of the stars.",
   },
   {
     id: 25,
@@ -425,7 +425,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S7", "S15", "S11"],
     fingerprint:
-      "A world under regular bombardment from its own crowded system, its crust metal-lean; shaped by catastrophe from the sky and scarcity in the ground.",
+      "Regular bombardment from a crowded system, and a metal-lean crust: catastrophe above, scarcity below.",
   },
   {
     id: 26,
@@ -439,7 +439,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S19", "S16"],
     fingerprint:
-      "Life, if any, is subsurface and heat-loving in a carbon-rich crust under a sky of rock vapor: forged in fire and carbon, alien in its chemistry.",
+      "Under a sky of rock vapor, life, if any, is subsurface and carbon-built.",
   },
   {
     id: 27,
@@ -453,7 +453,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S18", "S15", "S11"],
     fingerprint:
-      "A civilization of the cool corners, heat-fleeing, altitude- and pole-dwelling; its whole history a negotiation with a suffocating sky.",
+      "Life keeps to the poles and the heights, under a suffocating, overheated sky.",
   },
   {
     id: 28,
@@ -467,7 +467,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S18", "S15", "S1"],
     fingerprint:
-      "A civilization that evolved under a burning sky, driven to shade, ozone, and water, racing a star that will die young.",
+      "It evolved under a burning sky, driven to shade and water, racing a short-lived star.",
   },
   {
     id: 29,
@@ -481,7 +481,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S6", "S9", "S11"],
     fingerprint:
-      "A world of abundance under a demanding sun: heavy, bright, mineral-rich; a civilization that grows expansive and energetic, racing the star's short life.",
+      "Heavy, bright, and mineral-rich under a short-lived sun: abundance, and a clock on it.",
   },
   {
     id: 30,
@@ -495,7 +495,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: true,
     candidateLineages: ["S12", "S7", "S6"],
     fingerprint:
-      "A relic world older than most of the galaxy's stars, patient beyond measure, mineral-starved; age is the defining fact.",
+      "Older than most of the galaxy's stars, and mineral-starved: age is the defining fact.",
   },
   {
     id: 31,
@@ -509,7 +509,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S15", "S16", "S17"],
     fingerprint:
-      "A frigid, low-gravity relic scraping by on geothermal warmth and thin air: small and enduring, holding on rather than reaching out.",
+      "Frigid, low-gravity, thin-aired, warmed only from below; it endures rather than reaches.",
   },
   {
     id: 32,
@@ -523,7 +523,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S9", "S13", "S6"],
     fingerprint:
-      "Two suns out of step, seasons that never repeat, life adapted to irregularity itself; a sky that taught it the heavens are plural.",
+      "Two suns out of step and seasons that never repeat; life adapted to irregularity itself.",
   },
   {
     id: 33,
@@ -537,7 +537,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S7", "S15"],
     fingerprint:
-      "A great ball of iron and rock: abundant metal, scarce water and air, a savage gravity well; metallurgy is native, everything else a fight.",
+      "A ball of iron and rock: metallurgy is native; water, air, and escape are not.",
   },
   {
     id: 34,
@@ -551,7 +551,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S19", "S17", "S16"],
     fingerprint:
-      "A civilization of carbon and hydrocarbons, diamonds underfoot and tar in the low places, oxygen a rarity; biology and technology start alien.",
+      "Diamond underfoot, tar in the low places, oxygen rare; biology and technology start alien.",
   },
   {
     id: 35,
@@ -565,7 +565,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S18", "S15", "S1"],
     fingerprint:
-      "A civilization under an unshielded sky, sheltering from radiation, its air thinning over eons; the surface is dangerous and space is worse.",
+      "An unshielded sky, air thinning over eons; the surface is dangerous and space is worse.",
   },
   {
     id: 36,
@@ -579,7 +579,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S4", "S16", "S1"],
     fingerprint:
-      "A sealed civilization grown in total darkness around vents; it has to discover the sky exists before it can dream of reaching it.",
+      "Sealed under ice in total darkness; it must discover the sky exists before reaching it.",
   },
   {
     id: 37,
@@ -593,7 +593,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S17", "S10"],
     fingerprint:
-      "A civilization of the deep cold, breathing haze, sailing methane seas, its chemistry glacially slow; patience and cold are its native conditions.",
+      "Deep cold, haze overhead, methane seas, and a chemistry that runs slow.",
   },
   {
     id: 38,
@@ -607,7 +607,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S13", "S9", "S2"],
     fingerprint:
-      "A civilization built on migration and cycle, keyed to violent seasons; change, not stability, is the baseline it evolved to expect.",
+      "Violent seasons and constant migration; change, not stability, is the baseline here.",
   },
   {
     id: 39,
@@ -621,7 +621,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S16", "S4", "S15"],
     fingerprint:
-      "A civilization that arose in permanent darkness with no concept of a sun; piercing its atmosphere is a first-contact with the cosmos itself.",
+      "Permanent darkness, warmth from below, no concept of a sun; the sky is a discovery.",
   },
   {
     id: 40,
@@ -635,7 +635,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S7", "S11", "S3"],
     fingerprint:
-      "Built low and heavy, flight and spaceflight brutally expensive, the sky a ceiling more than an invitation; leaving is the hardest thing it will do.",
+      "A gravity well so deep that flight is costly, and leaving hardest of all.",
   },
   {
     id: 41,
@@ -649,7 +649,7 @@ export const CRADLES: readonly Cradle[] = [
     disputed: false,
     candidateLineages: ["S17", "S15"],
     fingerprint:
-      "A year lasts a century: one furious summer, then a dark it must sleep through. Its civilization happens in installments, and it keeps exact calendars.",
+      "A year lasts a century: one furious summer, then a dark it sleeps through.",
   },
 ];
 

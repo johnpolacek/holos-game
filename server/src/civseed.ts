@@ -296,7 +296,7 @@ function chronicleFor(
   ];
   if (params.ageBand === "young") {
     lines.push(
-      `Not yet ascended: a living world, pre-singularity, visible to anyone watching its light.`,
+      `Not yet ascended: a living world, visible to anyone watching its light.`,
     );
     return lines;
   }
@@ -317,11 +317,11 @@ function chronicleFor(
   // chronicle states the same beat the same way, without a year.
   lines.push(
     posture === "bright"
-      ? `When the choice came, it chose to be heard; it has burned brighter every year since.`
-      : `When the choice came, it chose the dark; the light of its bright years had not yet arrived.`,
+      ? `When the choice came, it chose to be heard, and has brightened since.`
+      : `When the choice came, it chose the dark, its bright light still in flight.`,
   );
   if (params.ageBand === "elder") {
-    lines.push(`It had grown ancient, a past no younger mind would ever catch up to.`);
+    lines.push(`It had grown ancient; no younger mind could catch up.`);
   }
   return lines;
 }
