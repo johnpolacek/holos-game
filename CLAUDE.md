@@ -73,6 +73,7 @@ There is no test suite yet. The checks that must pass are:
 npm run typecheck     # tsc --noEmit in both workspaces
 npm run build         # vite build (client) + tsc emit (server)
 npm run audit:dashes  # R-8: no em dash on a player surface
+npm run audit:dating  # R-33: no absolute game year on a player surface
 npm run audit:banned  # prose-style.md §6 <-> bannedterms.ts
 npm run audit:voice   # every shipped bank string through the style gate
 npm run audit:catalog # §6 over the catalogs audit:voice does not reach
@@ -107,6 +108,26 @@ receipt the player reads is false with nothing to catch it — least of all when
 the number is spelled out ("twenty light-years" over `WARM_RADIUS_LY`). It
 knows only the couplings written into it, so **when catalog prose starts
 restating a new field, add the check there too**; its header says as much.
+
+`audit:dating` guards R-33: the cohort's absolute game year must never reach
+a player surface, because every date a player reads is that civilization's
+own count from its own ascension (`4 AE`). The client enforces that
+*structurally* — `clock.ts` exports one date formatter, `formatEpochYear`,
+which subtracts the epoch anchor before it renders, and there is no absolute
+formatter left to call. Structure is the strong half of the rule and not the
+whole of it: a component can still hand-roll `` `Y${Math.round(year)}` `` or
+drop a raw `…Year` wire field into a label, and both read as ordinary code at
+review. That is how the formatter this audit replaced came to exist, and it
+survived until a docs pass caught it. So the script scans `client/src` string
+literals for the `Y1204` stamp, and every template interpolation for a `…Year`
+identifier that does not pass through one of the formatters on its allowlist.
+It **fails closed** three ways: every module is scanned (only `clock.ts` is
+exempt, and only from the interpolation check, because the subtraction is its
+job); the allowlist is what a year may disappear into, so a new formatter
+belongs on it deliberately; and `clock.ts` may not export a `format…` the
+script does not know, which is what would rot that allowlist quietly. The
+naming convention it reads is worth keeping: **`…Year` is a date, `…Years` is
+a span, `…PerYear` is a rate** — R-33 bans the calendar, not arithmetic.
 
 `audit:parity` is the one that is not about prose. A2.6's claim is that a
 signal's bytes say nothing about whether a person or a seeded civilization

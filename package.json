@@ -21,6 +21,7 @@
     "audit:catalog": "node scripts/audit-catalog.mjs",
     "audit:facts": "node scripts/audit-facts.mjs",
     "audit:dashes": "node scripts/audit-dashes.mjs",
+    "audit:dating": "node scripts/audit-dating.mjs",
     "audit:parity": "node scripts/audit-parity.mjs",
     "playtest:bots": "node scripts/playtest-bot.mjs",
     "eval:counsel": "node scripts/eval-counsel.mjs"
