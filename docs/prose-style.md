@@ -307,7 +307,12 @@ Named mechanics of the register. Apply **at most one** per short string.
   `clock.ts` `formatEpochYear` for anything a surface renders. Neither
   module exports a formatter that stamps the absolute year, which is what
   keeps the third place from being invented; a surface that reaches for a
-  raw `…Year` field is reaching past both. Its companion: **a remote
+  raw `…Year` field is reaching past both. Checked by `audit:dating` on the
+  client half: no `Y1204` stamp in a string literal, and no `…Year` in a
+  template interpolation that does not pass through a `clock.ts` formatter.
+  It fails closed on the move that would rot it — `clock.ts` may not export
+  a `format…` the audit does not know, because the third place gets invented
+  in the module the rule is built on or not at all. Its companion: **a remote
   entry's light age at its own
   stamp year is exactly the distance.** A record line prints the distance
   in years, never a difference of two years — an annal does not re-age its
