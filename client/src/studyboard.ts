@@ -3497,29 +3497,37 @@ export class StudyBoard {
    * token is what keeps a faint row quiet rather than lost on a phone in
    * daylight.
    */
-  private buildBeliefLine(source: DetectedSource): HTMLDivElement {
-    const beliefLine = document.createElement("div");
-    beliefLine.className = "study-row-beliefline";
-
+  private buildClassLabel(source: DetectedSource): HTMLSpanElement {
     const cls = document.createElement("span");
     cls.className = "study-row-class";
     cls.textContent = CLASS_LABEL[source.signal.classification];
     const conf = clamp01(source.signal.confidence);
     cls.style.color = `color-mix(in srgb, var(--holos-amber) ${Math.round(conf * 100)}%, var(--holos-amber-dim))`;
+    return cls;
+  }
 
+  /** The confidence, named. It sat bare on every row and a first-timer had
+   *  no way to know what it measured; the word is the one the game's own
+   *  prose already uses (reasonFirstWatch: "85% confidence"), so the row and
+   *  the mind agree on what the figure is. */
+  private buildConfidence(source: DetectedSource): HTMLSpanElement {
     const pct = document.createElement("span");
     pct.className = "study-row-conf";
     pct.textContent = `${Math.round(source.signal.confidence * 100)}%`;
-    // The number, named. It sat bare on every row and a first-timer had no
-    // way to know what it measured; the word is the one the game's own
-    // prose already uses (reasonFirstWatch: "85% confidence"), so the row
-    // and the mind agree on what the figure is.
     const word = document.createElement("span");
     word.className = "study-row-confword holos-caps";
     word.textContent = "CONFIDENCE";
     pct.append(" ", word);
+    return pct;
+  }
 
-    beliefLine.append(cls, pct);
+  /** The board head's belief line: class and confidence on one line, which
+   *  fits because the head owns the sheet's full width and competes with
+   *  nothing. A ROW cannot use this — see buildSourceIdentity. */
+  private buildBeliefLine(source: DetectedSource): HTMLDivElement {
+    const beliefLine = document.createElement("div");
+    beliefLine.className = "study-row-beliefline";
+    beliefLine.append(this.buildClassLabel(source), this.buildConfidence(source));
     return beliefLine;
   }
 
@@ -3554,13 +3562,30 @@ export class StudyBoard {
       idLine.append(nm);
     }
 
-    const beliefLine = this.buildBeliefLine(source);
+    // THE BELIEF GETS THE LINE TO ITSELF, and the two small facts share the
+    // one under it. A row is narrower than the board head by the width of
+    // the status badge, so a two-word class wrapped mid-phrase while the
+    // confidence sat on the first line's right: "BROADCAST / 85% CONFIDENCE
+    // / LEAKAGE", three fragments interleaved down a ragged column. Nothing
+    // was wrong with either string; they were competing for one line that
+    // only fits one of them. The class is what the row is for, so the class
+    // gets it, and the confidence joins the light age below, where both are
+    // caps chrome about the reading rather than the reading itself.
+    const beliefLine = document.createElement("div");
+    beliefLine.className = "study-row-beliefline";
+    beliefLine.append(this.buildClassLabel(source));
 
-    const age = document.createElement("div");
+    const meta = document.createElement("div");
+    meta.className = "study-row-meta";
+    const sep = document.createElement("span");
+    sep.className = "study-row-metasep";
+    sep.textContent = "·";
+    const age = document.createElement("span");
     age.className = "study-row-age holos-caps";
     age.textContent = `AS OF ${source.lightAgeYears.toFixed(1)} Y AGO`;
+    meta.append(this.buildConfidence(source), sep, age);
 
-    text.append(idLine, beliefLine, age);
+    text.append(idLine, beliefLine, meta);
     return text;
   }
 
