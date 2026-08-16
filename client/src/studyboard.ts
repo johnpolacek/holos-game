@@ -1915,15 +1915,20 @@ export class StudyBoard {
    *  opening a focus view
    *  for a board that no longer exists. The scroll itself is one-shot: see
    *  `highlightQuestionId` and renderFocused's oqSection loop. */
-  private focusStudyQuestion(starId: string, questionId: string): void {
+  private focusStudyQuestion(
+    starId: string,
+    questionId: string,
+    from: "mind" | "report" = "mind",
+  ): void {
     if (this.boardFor(starId) === undefined) {
-      this.openMind();
+      if (from === "report") this.openReport();
+      else this.openMind();
       return;
     }
     this.onStudyOpenCb?.();
     this.view = "focused";
     this.focusedStarId = starId;
-    this.studyReturn = "mind";
+    this.studyReturn = from;
     this.highlightQuestionId = questionId;
     // The route means "look at this question", so it lands on the drill-in
     // rather than on a folded row the player would have to tap again. The
@@ -3096,7 +3101,11 @@ export class StudyBoard {
    * speaker, not a place-name-over-sublabel browse row, and rendering it in
    * the same clothes would blur that.
    */
-  private buildProposalRow(p: Proposal): HTMLDivElement {
+  /** `from` is the page this row is standing on — the Mind page or, since
+   *  the Report gained its NEXT card, the Report — so a decline repaints
+   *  the page the player is looking at and a route's back leg comes home
+   *  to it. */
+  private buildProposalRow(p: Proposal, from: "mind" | "report" = "mind"): HTMLDivElement {
     const row = document.createElement("div");
     row.className = "proposal-row";
 
@@ -3108,7 +3117,7 @@ export class StudyBoard {
     // semantics.
     const reason = document.createElement("div");
     reason.className = "proposal-reason";
-    reason.addEventListener("click", () => this.followProposalRoute(p.route));
+    reason.addEventListener("click", () => this.followProposalRoute(p.route, from));
     row.append(reason);
 
     const line = document.createElement("div");
@@ -3134,7 +3143,7 @@ export class StudyBoard {
     // The reason is no longer inside the button, so the accessible name has
     // to carry it: "READ THE BRIEF" alone says nothing about which source.
     accept.setAttribute("aria-label", `${p.verb}: ${p.line}`);
-    accept.addEventListener("click", () => this.followProposalRoute(p.route));
+    accept.addEventListener("click", () => this.followProposalRoute(p.route, from));
 
     const decline = document.createElement("button");
     decline.type = "button";
@@ -3148,7 +3157,8 @@ export class StudyBoard {
       // dropped the proposal simply returns on the next `sky`.
       this.socket.send({ type: "declineProposal", id: p.id });
       this.proposals = this.proposals.filter((x) => x.id !== p.id);
-      this.renderMind();
+      if (from === "report") this.renderReport();
+      else this.renderMind();
     });
 
     actions.append(accept, decline);
@@ -3162,22 +3172,22 @@ export class StudyBoard {
    *  message. Opening a surface is not a decision, so the candidate re-arms
    *  if the player backs out without committing (the AV3 design's edge
    *  case — "accept-then-don't-commit"). */
-  private followProposalRoute(route: ProposalRoute): void {
+  private followProposalRoute(route: ProposalRoute, from: "mind" | "report" = "mind"): void {
     switch (route.kind) {
       // AS2: the route id outlives the briefing screen it was named for. It
       // always meant "look at this source's study" and now goes to the board
-      // itself, with the Mind page as its way back out.
+      // itself, with the page the row stood on as its way back out.
       case "study-brief":
-        this.focusStudy(route.starId, "mind");
+        this.focusStudy(route.starId, from);
         break;
       case "question":
-        this.focusStudyQuestion(route.starId, route.questionId);
+        this.focusStudyQuestion(route.starId, route.questionId, from);
         break;
       case "launch":
         this.openLaunch(route.starId);
         break;
       case "project":
-        this.focusProject(route.projectId, "mind");
+        this.focusProject(route.projectId, from);
         break;
     }
   }
@@ -3444,11 +3454,19 @@ export class StudyBoard {
 
     const blot = document.createElement("div");
     blot.className = "study-row-smudge";
-    const diameter = 30 + (1 - conf) * 26;
+    // The ranges were half this wide and the blots read as one blot
+    // (2026-08 playtest: "all the smudges look the same"), which defeats an
+    // instrument whose one job is to say how well the reading is held. The
+    // semantics are unchanged, only the contrast: surer is smaller, sharper
+    // and brighter; vaguer is wider, softer and dimmer, and the difference
+    // between a half-held reading and a firm one is now unmissable at a
+    // glance. Still confidence and nothing else: the blot knows nothing the
+    // percentage beside it does not.
+    const diameter = 24 + (1 - conf) * 32;
     blot.style.width = `${diameter.toFixed(1)}px`;
     blot.style.height = `${(diameter * 0.86).toFixed(1)}px`;
-    blot.style.filter = `blur(${(4 + (1 - conf) * 7).toFixed(1)}px)`;
-    blot.style.opacity = (0.34 + conf * 0.52).toFixed(2);
+    blot.style.filter = `blur(${(2.5 + (1 - conf) * 11).toFixed(1)}px)`;
+    blot.style.opacity = (0.18 + conf * 0.72).toFixed(2);
 
     cell.append(blot);
     return cell;
@@ -3492,6 +3510,14 @@ export class StudyBoard {
     const pct = document.createElement("span");
     pct.className = "study-row-conf";
     pct.textContent = `${Math.round(source.signal.confidence * 100)}%`;
+    // The number, named. It sat bare on every row and a first-timer had no
+    // way to know what it measured; the word is the one the game's own
+    // prose already uses (reasonFirstWatch: "85% confidence"), so the row
+    // and the mind agree on what the figure is.
+    const word = document.createElement("span");
+    word.className = "study-row-confword holos-caps";
+    word.textContent = "CONFIDENCE";
+    pct.append(" ", word);
 
     beliefLine.append(cls, pct);
     return beliefLine;
@@ -4769,6 +4795,27 @@ export class StudyBoard {
       note.className = "voice-note";
       note.textContent = this.reportExplainerText;
       this.body.append(note);
+    }
+
+    // WHAT WE WOULD DO NEXT, above the annal. The Report is the first tab
+    // on the rail and the one a returning player opens, and it used to
+    // answer them with the past (the annal) and the present (standings)
+    // while the future sat one tap away on the Mind page — which is the
+    // burial the one-time arrival note only papered over once. The mind's
+    // proposals ARE the ranked "what matters now" this page was missing, so
+    // they render here in the Mind page's own chrome (same header, same
+    // rows, same speaker), and stay on the Mind page too: the payload rides
+    // every sky either way, and a page about who we are keeps what we would
+    // do.
+    if (this.proposals.length > 0) {
+      const nextHeader = document.createElement("div");
+      nextHeader.className = "study-section-header holos-caps";
+      nextHeader.textContent = "WHAT WE WOULD DO NEXT";
+      this.body.append(nextHeader);
+      for (const proposal of this.proposals) {
+        this.body.append(this.buildProposalRow(proposal, "report"));
+      }
+      this.body.append(this.hairline());
     }
 
     const report = this.report;

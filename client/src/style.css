@@ -1934,6 +1934,17 @@ body {
   flex-shrink: 0;
 }
 
+/* The number's name (2026-08 playtest: a bare percent on every row and no
+ * way to know what it measured). A quiet caps word after the figure, one
+ * tier fainter and a step smaller, so the digits keep the eye and the word
+ * answers the question the first read asks. xs, not xxs: it sits alone on
+ * the line's end, unenclosed, so the classifier floor does not apply. */
+.study-row-confword {
+  font-size: var(--holos-text-xs);
+  letter-spacing: 0.08em;
+  color: var(--holos-ink-faint);
+}
+
 /* Hub + projects view — the compute allocation line, ticked live once a
  * second while the panel is open (see StudyBoard's startTicking). */
 .study-budget-line {
