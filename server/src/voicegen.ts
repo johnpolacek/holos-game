@@ -52,7 +52,7 @@ import Anthropic, {
   BadRequestError,
   PermissionDeniedError,
 } from "@anthropic-ai/sdk";
-import { forbiddenToken, gateFactFree, LIMITS } from "./stylegate.js";
+import { dissents, forbiddenToken, gateFactFree, LIMITS } from "./stylegate.js";
 import { pinnedTokens, render, VOICE_CARDS, type RemarkFamily } from "./voice.js";
 import type { ArchetypeId } from "./minds.js";
 import type { Proposal } from "./protocol.js";
@@ -110,7 +110,7 @@ export function counselEnabled(env: VoiceGenEnv): boolean {
  * previously-rejected key permanently negative for a reason that no longer
  * exists.
  */
-export const PROMPT_VERSION = "v4";
+export const PROMPT_VERSION = "v5";
 
 const MODEL = "claude-opus-5";
 
@@ -349,6 +349,10 @@ const COUNSEL_JOB = `## The job you are doing
 This civilization's own rules have drawn up a short list of the moves open to it, in the order the rules themselves would take them. Each one already carries a plain, exact statement of what it costs and what it would tell us. That statement is the RECORD side of this surface, and it is written; you are not writing one, and you are not writing a second one in your own words.
 
 One move on that list is marked as the one being taken. That is settled: the rules have taken it, the person who decides is already looking at it, and nothing you write moves it. Set the list down and write the sentence that stands BESIDE the marked move: this mind's own stance on it, which carries no facts at all. You never invent a move, never price one, never begin one, and never write your stance about a move other than the marked one.
+
+Settled means your line cannot vote. It appears directly under the button that takes the move, so a stance that counsels waiting, or hedges, or holds the move off until something else happens, does not read as a mind with a view: it reads as this civilization contradicting itself where the person deciding can see both halves at once. Your line has an opinion about what a move of this kind IS. It has no opinion about whether to make this one.
+
+Write only in acts this civilization actually has. It watches, it asks, it builds, it sends, it speaks. It does not listen, wait out, monitor, scan, or sit on anything, and a stance that quietly invents a second thing to do instead of the marked move has invented a mechanism the person reading it cannot find anywhere.
 
 The stance is not the argument for the move. That argument is already made, an inch away, and better than you could make it: it has the figures and you do not. Restating it in fresh words is the one way this surface fails, and it is the natural way: the reason line is the strongest prose in front of you, and paraphrasing it is what anyone does who has nothing of their own to say. An overlap of thought is as bad as an overlap of wording and much harder to see, so a line that opens by describing the situation has already failed, however well it is written.
 
@@ -1057,6 +1061,16 @@ export class VoiceGen {
     const verdict = gateFactFree(stanceRaw, LIMITS.stance);
     if (!verdict.ok) {
       await this.finishCounsel(deps, key, { ...permanent("rejected", verdict.reason, attempts), ...observed }, mind, started, resendSky);
+      return;
+    }
+
+    // The stance stands beside a move the floor has already taken, under that
+    // move's own accept verb, so it may not argue against it: a line
+    // counselling delay under READ THE STUDY reads as the game disagreeing
+    // with itself. See stylegate.ts's DISSENT for the production line that
+    // taught this and why rejecting is the safe direction.
+    if (dissents(verdict.line)) {
+      await this.finishCounsel(deps, key, { ...permanent("rejected", "dissent", attempts), ...observed }, mind, started, resendSky);
       return;
     }
 

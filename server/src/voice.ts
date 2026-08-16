@@ -1502,15 +1502,22 @@ export const PROPOSAL_VERBS: Readonly<Record<ProposalKind, string>> = {
 };
 
 /**
- * The one gesture a new player has: a clean reading and no study yet. The
- * tail used to restate the brief's cost chrome ("NO COMPUTE · NO CLOCK ·
- * REVERSIBLE") and read as a price tag on the one surface that has to earn
- * the tap (prose-audit.md, A11). It now restates the brief's OTHER sentence
- * instead — "the light arrives whether or not you attend to it", compressed
- * under the §2 wall to "Its light arrives regardless" — so the same reading
- * holds on both sides of the tap, and it closes on the observatory's one
- * licensed flourish: a true statement of physics. Still R-35a-clean; the
- * costs answer lives on the brief, where a costs question belongs.
+ * The one gesture a new player has: a clean reading and no study yet.
+ *
+ * TWO TAILS HAVE BEEN CUT FROM THIS LINE, and the second cut is the one
+ * worth remembering. The first was the brief's cost chrome ("NO COMPUTE ·
+ * NO CLOCK · REVERSIBLE"), a price tag on the surface that has to earn the
+ * tap (prose-audit.md, A11). Its replacement, "Its light arrives
+ * regardless", was a true statement of physics and read as one — which is
+ * the problem. On the arrival note it is the first argument a new mind ever
+ * makes for doing something, and what it argues is that the thing happens
+ * anyway. A reason to act cannot close on the news that the universe is
+ * indifferent to whether you do.
+ *
+ * So the line stops at the facts. The reading, the class, the distance and
+ * the confidence are the whole case, and they make it: something is
+ * broadcasting, it is close, and nobody is watching it. R-35a-clean, and
+ * the costs answer still lives on the brief where a costs question belongs.
  */
 export function reasonFirstWatch(
   sourceName: string,
@@ -1518,7 +1525,7 @@ export function reasonFirstWatch(
   distanceLy: number,
   confidence: number,
 ): PinnedLine {
-  return line`${F.source(sourceName)} carries one reading, no study: ${F.label(classLabel)}, ${F.years(distanceLy)} away, ${F.percent(confidence)} confidence. Its light arrives regardless.`;
+  return line`${F.source(sourceName)} carries one reading, no study: ${F.label(classLabel)}, ${F.years(distanceLy)} away, ${F.percent(confidence)} confidence.`;
 }
 
 /**

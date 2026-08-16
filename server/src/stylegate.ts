@@ -48,7 +48,9 @@ export type GateReason =
   /** Fact-carrying surfaces only: a pinned token the line had to echo. */
   | "missing-pinned"
   /** Fact-free surfaces: a token from the material the line must NOT echo. */
-  | "pinned-token";
+  | "pinned-token"
+  /** Counsel only: the stance argued against the move it stands beside. */
+  | "dissent";
 
 export type GateVerdict =
   | { readonly ok: true; readonly line: string }
@@ -187,6 +189,44 @@ export function gateFactFree(raw: string, limits: GateLimits): GateVerdict {
  * echoing it, and R-2's byte-exact rule governs the pinned side, not this
  * one.
  */
+/**
+ * COUNSEL ONLY: the stance argues against the move it stands beside.
+ *
+ * The stance sits an inch from a proposal the floor has already taken, under
+ * that proposal's own accept verb. It is the mind's opinion on a KIND of
+ * move, and the one thing it may never be is a vote: a line that counsels
+ * delay under a button labelled READ THE STUDY does not read as character,
+ * it reads as the game disagreeing with itself, and the player is left to
+ * work out which half to believe.
+ *
+ * A real one reached production and is why this exists — "We listen first,
+ * and let them stay unwatched a while longer.", beside a first-watch
+ * proposal. Every mechanical check passed it: no facts, no digits, first
+ * person plural, inside the wall, terminated. Nothing looked at what it
+ * ARGUED, because until now nothing had to.
+ *
+ * The prompt is where this is really taught (voicegen.ts's COUNSEL_JOB says
+ * it in the mind's own terms); this is the backstop that makes it hold when
+ * the model reaches for contrarian flavour anyway. DELIBERATELY OVER-STRICT
+ * and safe to be: a rejected stance is no stance, which is the AV3 floor
+ * with the template still under it, and wrangler.jsonc's own note on the
+ * counsel flag is that bad counsel is worse than plain counsel. The cost of
+ * a false positive is one quiet row; the cost of a false negative is the
+ * mind contradicting itself in front of a new player.
+ *
+ * It catches the DIRECTIVE forms of deferral, not the vocabulary of
+ * patience: "waiting is our whole method" is a stance about the kind of
+ * move and passes, while "wait a while longer" is an instruction and does
+ * not.
+ */
+const DISSENT =
+  /\b(not yet|no hurry|not now|hold off|hold back|leave (it|them|this)|let (it|them|this) (stay|wait|stand|sit|keep)|(a|the) while longer|a little longer|another year|some other year|in time|later|first,)\b/i;
+
+/** Whether a counsel stance argues against the move it decorates. */
+export function dissents(line: string): boolean {
+  return DISSENT.test(line);
+}
+
 export function forbiddenToken(
   line: string,
   tokens: readonly string[],
