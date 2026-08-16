@@ -402,7 +402,7 @@ const THREAD_STATE_LABEL: Record<ThreadState, string> = {
   unopened: "UNOPENED",
   "in-flight": "IN FLIGHT",
   awaiting: "AWAITING",
-  answered: "ANSWERED",
+  answered: "RECEIVED",
   silent: "SILENT",
   withdrawn: "WITHDRAWN",
 };
