@@ -211,7 +211,11 @@ export const VOYAGE_KINDS: readonly VoyageKindDef[] = [
   {
     kind: "torch",
     label: "THE TORCH",
-    line: "Half of lightspeed, on fuel it carries. The flare lasts eight years, and again at the far end.",
+    // R-42: its two siblings each close on what being seen means (the
+    // seedship arrives unannounced, the sail brakes in plain view). This one
+    // stated the flare as a fact of the engine and left the player to work
+    // out that a torch is the one crossing everybody watches.
+    line: "Half of lightspeed, on fuel it carries. The flare lasts eight years, and again at the far end, where anyone looking will see us.",
     costClass: "endeavor",
     costCompute: 3400,
     flightYearsPerLy: TORCH_FLIGHT_YEARS_PER_LY,
@@ -351,7 +355,10 @@ export const VOYAGE_CLAUSES: readonly VoyageClauseDef[] = [
     id: "report-the-landfall",
     group: "signal-plan",
     label: "Report the landfall",
-    line: "Send one word home when it is decided, whatever the decision was.",
+    // R-42: its opposite ("Send no word") names a real risk, and this named
+    // a procedure. A pair where only one side states a consequence reads as
+    // the game recommending that side.
+    line: "Send one word home when it is decided, whatever it was. Without it we never learn how this ended.",
   },
   {
     id: "send-no-word",

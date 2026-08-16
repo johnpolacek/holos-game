@@ -236,7 +236,11 @@ export const PROJECTS: readonly ProjectDef[] = [
     label: "Sink the neutrino watch",
     proseName: "the neutrino watch",
     line: "A volume of cold matter deep enough to catch the particles that pass through everything else: heat can be shaped and delayed and diluted, and none of that touches a neutrino.",
-    effectLine: "Holds the floor under every signal's confidence five points higher.",
+    // R-42: every other effectLine here says what changes ("Raises the
+    // compute income by 6 a year"); this named an instrument behaviour and
+    // left the player to derive what it buys.
+    effectLine:
+      "Holds every signal's confidence five points higher, so fewer readings stay too faint to trust.",
     costClass: "investment",
     costCompute: 640,
     durationYears: 50,
@@ -294,7 +298,9 @@ export const PROJECTS: readonly ProjectDef[] = [
     label: "Ring the focal line",
     proseName: "the focal-line ring",
     line: "One instrument on the focal line for every bearing worth watching, out beyond five hundred and fifty astronomical units, with the star itself for a lens. After this, nothing in this sky is a smudge to anyone here again.",
-    effectLine: "Holds the floor under every signal's confidence ten points higher.",
+    // R-42, the five-point line's reasoning at the catalog's top end.
+    effectLine:
+      "Holds every signal's confidence ten points higher, so fewer readings stay too faint to trust.",
     costClass: "epochal",
     costCompute: 9000,
     durationYears: 320,
