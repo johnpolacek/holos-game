@@ -869,3 +869,159 @@ reads as intended. No prompt change, so no PROMPT_VERSION bump; cached
 stances were written "for the kind of move, not for this one"
 (`voicegen.ts`'s own note at the set-fingerprint), so they remain valid
 beside the new reason text.
+
+---
+
+## Pass 6 — the surfaces the first-session read never reached
+
+Scope: the source card, the contact thread, Projects, voyages, Reach and the
+Mind page. These are the pages the 2026-08-16 first-session evaluation
+(arrival note, stakes glosses, row temperature) did not get to, swept with
+both lenses now that **R-42** exists to name the second one.
+
+The humanizer's yield here is close to nil, which is the same result passes
+1 to 5 got and is worth stating plainly: the vocabulary tells are absent,
+the register is consistent, and the archetypes stay distinct. Every finding
+below is R-42 or R-40. That is the shape of this codebase's remaining prose
+debt: not sentences that sound wrong, sentences that read well and ask for
+nothing.
+
+| | Count |
+|---|---|
+| Applied | 6 |
+| Reported, not applied | 3 |
+
+### Applied
+
+#### P1 — `voyages.ts:214` THE TORCH describes its flare and never says what it costs
+
+```
+Half of lightspeed, on fuel it carries. The flare lasts eight years, and again at the far end.
+```
+
+Its two siblings each close on what being seen means: the seedship "arrives
+unannounced", the sail "brakes in plain view at the far end". The torch
+states the flare as a fact of the engine and stops. On the surface where a
+player commits a founding, the most irreversible act in the game, one of the
+three options does not tell them what it spends. R-42.
+
+Applied: `The flare lasts eight years, and again at the far end, where anyone
+looking will see us.`
+
+**`audit:facts` rejected the first attempt, correctly.** It read "It flares
+for eight years at each end, in view of everyone" and reported two
+disagreements: it could no longer find the eight against `departureYears`,
+and with "far end" gone it scored the line as saying nothing about an
+arrival while `brakingLevel` says the braking is seen. Both were true. The
+script keys on the phrasings *because* they are the couplings, so the fix
+was to keep them and hang the stake off the end rather than to loosen the
+patterns. A guard that a rewrite can talk its way past is not a guard, and
+this one caught a real regression inside a prose-only change.
+
+#### P2 — `voyages.ts:354` the reporting clause names no consequence, while its opposite does
+
+```
+Send one word home when it is decided, whatever the decision was.
+```
+
+Against "Send no word", whose line is `A beam home draws a line anyone can
+follow at both ends.` One option states a risk, the other states a
+procedure, and a pair like that reads as the game recommending the silent
+one. The reporting clause has a real stake and it is the plain one: choose
+otherwise and nobody here ever learns how it ended. R-42.
+
+Applied: `Send one word home when it is decided, whatever it was. Without it
+we never learn how this ended.`
+
+#### P3, P4 — `projects.ts:239, :297` the confidence floor is stated as a mechanism
+
+```
+Holds the floor under every signal's confidence five points higher.
+Holds the floor under every signal's confidence ten points higher.
+```
+
+Every other `effectLine` in the catalog says plainly what changes ("Raises
+the compute income by 6 a year, for good"). These two name an instrument
+behaviour and leave the player to derive what it buys, which is that fewer
+readings stay too faint to trust. R-42. The numerals are byte-exact through
+the edit (R-1), and `audit:facts` still passes on both couplings.
+
+Applied: `Holds every signal's confidence five points higher, so fewer
+readings stay too faint to trust.` (and `ten` likewise)
+
+#### P5 — `studyboard.ts` the Mind page has no caption
+
+Every sibling page states what it is under its header, which is R-40's whole
+point and the reason the Report gained one: "the tab is the first thing a
+fresh civ opens, and it used to land on a bare title over nothing". THE MIND
+goes header, hairline, masthead. It is also the least self-evident word in
+the rail: Report, Sky and Projects name their contents, and THE MIND names
+a thing a new player has just been told they *are*.
+
+Applied: `Who we are, and what we would do next.`
+
+#### P6 — `studyboard.ts` Reach opens on a section header, with no page title and no caption
+
+Reach is the only rail page that starts on a `study-section-header` (THE
+LEDGER) rather than a page header, so it has neither a title nor an R-40
+caption. Applied both, after the existing empty guard so the page still
+renders nothing in the case that guard is protecting.
+
+Applied: header `REACH`, caption `What we have sent outward, and what became
+of it.`
+
+#### P7 — `studyboard.ts` the Projects caption instructs instead of reassuring
+
+```
+What the observatory can build. Tap one to read what it grants.
+```
+
+"Tap one" is the affordance describing itself, the same cut already made on
+the Report caption. But the sentence is carrying something real underneath
+the instruction, and it should not simply be deleted: the picker-to-brief
+pattern means a tap does **not** spend, and a player who fears that a tap
+buys will not tap. Said as a consequence rather than as an instruction, it
+gets shorter and keeps the reassurance.
+
+Applied: `What the observatory can build. Reading one costs nothing.`
+
+### Reported, not applied
+
+#### P8 — `projects.ts:190` negative parallelism (humanizer 9)
+
+```
+Resolution was never about the mirror, only about how far apart you are
+willing to stand.
+```
+
+The "never X, only Y" shape is the pattern. Kept: it is correcting a belief
+the player actually holds (that a bigger instrument is a better one), which
+is the one job negative parallelism does honestly, and the line is the
+clearest statement of interferometry in the catalog. Flagging it here so the
+next sweep does not rediscover it as new.
+
+#### P9, P10 — `projects.ts:238, :249` rule of three (humanizer 10)
+
+```
+heat can be shaped and delayed and diluted
+slow thoughts, cheap ones, and a very great many of them at once
+```
+
+Both are triples. Kept, and deliberately: the first is polysyndeton doing
+real work (three verbs, three distinct evasions, and the neutrino defeats
+all of them), and the second is M9's deep-time shrug landing a joke about
+scale. The rule-of-three tell is a cadence a model falls into when it has
+nothing to say; these have something to say. Recorded rather than silently
+passed over.
+
+### Recorded
+
+#### P11 — nothing new for the gate, and why
+
+Pass 3 of this command asks what becomes a mechanical rule. Nothing here
+does. Every finding is R-42 or R-40, and R-42's own text says it is not
+grep-checkable and never will be: no regex sees whether a sentence gives a
+reader a reason to care. The generation-path half of R-42 already landed
+with the rule itself, in `voicegen.ts`'s `COUNSEL_JOB`, and it reaches no
+other prompt on purpose (a remark stands beside a record, which R-42 exempts
+by name). No `stylegate.ts` change, no `PROMPT_VERSION` bump.
