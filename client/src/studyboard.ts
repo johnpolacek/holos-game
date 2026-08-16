@@ -8836,7 +8836,15 @@ export class StudyBoard {
     oqSection.className = "study-open-questions";
     const oqHeader = document.createElement("div");
     oqHeader.className = "study-section-header holos-caps";
-    oqHeader.textContent = "OPEN QUESTIONS";
+    // INVESTIGATE, not "OPEN QUESTIONS" (2026-08 playtest). The sibling
+    // headers describe what stands under them and this one used to as well,
+    // but this is the board's one actionable section, and a header that
+    // names the ACT is what tells a lost player where the game is. The verb
+    // register is already the game's own: the rows under it are imperatives
+    // (WEIGH IT), and so is every affordance on the source card. The rows
+    // themselves are still questions, which is what the study explainer and
+    // the compute note call them; the header names what you do with them.
+    oqHeader.textContent = "INVESTIGATE";
     oqSection.append(oqHeader);
 
     const evidenceIds = new Set(s.evidence.map((e) => e.id));
