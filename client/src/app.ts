@@ -193,6 +193,9 @@ export class App {
   // never appended, never re-sorted client-side (the server's ranked order
   // is load-bearing, per the AV3 design).
   private proposals: readonly Proposal[] = [];
+  // S0.3's answer: the arrival note, the mind's first standing sentence
+  // after the intro beats. Non-null exactly while it is on screen.
+  private arrivalNote: HTMLDivElement | null = null;
   // A4: this player's own foundings and the forecast over the nearest stars,
   // wholesale-replaced on every `sky` like everything else above. THE LEDGER
   // rides the same message — what became of those foundings, and what the
@@ -551,6 +554,85 @@ export class App {
     this.voiceLines = { ...this.voiceLines, [key]: undefined };
     this.socket.send({ type: "voiceSeen", key });
     return text;
+  }
+
+  /**
+   * S0.3's answer, the arrival note: the mind's one line after the four
+   * beats, over the first-watch proposal it argues for. Shown once ever
+   * (the "firstsky" key, takeVoice's contract) and only over the sky it
+   * was written for — rule 1's pick is the top proposal exactly while
+   * nothing is engaged (serveProposals's first-watch exclusivity, and the
+   * proposal id is that rule's own stable prefix). Any other sky means
+   * this civ's arrival predates the note; the line is buried unshown
+   * rather than replayed over a life already in motion.
+   */
+  private maybeShowArrival(): void {
+    if (this.voiceLines.firstsky === undefined) return;
+    if (this.mountedScreen !== "sky" || this.intro !== null) return;
+    const top = this.proposals[0];
+    if (top === undefined || !top.id.startsWith("first-watch/") || top.route.kind !== "study-brief") {
+      this.takeVoice("firstsky");
+      return;
+    }
+    const lineText = this.takeVoice("firstsky");
+    if (lineText === null) return;
+    this.showArrivalNote(lineText, top, top.route.starId);
+  }
+
+  /** The note itself: the mind's line, then the proposal in the Mind page's
+   *  own chrome (.proposal-line/-stance/-accept/-decline), so the note and
+   *  the page it points back to read as the same speaker. "Later" only
+   *  closes the note — it is not a decline; the proposal stays on the Mind
+   *  page, which is where a player who taps Later will find it again. */
+  private showArrivalNote(mindLine: string, p: Proposal, starId: string): void {
+    this.dismissArrivalNote();
+    const note = document.createElement("div");
+    note.className = "arrival-note";
+
+    const voiceEl = document.createElement("div");
+    voiceEl.className = "arrival-note-voice";
+    voiceEl.textContent = mindLine;
+    note.append(voiceEl);
+
+    const lineEl = document.createElement("div");
+    lineEl.className = "proposal-line";
+    lineEl.textContent = p.line;
+    note.append(lineEl);
+
+    if (p.stance !== null) {
+      const stance = document.createElement("div");
+      stance.className = "proposal-stance";
+      stance.textContent = p.stance;
+      note.append(stance);
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "proposal-actions";
+    const accept = document.createElement("button");
+    accept.type = "button";
+    accept.className = "proposal-accept holos-caps";
+    accept.textContent = p.verb;
+    accept.addEventListener("click", () => {
+      this.dismissArrivalNote();
+      // The sky's own study door (the source card's row makes the same
+      // call): straight to the board, ambient face, ‹ STUDIES back out.
+      this.studyBoard?.focusStudy(starId);
+    });
+    const later = document.createElement("button");
+    later.type = "button";
+    later.className = "proposal-decline";
+    later.textContent = "Later";
+    later.addEventListener("click", () => this.dismissArrivalNote());
+    actions.append(accept, later);
+    note.append(actions);
+
+    this.root.append(note);
+    this.arrivalNote = note;
+  }
+
+  private dismissArrivalNote(): void {
+    this.arrivalNote?.remove();
+    this.arrivalNote = null;
   }
 
   /** S0.1: the four intro beats, in the pinned order, or null if the server
@@ -1056,15 +1138,18 @@ export class App {
             studyBoard.setChromeHidden(false);
             home.setHidden(false);
             this.intro = null;
-            // The intro used to hand off to the counsel strip here, so the
-            // mind's arrival read was the first thing standing after the four
-            // beats. With the strip cut the beats now end on the bare sky and
-            // the mind says nothing. That gap is known, and it is the whole
-            // subject of the next slice.
+            // The handoff the cut counsel strip left open: the beats end,
+            // and the mind's arrival note is the first thing standing.
+            this.maybeShowArrival();
           },
         });
       } else {
         clearPendingBecome();
+        // No intro to wait on (a reconnect, or the beats were seen on
+        // another device): the arrival note stands on its own if its
+        // moment is still this civ's moment — maybeShowArrival buries it
+        // otherwise.
+        this.maybeShowArrival();
       }
       // S0.2: the HUD's standing lines tick on their own second; the sky
       // handler's immediate refreshStanding() covers the gap until the
@@ -1082,6 +1167,7 @@ export class App {
         }
         this.intro?.destroy();
         this.intro = null;
+        this.dismissArrivalNote();
         if (this.model === model) this.model = null;
         if (this.sourceCard === sourceCard) this.sourceCard = null;
         if (this.studyBoard === studyBoard) this.studyBoard = null;

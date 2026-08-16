@@ -319,6 +319,7 @@ const frameLines = [
   "EPOCH_LINE",
   "SILENCE_LINE",
   "STUDY_LINE",
+  "FIRST_SKY_LINE",
 ].map(frameLine);
 // The proposal accept verbs (§2's "Proposal accept verb" row, R-24). Chrome,
 // so they go through `checkChrome` rather than the gate; that function says

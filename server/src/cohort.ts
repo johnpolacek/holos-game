@@ -160,7 +160,7 @@ import {
 import { createRng } from "./rng";
 import { generateCivSeed, type CivSeed } from "./civseed";
 import { archetypeById } from "./minds";
-import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine, silenceLine, studyLine, introLine, counselLine } from "./voice";
+import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine, silenceLine, studyLine, introLine, counselLine, firstSkyLine } from "./voice";
 import {
   buildStudySnapshot,
   hypothesisMenus,
@@ -3768,6 +3768,11 @@ export class Cohort extends Server<CohortEnv> {
     if (opts.forceIntro || !seen.has("intro2")) lines.intro2 = introLine("intro2");
     if (opts.forceIntro || !seen.has("intro3")) lines.intro3 = introLine("intro3");
     if (opts.forceIntro || !seen.has("intro4")) lines.intro4 = introLine("intro4");
+    // S0.3's answer: the arrival note. Served like any frame line; the
+    // CLIENT decides show-or-bury (only a sky whose top proposal is
+    // first-watch is an arrival), so an unshown serve here costs bytes,
+    // never a wrong beat.
+    if (!seen.has("firstsky")) lines.firstsky = firstSkyLine();
     this.sendMsg(conn, { type: "voice", lines });
   }
 

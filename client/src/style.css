@@ -2505,6 +2505,39 @@ body {
   cursor: pointer;
 }
 
+/* ── The arrival note (S0.3's answer) ──────────────────────────────────
+ * The mind's first standing sentence after the intro beats, over the
+ * first-watch proposal it argues for. A one-time sibling on the App root,
+ * pinned where the counsel strip used to sit — above the rail, in the
+ * band's own z-slot, below every overlay. The proposal inside it wears the
+ * Mind page's own chrome (.proposal-line/-stance/-accept/-decline), so the
+ * note and the page it points back to read as the same speaker; only the
+ * container and the mind's own line are new. */
+.arrival-note {
+  position: fixed;
+  bottom: calc(var(--home-rail-h, 0rem) + 0.5rem);
+  left: max(0.9rem, env(safe-area-inset-left));
+  right: max(0.9rem, env(safe-area-inset-right));
+  z-index: 4;
+  max-width: 30rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.8rem 0.9rem;
+  background: var(--holos-bg-raised);
+  border: 1px solid var(--holos-gold-dim);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+}
+
+/* The mind's own line leads, a step quieter than the proposal it argues
+ * for: the sentence frames, the proposal carries the facts and the verb. */
+.arrival-note-voice {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+}
+
 .home-note--standing {
   margin-left: auto;
 }

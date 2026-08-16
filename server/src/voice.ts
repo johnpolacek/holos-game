@@ -350,6 +350,27 @@ export function introLine(key: IntroKey): string {
   return render(INTRO_LINES[key]);
 }
 
+/**
+ * S0.3's answer — the arrival note's own sentence, the mind's first
+ * standing words after the four beats. The first clause answers intro4
+ * directly: "You may not be the first to wake" was the hook, and this is
+ * the mind, having read a sky with sources in it, closing the "may". In
+ * canon that close is licensed — SILENCE_LINE already holds that the sky
+ * is inhabited — and in practice the client shows this only over a sky
+ * whose first-watch proposal exists, which requires a detected source.
+ *
+ * The second clause is the direction, and "the strongest reading" is
+ * proposals.ts's pickBrightest restated (highest confidence): the proposal
+ * rendered under this line names which one, with its facts pinned, so this
+ * line carries none. Numeral-free, archetype-neutral, wit 0.
+ */
+const FIRST_SKY_LINE: PinnedLine =
+  line`We are not the first to wake. Begin with the strongest reading.`;
+
+export function firstSkyLine(): string {
+  return render(FIRST_SKY_LINE);
+}
+
 // ---------------------------------------------------------------------------
 // A2.3 — the contest tell.
 //

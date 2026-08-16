@@ -854,10 +854,16 @@ export type VoiceKey =
   // keys, not one, so `seen` tracks each beat independently the way every
   // other frame line does — a client that dismissed beat three but dropped
   // its connection before beat four gets exactly the tail on reconnect.
-  | "intro1" | "intro2" | "intro3" | "intro4";
+  | "intro1" | "intro2" | "intro3" | "intro4"
+  // S0.3's answer: the arrival note — the mind's one line after the four
+  // beats, shown over the first-watch proposal it argues for. The client
+  // buries it unshown on any sky where the arrival moment has passed
+  // (anything already engaged), so it can never replay over a life in
+  // motion.
+  | "firstsky";
 export const VOICE_KEYS: readonly VoiceKey[] = [
   "arrival", "age", "compute", "clock", "epoch", "silence", "study",
-  "intro1", "intro2", "intro3", "intro4",
+  "intro1", "intro2", "intro3", "intro4", "firstsky",
 ];
 export function isVoiceKey(v: unknown): v is VoiceKey {
   // Derived from VOICE_KEYS so the union, the array, and the guard cannot
