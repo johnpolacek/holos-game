@@ -3429,6 +3429,49 @@ export class StudyBoard {
     return cell;
   }
 
+  /**
+   * The belief line: what the instrument thinks this is, and how well it
+   * holds it. One builder for the two surfaces that show it (a source row,
+   * and the head of the board that row opens), so they cannot drift.
+   *
+   * ROW TEMPERATURE. The smudge beside a row has always carried the
+   * confidence, tight and bright or wide and diffuse, while the belief was
+   * printed at one strength for every source alive. So a sky of twelve read
+   * flat: the loudest thing in it and the faintest reached the eye
+   * together, and all that separated them was four characters at the far
+   * right of the row. The belief is what the row is for, so the belief
+   * carries it.
+   *
+   * CONFIDENCE AND NOTHING ELSE. Every class stays evenly lit, because
+   * ranking those would be the game deciding which kind of neighbour is
+   * worth a player's attention, which is the one judgement this surface
+   * must leave alone. How well the instrument holds a reading is a fact the
+   * row already prints; this is that fact said in ink instead of digits.
+   *
+   * Between two TOKENS rather than in raw alpha, so the tier system owns
+   * both ends: full amber where the instrument is certain, `--holos-amber-dim`
+   * where it has nothing, and never a step below that. The floor being a
+   * token is what keeps a faint row quiet rather than lost on a phone in
+   * daylight.
+   */
+  private buildBeliefLine(source: DetectedSource): HTMLDivElement {
+    const beliefLine = document.createElement("div");
+    beliefLine.className = "study-row-beliefline";
+
+    const cls = document.createElement("span");
+    cls.className = "study-row-class";
+    cls.textContent = CLASS_LABEL[source.signal.classification];
+    const conf = clamp01(source.signal.confidence);
+    cls.style.color = `color-mix(in srgb, var(--holos-amber) ${Math.round(conf * 100)}%, var(--holos-amber-dim))`;
+
+    const pct = document.createElement("span");
+    pct.className = "study-row-conf";
+    pct.textContent = `${Math.round(source.signal.confidence * 100)}%`;
+
+    beliefLine.append(cls, pct);
+    return beliefLine;
+  }
+
   /** The shared anatomy of a source row: the blot, then the belief loud with
    *  the catalog designation and the light-age quiet around it. */
   private buildSourceRow(source: DetectedSource): HTMLButtonElement {
@@ -3460,15 +3503,7 @@ export class StudyBoard {
       idLine.append(nm);
     }
 
-    const beliefLine = document.createElement("div");
-    beliefLine.className = "study-row-beliefline";
-    const cls = document.createElement("span");
-    cls.className = "study-row-class";
-    cls.textContent = CLASS_LABEL[source.signal.classification];
-    const conf = document.createElement("span");
-    conf.className = "study-row-conf";
-    conf.textContent = `${Math.round(source.signal.confidence * 100)}%`;
-    beliefLine.append(cls, conf);
+    const beliefLine = this.buildBeliefLine(source);
 
     const age = document.createElement("div");
     age.className = "study-row-age holos-caps";
@@ -8549,16 +8584,7 @@ export class StudyBoard {
     // head carries the belief line (row chrome, so the row and the board
     // read as the same object) and CLASS_EXPLAINER's sentence under it,
     // byte-identical to the card's (one definition, two surfaces).
-    const beliefLine = document.createElement("div");
-    beliefLine.className = "study-row-beliefline";
-    const cls = document.createElement("span");
-    cls.className = "study-row-class";
-    cls.textContent = CLASS_LABEL[source.signal.classification];
-    const conf = document.createElement("span");
-    conf.className = "study-row-conf";
-    conf.textContent = `${Math.round(source.signal.confidence * 100)}%`;
-    beliefLine.append(cls, conf);
-    host.append(beliefLine);
+    host.append(this.buildBeliefLine(source));
 
     const classNote = document.createElement("div");
     classNote.className = "study-picker-subtitle";
