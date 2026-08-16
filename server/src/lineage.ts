@@ -131,7 +131,7 @@ export const LINEAGE_TURNAROUND_YEARS = MIN_DELIBERATION_YEARS;
  * derivation cannot recover, because they are about WHEN THE PARENT FIRST
  * CONCLUDED SOMETHING and the conclusion is not in the light.
  *
- * Written only on transition (studies.ts's tripwire idiom): `buildLedger`
+ * Written only on transition (orders.ts's settle idiom): `buildLedger`
  * returns the stored state BY IDENTITY when nothing crossed, and cohort.ts
  * writes exactly when it did not.
  */
@@ -478,8 +478,8 @@ export interface BuildLedgerInput {
  * THE LEDGER, and the two latches assembling it can produce.
  *
  * `state` is returned BY IDENTITY when nothing crossed, which is how cohort.ts
- * knows whether it owes a write (studies.ts's `settleTripwires` contract, one
- * module over). A band crossing and a first independence are the only two
+ * knows whether it owes a write (orders.ts's `settleStandingOrders` makes the
+ * same promise). A band crossing and a first independence are the only two
  * things here that are ever written down; everything else is derived on every
  * read and would be identical if storage were wiped.
  */

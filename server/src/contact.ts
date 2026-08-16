@@ -15,8 +15,8 @@
 // STATEMENT READS A LIVE CONNECTION'S STATE. That is the invariant, and it
 // is stronger than a count: a writer that cannot name a live socket cannot
 // reach the log at all. Alarms are wake-ups and never truth (systems-a.md
-// §7), the proposal route has no contact arm and gains none, study tripwires
-// fire beliefs rather than acts, and no AI civilization has a path here at
+// §7), the proposal route has no contact arm and gains none, the standing
+// watch reports beliefs rather than acts, and no AI civilization has a path here at
 // any stage (see the derivation rule below). The invariant is greppable and
 // is meant to be grepped:
 //

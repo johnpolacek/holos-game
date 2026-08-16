@@ -80,9 +80,9 @@ import type {
   MissionKindDef,
 } from "./missions";
 import type { TendRow } from "./tend";
-// The tripwire vocabulary is studies.ts's (it owns the conditions and the
-// stored record); the wire borrows the id set, the TendRow precedent exactly.
-import type { TripwireKind } from "./studies";
+// The watch vocabulary is studies.ts's (it owns the conditions and the
+// derivation); the wire borrows the id set, the TendRow precedent exactly.
+import type { WatchKind } from "./studies";
 // A2.4: same borrowing, one more time — contact.ts owns the act vocabulary
 // and the stored ContactAct; the wire takes the id set only.
 import type { CeremonyKind, ContactKind } from "./contact";
@@ -154,7 +154,7 @@ export type {
 // The work-list row shape rides inside `sky`; the client renders it directly, so
 // it is named here rather than reached for through the message union.
 export type { TendRow } from "./tend";
-export type { TripwireKind } from "./studies";
+export type { WatchKind } from "./studies";
 export type { CeremonyKind, ContactKind } from "./contact";
 export type { PhysicsStamp } from "./traffic";
 // A2.6: the grammar's shapes, re-exported for the composer and the thread
@@ -445,11 +445,19 @@ export interface StudySnapshot {
    * you. `annotationLine` is untouched by it; the two claims stay apart.
    */
   readonly contestLine: string | null;
-  /** A2.3: all three kinds, always, with the state the server computed. The
-   *  chrome labels are the client's; nothing here names a condition's
-   *  threshold, and there is no number on this row a client could send back. */
+  /**
+   * VESTIGIAL, AND ALWAYS EMPTY — the HypothesisMenus rule one shelf down.
+   * No shipped client reads it: the observatory watches every source it can
+   * see, on its own, and there is nothing left to arm or to show the state
+   * of. It is still served because a tab left open across the deploy walks
+   * this array on every sky it is handed, and a missing field would throw
+   * inside that tab's own message handler and take the session with it —
+   * which is a worse answer than an empty list to a question nobody asks any
+   * more. Removable in a later slice, once no client old enough to walk it
+   * can still be connected.
+   */
   readonly tripwires: readonly {
-    readonly kind: TripwireKind;
+    readonly kind: WatchKind;
     readonly state: "available" | "armed" | "tripped";
     readonly firedYear: number | null;
   }[];
@@ -1220,12 +1228,19 @@ export type CohortClientMessage =
   | { type: "buyQuestion"; starId: string; questionId: string }
   | { type: "launchMission"; starId: string; kind: string; charter: readonly string[] }
   // ── A2.3 ──
-  // `kind` is parsed as a bare string and validated in the handler, the
-  // `launchMission.kind` precedent: the parse layer checks types, the
-  // handler owns the vocabulary and the error code.
+  // `armTripwire`, `disarmTripwire` AND `tripwire-unavailable` ARE DELETED,
+  // and no identifier of the three survives anywhere in this server: the
+  // greppable form of the claim is that a search for any of them returns this
+  // comment and nothing else. The observatory watches every source it can see
+  // on its own, so there is no order to leave and none to take back.
+  //
+  // A stale tab's arming falls through the parse below to null, and
+  // `onMessage` returns on null: DROPPED IN SILENCE, which is this file's
+  // idiom for retired vocabulary and `voiceSeen`'s reasoning one slice on. An
+  // error frame would be worse than useless — the old client's global error
+  // handler releases ALL in-flight purchase flags on ANY code, so answering a
+  // stray tripwire tap would cancel that tab's real in-progress buy or launch.
   | { type: "callStudy"; starId: string }
-  | { type: "armTripwire"; starId: string; kind: string }
-  | { type: "disarmTripwire"; starId: string; kind: string }
   // ── AV1 ──
   | { type: "voiceSeen"; key: VoiceKey }
   // S0.1: the Mind page's replay entry. No payload: there is exactly one
@@ -1374,10 +1389,12 @@ export type CohortServerMessage =
        * DISJOINT FROM `studies` BY CONSTRUCTION — membership here is the
        * absence of a record, so no starId is ever in both.
        *
-       * An ambient board never carries a call, a grounding, a purchase or an
-       * armed tripwire. Not by a rule applied to it: there is no record to
-       * hold one. The first act that needs remembering materializes the
-       * record, and the board moves to `studies` with it.
+       * An ambient board never carries a call, a grounding or a purchase.
+       * Not by a rule applied to it: there is no record to hold one. The
+       * first act that needs remembering materializes the record, and the
+       * board moves to `studies` with it. The WATCH is not on that list and
+       * never was a record: it stands over every visible source, engaged or
+       * not, because seeing a source is what starts it.
        */
       ambient: readonly StudySnapshot[];
       projects: readonly ProjectSnapshot[];
@@ -1447,7 +1464,6 @@ export type CohortErrorCode =
   | "mission-unavailable" // a live mission of this kind already runs on this star
   // ── A2.3 ──
   | "study-unavailable" // not open or shelved: a closed study cannot be closed again
-  | "tripwire-unavailable" // no such kind, or the condition already holds
   // ── A2.4 ──
   // Two codes, not five. Every way of naming a star that cannot be hailed
   // answers `bad-message` instead, deliberately: "unknown star", "star with
@@ -1498,11 +1514,11 @@ export type CohortErrorCode =
   | "voyage-unavailable" // a live voyage already aims there, or the cap is spent
   | "project-required" // the ship needs a project that has not landed
   // The standing order's own refusal: no such class, already armed, or the
-  // condition ALREADY HOLDS at the moment of arming (tripwire-unavailable's
-  // exact contract — an order is for what happens next, and a fire on
-  // something already true would be the order reading the past). It says
-  // nothing about the sky: the arming names no star, so the refusal cannot
-  // answer a question about one.
+  // condition ALREADY HOLDS at the moment of arming. An order is a statement
+  // about what happens NEXT, so one that fired on something already true
+  // would be reading the past back to the player as news. It says nothing
+  // about the sky: the arming names no star, so the refusal cannot answer a
+  // question about one.
   | "order-unavailable"
   // ── A5 ──
   // The endpoint this device offered is one the server will not fetch: a
@@ -1876,22 +1892,6 @@ export function parseCohortClientMessage(raw: string): CohortClientMessage | nul
 
   if (msg["type"] === "callStudy" && typeof msg["starId"] === "string") {
     return { type: "callStudy", starId: msg["starId"] };
-  }
-
-  if (
-    msg["type"] === "armTripwire" &&
-    typeof msg["starId"] === "string" &&
-    typeof msg["kind"] === "string"
-  ) {
-    return { type: "armTripwire", starId: msg["starId"], kind: msg["kind"] };
-  }
-
-  if (
-    msg["type"] === "disarmTripwire" &&
-    typeof msg["starId"] === "string" &&
-    typeof msg["kind"] === "string"
-  ) {
-    return { type: "disarmTripwire", starId: msg["starId"], kind: msg["kind"] };
   }
 
   if (msg["type"] === "requestSky") {

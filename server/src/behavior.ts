@@ -87,9 +87,9 @@
 // `darkTurnYear` from contest (see `behaviorStartYear` for why). It imports
 // NO traffic, NO studies, NO questions, and nothing imports it but cohort.ts,
 // so there is no cycle. LEAKAGE_FLOOR is deliberately absent: an unascended
-// source falling under it fires the `leakage-stops` tripwire downstream, and
-// that is studies.ts's arithmetic on the light this module produces, not a
-// threshold behavior itself reasons about.
+// source falling under it is what the `leakage-stops` watch catches
+// downstream, and that is studies.ts's arithmetic on the light this module
+// produces, not a threshold behavior itself reasons about.
 
 import type { CivId, CivSeed, EmissionEpoch } from "./civseed";
 import { lightDelayYears } from "./clock";
