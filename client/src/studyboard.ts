@@ -2602,6 +2602,21 @@ export class StudyBoard {
     const hasForks = this.ledger.rows.length > 0;
     if (!hasOrders && !hasForks) return;
 
+    // The page's own head, which it did not have: Reach was the one rail
+    // page that opened on a SECTION header, so it carried neither a title
+    // nor R-40's caption while every sibling carried both. Below the empty
+    // guard above on purpose, so the case that guard protects still renders
+    // nothing rather than a title over it.
+    const pageHeader = document.createElement("div");
+    pageHeader.className = "study-board-header holos-caps";
+    pageHeader.textContent = "REACH";
+    this.body.append(pageHeader);
+
+    const subtitle = document.createElement("div");
+    subtitle.className = "study-picker-subtitle";
+    subtitle.textContent = "What we have sent outward, and what became of it.";
+    this.body.append(subtitle);
+
     const ledgerHeader = document.createElement("div");
     ledgerHeader.className = "study-section-header holos-caps";
     ledgerHeader.textContent = "THE LEDGER";
@@ -3288,6 +3303,16 @@ export class StudyBoard {
     header.className = "study-board-header holos-caps";
     header.textContent = "THE MIND";
     this.body.append(header);
+
+    // The section caption, R-40 and the sibling pages' idiom. This page had
+    // none, and it is the one that needed it most: Report, Sky and Projects
+    // name their contents, while THE MIND names a thing the player was told
+    // ten minutes ago that they ARE, over a page whose halves (who we are,
+    // what we would do next) are not guessable from the word.
+    const subtitle = document.createElement("div");
+    subtitle.className = "study-picker-subtitle";
+    subtitle.textContent = "Who we are, and what we would do next.";
+    this.body.append(subtitle);
 
     this.body.append(this.hairline());
 
@@ -4082,8 +4107,12 @@ export class StudyBoard {
 
     const subtitle = document.createElement("div");
     subtitle.className = "study-picker-subtitle";
-    subtitle.textContent =
-      "What the observatory can build. Tap one to read what it grants.";
+    // "Tap one to read what it grants" was the affordance describing itself
+    // (the Report caption's cut). What it carried underneath is real and
+    // stays: the picker-to-brief pattern means a tap does not spend, and a
+    // player who suspects it might will not tap. Said as a consequence
+    // rather than as an instruction, it is shorter and keeps the promise.
+    subtitle.textContent = "What the observatory can build. Reading one costs nothing.";
     this.body.append(subtitle);
 
     this.body.append(this.buildBudgetLine());
