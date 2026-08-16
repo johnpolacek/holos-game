@@ -1857,6 +1857,19 @@ body {
   color: var(--holos-amber);
 }
 
+/* The row's two small facts, under the belief: the confidence and the light
+ * age, one line, separated by the mid dot the HUD readouts already use. */
+.study-row-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.study-row-metasep {
+  color: var(--holos-ink-faint);
+}
+
 /* THE NAME IS PARKED. AS2 retired the picker, and this class outlived it as
    the section-caption mold (R-40): it captions sections on the Desk, on
    Explore, on a board and on the Report. The name is now wrong and the rename
@@ -1941,8 +1954,14 @@ body {
 .study-row-conf {
   font-variant-numeric: tabular-nums;
   color: var(--holos-ink-dim);
-  margin-left: auto;
   flex-shrink: 0;
+}
+
+/* Only on the board HEAD does the confidence hold the far end of the line.
+   In a row it leads the meta line instead, so the auto margin is scoped
+   here rather than carried on the element everywhere it appears. */
+.study-row-beliefline .study-row-conf {
+  margin-left: auto;
 }
 
 /* The number's name (2026-08 playtest: a bare percent on every row and no

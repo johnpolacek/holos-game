@@ -9,10 +9,9 @@
 //
 // IT READS NO TRUTH AND MINTS NO CONE. Everything the condition looks at is
 // handed in — the candidate rows are built by the caller from the sky it has
-// ALREADY assembled (studies.ts's `TripwireBoard` discipline, one module
-// over), so a standing order can only ever fire on something the player could
-// have read for themselves had they been looking. That is what makes it an
-// order and not an oracle.
+// ALREADY assembled, so a standing order can only ever fire on something the
+// player could have read for themselves had they been looking. That is what
+// makes it an order and not an oracle.
 //
 // THREE BOUNDS, and they are the whole safety argument:
 //
@@ -111,9 +110,8 @@ export function orderProseName(orderClass: OrderClass): string {
 
 /**
  * One armed order. `firedYear` non-null means it has already fired FOR THIS
- * ARMING and never fires twice without being armed again — studies.ts's
- * `StoredTripwire` contract, field for field, because it is the same contract:
- * an order is a statement about what happens next, made once.
+ * ARMING and never fires twice without being armed again: an order is a
+ * statement about what happens next, made once.
  *
  * The charter rides the record because ARMING IS THE CONSENT AND THE CHARTER
  * IS ITS CONTENT. A player who arms this has authorized a specific dispatch,
@@ -271,7 +269,7 @@ export interface SettleOrdersInput {
 /**
  * FOLDS THIS SEND'S FIRINGS INTO THE STORED ORDER RECORD. Returns the SAME
  * ARRAY BY IDENTITY when nothing fired, which is how cohort.ts knows whether
- * it owes a write (studies.ts's `settleTripwires` contract).
+ * it owes a write: the ordinary send changes nothing and pays for no put.
  *
  * Priced at fire time, and the arming is spent whatever the price says. The
  * order of the three outcomes is not arbitrary: `blocked` is decided first

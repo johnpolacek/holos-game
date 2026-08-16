@@ -111,6 +111,7 @@ import {
   observeCiv,
   observeSky,
   visibleSky,
+  type ObservedSignal,
   type SignalClass,
 } from "./knowledge";
 import {
@@ -163,20 +164,22 @@ import { archetypeById } from "./minds";
 import { arrivalLine, ageChipLine, computeLine, clockLine, epochLine, silenceLine, studyLine, introLine, counselLine, firstSkyLine } from "./voice";
 import {
   buildStudySnapshot,
+  crossed,
+  distributionFor,
   hypothesisMenus,
   isClosed,
   leadHypothesisOf,
+  leadShare,
   migrateStudyState,
   newStudyState,
-  tripwireHolds,
-  TRIPWIRE_KINDS,
+  quietFires,
+  withStudies,
   type OvertakingTrigger,
-  type TripwireKind,
   type StoredStudy,
-  type StoredTripwire,
   type StudyMove,
   type StudyState,
   type StoredStudyState,
+  type WatchFire,
 } from "./studies";
 import {
   attentionCapAt,
@@ -217,7 +220,12 @@ import {
   type MissionState,
   type StoredMission,
 } from "./missions";
-import { effectiveCostFor, questionById, type BoughtQuestion } from "./questions";
+import {
+  effectiveCostFor,
+  questionById,
+  resolveQuestion,
+  type BoughtQuestion,
+} from "./questions";
 import { buildTendList } from "./tend";
 // A5, WEB PUSH. Every symbol here is TRANSPORT: base64url, a VAPID signature,
 // one bodyless POST, and the record of which devices asked to be told. push.ts
@@ -327,6 +335,7 @@ import {
   type CohortServerMessage,
   type DetectedSource,
   type ComputeBudget,
+  type Hypothesis,
   type MissionCatalog,
   type MissionSnapshot,
   type ProjectSnapshot,
@@ -370,11 +379,11 @@ interface ScheduledEvent {
   readonly id: string;
   readonly atYear: number;
   /**
-   * A5 adds "watch": the wake that runs when NOBODY is in the room, so an
-   * armed tripwire can reach a phone. It is still a wake-up and still never
-   * truth — `runWatch` derives, decides and sends, and the only key it may
-   * write is `push:${token}`. The firing itself is recorded, as it always
-   * was, by the sky the player comes back to.
+   * A5 adds "watch": the wake that runs when NOBODY is in the room, so what
+   * the standing watch caught can reach a phone. It is still a wake-up and
+   * still never truth — `runWatch` derives, decides and sends, and the only
+   * key it may write is `push:${token}`. The fire itself is recorded, as it
+   * always was, by the sky the player comes back to.
    */
   readonly kind: "dev-ping" | "wake" | "watch";
   readonly note: string;
@@ -387,32 +396,22 @@ interface FiredEvent extends ScheduledEvent {
 }
 
 /**
- * A5: one tripwire that became true, and the year it became true in.
+ * The push's own idempotency key for one fire.
  *
- * `firedYear` is a CHANGE POINT, never "now": the whole point of the catch-up
- * walk is that a condition holds when it holds, whether or not anybody was
- * looking. `armedYear` is on the key because re-arming is a fresh order, so a
- * genuinely new arming is notifiable again.
+ * Every component is DERIVED AND STABLE — the star, the kind, and the change
+ * point's symbolic anchor — which is what makes the once-only guarantee
+ * idempotent rather than merely unlikely to double-fire: re-derivation, a
+ * Durable Object restart and a re-armed alarm all produce the same string.
+ * No year is in it, and none may be: a float year would make the key move
+ * the day any of the arithmetic behind it is retuned, and the ring would
+ * push the same fire again.
  */
-interface Firing {
-  readonly starId: string;
-  readonly kind: TripwireKind;
-  readonly armedYear: number;
-  readonly firedYear: number;
+function fireKey(f: WatchFire): string {
+  return `${f.starId}/${f.kind}/${f.anchorId}`;
 }
 
 /**
- * Every component of the key is STORED TRUTH, which is what makes the
- * once-only guarantee idempotent rather than merely unlikely to double-fire:
- * re-derivation, a Durable Object restart and a re-armed alarm all produce the
- * same string.
- */
-function firingKey(f: Firing): string {
-  return `${f.starId}/${f.kind}/${f.armedYear}`;
-}
-
-/**
- * A5: the three per-seat records a watch reads, MIGRATED IN MEMORY AND NEVER
+ * The per-seat records a watch derives from, MIGRATED IN MEMORY AND NEVER
  * WRITTEN BACK. The ordinary loaders persist a migration as they go, which is
  * right on a live socket and wrong on the alarm path: `runWatch` may write
  * `push:${token}` and nothing else, so it reads through here instead.
@@ -421,6 +420,9 @@ interface WatchInputs {
   readonly studies: Readonly<Record<string, StoredStudy>>;
   readonly missions: readonly StoredMission[];
   readonly projectState: ProjectState;
+  /** studies.ts's StudyState.autoFrom: the year the automatic watch began for
+   *  this seat, or null for "always". The walk never looks past it. */
+  readonly autoFrom: number | null;
 }
 
 /** Why a watch did or did not push. The dev route reports these verbatim, so
@@ -437,7 +439,7 @@ type WatchReason =
 
 interface WatchVerdict {
   readonly reason: WatchReason;
-  readonly firings: readonly Firing[];
+  readonly firings: readonly WatchFire[];
   /** The year to re-arm at, or null when the watch stops existing for this
    *  absence (the biggest saving in the design: after one push the object
    *  stops waking for this seat until the player comes back). */
@@ -473,14 +475,31 @@ const WAKE_HORIZON_YEARS = 200;
  *  push-enabled ABSENT seat, which is the whole bill for being self-healing. */
 const WATCH_BACKSTOP_YEARS = 288;
 
-/** How far back the catch-up walk looks. About fourteen real days: a player
- *  gone longer than this may lose the oldest firings from the scan, and still
- *  gets today's fire-if-it-holds-now behavior on top. Stated rather than
- *  hidden — the watch had already pushed at the time. */
-const WATCH_SCAN_YEARS = 4000;
+/**
+ * How far back the settle's walk looks.
+ *
+ * ALIGNED WITH `WATCH_MAX_REAL_MS`: thirty real days at five real minutes per
+ * game year is exactly 8640 game years, so a fire the watch pushed about
+ * during the longest absence the watch will cover is still inside the
+ * settle's window when the player comes back and opens the game. Shorter than
+ * that (4000, which is what this was) and the two disagree at the tail: the
+ * phone said something happened and the annal, walking a narrower window,
+ * never wrote the row.
+ */
+const WATCH_SCAN_YEARS = 8640;
 
-/** Per study, oldest-first, so a later scan finds the same first firing. */
+/** Per source, oldest-first, so a later scan finds the same early points. */
 const MAX_CHANGE_POINTS = 24;
+
+/**
+ * The floor under a watch re-arm. `nextWatchYear` now enumerates change
+ * points over EVERY VISIBLE SOURCE rather than over a handful of armed
+ * studies, so the soonest one is very often minutes away, and without a floor
+ * an absent seat's object would wake almost continuously for a walk that can
+ * only push once per absence anyway. Twenty four game years is two real
+ * hours.
+ */
+const WATCH_MIN_REARM_YEARS = 24;
 
 /** The watch's own liveness bound, the analogue of the sentinel re-arm rule:
  *  an absent player's watch must not re-arm forever. The next connect
@@ -729,7 +748,6 @@ function takenUpStudy(starId: string, nowYear: number, signalClass: SignalClass)
     openedClass: signalClass,
     called: null,
     overtaken: null,
-    tripwires: [],
   };
 }
 
@@ -756,7 +774,6 @@ function ambientStudy(starId: string): StoredStudy {
     openedClass: null,
     called: null,
     overtaken: null,
-    tripwires: [],
   };
 }
 
@@ -920,12 +937,6 @@ export class Cohort extends Server<CohortEnv> {
         return;
       case "callStudy":
         await this.onCallStudy(conn, msg.starId);
-        return;
-      case "armTripwire":
-        await this.onArmTripwire(conn, msg.starId, msg.kind);
-        return;
-      case "disarmTripwire":
-        await this.onDisarmTripwire(conn, msg.starId, msg.kind);
         return;
       case "armOrder":
         await this.onArmOrder(conn, msg.orderClass, msg.charter);
@@ -1503,7 +1514,7 @@ export class Cohort extends Server<CohortEnv> {
    * record materializes open, stamped now, so a tab from an older deploy
    * sending this at an untouched source is a taking-up rather than an error.
    * A SHELVED or CLOSED study reopens: status open, the stamp restamped, the
-   * frozen exits cleared, `bought` and `tripwires` kept. An ALREADY OPEN study
+   * frozen exits cleared, `bought` kept. An ALREADY OPEN study
    * is a NO-OP with no write at all — restamping there would push the
    * grounding horizon past a probe already in flight, so a second tab, a
    * double tap, or a stale client could otherwise cost the player the report
@@ -1534,8 +1545,9 @@ export class Cohort extends Server<CohortEnv> {
     if (existing !== undefined && existing.status === "open") {
       // AS: already open. Nothing to resume, and above all nothing to
       // restamp. The sky still goes out, so a client that sent this gets the
-      // same answer a write would have given it (onDisarmTripwire's
-      // idempotence, one step further along: no write at all).
+      // same answer a write would have given it: a verb that finds its work
+      // already done answers, it does not refuse, and here it does not even
+      // write.
       await this.sendSkyToSeat(state);
       return;
     }
@@ -1552,9 +1564,8 @@ export class Cohort extends Server<CohortEnv> {
     // A2.3: `openedClass` is restamped for the same reason, and the two
     // frozen exits are CLEARED. Reopening a called study drops the call
     // (there is no path that reopens one by itself, so the player has said
-    // so); reopening an overtaken one starts the watch on what the source is
-    // now, which is exactly what its closing line offered. `tripwires`
-    // survives untouched: an order left standing is left standing.
+    // so); reopening an overtaken one starts the study again on what the
+    // source is now, which is exactly what its closing line offered.
     const studies: Record<string, StoredStudy> = {
       ...studyState.studies,
       [starId]: {
@@ -1566,10 +1577,9 @@ export class Cohort extends Server<CohortEnv> {
         openedClass: source.signal.classification,
         called: null,
         overtaken: null,
-        tripwires: existing?.tripwires ?? [],
       },
     };
-    await this.saveStudyState(state.token, { version: 4, studies });
+    await this.saveStudyState(state.token, withStudies(studyState, studies));
     await this.sendSkyToSeat(state);
   }
 
@@ -1595,7 +1605,7 @@ export class Cohort extends Server<CohortEnv> {
       ...studyState.studies,
       [starId]: { ...existing, status: "shelved" },
     };
-    await this.saveStudyState(state.token, { version: 4, studies });
+    await this.saveStudyState(state.token, withStudies(studyState, studies));
     await this.sendSkyToSeat(state);
   }
 
@@ -1700,152 +1710,7 @@ export class Cohort extends Server<CohortEnv> {
         },
       },
     };
-    await this.saveStudyState(state.token, { version: 4, studies });
-    await this.sendSkyToSeat(state);
-  }
-
-  /**
-   * armTripwire: leave one standing condition on a study. Free — this is a
-   * decision, not work, so there is no cost and no clock. At most one per
-   * kind (re-arming replaces, which is also how a fired one is reset), and
-   * the server REFUSES to arm a condition that already holds: arming
-   * something that would fire on the same breath is not an order, it is a
-   * misunderstanding, and `tripwire-unavailable` says so.
-   *
-   * AS: ARMING IS A FIRST ACT — an order is something the server must
-   * remember — so a source with no record materializes one here, stamped at
-   * this year, in the same write that stores the arming. The already-holds
-   * refusal still needs a board to read, and for a recordless source that
-   * board is the ambient one this send assembled: the player armed against
-   * what they were looking at, and that is what is checked.
-   */
-  private async onArmTripwire(conn: Connection, starId: string, kind: string): Promise<void> {
-    const state = this.conns.get(conn.id);
-    if (state === undefined || state.civId === null) {
-      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
-      return;
-    }
-    const tripwireKind = TRIPWIRE_KINDS.find((k) => k === kind);
-    if (tripwireKind === undefined) {
-      this.sendMsg(conn, {
-        type: "error",
-        code: "tripwire-unavailable",
-        message: "no such tripwire",
-      });
-      return;
-    }
-    const galaxy = this.requireGalaxy();
-    const nowYear = gameYearAt(this.requireClock(), Date.now());
-    const visible = visibleSky(galaxy, state.civId, nowYear);
-    const source = visible.find((o) => o.starId === starId);
-    if (source === undefined) {
-      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no source there" });
-      return;
-    }
-    const studyState = await this.loadStudyState(state.token, nowYear);
-    const existing = studyState.studies[starId];
-    if (existing !== undefined && isClosed(existing.status)) {
-      this.sendMsg(conn, {
-        type: "error",
-        code: "study-unavailable",
-        message: "the study is not open",
-      });
-      return;
-    }
-
-    // The already-holds check reads the same board a sky send would, through
-    // the same predicate the firing check uses. Only `crosses` can be true at
-    // the moment of arming; the other two are armed-year-relative and so are
-    // false by construction here, which is the whole reason the state machine
-    // needs nothing but a fired year.
-    //
-    // AS: for a source with no record that board is the ambient one, found in
-    // the other half of the same assembly. The halves are disjoint, so this
-    // finds exactly one board or none.
-    const assembled = await this.assembleSkyState(state.token, state.civId, nowYear);
-    const snapshot =
-      assembled.studies.find((s) => s.starId === starId) ??
-      assembled.ambient.find((s) => s.starId === starId);
-    const holds =
-      snapshot !== undefined &&
-      tripwireHolds(tripwireKind, nowYear, {
-        openQuestions: snapshot.openQuestions,
-        hypotheses: snapshot.hypotheses,
-        signal: source.signal,
-        distanceLy: source.distanceLy,
-      });
-    if (holds) {
-      this.sendMsg(conn, {
-        type: "error",
-        code: "tripwire-unavailable",
-        message: "that has already happened",
-      });
-      return;
-    }
-
-    // AS: onCallStudy's fall-through exactly — the freshest record, then the
-    // one this handler loaded, then the taking-up where there has never been
-    // one. The arming spread below rides on whichever it is, so the stamp and
-    // the order reach storage in a single save.
-    const current = await this.loadStudyState(state.token, nowYear);
-    const base =
-      current.studies[starId] ??
-      existing ??
-      takenUpStudy(starId, nowYear, source.signal.classification);
-    if (isClosed(base.status)) {
-      // Closed by the assemble above; a closed study evaluates no tripwires,
-      // so arming one on it would be an order nothing will ever read.
-      this.sendMsg(conn, {
-        type: "error",
-        code: "study-unavailable",
-        message: "the study is not open",
-      });
-      return;
-    }
-    const tripwires: StoredTripwire[] = [
-      ...base.tripwires.filter((t) => t.kind !== tripwireKind),
-      { kind: tripwireKind, armedYear: nowYear, firedYear: null },
-    ];
-    const studies: Record<string, StoredStudy> = {
-      ...current.studies,
-      [starId]: { ...base, tripwires },
-    };
-    await this.saveStudyState(state.token, { version: 4, studies });
-    await this.sendSkyToSeat(state);
-  }
-
-  /** disarmTripwire: take the order back. Idempotent — disarming a kind that
-   *  is not armed is a no-op write and a fresh sky, never an error. */
-  private async onDisarmTripwire(conn: Connection, starId: string, kind: string): Promise<void> {
-    const state = this.conns.get(conn.id);
-    if (state === undefined || state.civId === null) {
-      this.sendMsg(conn, { type: "error", code: "not-placed", message: "not placed" });
-      return;
-    }
-    const tripwireKind = TRIPWIRE_KINDS.find((k) => k === kind);
-    if (tripwireKind === undefined) {
-      this.sendMsg(conn, {
-        type: "error",
-        code: "tripwire-unavailable",
-        message: "no such tripwire",
-      });
-      return;
-    }
-    const nowYear = gameYearAt(this.requireClock(), Date.now());
-    const studyState = await this.loadStudyState(state.token, nowYear);
-    const existing = studyState.studies[starId];
-    if (existing === undefined) {
-      this.sendMsg(conn, { type: "error", code: "bad-message", message: "no study there" });
-      return;
-    }
-    const studies: Record<string, StoredStudy> = {
-      ...studyState.studies,
-      [starId]: {
-        ...existing,
-        tripwires: existing.tripwires.filter((t) => t.kind !== tripwireKind),
-      },
-    };
-    await this.saveStudyState(state.token, { version: 4, studies });
+    await this.saveStudyState(state.token, withStudies(current, studies));
     await this.sendSkyToSeat(state);
   }
 
@@ -1864,11 +1729,10 @@ export class Cohort extends Server<CohortEnv> {
    * arming this is authorizing a specific instrument with a specific
    * contingency table, not signing a blank one.
    *
-   * REFUSED WHEN THE CONDITION ALREADY HOLDS, `onArmTripwire`'s contract and
-   * its exact reason: an order is a statement about what happens NEXT, and
-   * one that fired on something already true would be reading the past back to
-   * the player as news. The refusal names no star and cannot: the arming names
-   * none either.
+   * REFUSED WHEN THE CONDITION ALREADY HOLDS: an order is a statement about
+   * what happens NEXT, and one that fired on something already true would be
+   * reading the past back to the player as news. The refusal names no star and
+   * cannot: the arming names none either.
    */
   private async onArmOrder(
     conn: Connection,
@@ -1941,9 +1805,9 @@ export class Cohort extends Server<CohortEnv> {
     await this.sendSkyToSeat(state);
   }
 
-  /** disarmOrder: take the order back. Idempotent — disarming a class that is
-   *  not armed is a no-op write and a fresh sky, never an error
-   *  (`onDisarmTripwire`'s contract). */
+  /** disarmOrder: take the order back. IDEMPOTENT — disarming a class that is
+   *  not armed is a no-op write and a fresh sky, never an error: taking back
+   *  something that is not there is what the player asked for. */
   private async onDisarmOrder(conn: Connection, orderClass: string): Promise<void> {
     const state = this.conns.get(conn.id);
     if (state === undefined || state.civId === null) {
@@ -2056,10 +1920,9 @@ export class Cohort extends Server<CohortEnv> {
               openedClass: source.signal.classification,
               called: null,
               overtaken: null,
-              tripwires: existing?.tripwires ?? [],
             },
     };
-    await this.saveStudyState(state.token, { version: 4, studies });
+    await this.saveStudyState(state.token, withStudies(studyState, studies));
 
     const updatedProjectState = commitCompute(projectState, cost, nowYear);
     await this.saveProjectState(state.token, updatedProjectState);
@@ -2192,8 +2055,8 @@ export class Cohort extends Server<CohortEnv> {
    *
    * IT IS ALSO THE ONLY APPEND TO THE VOYAGE RECORD IN THE WHOLE SERVER.
    * Alarms are wake-ups and never truth, the proposal route has no voyage arm
-   * and gains none, tripwires fire beliefs, and no AI civilization has a path
-   * here at any stage. Greppable as `saveVoyageState`: the definition, this
+   * and gains none, the standing watch reports beliefs, and no AI
+   * civilization has a path here at any stage. Greppable as `saveVoyageState`: the definition, this
    * handler, and the two seed paths, which write the EMPTY state so a re-seed
    * cannot inherit foundings aimed at stars that no longer exist.
    *
@@ -2490,8 +2353,8 @@ export class Cohort extends Server<CohortEnv> {
    * deleted on close. Nothing else in this object may produce a ContactAct:
    * alarms are wake-ups and never truth, the proposal route has no contact
    * arm and gains none (the mind may not propose a hail into existence),
-   * tripwires fire beliefs rather than acts, and no AI civilization has a
-   * path here at any stage — its answers are DERIVED and stored nowhere
+   * the standing watch reports beliefs rather than acts, and no AI
+   * civilization has a path here at any stage — its answers are DERIVED and stored nowhere
    * (traffic.ts).
    *
    * THE ORDER OF THE VALIDATION TABLE BELOW IS LOAD-BEARING. The visibility
@@ -3034,20 +2897,22 @@ export class Cohort extends Server<CohortEnv> {
   // ── A5: WEB PUSH, AND THE WATCH ──────────────────────────────────────────
   //
   // THE DERIVATION DISCIPLINE IS UNCHANGED AND THIS IS THE PROOF OF IT. A
-  // watch may derive the board at a year, evaluate `tripwireHolds`, decide to
-  // send, send, and write down that it sent. It may NOT set `firedYear`, touch
+  // watch may derive the board at a year, find what the standing watch caught,
+  // decide to send, send, and write down that it sent. It may NOT touch
   // `studies:${token}`, fire a standing order, or advance anything a player
   // will later read as a fact. The one key the alarm path writes is
   // `push:${token}`, which is infrastructure: a list of devices that asked to
   // be told, and the record of what they were already told about.
   //
-  // The consequence that shapes the rest: THE PUSH HAPPENS BEFORE THE SETTLE.
-  // The player is told a watch tripped, and only when they open the game does
-  // the record of the tripping get written. That is sound only because the two
-  // cannot disagree, and they cannot because `findFirings` is one function with
-  // two callers — the sky settle folds its answer into `firedYear`, and the
-  // watch counts it. The year on the record is the year the condition held,
-  // not the year somebody looked.
+  // The consequence that shapes the rest: THE PUSH HAPPENS BEFORE THE ANNAL.
+  // The player is told the watch caught something, and only when they open the
+  // game does the row get written. That is sound because the two cannot
+  // disagree: `findFires` is one function with two callers, the phone counts
+  // what it returns and the report writes what it returns, and the fire is
+  // dated at the change point rather than at the moment somebody looked. The
+  // windows the two callers pass differ, and that costs nothing — see
+  // `findFires`' window-independence invariant, which is why this design needs
+  // no fired flag anywhere.
 
   /** The constant every welcome carries: this deployment's application server
    *  key, or null when no VAPID pair is configured (the dev default, and the
@@ -3127,20 +2992,39 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
-   * The three per-seat records the watch derives from, migrated in memory.
-   * Null when the seat has never opened a study or started a project, which is
-   * a seat with nothing to watch.
+   * The per-seat records the watch derives from, MIGRATED IN MEMORY AND NEVER
+   * WRITTEN BACK (WatchInputs says why the alarm path may not persist).
+   *
+   * AN ABSENT `studies:` KEY IS NO LONGER NULL. It was, back when a fire
+   * needed an arming and an arming needed a record: a seat with no studies
+   * had nothing armed and nothing to find. Now the watch stands over the sky
+   * itself, so a seat that has never opened a study has exactly as much to
+   * watch as one that has, and returning null there would have made the
+   * automatic watch invisible to the players most in need of it. An absent
+   * `projects:` key IS still null: that key is written at placement, so its
+   * absence means an unplaced seat rather than an idle one.
+   *
+   * The in-memory migration has one consequence worth stating: a v4 seat gets
+   * `autoFrom = nowYear` afresh on EVERY wake, until a real sky send persists
+   * one. That can only ever SUPPRESS a push (the walk's floor rides forward
+   * with the alarm) and can never record anything, because this path writes
+   * nothing a player reads. The annal is written by the settle, which loads
+   * through `loadStudyState` and persists the migration once.
    */
   private async readWatchInputs(token: string, nowYear: number): Promise<WatchInputs | null> {
-    const storedStudies = await this.ctx.storage.get<StoredStudyState>(`studies:${token}`);
-    if (storedStudies === undefined) return null;
     const storedProjects = await this.ctx.storage.get<StoredProjectState>(`projects:${token}`);
     if (storedProjects === undefined) return null;
+    const storedStudies = await this.ctx.storage.get<StoredStudyState>(`studies:${token}`);
     const storedMissions = await this.ctx.storage.get<MissionState>(`missions:${token}`);
     const studyState =
-      storedStudies.version === 4 ? storedStudies : migrateStudyState(storedStudies, nowYear);
+      storedStudies === undefined
+        ? newStudyState()
+        : storedStudies.version === 5
+          ? storedStudies
+          : migrateStudyState(storedStudies, nowYear);
     return {
       studies: studyState.studies,
+      autoFrom: studyState.autoFrom,
       projectState:
         storedProjects.version === 3 ? storedProjects : migrateProjectState(storedProjects),
       missions: storedMissions === undefined ? [] : migrateMissionState(storedMissions).missions,
@@ -3148,200 +3032,345 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
-   * The years at which one study can change, inside `(fromYear, toYear]`.
+   * The dated years at which the board over ONE SOURCE can move, inside
+   * `(fromYear, toYear]`, each with the STABLE SYMBOLIC ANCHOR that names it.
    *
-   * THE BOARD IS A STEP FUNCTION, which is the whole reason the catch-up walk
-   * is cheap: between arrivals nothing about a study moves, because the
-   * hypotheses move when evidence lands and evidence lands only at dated
-   * years. So "was this ever true" becomes a short loop over a short list.
+   * THE BOARD IS A STEP FUNCTION, which is the whole reason the walk is cheap:
+   * between these years nothing about a source moves, because belief moves
+   * when evidence lands or when the instrument sharpens, and both happen at
+   * dated years. So "did this ever cross" becomes a short loop over a short
+   * list.
    *
-   * Three sources, and no fourth. A landed project is deliberately NOT one: a
-   * discount moves the PREVIEW of a future purchase, never a purchase already
-   * made.
+   * THE ANCHOR IS THE POINT OF THE PAIR. A change point is what a fire is
+   * keyed on in the annal, so it needs a name that survives re-derivation: an
+   * index into a prefix-stable history, a question id, a mission ordinal, a
+   * project id. Never a year, which is a float and moves the day any of the
+   * arithmetic behind it is retuned.
+   *
+   * FIVE SOURCES:
+   *
+   *  1. LIGHT. The derived roster's emission epochs are already grown two eras
+   *     past the present (`derivedFold`), so future ones are computed today;
+   *     an epoch reaches this observer at its own year plus the distance.
+   *  2. THE ASCENSION'S OWN LIGHT. `classify` branches on `truth.ascended`, so
+   *     the menu the whole board is drawn from changes at that arrival, and a
+   *     lead computed before it is not comparable with one computed after.
+   *     Enumerating it is what stops that from reading as a crossing.
+   *  3. PURCHASES. A question answers the day it is asked (physics-audit.md
+   *     P0-1), so the purchase year is when its finding joins the board.
+   *  4. MISSION REPORTS, the light-return leg already inside
+   *     `expectedArrivals`, which is ascending and prefix-stable in its
+   *     `throughYear` — so the ordinal in the anchor names the same report
+   *     however far the walk runs.
+   *  5. CONFIDENCE-LIFT LANDINGS. A landed lift moves `distributionFor`'s
+   *     sharpness with no light arriving at all: the same evidence comes to a
+   *     point. That is a real crossing and the player earned it.
+   *
+   * A BEAM ARRIVAL IS DELIBERATELY OMITTED. A beam changes the signal's CLASS,
+   * and `findFires` suppresses a crossing across a class change anyway, so
+   * enumerating it would only add a point that can never fire.
+   *
+   * The cap is the one place this is an approximation rather than an identity:
+   * a source with more than MAX_CHANGE_POINTS moves inside a window keeps the
+   * OLDEST, so a later, wider scan still finds the same early points.
    */
-  private studyChangePoints(
-    stored: StoredStudy,
+  private sourceChangePoints(
+    starId: string,
     targetCiv: PlacedCiv,
     distanceLy: number,
+    bought: readonly BoughtQuestion[],
     missions: readonly StoredMission[],
+    projectState: ProjectState,
     fromYear: number,
     toYear: number,
-  ): readonly number[] {
-    const points: number[] = [];
-    // 1. LIGHT. The derived roster's emission epochs are already grown two
-    //    eras past the present (`derivedFold`), so the future ones are
-    //    computed today; an epoch reaches this observer at its own year plus
-    //    the distance.
-    for (const epoch of targetCiv.seed.emissionHistory) {
-      points.push(epoch.fromYear + distanceLy);
+  ): readonly { readonly year: number; readonly anchorId: string }[] {
+    const points: { year: number; anchorId: string }[] = [];
+
+    const history = [...targetCiv.seed.emissionHistory].sort((a, b) => a.fromYear - b.fromYear);
+    for (let i = 0; i < history.length; i++) {
+      const epoch = history[i];
+      if (epoch === undefined) continue;
+      points.push({ year: epoch.fromYear + distanceLy, anchorId: `epoch-${i}` });
     }
-    // 2. ANSWERS, which are the years the questions were bought — a
-    //    question answers the day it is asked (physics-audit.md P0-1).
-    //    Every one of them therefore sits at or before the year the player
-    //    was last here, so none can fall inside an away window; the filter
-    //    below would drop them anyway, and pushing them says the step
-    //    function's second source out loud.
-    for (const bought of stored.bought) {
-      points.push(bought.boughtYear);
+    points.push({
+      year: targetCiv.seed.ascensionYear + distanceLy,
+      anchorId: "ascension",
+    });
+    for (const b of bought) {
+      points.push({ year: b.boughtYear, anchorId: `q/${b.id}` });
     }
-    // 3. REPORTS, the light-return leg already inside `expectedArrivals`.
     for (const m of missions) {
-      if (m.starId !== stored.starId) continue;
-      points.push(
-        ...expectedArrivals(m.kind, m.launchedYear, m.distanceLy, m.flightYearsPerLy, toYear),
+      if (m.starId !== starId) continue;
+      const arrivals = expectedArrivals(
+        m.kind,
+        m.launchedYear,
+        m.distanceLy,
+        m.flightYearsPerLy,
+        toYear,
       );
+      for (let i = 0; i < arrivals.length; i++) {
+        const year = arrivals[i];
+        if (year === undefined) continue;
+        points.push({ year, anchorId: `${m.id}/r/${i + 1}` });
+      }
+    }
+    for (const started of projectState.started) {
+      const def = projectById(started.id);
+      if (def === undefined || def.effect.kind !== "confidence-lift") continue;
+      points.push({ year: landedYear(def, started), anchorId: `p/${def.id}` });
     }
 
+    // Sorted by year, then by anchor, so the survivor of a dedupe is the same
+    // one whichever window this was asked for — the walk's window-independence
+    // rests on that as much as on the anchors themselves.
     const sorted = points
-      .filter((y) => y > fromYear + YEAR_EPS && y <= toYear + YEAR_EPS)
-      .sort((a, b) => a - b);
-    const deduped: number[] = [];
-    for (const year of sorted) {
+      .filter((p) => p.year > fromYear + YEAR_EPS && p.year <= toYear + YEAR_EPS)
+      .sort((a, b) => (a.year !== b.year ? a.year - b.year : a.anchorId.localeCompare(b.anchorId)));
+    const deduped: { year: number; anchorId: string }[] = [];
+    for (const point of sorted) {
       const last = deduped[deduped.length - 1];
-      if (last !== undefined && year - last <= YEAR_EPS) continue;
-      deduped.push(year);
+      if (last !== undefined && point.year - last.year <= YEAR_EPS) continue;
+      deduped.push(point);
     }
-    // OLDEST-FIRST at the cap, so a later scan finds the same first firing.
-    return deduped.slice(0, MAX_CHANGE_POINTS);
+    // NEWEST-FIRST at the cap, and the direction is load-bearing.
+    //
+    // Oldest-first was the natural reading of "a dropped point comes back as
+    // the window slides", and it is fatal here. A standing sentinel reports
+    // every SENTINEL_CADENCE_YEARS, so one live order puts a change point
+    // every twenty-five years into a window eight thousand years wide: the
+    // oldest twenty-four cover the window's first six hundred years and the
+    // walk never reaches anything recent. The watch on that source would be
+    // silently dead, and the fire it owed would land about a month of real
+    // time late, if ever.
+    //
+    // Keeping the NEWEST is what a watch is for, and it costs nothing in
+    // correctness because the seed board is reconstructed at a year rather
+    // than carried forward: `findFires` seeds `prev` just before the first
+    // point it kept, so the predecessor of the earliest kept point is the
+    // true board that stood there, whatever was dropped below it. Window
+    // independence survives: a change point kept in two different windows is
+    // compared against the same predecessor board in both, so it yields the
+    // same anchor and the same year, and the annal's id-keyed merge sees one
+    // row. What a bounded walk still costs is a fire found LATE when more
+    // than MAX_CHANGE_POINTS land between two visits, never a fire found
+    // twice or found wrong.
+    return deduped.slice(Math.max(0, deduped.length - MAX_CHANGE_POINTS));
   }
 
-  /** This star's mission-report moves as of `year`, and whether one of them
-   *  would already have grounded the study by then. The same loop
-   *  `assembleSkyState` runs, at a year that is not now. */
+  /** This star's mission-report moves as of `year`. The same loop
+   *  `assembleSkyState` runs, at a year that is not now. It carries no
+   *  grounding decision: `boardAt` derives belief, and whether a report
+   *  CLOSED a study is a fact about a stored record, which the walk does not
+   *  read. */
   private missionMovesAt(
     galaxy: Galaxy,
     civId: string,
-    stored: StoredStudy,
+    starId: string,
     missions: readonly StoredMission[],
     year: number,
-  ): { readonly moves: readonly StudyMove[]; readonly grounds: boolean } {
+  ): readonly StudyMove[] {
     const moves: StudyMove[] = [];
-    let grounds = false;
     for (const m of missions) {
-      if (m.starId !== stored.starId) continue;
+      if (m.starId !== starId) continue;
       const cone = lightConeFor(galaxy, civId, m.targetCivId, year);
       const plan = resolveMissionPlan(galaxy, cone, m, year);
       if (plan === null) continue;
-      const found = deriveStudyMoves(galaxy, cone, m, plan, missionArrivalYear(m), year);
-      moves.push(...found);
-      if (found.some((mv) => mv.arrivedYear > stored.openedYear + YEAR_EPS)) grounds = true;
+      moves.push(...deriveStudyMoves(galaxy, cone, m, plan, missionArrivalYear(m), year));
     }
-    return { moves, grounds };
+    return moves;
   }
 
   /**
-   * THE ONE FUNCTION, WITH TWO CALLERS: the sky settle (which records what it
-   * finds) and the watch (which counts it). Because both walk from the arming
-   * and stop at the first hit, a firing the watch observes at year Y is still
-   * found by a settle at any later year Z, and the push and the record cannot
-   * disagree. That property is what the whole design was for.
+   * The board over one source AS IT STOOD IN `year`: the signal that had
+   * arrived by then, and the belief every delivered inference had produced by
+   * then. Null when nothing from that source had reached this observer yet.
+   *
+   * IT IS NOT `buildStudySnapshot`, and the difference is deliberate. No
+   * evidence trail is merged, no question wires are assembled, no annotation
+   * is written: the walk reads a lead share and a class and nothing else, and
+   * everything else that assembly does is work whose output is thrown away.
+   *
+   * THE YEAR FILTERS ARE THE LOAD-BEARING PART. Only purchases made at or
+   * before `year` are folded in, and that same filtered list is what
+   * `resolveQuestion` is handed as the study's record, so the contest's
+   * window and instrument tier (questions.ts's `priorTargetYearFor` and
+   * `priorAnswerCount`) see the record as it stood then. Without that, a
+   * purchase made in year 1500 would fold into a board derived at year 900,
+   * and re-deriving the same walk later would move an old crossing onto a
+   * different change point: the one way this design can put a second row in
+   * the annal for an event that happened once.
+   */
+  private boardAt(
+    galaxy: Galaxy,
+    civId: string,
+    targetId: string,
+    year: number,
+    bought: readonly BoughtQuestion[],
+    missions: readonly StoredMission[],
+    projectState: ProjectState,
+  ): { readonly signal: ObservedSignal; readonly hypotheses: readonly Hypothesis[] } | null {
+    const observed = observeCiv(galaxy, civId, targetId, year);
+    if (observed.signal === null) return null;
+    const lift = confidenceLiftAt(projectState, year);
+    const signal: ObservedSignal =
+      lift > 0
+        ? { ...observed.signal, confidence: Math.min(0.95, observed.signal.confidence + lift) }
+        : observed.signal;
+
+    const cone = lightConeFor(galaxy, civId, targetId, year);
+    const purchases = bought.filter((b) => b.boughtYear <= year + YEAR_EPS);
+    const moves: StudyMove[] = [];
+    for (const b of purchases) {
+      const def = questionById(b.id);
+      if (def === undefined) continue;
+      const finding = resolveQuestion(galaxy, cone, def, b, signal, projectState, purchases);
+      // A plateau moves nothing; everything else contributes the shift and the
+      // regression flag, which are the only two fields `distributionFor` reads
+      // (studies.ts's assembleQuestion builds the same move, with the
+      // evidence-trail fields this walk has no use for).
+      if (finding === null || finding.shape === "plateau") continue;
+      moves.push({
+        id: `${observed.starId}/q/${def.id}`,
+        kind: "answer",
+        asOfYear: b.boughtYear - cone.distanceLy,
+        arrivedYear: b.boughtYear,
+        annotation: finding.annotation,
+        shift: finding.shift,
+        regress: finding.shape === "regress",
+      });
+    }
+    moves.push(...this.missionMovesAt(galaxy, civId, observed.starId, missions, year));
+
+    return { signal, hypotheses: distributionFor(signal, moves) };
+  }
+
+  /**
+   * THE ONE FUNCTION, WITH TWO CALLERS: the settle (which writes what it finds
+   * into the annal) and the watch (which pushes about it).
+   *
+   * WINDOW-INDEPENDENCE, and it is the invariant the whole design rests on:
+   * FOR ANY TWO WINDOWS THAT CONTAIN A CHANGE POINT `p`, THIS FUNCTION YIELDS
+   * THE SAME (kind, anchorId, atYear) AT `p`. It follows from three things.
+   * The board is a STEP FUNCTION, so the state either side of `p` does not
+   * depend on where the walk started. The YEAR FILTERS in `boardAt` make each
+   * derivation a function of `p` alone rather than of the walk. And
+   * behavior.ts's causality invariant means an epoch dated at or before a year
+   * reads the same however much later it is asked about. That is what lets the
+   * settle walk thirty real days and the watch walk one absence and never
+   * disagree, and it is why nothing here needs a fired flag: an id derived
+   * twice is the same id, and the annal's add-only merge does the rest.
+   *
+   * The two exceptions are stated where they live: `sourceChangePoints`' cap,
+   * and a source that has faded out of `visibleSky` by `toYear`, which
+   * produces nothing at all (the accepted limit the annal already carries for
+   * a source below the wire).
    *
    * PURE, and more strongly than the design asked: it touches no storage at
    * all. Everything it reads was handed in, which is how the alarm path can
    * claim, greppably, that it writes nothing but `push:`.
    */
-  private findFirings(civId: string, inputs: WatchInputs, toYear: number): readonly Firing[] {
-    const galaxy = this.requireGalaxy();
-    const firings: Firing[] = [];
-
-    for (const stored of Object.values(inputs.studies)) {
-      // A closed study evaluates no tripwires, and a fired one is done.
-      if (isClosed(stored.status)) continue;
-      const armed = stored.tripwires.filter((t) => t.firedYear === null);
-      if (armed.length === 0) continue;
-      const targetCiv = civAtStar(galaxy, stored.starId);
-      if (targetCiv === undefined) continue;
-      const targetId = targetCiv.seed.id;
-
-      const oldestArming = Math.min(...armed.map((t) => t.armedYear));
-      const fromYear = Math.max(oldestArming, toYear - WATCH_SCAN_YEARS);
-      const points = this.studyChangePoints(
-        stored,
-        targetCiv,
-        civDistanceLy(galaxy, civId, targetId),
-        inputs.missions,
-        fromYear,
-        toYear,
-      );
-
-      const remaining = new Map<TripwireKind, number>(armed.map((t) => [t.kind, t.armedYear]));
-      for (const year of points) {
-        if (remaining.size === 0) break;
-        const observed = observeCiv(galaxy, civId, targetId, year);
-        const signal = observed.signal;
-        // The source is not there at that year: nothing about this study can
-        // be evaluated, and nothing later can undo that.
-        if (signal === null) break;
-        // STOP IF THE STUDY WOULD HAVE CLOSED AT OR BEFORE THIS YEAR. A firing
-        // after a closure is one the settle would refuse, so reporting it
-        // would be the push claiming something the record will never carry.
-        if (stored.openedClass !== null && signal.classification !== stored.openedClass) break;
-        const { moves, grounds } = this.missionMovesAt(
-          galaxy,
-          civId,
-          stored,
-          inputs.missions,
-          year,
-        );
-        if (grounds && stored.status === "open") break;
-
-        const cone = lightConeFor(galaxy, civId, targetId, year);
-        const lift = confidenceLiftAt(inputs.projectState, year);
-        const source = toWireSource(
-          lift > 0
-            ? {
-                ...observed,
-                signal: { ...signal, confidence: Math.min(0.95, signal.confidence + lift) },
-              }
-            : { ...observed, signal },
-        );
-        const assembled = buildStudySnapshot(
-          galaxy,
-          cone,
-          source,
-          stored,
-          year,
-          inputs.projectState,
-          moves,
-          null,
-          null,
-        );
-
-        for (const [kind, armedYear] of [...remaining]) {
-          if (year <= armedYear + YEAR_EPS) continue;
-          // BYTE FOR BYTE THE ARMING REFUSAL'S IDIOM (onArmTripwire): one
-          // predicate serving both halves of the contract, exactly as
-          // studies.ts's own comment intends.
-          const holds = tripwireHolds(kind, armedYear, {
-            openQuestions: assembled.snapshot.openQuestions,
-            hypotheses: assembled.snapshot.hypotheses,
-            signal: source.signal,
-            distanceLy: cone.distanceLy,
-          });
-          if (!holds) continue;
-          firings.push({ starId: stored.starId, kind, armedYear, firedYear: year });
-          remaining.delete(kind);
-        }
-      }
-    }
-    return firings;
-  }
-
-  /** A5: `findFirings` reshaped for the settle — per star, per kind, the year
-   *  the condition became true. `buildStudySnapshot` folds it in before its
-   *  own now-year evaluation. */
-  private firedAtMap(
+  private findFires(
     civId: string,
     inputs: WatchInputs,
+    fromYear: number,
     toYear: number,
-  ): ReadonlyMap<string, ReadonlyMap<TripwireKind, number>> {
-    const out = new Map<string, Map<TripwireKind, number>>();
-    for (const firing of this.findFirings(civId, inputs, toYear)) {
-      const forStar = out.get(firing.starId) ?? new Map<TripwireKind, number>();
-      forStar.set(firing.kind, firing.firedYear);
-      out.set(firing.starId, forStar);
+  ): readonly WatchFire[] {
+    const galaxy = this.requireGalaxy();
+    const fires: WatchFire[] = [];
+    // THE FLOOR IS THE LATEST OF THREE: the window asked for, the scan bound,
+    // and the year the automatic watch began for this seat. It is a property
+    // of the walk rather than of any source, so it is decided once.
+    const lo = Math.max(
+      fromYear,
+      toYear - WATCH_SCAN_YEARS,
+      inputs.autoFrom ?? Number.NEGATIVE_INFINITY,
+    );
+
+    for (const source of visibleSky(galaxy, civId, toYear)) {
+      const targetCiv = civAtStar(galaxy, source.starId);
+      if (targetCiv === undefined) continue;
+      const targetId = targetCiv.seed.id;
+      const distanceLy = civDistanceLy(galaxy, civId, targetId);
+      const bought = inputs.studies[source.starId]?.bought ?? [];
+
+      // THE QUIETINGS are read off the arrived light in one pass, because the
+      // light history IS their enumeration: every crossing of the floor is
+      // dated, so all this has to do is window what the source already knows.
+      for (const fire of quietFires(source.signal, distanceLy, source.starId)) {
+        if (fire.atYear <= lo || fire.atYear > toYear) continue;
+        fires.push(fire);
+      }
+
+      const points = this.sourceChangePoints(
+        source.starId,
+        targetCiv,
+        distanceLy,
+        bought,
+        inputs.missions,
+        inputs.projectState,
+        lo,
+        toYear,
+      );
+      // THE CROSSINGS need two boards to compare, so they walk the change
+      // points. `prev` starts JUST BEFORE THE FIRST POINT KEPT, not at the
+      // window's floor: `sourceChangePoints` keeps the newest points under
+      // its cap, so on a busy source the floor can sit far below the first
+      // point walked, and seeding there would compare across everything the
+      // cap dropped. Seeding here is exact instead of approximate, because
+      // `boardAt` RECONSTRUCTS a board at any year rather than carrying one
+      // forward: whatever was dropped is already folded into the board that
+      // stood a moment before the first kept point.
+      //
+      // A FIRST APPEARANCE THEREFORE NEVER FIRES, which is right: a source
+      // whose first arrived light already favors one reading has not crossed
+      // anything, it has only shown up.
+      const first = points[0];
+      let prev = this.boardAt(
+        galaxy,
+        civId,
+        targetId,
+        first === undefined ? lo : first.year - YEAR_EPS,
+        bought,
+        inputs.missions,
+        inputs.projectState,
+      );
+      for (const point of points) {
+        const cur = this.boardAt(
+          galaxy,
+          civId,
+          targetId,
+          point.year,
+          bought,
+          inputs.missions,
+          inputs.projectState,
+        );
+        if (cur === null) {
+          // The source was not there at that year. A faded-and-returned source
+          // asserts NO crossing across the gap: there is no board to have
+          // crossed from, and inventing one would date the crossing at
+          // whichever year the walk happened to resume at.
+          prev = null;
+          continue;
+        }
+        if (
+          prev !== null &&
+          // A CLASS CHANGE IS NOT A CROSSING. The menu is per class, so the
+          // two leads are shares of different questions, and an overtaking
+          // would otherwise read as one reading suddenly pulling clear.
+          prev.signal.classification === cur.signal.classification &&
+          crossed(leadShare(prev.hypotheses), leadShare(cur.hypotheses))
+        ) {
+          fires.push({
+            starId: source.starId,
+            kind: "crosses",
+            anchorId: point.anchorId,
+            atYear: point.year,
+          });
+        }
+        prev = cur;
+      }
     }
-    return out;
+    return fires;
   }
 
   /** A watch is a SINGLETON PER SEAT by construction — one id, so
@@ -3352,31 +3381,39 @@ export class Cohort extends Server<CohortEnv> {
   }
 
   /**
-   * The first year at which any armed, unfired tripwire could change, or the
-   * backstop. Bounded by the backstop on both ends: a change point beyond a
-   * real day is not worth waiting for when a wake a day costs so little.
+   * The first year at which any VISIBLE SOURCE could move, or the backstop.
+   * Bounded by the backstop above: a change point beyond a real day is not
+   * worth waiting for when a wake a day costs so little.
+   *
+   * AND BOUNDED BY `WATCH_MIN_REARM_YEARS` BELOW, which is new with the
+   * automatic watch and not optional. This used to enumerate over a handful
+   * of armed studies and usually found nothing; it now enumerates over every
+   * source in the sky, where the soonest change point is very often minutes
+   * away, and an unfloored re-arm would wake an absent seat's object almost
+   * continuously to run a walk that can push at most once per absence.
    */
   private nextWatchYear(civId: string, inputs: WatchInputs | null, nowYear: number): number {
     const backstop = nowYear + WATCH_BACKSTOP_YEARS;
+    const floor = nowYear + WATCH_MIN_REARM_YEARS;
     if (inputs === null) return backstop;
     const galaxy = this.requireGalaxy();
     let soonest: number | null = null;
-    for (const stored of Object.values(inputs.studies)) {
-      if (isClosed(stored.status)) continue;
-      if (!stored.tripwires.some((t) => t.firedYear === null)) continue;
-      const targetCiv = civAtStar(galaxy, stored.starId);
+    for (const source of visibleSky(galaxy, civId, nowYear)) {
+      const targetCiv = civAtStar(galaxy, source.starId);
       if (targetCiv === undefined) continue;
-      const first = this.studyChangePoints(
-        stored,
+      const first = this.sourceChangePoints(
+        source.starId,
         targetCiv,
         civDistanceLy(galaxy, civId, targetCiv.seed.id),
+        inputs.studies[source.starId]?.bought ?? [],
         inputs.missions,
+        inputs.projectState,
         nowYear,
         backstop,
       )[0];
-      if (first !== undefined && (soonest === null || first < soonest)) soonest = first;
+      if (first !== undefined && (soonest === null || first.year < soonest)) soonest = first.year;
     }
-    return soonest ?? backstop;
+    return Math.max(soonest ?? backstop, floor);
   }
 
   /**
@@ -3418,8 +3455,8 @@ export class Cohort extends Server<CohortEnv> {
       return { reason: "not placed", firings: [], rearmYear: null, state };
     }
 
-    // AN IN-SESSION FIRING DOES NOT PUSH. The settle runs inside the same sky
-    // send that would have provoked it and flips the badge in front of them; a
+    // AN IN-SESSION FIRE DOES NOT PUSH. The settle runs inside the same sky
+    // send that would have provoked it and puts the row in front of them; a
     // banner over the top is the notification telling you about the thing you
     // are looking at. The permission was asked for absence, too.
     const live = [...this.conns.values()].some((c) => c.token === token && c.civId !== null);
@@ -3439,8 +3476,20 @@ export class Cohort extends Server<CohortEnv> {
       return { reason: "absent too long", firings: [], rearmYear: null, state };
     }
 
-    const found = inputs === null ? [] : this.findFirings(run.civId, inputs, nowYear);
-    const fresh = found.filter((f) => !state.notified.includes(firingKey(f)));
+    // PRECISELY "WHAT HAPPENED WHILE YOU WERE AWAY": the window opens at the
+    // game year of the last time this seat was seen. The settle's window is
+    // wider and they cannot disagree about anything inside both, which is
+    // `findFires`' window-independence invariant.
+    const found =
+      inputs === null
+        ? []
+        : this.findFires(
+            run.civId,
+            inputs,
+            gameYearAt(this.requireClock(), state.seenRealMs),
+            nowYear,
+          );
+    const fresh = found.filter((f) => !state.notified.includes(fireKey(f)));
     if (fresh.length === 0) {
       return {
         reason: found.length === 0 ? "no firing" : "already notified",
@@ -3473,7 +3522,7 @@ export class Cohort extends Server<CohortEnv> {
       delivered.sent > 0
         ? withNotified(
             { ...verdict.state, subs: delivered.subs },
-            verdict.firings.map(firingKey),
+            verdict.firings.map(fireKey),
             realMs,
           )
         : { ...verdict.state, subs: delivered.subs };
@@ -3542,12 +3591,13 @@ export class Cohort extends Server<CohortEnv> {
    * production, so no migration shim is needed for THAT rename). A2.2 adds
    * a real v1→v2 migration (studies.ts's migrateStudyState, loadProjectState's
    * exact idiom): every study gains an empty `bought[]`. A2.2b's v3 added
-   * `openedYear`; A2.3's v4 adds the exit fields.
+   * `openedYear`; A2.3's v4 added the exit fields; v5 drops the armed
+   * tripwires and stamps `autoFrom`.
    */
   private async loadStudyState(token: string, nowYear: number): Promise<StudyState> {
     const stored = await this.ctx.storage.get<StoredStudyState>(`studies:${token}`);
     if (stored === undefined) return newStudyState();
-    if (stored.version === 4) return stored;
+    if (stored.version === 5) return stored;
     const migrated = migrateStudyState(stored, nowYear);
     await this.ctx.storage.put(`studies:${token}`, migrated);
     return migrated;
@@ -3579,10 +3629,13 @@ export class Cohort extends Server<CohortEnv> {
   ): Promise<boolean> {
     const state = await this.loadStudyState(token, nowYear);
     if (state.studies[starId] !== undefined) return false;
-    await this.saveStudyState(token, {
-      version: 4,
-      studies: { ...state.studies, [starId]: takenUpStudy(starId, nowYear, signalClass) },
-    });
+    await this.saveStudyState(
+      token,
+      withStudies(state, {
+        ...state.studies,
+        [starId]: takenUpStudy(starId, nowYear, signalClass),
+      }),
+    );
     return true;
   }
 
@@ -3973,6 +4026,7 @@ export class Cohort extends Server<CohortEnv> {
       localNames: assembled.localNames,
       designations: assembled.designations,
       ascensionYear: assembled.self.seed.ascensionYear,
+      watchFires: assembled.watchFires,
     };
   }
 
@@ -4078,6 +4132,7 @@ export class Cohort extends Server<CohortEnv> {
       projectState,
       designations,
       contact,
+      watchFires,
     } = await this.assembleSkyState(
       token,
       civId,
@@ -4185,6 +4240,7 @@ export class Cohort extends Server<CohortEnv> {
       localNames,
       designations,
       ascensionYear: self.seed.ascensionYear,
+      watchFires,
     });
 
     this.sendMsg(conn, {
@@ -4335,6 +4391,12 @@ export class Cohort extends Server<CohortEnv> {
     readonly projectState: ProjectState;
     readonly designations: Readonly<Record<string, string>>;
     readonly contact: ContactWire;
+    /** What the standing watch caught inside this send's window. Derived, not
+     *  stored, and carried out to the ONE consumer that turns it into rows
+     *  (report.ts's watchFireEntries) rather than to the wire: the sky shows
+     *  the board itself, and a fire is a thing to have been told, which is
+     *  the annal's job. */
+    readonly watchFires: readonly WatchFire[];
   }> {
     // A4: ONE fold per assembly, and it carries both halves — the roster every
     // read below sees, and the per-voyage outcomes the snapshots need. Taking
@@ -4389,29 +4451,37 @@ export class Cohort extends Server<CohortEnv> {
     // reopened, since the report never goes away.
     //
     // A2.3 widens that one write into `studyWrites` — the same map, the same
-    // single save, now carrying three more kinds of state change that a sky
-    // send can discover: an overtaking, a tripwire firing, and the
-    // `openedClass` back-fill for studies migrated from before that field
-    // existed. Every one of them has the same shape of reason as grounding:
-    // it must be written, because re-deriving it later would either repeat
-    // it forever or lose it entirely.
-    // A5, THE CATCH-UP WALK, and it is the tripwire bullet rather than scope
-    // creep: a condition that held while nobody was looking has fired, and an
-    // order that only fires if you are present at the instant it holds is
-    // exactly the neglect "close the tab for a week" rejects. Two of the three
-    // conditions are not monotone, so before this a condition that came and
-    // went across an absence was simply never recorded.
+    // single save, now carrying two more kinds of state change that a sky
+    // send can discover: an overtaking, and the `openedClass` back-fill for
+    // studies migrated from before that field existed. Both have the same
+    // shape of reason as grounding: they must be written, because re-deriving
+    // them later would either repeat them forever or lose them entirely.
     //
-    // It is also what makes the push honest. The SAME `findFirings` answers
-    // both the phone and this record, so the year on `firedYear` is the year
-    // the condition held, and a player who opens the game after a buzz cannot
-    // find a board with nothing on it.
+    // THE WATCH IS NOT ONE OF THEM, and that is the whole of what automation
+    // changed here. A fire is a (kind, change point) pair derived from the
+    // sky, so it has nowhere to be written and needs nowhere: `watchFires`
+    // below produces NO STUDY WRITE AT ALL, and the annal's id-keyed add-only
+    // merge is the once-guarantee (report.ts's watchFireEntries).
     //
-    // Costs nothing for a study with nothing armed, which is nearly all of
-    // them: the walk skips them before it derives anything.
-    const firedAt = this.firedAtMap(
+    // It is also what makes the push honest: the SAME `findFires` answers
+    // both the phone and this record, and it answers the same at a change
+    // point whichever window it was asked over, so a player who opens the
+    // game after a buzz cannot find an annal with nothing in it.
+    //
+    // COSTS A WALK PER VISIBLE SOURCE PER SEND, which is the price of the
+    // watch standing over the whole sky instead of over the studies someone
+    // remembered to arm. `sourceChangePoints` bounds it (MAX_CHANGE_POINTS
+    // per source) and `autoFrom` bounds the window for every seat that
+    // predates automation.
+    const watchFires = this.findFires(
       civId,
-      { studies: studyState.studies, missions: missionState.missions, projectState },
+      {
+        studies: studyState.studies,
+        missions: missionState.missions,
+        projectState,
+        autoFrom: studyState.autoFrom,
+      },
+      nowYear - WATCH_SCAN_YEARS,
       nowYear,
     );
 
@@ -4490,17 +4560,13 @@ export class Cohort extends Server<CohortEnv> {
           missionMoves,
           settled.status === "grounded" ? grounding : null,
           overtaking,
-          firedAt.get(stored.starId) ?? null,
         );
 
         // One write per study, merged from every transition this send found:
-        // the status flip, the frozen overtaking, and any tripwire that fired
-        // while the board was being assembled.
-        const fired = assembledStudy.tripwires !== settled.tripwires;
-        if (settled !== stored || overtaking !== null || fired) {
+        // the status flip and the frozen overtaking.
+        if (settled !== stored || overtaking !== null) {
           noteWrite({
             ...settled,
-            tripwires: assembledStudy.tripwires,
             overtaken: assembledStudy.overtaken ?? settled.overtaken,
           });
         }
@@ -4510,7 +4576,7 @@ export class Cohort extends Server<CohortEnv> {
       .sort((a, b) => a.starId.localeCompare(b.starId));
 
     if (studyWrites !== null) {
-      await this.saveStudyState(token, { version: 4, studies: studyWrites });
+      await this.saveStudyState(token, withStudies(studyState, studyWrites));
     }
 
     // ── AS: THE AMBIENT BOARDS ───────────────────────────────────────────
@@ -4523,9 +4589,11 @@ export class Cohort extends Server<CohortEnv> {
     // NO WRITE PATH EXISTS HERE, and that is the whole discipline of this
     // block. `buildStudySnapshot` is reused rather than forked, over
     // `ambientStudy`'s synthetic record, and only `.snapshot` is taken — the
-    // tripwire and overtaking writes it also returns are discarded, because
-    // there is no record to put them in. The exits stay anchored to acts by
-    // construction: nothing here can ground, overtake, or fire.
+    // overtaking write it also returns is discarded, because there is no
+    // record to put it in. The exits stay anchored to acts by construction:
+    // nothing here can ground or overtake. (The WATCH is not an exit and
+    // needs no record: it already stands over every visible source, this half
+    // of the sky included.)
     //
     // No leak widens either. These boards read the same `ObservedSignal` and
     // the same delivered moves the engaged ones do, and an empty `bought`
@@ -4830,6 +4898,7 @@ export class Cohort extends Server<CohortEnv> {
       projectState: projectStateNow,
       designations,
       contact,
+      watchFires,
     };
   }
 
