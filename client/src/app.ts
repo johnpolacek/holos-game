@@ -196,6 +196,11 @@ export class App {
   // S0.3's answer: the arrival note, the mind's first standing sentence
   // after the intro beats. Non-null exactly while it is on screen.
   private arrivalNote: HTMLDivElement | null = null;
+  // Whether any `sky` has landed yet. The arrival note reads the proposal
+  // list to decide whether this moment is an arrival, and "no proposals"
+  // and "no sky yet" are the same empty array — telling them apart is what
+  // keeps a skipped intro from burying the line before the answer exists.
+  private skySeen = false;
   // A4: this player's own foundings and the forecast over the nearest stars,
   // wholesale-replaced on every `sky` like everything else above. THE LEDGER
   // rides the same message — what became of those foundings, and what the
@@ -335,11 +340,18 @@ export class App {
         // A5: whether the SEAT holds a subscription on any device. The board
         // combines it with what the browser says about this one.
         this.pushSubscribed = message.pushSubscribed;
+        this.skySeen = true;
         this.showSky(message.self, message.sources);
         // S0.2: the HUD's standing lines read off fields just set above
         // (self, budget); an immediate render on top of the 1s ticker so a
         // fresh sky's numbers are never stale for up to a second.
         this.refreshStanding();
+        // The arrival note's second chance: the beats can end before the
+        // first sky lands (a skip is one tap and the round trip is not),
+        // and the note needs a sky to know whether this is an arrival at
+        // all. Cheap and idempotent — once shown or buried, the line is
+        // gone from `voiceLines` and the first guard returns.
+        this.maybeShowArrival();
         break;
       case "sourceNamed":
         if (message.name === "") this.localNames.delete(message.starId);
@@ -569,6 +581,11 @@ export class App {
   private maybeShowArrival(): void {
     if (this.voiceLines.firstsky === undefined) return;
     if (this.mountedScreen !== "sky" || this.intro !== null) return;
+    // No sky yet, so no answer yet. Return WITHOUT burying: the beats can
+    // end before the first sky lands (a skip is one tap, the round trip is
+    // not), and burying here would spend the line on a question that had
+    // not been asked. The sky handler calls this again when one arrives.
+    if (!this.skySeen) return;
     const top = this.proposals[0];
     if (top === undefined || !top.id.startsWith("first-watch/") || top.route.kind !== "study-brief") {
       this.takeVoice("firstsky");

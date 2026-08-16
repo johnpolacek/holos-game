@@ -324,7 +324,20 @@ export type HypothesisRole = "mundane" | "built" | "quiet" | "open";
 interface MenuEntry {
   readonly id: HypothesisId;
   readonly label: string;
-  /** One short plain phrase saying what this reading would MEAN. */
+  /**
+   * One short plain phrase saying what this reading would MEAN, in two
+   * parts: what it is, then what it would mean FOR US. The second part is
+   * the whole point and was missing from every entry for a long time — the
+   * menu described the sky accurately and gave a player no reason to care
+   * which row won, on the one surface whose entire job is to make them care
+   * enough to spend on a question.
+   *
+   * The second part follows the entry's `role` and is a claim about
+   * presence, never about truth: mundane means nobody is there, built means
+   * somebody is, quiet means somebody was, and open leaves it standing. It
+   * is what the reading WOULD mean if it held, which is why a menu shared
+   * by every source can carry it without saying anything about any source.
+   */
   readonly gloss: string;
   readonly role: HypothesisRole;
 }
@@ -343,25 +356,25 @@ const MENUS: Record<SignalClass, Menu> = {
       {
         id: "brown-dwarf",
         label: "brown dwarf",
-        gloss: "a star that never caught, warm and dim",
+        gloss: "a star that never caught: warm, dim, and empty",
         role: "mundane",
       },
       {
         id: "rogue-world",
         label: "rogue world",
-        gloss: "a cold planet adrift, with no star of its own",
+        gloss: "a cold planet adrift: nothing there chose the dark",
         role: "open",
       },
       {
         id: "cooled-remnant",
         label: "cooled remnant",
-        gloss: "the leftover heat of something long dead",
+        gloss: "leftover heat: whatever burned there is over",
         role: "quiet",
       },
       {
         id: "somebodys-heart",
         label: "somebody's heart",
-        gloss: "a made thing, warm because it is still working",
+        gloss: "a made thing, still warm: someone is there",
         role: "built",
       },
     ],
@@ -371,19 +384,19 @@ const MENUS: Record<SignalClass, Menu> = {
       {
         id: "debris-and-rings",
         label: "debris and rings",
-        gloss: "rubble and dust crossing, left from a wreck",
+        gloss: "rubble from a wreck: something ended here",
         role: "quiet",
       },
       {
         id: "natural-transits",
         label: "natural transits",
-        gloss: "worlds and rock crossing in front, nothing made",
+        gloss: "worlds and rock crossing: nothing there was placed",
         role: "mundane",
       },
       {
         id: "construction-under-way",
         label: "construction under way",
-        gloss: "something is being built there",
+        gloss: "something is being built: someone is at work",
         role: "built",
       },
     ],
@@ -393,19 +406,19 @@ const MENUS: Record<SignalClass, Menu> = {
       {
         id: "young-and-sloppy",
         label: "young and sloppy",
-        gloss: "a young world spilling noise it cannot contain",
+        gloss: "noise a young world cannot contain: nobody chose this",
         role: "mundane",
       },
       {
         id: "deliberate-shine",
         label: "deliberate shine",
-        gloss: "brightness they chose, meant to be noticed",
+        gloss: "brightness they chose: someone wants to be found",
         role: "built",
       },
       {
         id: "a-performance",
         label: "a performance",
-        gloss: "a show put on for whoever is watching",
+        gloss: "a show for whoever is watching: that includes us",
         role: "quiet",
       },
     ],
@@ -415,25 +428,25 @@ const MENUS: Record<SignalClass, Menu> = {
       {
         id: "stable-biosphere",
         label: "stable biosphere",
-        gloss: "life going on as it has for ages, nothing more",
+        gloss: "life as it has been for ages: nothing to answer",
         role: "mundane",
       },
       {
         id: "biosphere-in-crisis",
         label: "biosphere in crisis",
-        gloss: "a living world, and something there is failing",
+        gloss: "a living world, something failing: this may not hold",
         role: "quiet",
       },
       {
         id: "pre-industrial",
         label: "pre-industrial civilization",
-        gloss: "people there, but no machines to see yet",
+        gloss: "people there, no machines yet: they cannot answer",
         role: "open",
       },
       {
         id: "industrial-rise",
         label: "industrial rise",
-        gloss: "machines starting up on a living world",
+        gloss: "machines starting up: someone is climbing",
         role: "built",
       },
     ],
@@ -443,19 +456,19 @@ const MENUS: Record<SignalClass, Menu> = {
       {
         id: "meant-for-us",
         label: "meant for us",
-        gloss: "a beam aimed our way, on purpose",
+        gloss: "a beam aimed our way: someone knows we are here",
         role: "built",
       },
       {
         id: "meant-for-someone-near-us",
         label: "meant for someone near us",
-        gloss: "aimed past us at someone else; we catch the edge",
+        gloss: "aimed past us: they are speaking to someone else",
         role: "mundane",
       },
       {
         id: "a-repeat",
         label: "a repeat of an old message",
-        gloss: "an old message sent again, on a loop",
+        gloss: "an old message on a loop: no one need be left",
         role: "quiet",
       },
     ],
@@ -846,7 +859,14 @@ export function annotationFor(hypotheses: readonly Hypothesis[]): string {
   if (lead.share < STUDY_LEAD_THRESHOLD || margin < STUDY_LEAD_MARGIN) {
     return WATCH_LINE;
   }
-  return `So far the light leans toward ${lead.label}: ${lead.gloss}. ${trustLine(lead.share)}`;
+  // The gloss is NOT restated here, and stopped being when glosses grew
+  // their second half. It sits on the leading row a thumb's width above
+  // this sentence, so repeating it was always redundancy; once the gloss
+  // carried its own colon it was also a collision ("leans toward cooled
+  // remnant: leftover heat: whatever burned there is over"). The headline
+  // names the reading and says how far to trust it, which is the part the
+  // bars cannot say.
+  return `So far the light leans toward ${lead.label}. ${trustLine(lead.share)}`;
 }
 
 /**
@@ -864,7 +884,9 @@ export function groundedAnnotationFor(
   const provenance =
     "The finding came back from the ground. It is no newer than the light, only nearer.";
   if (lead === undefined) return provenance;
-  return `${grounding.missionName} closed this study: ${lead.label}, ${lead.gloss}. ${provenance}`;
+  // No gloss, annotationFor's reasoning: the menu is still on screen under
+  // this headline, with the reading's own row spelling out what it means.
+  return `${grounding.missionName} closed this study: ${lead.label}. ${provenance}`;
 }
 
 /**
@@ -874,7 +896,10 @@ export function groundedAnnotationFor(
  * quietly reopening the question the player just shut.
  */
 export function calledAnnotationFor(call: StoredCall): string {
-  return `You called this study on ${call.label}: ${call.gloss}. Light goes on arriving, and the call stands as it was made.`;
+  // No gloss, annotationFor's reasoning once more, and here the frozen call
+  // card renders `call.gloss` itself a few rows down, so the words are on
+  // screen from the stored record rather than from today's catalog.
+  return `You called this study on ${call.label}. Light goes on arriving, and the call stands as it was made.`;
 }
 
 /**
