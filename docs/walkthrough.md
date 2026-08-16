@@ -717,19 +717,15 @@ Theo goes on vacation, and does the designed thing instead of the guilty
 thing: he puts the civilization to **sleep**. Emissions to embers,
 computation deferred to a colder future, indistinguishable from empty
 sky — the quiet ladder's signature move, now a button. The interface dims
-to embers with it, and what he leaves standing behind him is not a
-sentence he composes but a small, closed set of conditions he arms. Three
-of them live on the studies themselves, one to a row, and the words are
-fixed:
+to embers with it, and most of what stands watch behind him he never had
+to set. The observatory keeps its own conditions on every source he can
+see, and keeps them whether he is at the tab or on a plane: a source that
+goes quiet, and a reading that passes seventy percent. Hearth, the
+Lantern and the breath-holder are all watched that way, and when one of
+them turns, it turns into a line in the report with the board behind it.
+There is nothing to arm and nothing to forget to arm.
 
-- `IF IT REGRESSES` on Hearth — a look coming back worse than the one
-  before it;
-- `IF THE LEAKAGE STOPS` on the Lantern — the noise of machines going
-  quiet;
-- `IF BELIEF CROSSES 70%` on the breath-holder, whose study is still
-  down at twelve.
-
-The fourth is not a tripwire but a **standing order**, and it is the one
+The one thing he does arm is a **standing order**, and it is the one
 thing in the game licensed to spend while nobody is watching. There is
 exactly one class of them, and the catalog's brevity is the design: an
 armable list is a list of things a player has agreed may happen without
@@ -761,21 +757,23 @@ being Hearth, answers the thing he could not say:
 The tab closes. For thirteen real days Holos is a silence in his pocket
 — no badge, no streak, no summons; the only outbound signals the game
 will ever send are the ones he authored, and the only inbound one is a
-condition he armed himself. Absence is fiction instead of neglect.
+condition the observatory keeps for him. Absence is fiction instead of
+neglect.
 
 On Day 33, on the train home from the airport, his phone buzzes once.
 
 > **A watch tripped**
 >
-> *One of the conditions you left standing now holds. The board has the
+> *The observatory caught something it watches for. The report has the
 > rest.*
 
 Which one, it does not say. It names no star, no year, no civilization
 and no kind, because the push that carried it had no payload at all: the
 relay that delivered the buzz learned only that this device received
 something. The content is read in the game, through the cone, as always.
-Theo has three armed conditions and an order standing, and no way to know
-which of them just spoke until he opens the tab.
+The observatory is watching every source in his sky and the order is
+standing over all of them, and until he opens the tab Theo cannot know
+which of them spoke.
 
 ---
 
@@ -789,8 +787,8 @@ four thousand years of accumulated sky into a report with a structure
 Theo has not seen before — triaged, bombshells first, then the sky
 digest, then the queue — because for the first time there is too much.
 
-It was the Lantern's leakage tripwire that fired, as it turns out. It is
-not what the triage puts first.
+It was the Lantern going quiet that tripped the watch, as it turns out.
+It is not what the triage puts first.
 
 **First: Fathom.** Its row in the Ledger has a word on it Theo has not
 seen before, and the sentence beside the word is the flattest thing in

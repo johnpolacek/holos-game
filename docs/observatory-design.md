@@ -55,7 +55,9 @@ unit of work, one per source. It holds:
   each answer costs.
 - **The contest state.** Whether the answers are getting sharper or
   stranger (see *The contest*, below).
-- **The study tripwires.** Standing wake conditions scoped to this source.
+- **The watch.** Two conditions the observatory keeps on this source by
+  itself, with nothing to set: if it goes quiet, and if a reading passes
+  seventy percent.
 
 The observatory (the Desk panel) is the set of studies this civilization has
 put something into, with their confidence bars and next checkpoints — the sky
@@ -69,16 +71,16 @@ full board — hypotheses, evidence trail, open questions with prices — with n
 gate and no verb, because a mind that had detected a source and was not
 already working up what it might be would be a bad observatory. What the
 server stores is a different thing: a `StoredStudy` comes into existence on
-the **first act that needs a record** (buying a question, arming a tripwire,
-calling, launching a mission at the source, or a standing order dispatching
-one), and `openedYear` / `openedClass` stamp *then*. Shelving refuses where
-there is no record, because it only takes something away.
+the **first act that needs a record** (buying a question, calling, launching
+a mission at the source, or a standing order dispatching one), and
+`openedYear` / `openedClass` stamp *then*. Shelving refuses where there is
+no record, because it only takes something away.
 
 So the Desk lists the sources you have spent something on, not the sky. That
 is what keeps the portfolio texture and the report's scope honest, and what
 keeps the grounded and overtaken endings anchored to a real act of attention:
-an ambient board cannot ground, cannot overtake, and cannot fire a tripwire,
-because nobody has taken the watch up on it yet.
+an ambient board cannot ground and cannot overtake, because nobody has
+taken the watch up on it yet.
 
 ## Hypotheses
 
@@ -263,9 +265,9 @@ filling to 100:
   (missions-design.md). Ground truth for the price of a mission and the
   years it takes; the study's escape hatch, and the observatory's
   standing advertisement for the work list.
-- **Shelved.** The vigil goes passive: allocation drops to zero, study
-  tripwires stay armed (*wake this study if the leakage stops; if it
-  regresses; if belief crosses*). Shelving is how a study load stays
+- **Shelved.** The vigil goes passive: allocation drops to zero, and the
+  observatory's own watch stays on it (*if it goes quiet; if a reading
+  passes seventy percent*). Shelving is how a study load stays
   finite without ever quite letting go — and a shelved study waking
   itself is a beat.
 - **Overtaken.** The source acts first — it hails, goes dark, moves, or
@@ -361,7 +363,7 @@ watching.
 The hypothesis menus above (2–4 per signal class); the six question
 types; compute income + allocation on the observatory; sharpen /
 plateau / regress with archetype-rule opponent spend, the regression
-tell stated plainly; study tripwires; called / shelved / overtaken /
+tell stated plainly; the automatic watch; called / shelved / overtaken /
 grounded exits (grounded moved *into* A2 — 2026-07 — once the Assay
 shipped early with A2.2's work engine; it lands as stage A2.2b, ahead of
 the contest); findings produced, consumed, and

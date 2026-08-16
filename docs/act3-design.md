@@ -1022,6 +1022,13 @@ levers to reach for — observed behavior first, mechanics second.
 
 ## Sleep, tripwires, and the absence charter
 
+**Amended 2026-08-16: arming was retired.** The section below is the
+design as it was reasoned out, and it still is; only the setting went.
+The observatory now keeps its conditions on every visible source by
+itself (it goes quiet, a reading passes seventy percent), so a player
+never arms anything and never forgets to. Everything the section says
+about absence holds unchanged.
+
 **Working decision (2026-07): sleep is fiction, not a mode.** The design
 was growing a dormancy system — a sleep state, wake reports, a ceremony
 around absence — and it was over-architecture, because in an async game

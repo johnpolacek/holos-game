@@ -9,12 +9,12 @@
 // THE LINE IS FIXED AND LIVES HERE. The push carries NO PAYLOAD: the body of
 // the POST is empty, so the push service that relays it learns only that this
 // endpoint received something. The notification therefore names no star, no
-// kind, no year and no civilization. "The board has the rest" is the whole
+// kind, no year and no civilization. "The report has the rest" is the whole
 // no-leak posture in five words: the content is read in the game, through the
 // cone, as always.
 
 const TITLE = "A watch tripped";
-const BODY = "One of the conditions you left standing now holds. The board has the rest.";
+const BODY = "The observatory caught something it watches for. The report has the rest.";
 
 // UNCONDITIONAL, and there is deliberately no branch here that could skip it.
 // Chrome and Safari both retire a subscription that receives pushes without
