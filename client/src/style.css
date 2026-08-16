@@ -1228,11 +1228,54 @@ body {
   transform: translateY(0);
 }
 
+/* The docked column. Past 720px a sheet that keeps spanning the window is
+ * not a sheet any more — it is a page with the map hidden behind it, and its
+ * rows stretch to a measure nobody reads at. Both overlay surfaces the sky
+ * has (the board and the source card) stop at the same column on the right
+ * instead, so the map stays in view beside whatever is being read about it.
+ *
+ * ONE width for both, as a variable rather than two matching numbers: the
+ * claim is that they are the same drawer, and a token is the only way to say
+ * that in a way a later edit cannot quietly break. 28rem is what the board's
+ * pages were turned at, and the card carries the board's own study pages
+ * (App's acquire/release hand-off), so they are already sized for it. */
 @media (min-width: 720px) {
-  .study-board-sheet {
+  :root {
+    --holos-dock-w: 28rem;
+  }
+
+  .study-board-sheet,
+  .source-card-sheet {
     left: auto;
-    width: 28rem;
-    max-width: 28rem;
+    width: var(--holos-dock-w);
+    max-width: var(--holos-dock-w);
+  }
+
+  /* The board declares this in its base rule (a hairline on the screen edge
+     while it is full-width); the card only needs it once it has an inboard
+     edge to draw. */
+  .source-card-sheet {
+    border-left: 1px solid var(--holos-gold-dim);
+  }
+
+  /* On a phone the detail card leaves --card-detail-sky of map above itself,
+     because that strip is the only map there is while it is up. Docked, the
+     whole left of the window is that map, so the strip anchors nothing and
+     costs 5.5rem of the study: the column runs HUD to rail instead, which is
+     the shape the board's own railed page has.
+
+     By the same two insets the board uses, not by a height subtracted from
+     the viewport. The frame still holds still under a study that rebuilds
+     itself once a second (which is the whole reason the phone rule reaches
+     for `height` over `max-height`) — top and bottom on an absolutely
+     positioned box fix it just as hard, and they land ON the bands instead
+     of near them, where 100dvh and the window's own height disagree. The
+     base card's max-height has to stand down for that: left up it
+     over-constrains the pair, and the card stops short of the rail. */
+  .source-card-sheet--detail {
+    top: var(--home-hud-h);
+    height: auto;
+    max-height: none;
   }
 }
 
@@ -2310,7 +2353,10 @@ body {
      wide enough to read as the map the study is anchored to, and no wider,
      because every rem of it is a row of the study the reader has to scroll
      for. Taller is a page that has forgotten where it came from; shorter is a
-     study read through a slot. Anyone retuning it owes it the same thumb. */
+     study read through a slot. Anyone retuning it owes it the same thumb.
+     Below 720px only: once the card docks into a column the map is beside it
+     rather than above it, and the dock rule drops this back out of the
+     height (see the .source-card-sheet--detail override there). */
   --card-detail-sky: 5.5rem;
 }
 
