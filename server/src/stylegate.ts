@@ -218,9 +218,19 @@ export function gateFactFree(raw: string, limits: GateLimits): GateVerdict {
  * patience: "waiting is our whole method" is a stance about the kind of
  * move and passes, while "wait a while longer" is an instruction and does
  * not.
+ *
+ * "first" IS NOT IN THIS LIST, and the reason is the next stance production
+ * served after the rule shipped: "We look first, and gently; being seen
+ * costs them more than us." That mind is agreeing — looking is the marked
+ * move, and "first" ranks it ahead of the louder things, which is a stance
+ * about the kind of move and exactly what this surface is for. The word
+ * marks sequence, and sequence cuts both ways; only the deferral is a tell.
+ * (The rule shipped with a `first,` alternative that a trailing word
+ * boundary made unmatchable, so it never fired. Removed rather than
+ * repaired: the live line above is what repairing it would have cost.)
  */
 const DISSENT =
-  /\b(not yet|no hurry|not now|hold off|hold back|leave (it|them|this)|let (it|them|this) (stay|wait|stand|sit|keep)|(a|the) while longer|a little longer|another year|some other year|in time|later|first,)\b/i;
+  /\b(not yet|no hurry|not now|hold off|hold back|leave (it|them|this)|let (it|them|this) (stay|wait|stand|sit|keep)|(a|the) while longer|a little longer|another year|some other year|in time|later)\b/i;
 
 /** Whether a counsel stance argues against the move it decorates. */
 export function dissents(line: string): boolean {
