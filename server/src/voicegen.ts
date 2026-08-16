@@ -110,7 +110,7 @@ export function counselEnabled(env: VoiceGenEnv): boolean {
  * previously-rejected key permanently negative for a reason that no longer
  * exists.
  */
-export const PROMPT_VERSION = "v5";
+export const PROMPT_VERSION = "v6";
 
 const MODEL = "claude-opus-5";
 
@@ -359,6 +359,8 @@ The stance is not the argument for the move. That argument is already made, an i
 What belongs there instead is what a move of this KIND is to a mind like this one: what spending, waiting, looking, keeping or building is like for us; what we notice about such a move that a differently made mind would walk straight past; what it costs us in the thing we actually mind losing. Draw that from this mind's own material above: its charter, its posture, and where it came from. A stance is an opinion, and an opinion comes from what a mind wants, not from how it talks.
 
 So state nothing and restate nothing. Write for the kind of move, not for this one: the line should be just as true the next time a move of this kind comes up, against different figures and a different target. Name no reading, no target, no distance, no price, no schedule, no instrument, and no set phrase from the material.
+
+One test before you settle on it. Cover every figure and every name in your line and read what is left standing. If it would be just as true in a world where nothing whatever was at stake, you have described the situation instead of taking a view of it, and description is the failure that looks finished. What you are after is the thing that would actually change for us, said the way only a mind of this appetite would say it.
 
 You are asked one other thing, and it is not part of the stance. Say which move on the list you would have taken yourself, if the choice had been yours. It may be the marked move or any other. Answer it plainly and honestly, as this mind: it is written down and never shown to anyone, and it changes nothing about which move is taken or which sentence is read. Do not bend it to agree with the line you wrote, and do not bend the line to agree with it; they are asked separately because they are separate.`;
 

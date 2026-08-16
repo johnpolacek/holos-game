@@ -441,6 +441,33 @@ Named mechanics of the register. Apply **at most one** per short string.
   becoming wrong, both fail R-6. A remark is 1–2 sentences, ≤ 22 words,
   wit ceiling 2, at most one craft move — shorter than an arrival line
   because it is read beside a measurement, not instead of one.
+- **R-42 A line a player decides against says what deciding would settle.**
+  On any surface where a player is choosing — a reading on a hypothesis
+  menu, a question's line, a proposal's reason, an empty state naming what
+  would fill it — the prose names the thing that changes if they act. An
+  accurate description of the subject is not that, and description is the
+  failure mode precisely because it looks finished: "a made thing, warm
+  because it is still working" is a correct account of somebody's heart and
+  gives nobody a reason to spend a compute on it. The version that does is
+  the one that says **someone is there**.
+
+  **The test.** Cover every number and label in the line and read what is
+  left. If it would be equally true in a game where nothing was at stake,
+  it has not been written yet. Apply it to the line a player reads *before*
+  acting; a record sentence says what happened and owes nothing here.
+
+  A stake is a claim about consequence, never about truth: it says what the
+  reading *would* mean if it held. That is what lets prose shared by every
+  source carry one without saying anything about any source, and it is why
+  this rule cannot leak — `studies.ts`'s menu glosses are the worked
+  example, each one following the entry's own `role` (mundane, nobody is
+  there; built, somebody is; quiet, somebody was; open, it stands).
+
+  **Not grep-checkable, and it never will be** — no script can see whether
+  a sentence gives a reader a reason to care. It is held in three places
+  instead: at review, by `/prose-audit`'s judgement pass, and inside the
+  AV4 prompts (`voicegen.ts`), so the half of the prose no author ever sees
+  is written to the same test.
 
 **Punctuation and house style (grep-checkable):**
 - **R-7 No exclamation marks** anywhere in game-facing prose.
@@ -881,6 +908,7 @@ destination and a *number measured off the code* is the thing being synced.
 | `voice.ts` reason builders / PROPOSAL_VERBS | this guide, §2 register rows | Register and ceilings track; R-35 is grep-checkable |
 | `voice.ts` SIGNAL_CLASS_LABEL | this guide, §8's signal-class row, and `client/src/sourcecard.ts` CLASS_LABEL | **Verbatim, three-way** |
 | `voicegen.ts` FAMILY_SURFACE (the prompt's occasion / "must not name" table) | `voice.ts` REPORT_REMARKS doc comment | **Verbatim** — the doc comment is the real spec for family scope, and the prompt must state the same referents in the same words or generated remarks and templated ones drift apart in scope while both look fine alone. Human read |
+| `voicegen.ts` COUNSEL_JOB (the stance's cover-the-figures test) | this guide, §3 R-42 | The prompt states R-42's test in the mind's own terms, because the counsel stance is the one generated surface a player reads *before* deciding. Not verbatim — the prompt speaks to a writer and the rule speaks to a reviewer — but an edit to either that changes what the test asks is owed to the other. Human read. R-42 does **not** reach `REMARK_SPLIT`, and must not: a remark stands beside a record of what already happened, which the rule's own scope clause exempts |
 | `voice.ts` INTRO_LINES | `build-s0.md` § "The intro's copy" | **Verbatim** — the brief pinned the four beats in design review; a gate rejection is reviewed against the brief, never fixed in place |
 | `voice.ts` COUNSEL_LINES | this guide, §2 counsel-line row and §3 R-36a | Register and ceilings track; the mechanical gates are script-checked by `audit:voice` at stance size; family scope and the double swap test stay a human read. The obligation survives the counsel strip's removal — the bank still ships and is still served, so a doc sync is still owed on every edit to it |
 | `bannedterms.ts` | this guide, §6 (and §8's comms register) | **Generated, doc → code** — `npm run sync:banned` writes it, `npm run audit:banned` fails CI on any drift in either direction. This row RUNS BACKWARDS from the rule above it, and correctly: §6 is not a bank, it is a rule list whose canonical statement is this guide |

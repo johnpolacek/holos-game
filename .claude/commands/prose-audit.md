@@ -1,5 +1,5 @@
 ---
-description: Audit player-facing prose for AI tells against prose-style.md, and push the fixes upstream into the gate
+description: Audit player-facing prose against prose-style.md for AI tells and for inert decision surfaces (R-42), and push the fixes upstream into the gate
 ---
 
 Audit player-facing prose in this repo for quality, and close the loop so the
@@ -14,6 +14,11 @@ is a tell the runtime generator can reproduce.
 Read `docs/prose-style.md` in full before touching anything. It is the
 specification. Everything else in this command — the humanizer included — is a
 lens applied underneath it, never above it.
+
+Two lenses, and they find different faults. The humanizer finds prose that
+sounds wrong; R-42's stakes test finds prose that reads well and gives a
+player no reason to act. A sweep that runs only the first one will pass a
+surface that is failing.
 
 ## The humanizer
 
@@ -84,6 +89,30 @@ wrong *for this game*, and running it blind would strip the voice on purpose.
   instinct is the single most dangerous pattern here: §8 labels repeat verbatim
   or they are not pinned. Variation is a finding in *prose*, never in a label.
 
+## The second lens — R-42, the stakes test
+
+The humanizer finds prose that sounds wrong. It has nothing to say about
+prose that reads perfectly and gives a player no reason to care, which is
+the other half of this audit and the harder half to see: an accurate
+sentence looks finished.
+
+So on every surface a player reads **before** deciding — a hypothesis menu
+gloss, a question's line, a proposal's reason, an empty state naming what
+would fill it, a project's effect line — apply R-42's test. Cover every
+number and label in the line and read what is left. If it would be equally
+true in a game where nothing was at stake, report it, whatever its prose
+quality. The worked example is in `studies.ts`: seventeen menu glosses that
+described the sky accurately for months and named nothing a player would
+lean in for, on the one surface whose whole job is to make them care enough
+to spend a compute.
+
+Two things this lens must not do. It does not touch **record sentences** or
+the remarks beside them — those say what happened, and R-42's scope clause
+exempts them by name. And a stake is a claim about **consequence, never
+about truth**: what a reading *would* mean if it held, never what is
+actually out there, which is what keeps catalog prose shared by every
+source from saying anything about any source.
+
 ## Scope — three passes, in this order
 
 **1. Shipped banks (server).** `voice.ts` (`VOICE_CARDS`, `REPORT_REMARKS`,
@@ -147,6 +176,12 @@ every such conflict in the report rather than resolving it silently.
   imitating one.
 - **R-29 / R-29a / R-30.** No numeral or pinned label inside a remark bank; a
   fact-bearing sentence stays deadpan and the stance goes in its own sentence.
+- **R-42.** A decision surface names what deciding would settle, and a stake is
+  a consequence rather than a truth. It is not grep-checkable and never will be,
+  so it is a finding this pass owes rather than one a script will hand you. In
+  pass 3 it lands in `voicegen.ts`'s `COUNSEL_JOB` and nowhere else on the
+  generation path: the counsel stance is the only generated line a player reads
+  before acting.
 - **R-37.** `voicegen.ts` and `stylegate.ts` keep their import allowlist. If a
   new rule needs data, it does not get it from a catalog module.
 - `style.css` tokens own type and ink. Do not touch presentation.
