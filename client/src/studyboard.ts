@@ -928,6 +928,15 @@ export class StudyBoard {
     string,
     { readonly axis: AxisWire; readonly index: number }
   >;
+  /**
+   * IN3: axis id → the axis's caps label, from the same welcome catalog. The
+   * question drill-in's LEANS ON is the one reader: `OpenQuestion.leansOn`
+   * ships ids, and the label they resolve to is the one the Projects page
+   * prints for that axis, so a term is named the same word wherever it is
+   * read. Empty when the catalog is null, which omits the row rather than
+   * showing an id.
+   */
+  private readonly axisLabels: ReadonlyMap<string, string>;
   /** The public star catalog by id, from `welcome` like `missionCatalog` —
    *  the board starmap's geometry. A DetectedSource carries no position (the
    *  ObservedCiv boundary), but its STAR is public sky. */
@@ -1336,6 +1345,7 @@ export class StudyBoard {
       axis.rungs.forEach((id, index) => placement.set(id, { axis, index }));
     }
     this.axisPlacement = placement;
+    this.axisLabels = new Map((instruments?.axes ?? []).map((a) => [a.id, a.label] as const));
     this.starsById = new Map(catalog.map((s) => [s.id, s] as const));
     this.focusHost = focusHost;
 
@@ -4720,6 +4730,43 @@ export class StudyBoard {
     }
   }
 
+  /** The drill-in's one section header. Four of them stack in a fold now
+   *  (ALREADY RUNNING, WHAT THE SPEND BUYS, WHAT IT CAN TELL APART, LEANS
+   *  ON), and they are the same size, ink and caps by construction rather
+   *  than by four copies of one line. R-24: each ≤ 6 words. */
+  private buildQuestionSubheader(text: string): HTMLElement {
+    const el = document.createElement("div");
+    el.className = "study-question-subheader holos-caps";
+    el.textContent = text;
+    return el;
+  }
+
+  /** One of the drill-in's prose blocks: body prose, an ink tier under the
+   *  row's name, wrapping per the sheet's own policy. */
+  private buildQuestionBlock(text: string): HTMLElement {
+    const el = document.createElement("div");
+    el.className = "study-question-method";
+    el.textContent = text;
+    return el;
+  }
+
+  /** A row of chips under a section header — the readings a question could
+   *  separate, and the terms it leans on. One chip style for both: they are
+   *  the same kind of thing on the page, a short caps label a thumb reads as
+   *  a shape, and two chip styles would imply a distinction that is not
+   *  there. */
+  private buildQuestionChips(labels: readonly string[]): HTMLElement {
+    const tags = document.createElement("div");
+    tags.className = "study-archive-tags";
+    for (const lbl of labels) {
+      const tag = document.createElement("span");
+      tag.className = "study-archive-tag holos-caps";
+      tag.textContent = lbl;
+      tags.append(tag);
+    }
+    return tags;
+  }
+
   /** One row per OpenQuestion on the focused study — see renderFocused's
    *  comment for the state → anatomy mapping. */
   private buildQuestionRow(
@@ -4794,13 +4841,17 @@ export class StudyBoard {
         const detail = document.createElement("div");
         detail.className = "study-question-detail";
 
-        // 1. How the question is answered. No new light, no launch: the
-        //    archive already holds the photons and the spend is the
-        //    inference (questionmethod.ts).
-        const method = document.createElement("div");
-        method.className = "study-question-method";
-        method.textContent = QUESTION_METHOD[q.id];
-        detail.append(method);
+        // 1. How the question is answered, in two halves of one premise
+        //    (questionmethod.ts): no new light and no launch, so the first
+        //    block is what the standing read already produces for free and
+        //    where it stops, and the second is the reconstruction the compute
+        //    pays for. R-42: the fold's first words are about what spending
+        //    would change, not about what the instrument is.
+        const method = QUESTION_METHOD[q.id];
+        detail.append(this.buildQuestionSubheader("ALREADY RUNNING"));
+        detail.append(this.buildQuestionBlock(method.running));
+        detail.append(this.buildQuestionSubheader("WHAT THE SPEND BUYS"));
+        detail.append(this.buildQuestionBlock(method.buys));
 
         // 2. What it could tell apart — the server's class-shaped
         //    `separates`, which names readings on this study's menu and
@@ -4813,21 +4864,31 @@ export class StudyBoard {
           if (lbl !== undefined) separatesLabels.push(lbl);
         }
         if (separatesLabels.length > 0) {
-          const sepHeader = document.createElement("div");
-          sepHeader.className = "study-question-subheader holos-caps";
-          sepHeader.textContent = "WHAT IT CAN TELL APART";
-          const tags = document.createElement("div");
-          tags.className = "study-archive-tags";
-          for (const lbl of separatesLabels) {
-            const tag = document.createElement("span");
-            tag.className = "study-archive-tag holos-caps";
-            tag.textContent = lbl;
-            tags.append(tag);
-          }
-          detail.append(sepHeader, tags);
+          detail.append(
+            this.buildQuestionSubheader("WHAT IT CAN TELL APART"),
+            this.buildQuestionChips(separatesLabels),
+          );
         }
 
-        // 3. The terms, stated where the decision is made — the project
+        // 3. Which terms of the reconstruction the question is limited by.
+        //    `leansOn` is invariant per question and composed from no truth,
+        //    no study and no sky, so it says nothing about this source; the
+        //    labels are the welcome catalog's, so a term is named the same
+        //    word here and on the Projects page. With no catalog there are no
+        //    labels, and the row is omitted rather than printing ids.
+        const leanLabels: string[] = [];
+        for (const axisId of q.leansOn) {
+          const lbl = this.axisLabels.get(axisId);
+          if (lbl !== undefined) leanLabels.push(lbl);
+        }
+        if (leanLabels.length > 0) {
+          detail.append(
+            this.buildQuestionSubheader("LEANS ON"),
+            this.buildQuestionChips(leanLabels),
+          );
+        }
+
+        // 4. The terms, stated where the decision is made — the project
         //    sheet's anatomy minus its clock row, because a question has
         //    no clock: the fold says what is spent and what the allocation
         //    can bear, and the answer lands on the tap. Where a landed
@@ -4840,7 +4901,7 @@ export class StudyBoard {
         }
         detail.append(this.buildBudgetLine());
 
-        // 4. The spend, and only here. The button names the spend itself:
+        // 5. The spend, and only here. The button names the spend itself:
         //    "buy the question" said what the system calls the act, not
         //    what leaves the allocation when you tap it.
         const verbRow = document.createElement("div");
@@ -5327,6 +5388,19 @@ export class StudyBoard {
     record.className = "report-row-line";
     record.textContent = entry.record;
     el.append(record);
+
+    // IN3: the technical body, frozen at landing beside the record it
+    // explains. The record says what happened in one sentence under its
+    // 18-word wall; this is the room for what the instrument now is. It sits
+    // under the record and above the mind's remark, which keeps the order of
+    // the row a hierarchy: what happened, what it means, what the mind made
+    // of it.
+    if (entry.detail !== null) {
+      const detail = document.createElement("div");
+      detail.className = "report-detail";
+      detail.textContent = entry.detail;
+      el.append(detail);
+    }
 
     if (entry.remark !== null) {
       const remark = document.createElement("div");

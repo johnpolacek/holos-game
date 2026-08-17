@@ -375,9 +375,11 @@ body {
 .source-card-name-hint,
 .voice-note,
 /* AV2: the report — a triage header, a record sentence, an archetype
-   remark. All running prose. */
+   remark. All running prose. IN3 adds the entry's technical body, which is
+   the longest prose on the row and the one that most wants pretty. */
 .report-header,
 .report-row-line,
+.report-detail,
 .report-remark,
 /* AV3: a proposal's reason and (AV4-only) the mind's stance — both
    sentences, never the caps chrome beside them. */
@@ -3555,6 +3557,18 @@ body {
   font-size: var(--holos-text-sm);
   line-height: 1.4;
   color: var(--holos-ink);
+}
+
+/* IN3: the entry's technical body — what the instrument now is, frozen at
+   landing with the record it sits under. A step quieter than the record and
+   upright, never italic: it is the observatory's own account, the same voice
+   as the sentence above it, and setting it apart in slant would make it read
+   as somebody else's aside (that is the remark's job, below). */
+.report-detail {
+  font-size: var(--holos-text-xs);
+  color: var(--holos-ink-dim);
+  line-height: 1.5;
+  margin-top: 0.3rem;
 }
 
 /* The mind's voice, set apart from the frozen record line above it — a
