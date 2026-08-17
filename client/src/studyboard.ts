@@ -120,6 +120,13 @@ import type {
   // THE LEDGER's vocabulary and the standing-order catalog's, types only, on
   // the launch side's exact terms: the wire carries the row, the band word and
   // the class id, and every rendering of any of them is authored below.
+  // ── IN1: the instrument ──
+  // Types only, on the same terms as the two catalogs above: the axis table
+  // rides `welcome` and no copy of it ships in this bundle. `ProjectFamily`
+  // is the union the Projects page's grouping Record is total over.
+  AxisWire,
+  InstrumentCatalog,
+  ProjectFamily,
   DriftBand,
   DriftReading,
   DriftVia,
@@ -802,6 +809,11 @@ type View =
   // Work's drill-ins: what the observatory can build, and what is aimed.
   | "projects"
   | "project"
+  // IN2: one axis of the instrument as it stands TODAY — what the
+  // civilization inherited on that term and never bought. A page rather than
+  // a fold because it is the answer to "what is doing all this computing",
+  // and it is read the way a project sheet is: title, line, one block.
+  | "rung"
   | "mission"
   | "launch"
   // ── A4 ──
@@ -843,6 +855,7 @@ const VIEW_TAB: Record<View, RailTab> = {
   work: "work",
   projects: "work",
   project: "work",
+  rung: "work",
   mission: "work",
   launch: "work",
   family: "family",
@@ -851,6 +864,64 @@ const VIEW_TAB: Record<View, RailTab> = {
   mind: "mind",
   startover: "mind",
 };
+
+/** IN2: what one family's section on the Projects page says about itself. */
+interface ProjectFamilySection {
+  /** Caps chrome, ≤ 6 words (R-24). */
+  readonly header: string;
+  /** The section caption mold (`.study-picker-subtitle`): what the section is
+   *  and WHERE IT STOPS, ≤ 20 words. */
+  readonly caption: string;
+}
+
+/**
+ * IN2: every family, named once. A `Record<ProjectFamily, …>` rather than a
+ * lookup with a fallback, so the day a fifth family joins the union the
+ * typecheck asks for its header here instead of a player meeting a section
+ * with no name — the VIEW_TAB discipline, one page down.
+ *
+ * A section renders only when it has something in it, which is why `bright`
+ * is authored and invisible: the catalog has no bright entry today, and the
+ * header appearing on the day the first one ships is the honest state.
+ */
+const PROJECT_FAMILY_SECTION: Record<ProjectFamily, ProjectFamilySection> = {
+  instrument: {
+    header: "THE INSTRUMENT",
+    caption: "The terms every reconstruction is limited by. Moving one costs compute, never new light.",
+  },
+  dark: {
+    header: "THE DARK WORKS",
+    caption: "Nothing here points at anything. What is kept, and what thinking about it costs.",
+  },
+  carrier: {
+    header: "THE CARRIERS",
+    caption: "What leaves the home system, and what carries it. Nothing here improves a reading.",
+  },
+  bright: {
+    header: "THE BRIGHT WORKS",
+    caption: "Building on a scale the sky can read. Nothing here is hidden from anyone.",
+  },
+};
+
+/** The order the sections stand in. The instrument first because it is what
+ *  every question is spent through; the bright works last because they are
+ *  the only ones anybody else can see. */
+const PROJECT_FAMILY_ORDER = [
+  "instrument",
+  "dark",
+  "carrier",
+  "bright",
+] as const satisfies readonly ProjectFamily[];
+
+type AssertNever<T extends never> = T;
+
+/** Fails the typecheck if PROJECT_FAMILY_ORDER misses a family — the Record
+ *  above proves every family has a header, and this proves every family is
+ *  actually reached. Exported because an unexported type alias is an unused
+ *  local (noUnusedLocals). */
+export type ProjectFamilyOrderIsTotal = AssertNever<
+  Exclude<ProjectFamily, (typeof PROJECT_FAMILY_ORDER)[number]>
+>;
 
 export class StudyBoard {
   private readonly socket: CohortSocket;
@@ -861,6 +932,27 @@ export class StudyBoard {
    *  dial-notch count, the cap and the occupied-risk line), from `welcome`
    *  like `missionCatalog`. Null omits the sheet rather than guessing. */
   private readonly voyageCatalog: VoyageCatalog | null;
+  /** IN2: the instrument's axes, in display order, from `welcome` like
+   *  `missionCatalog`. Null omits the Projects page's axis section rather
+   *  than guessing at a shape — the missionCatalog precedent exactly. Every
+   *  project still lists under its family when it is null; what is lost is
+   *  the ladder, not a door. */
+  private readonly instruments: InstrumentCatalog | null;
+  /**
+   * IN2: where each project sits on the instrument, derived ONCE from the
+   * welcome catalog's `rungs` arrays. `ProjectSnapshot` carries no axis field
+   * on purpose (protocol.ts says why), so this map is the client's single
+   * answer to "which term does this move, and what stands below it".
+   *
+   * Membership is also the Projects page's one-place-per-project rule: a
+   * project in here is a rung on an axis row and is never listed a second
+   * time under its family, which is how `sky-vault` (dark family, ARCHIVE
+   * axis) appears once.
+   */
+  private readonly axisPlacement: ReadonlyMap<
+    string,
+    { readonly axis: AxisWire; readonly index: number }
+  >;
   /** The public star catalog by id, from `welcome` like `missionCatalog` —
    *  the board starmap's geometry. A DetectedSource carries no position (the
    *  ObservedCiv boundary), but its STAR is public sky. */
@@ -916,6 +1008,11 @@ export class StudyBoard {
   // must come home there. "work" is the work list, which is the Work
   // landing's lower half.
   private projectReturn: "work" | "projects" | "report" | "mind" = "projects";
+  // IN2: the rung-0 sheet — which axis. No return field beside it, and
+  // deliberately: PROJECTS is the only page with a door to this one, so
+  // "wherever the tap came from" and "the Projects page" are the same place.
+  // A second door is what would earn a `rungReturn` (projectReturn's story).
+  private focusedAxisId: string | null = null;
   // AS2: the same rule for a board, on the projectReturn precedent. A board
   // is reached from the Desk (the studies the player keeps), from a proposal
   // on the Mind page, and from a report entry; backing out of one comes home
@@ -1255,12 +1352,21 @@ export class StudyBoard {
     socket: CohortSocket,
     missionCatalog: MissionCatalog | null,
     voyageCatalog: VoyageCatalog | null,
+    instruments: InstrumentCatalog | null,
     catalog: readonly Star[],
     focusHost: FocusHost,
   ) {
     this.socket = socket;
     this.missionCatalog = missionCatalog;
     this.voyageCatalog = voyageCatalog;
+    this.instruments = instruments;
+    // Built once: the catalog is a constant of the deployment, so nothing
+    // about a `sky` can change where a project sits.
+    const placement = new Map<string, { readonly axis: AxisWire; readonly index: number }>();
+    for (const axis of instruments?.axes ?? []) {
+      axis.rungs.forEach((id, index) => placement.set(id, { axis, index }));
+    }
+    this.axisPlacement = placement;
     this.starsById = new Map(catalog.map((s) => [s.id, s] as const));
     this.focusHost = focusHost;
 
@@ -1553,6 +1659,10 @@ export class StudyBoard {
       this.renderProjects();
     } else if (this.view === "project") {
       this.renderProjectDetail();
+    } else if (this.view === "rung") {
+      // IN2: the sheet itself holds nothing a sky moves, but the ladder under
+      // it is project rows, and those carry clocks and affordability.
+      this.renderRung();
     } else if (this.view === "work") {
       this.renderWork();
     } else if (this.view === "family") {
@@ -2094,6 +2204,9 @@ export class StudyBoard {
       if (this.view === "sky") this.refreshLiveClocks();
       else if (this.view === "projects") this.renderProjects();
       else if (this.view === "project") this.renderProjectDetail();
+      // IN2: the ladder under the rung-0 sheet counts down and accrues like
+      // the Projects page it was opened from, so it ticks like it too.
+      else if (this.view === "rung") this.renderRung();
       else if (this.view === "focused" && this.focusedStarId !== null) {
         this.renderFocused(this.focusedStarId);
       } else if (this.view === "work") this.refreshWorkList();
@@ -4170,9 +4283,175 @@ export class StudyBoard {
 
     this.body.append(this.hairline());
 
+    // IN2: grouped by family, and exhaustive by construction — the bucket
+    // map is a Record over the whole union, so a family added to the wire
+    // cannot reach a player under no heading at all.
+    const byFamily: Record<ProjectFamily, ProjectSnapshot[]> = {
+      instrument: [],
+      dark: [],
+      bright: [],
+      carrier: [],
+    };
     for (const p of this.projects) {
-      this.body.append(this.buildProjectRow(p));
+      // ONE PLACE PER PROJECT. A project that sits on an axis is a rung on
+      // that axis's row and is not listed again under its family; the axis
+      // row wins because it is where the ladder reads. That is what keeps
+      // `sky-vault` (dark, on ARCHIVE) from appearing twice, and it is why
+      // THE DARK WORKS can be empty while two dark projects exist.
+      if (this.axisPlacement.has(p.id)) continue;
+      byFamily[p.family].push(p);
     }
+
+    const axes = this.instruments?.axes ?? [];
+
+    for (const family of PROJECT_FAMILY_ORDER) {
+      const rows = byFamily[family];
+      const withAxes = family === "instrument" ? axes : [];
+      // An empty family is simply absent. The header exists in the table
+      // above so the type is total; nothing says it has to be drawn.
+      if (rows.length === 0 && withAxes.length === 0) continue;
+
+      const section = PROJECT_FAMILY_SECTION[family];
+
+      const sectionHeader = document.createElement("div");
+      sectionHeader.className = "study-section-header holos-caps";
+      sectionHeader.textContent = section.header;
+      this.body.append(sectionHeader);
+
+      const caption = document.createElement("div");
+      caption.className = "study-picker-subtitle";
+      caption.textContent = section.caption;
+      this.body.append(caption);
+
+      for (const axis of withAxes) this.body.append(this.buildAxisRow(axis));
+
+      // The instrument family's entries that sit on no axis: campaigns run on
+      // the hardware rather than hardware. They stand under the axes, and only
+      // when there are axes above them to be distinguished from.
+      if (withAxes.length > 0 && rows.length > 0) {
+        const programs = document.createElement("div");
+        programs.className = "study-subsection-header holos-caps";
+        programs.textContent = "PROGRAMS";
+        this.body.append(programs);
+      }
+
+      for (const p of rows) this.body.append(this.buildProjectRow(p));
+    }
+  }
+
+  /**
+   * IN2: one term of the reconstruction, as a row. What stands on it now
+   * (the inherited rung until something is bought, then the highest thing
+   * bought), what is offered next, and what that offer costs.
+   *
+   * The row is a div holding two buttons rather than one button: the offer
+   * and "what we have" are two different pages, and a control inside a
+   * control is not a thing the DOM allows.
+   */
+  private buildAxisRow(axis: AxisWire): HTMLDivElement {
+    const row = document.createElement("div");
+    row.className = "study-axis-row";
+
+    const rungs: ProjectSnapshot[] = [];
+    for (const id of axis.rungs) {
+      const p = this.projects.find((pp) => pp.id === id);
+      if (p !== undefined) rungs.push(p);
+    }
+    // The highest rung that has landed (the ladder is in order, so the last
+    // standing one is the top standing one), and the first that has not.
+    let standing: ProjectSnapshot | null = null;
+    for (const p of rungs) if (p.status === "standing") standing = p;
+    const next = rungs.find((p) => p.status !== "standing") ?? null;
+
+    const main = document.createElement("button");
+    main.type = "button";
+    main.className = "study-axis-main";
+    // The offer is what the row is for, so that is what it opens. With
+    // nothing left on offer it opens the top rung's own sheet, and with no
+    // rungs at all there is only what we already have.
+    const target = next ?? standing;
+    main.addEventListener("click", () => {
+      if (target !== null) this.focusProject(target.id, "projects");
+      else this.focusRung(axis.id);
+    });
+
+    const label = document.createElement("div");
+    label.className = "study-axis-label holos-caps";
+    label.textContent = axis.label;
+
+    const line = document.createElement("div");
+    line.className = "study-project-line";
+    line.textContent = axis.axisLine;
+
+    main.append(label, line);
+
+    // What stands on this term right now. "INHERITED" until something is
+    // bought, because a civilization that has spent nothing here is not at
+    // zero — it is at whatever it was handed.
+    main.append(
+      standing === null
+        ? this.buildAxisRungLine("INHERITED", axis.inherited.label, false)
+        : this.buildAxisRungLine("STANDING", standing.label, true),
+    );
+
+    if (next !== null) {
+      main.append(
+        this.buildAxisRungLine(next.status === "running" ? "UNDER WAY" : "NEXT", next.label, false),
+      );
+    }
+
+    const meta = document.createElement("div");
+    meta.className = "study-project-meta holos-caps";
+    // Nothing counted, nothing numbered: a term with no offer left says the
+    // offer is what has run out, not the term.
+    meta.textContent = next === null ? "NOTHING FURTHER ON OFFER" : this.offerMetaText(next);
+    main.append(meta);
+
+    const what = document.createElement("button");
+    what.type = "button";
+    what.className = "study-axis-what holos-caps";
+    what.textContent = "WHAT WE HAVE ›";
+    what.addEventListener("click", () => this.focusRung(axis.id));
+
+    row.append(main, what);
+    return row;
+  }
+
+  /** One "who stands here" line inside an axis row: a caps tag and the rung's
+   *  own name. Amber on the tag when the rung was bought, because that is the
+   *  same marker the STANDING flag carries on a project row. */
+  private buildAxisRungLine(tag: string, name: string, bought: boolean): HTMLDivElement {
+    const line = document.createElement("div");
+    line.className = "study-axis-rung";
+
+    const t = document.createElement("span");
+    t.className = bought
+      ? "study-axis-rung-tag study-axis-rung-tag--standing holos-caps"
+      : "study-axis-rung-tag holos-caps";
+    t.textContent = tag;
+
+    const n = document.createElement("span");
+    n.className = "study-axis-rung-name";
+    n.textContent = name;
+
+    line.append(t, n);
+    return line;
+  }
+
+  /** The meta a project on offer wears: its price and its clock while it can
+   *  be started, its countdown once it is running. One function because an
+   *  axis row shows its next rung EXACTLY as the flat list shows a project,
+   *  and two copies of that sentence would drift. Standing projects are not
+   *  an offer and have their own line on the row that owns them. */
+  private offerMetaText(p: ProjectSnapshot): string {
+    if (p.status === "running") {
+      const countdown = p.landsYear === null ? null : formatCountdown(p.landsYear);
+      return countdown !== null ? `LANDS IN ${countdown}` : "LANDING";
+    }
+    const free = this.currentFreeCompute();
+    const rate = p.addRatePerYear > 0 ? ` · +${p.addRatePerYear}/Y` : "";
+    const base = `${p.costCompute} COMPUTE · ${formatClockPair(p.durationYears)}${rate}`;
+    return free >= p.costCompute ? base : `${base} · ${Math.ceil(p.costCompute - free)} SHORT`;
   }
 
   /** Every row opens the detail sheet — the picker → brief pattern. Nothing
@@ -4197,10 +4476,7 @@ export class StudyBoard {
 
     let flag: HTMLSpanElement | null = null;
 
-    if (p.status === "running") {
-      const countdown = p.landsYear === null ? null : formatCountdown(p.landsYear);
-      meta.textContent = countdown !== null ? `LANDS IN ${countdown}` : "LANDING";
-    } else if (p.status === "standing") {
+    if (p.status === "standing") {
       // Income projects wear their rate; the others landed a one-time grant
       // the sheet spells out, so the row carries the landing date instead —
       // never a false "+0/Y".
@@ -4212,19 +4488,25 @@ export class StudyBoard {
       flag.className = "study-project-flag holos-caps";
       flag.textContent = "STANDING";
     } else {
-      // "available"
-      const free = this.currentFreeCompute();
-      const rate = p.addRatePerYear > 0 ? ` · +${p.addRatePerYear}/Y` : "";
-      const base = `${p.costCompute} COMPUTE · ${formatClockPair(p.durationYears)}${rate}`;
-      meta.textContent =
-        free >= p.costCompute
-          ? base
-          : `${base} · ${Math.ceil(p.costCompute - free)} SHORT`;
+      // "running" or "available" — the offer's own line, shared with the
+      // instrument's axis rows (offerMetaText).
+      meta.textContent = this.offerMetaText(p);
     }
 
     btn.append(label, line, meta);
     if (flag !== null) btn.append(flag);
     return btn;
+  }
+
+  /** IN2: the rung directly under this one on its axis, or null when the
+   *  project sits on no axis or is the first thing offered on it. Resolved
+   *  through the welcome catalog, which is the only place placement lives. */
+  private rungBelow(projectId: string): ProjectSnapshot | null {
+    const placement = this.axisPlacement.get(projectId);
+    if (placement === undefined || placement.index === 0) return null;
+    const belowId = placement.axis.rungs[placement.index - 1];
+    if (belowId === undefined) return null;
+    return this.projects.find((p) => p.id === belowId) ?? null;
   }
 
   // ── Render: project detail ───────────────────────────────────────────
@@ -4278,16 +4560,38 @@ export class StudyBoard {
     const kicker = document.createElement("div");
     kicker.className = "study-focus-designation holos-caps";
     kicker.textContent = p.costClass.toUpperCase();
+    header.append(kicker);
+
+    // IN2: which term of the reconstruction this moves. Under the cost class
+    // and quieter than it, and simply absent for a project that sits on no
+    // axis (a carrier, a program) rather than guessed at.
+    const placement = this.axisPlacement.get(p.id);
+    if (placement !== undefined) {
+      const onAxis = document.createElement("div");
+      onAxis.className = "study-focus-axis holos-caps";
+      onAxis.textContent = `ON ${placement.axis.label}`;
+      header.append(onAxis);
+    }
+
     const nameEl = document.createElement("div");
     nameEl.className = "study-focus-name holos-serif";
     nameEl.textContent = p.label;
-    header.append(kicker, nameEl);
+    header.append(nameEl);
     this.body.append(header);
 
     const line = document.createElement("div");
     line.className = "study-focus-lightage";
     line.textContent = p.line;
     this.body.append(line);
+
+    this.body.append(this.hairline());
+
+    // IN2: what the thing IS, before what it would buy. The physics, the term
+    // of the reconstruction it moves, and what an observer outside would read
+    // off the home system once it is built.
+    this.body.append(this.buildBriefSection("HOW IT WORKS", p.howLine));
+    this.body.append(this.buildBriefSection("WHAT IT CHANGES", p.changesLine));
+    this.body.append(this.buildBriefSection("IN THE SKY", p.skyLine));
 
     this.body.append(this.hairline());
 
@@ -4339,10 +4643,18 @@ export class StudyBoard {
       verbBtn.className = "study-verb-btn study-verb-btn--primary";
 
       const free = this.currentFreeCompute();
+      // IN2: a rung cannot be started over a rung that has not landed. The
+      // server refuses it anyway; saying so here means the refusal is read
+      // before the tap rather than after it, the way "N SHORT" already is.
+      const below = this.rungBelow(p.id);
       let hint = "";
       if (this.pendingProjectId === p.id) {
         verbBtn.disabled = true;
         verbBtn.textContent = "starting the project…";
+      } else if (below !== null && below.status !== "standing") {
+        verbBtn.disabled = true;
+        verbBtn.textContent = "start the project";
+        hint = "RUNG BELOW NOT LANDED";
       } else if (free >= p.costCompute) {
         verbBtn.textContent = "start the project";
         verbBtn.addEventListener("click", () => {
@@ -4364,6 +4676,87 @@ export class StudyBoard {
         hintEl.textContent = hint;
         this.body.append(hintEl);
       }
+    }
+  }
+
+  // ── Render: the rung-0 sheet ─────────────────────────────────────────
+  // What the civilization already holds on one term of the reconstruction:
+  // the thing that was inherited at placement, described. A project sheet
+  // minus cost, clock and verb, because there is nothing here to buy — this
+  // is the half of the instrument nobody ever paid for.
+
+  /** Opens one axis's inherited rung. PROJECTS is the only door, so the back
+   *  leg is unconditional (see focusedAxisId). */
+  private focusRung(axisId: string): void {
+    this.view = "rung";
+    this.focusedAxisId = axisId;
+    this.renderRung();
+    this.openFlag = true;
+    this.root.classList.add("open");
+    this.startTicking();
+  }
+
+  private renderRung(): void {
+    const axisId = this.focusedAxisId;
+    const axis =
+      axisId === null ? undefined : this.instruments?.axes.find((a) => a.id === axisId);
+    this.body.innerHTML = "";
+
+    // The catalog is a constant of the deployment, so a missing axis means a
+    // stale id — fall back the way the project sheet does.
+    if (axis === undefined) {
+      this.focusedAxisId = null;
+      this.view = "projects";
+      this.renderProjects();
+      return;
+    }
+
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "study-back holos-caps";
+    back.textContent = "‹ BACK";
+    back.addEventListener("click", () => this.openProjects());
+    this.body.append(back);
+
+    // The axis is the title and the inherited rung is the readout over it.
+    // The other way round would set four pages' titles to the same word: on
+    // four of the twelve terms what was inherited is NONE, and a page called
+    // NONE is a page nobody can name afterwards.
+    const header = document.createElement("div");
+    header.className = "study-focus-header";
+    const kicker = document.createElement("div");
+    kicker.className = "study-focus-designation holos-caps";
+    kicker.textContent = axis.inherited.label;
+    const nameEl = document.createElement("div");
+    nameEl.className = "study-focus-name holos-serif";
+    nameEl.textContent = axis.label;
+    header.append(kicker, nameEl);
+    this.body.append(header);
+
+    const line = document.createElement("div");
+    line.className = "study-focus-lightage";
+    line.textContent = axis.axisLine;
+    this.body.append(line);
+
+    this.body.append(this.hairline());
+
+    this.body.append(this.buildBriefSection("WHAT WE HAVE", axis.inherited.description));
+
+    const rungs: ProjectSnapshot[] = [];
+    for (const id of axis.rungs) {
+      const p = this.projects.find((pp) => pp.id === id);
+      if (p !== undefined) rungs.push(p);
+    }
+
+    // The whole ladder, in order, from the thing it starts on — so the term
+    // reads as one subject rather than as scattered purchases.
+    if (rungs.length > 0) {
+      this.body.append(this.hairline());
+      const rungHeader = document.createElement("div");
+      rungHeader.className = "study-section-header holos-caps";
+      rungHeader.textContent = "WHAT BUILDS ON THIS";
+      this.body.append(rungHeader);
+      for (const p of rungs) this.body.append(this.buildProjectRow(p));
     }
   }
 

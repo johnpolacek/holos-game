@@ -33,6 +33,8 @@ import type {
   VoyageCatalog,
   VoyageSnapshot,
   VoyageWorkState,
+  // ── IN1 ──
+  InstrumentCatalog,
 } from "@holos/protocol";
 import type { CohortSocket } from "./net";
 import { StudyBoard } from "./studyboard";
@@ -155,6 +157,9 @@ export class App {
   private missionCatalog: MissionCatalog | null = null;
   // A4: the founding sheet's vocabulary, retained the same way.
   private voyageCatalog: VoyageCatalog | null = null;
+  // IN1: the instrument's twelve axes, retained the same way. Null omits the
+  // Projects page's axis section rather than guessing at a shape.
+  private instrumentCatalog: InstrumentCatalog | null = null;
   private model: Model | null = null;
   private sourceCard: SourceCard | null = null;
   private studyBoard: StudyBoard | null = null;
@@ -295,6 +300,7 @@ export class App {
         this.catalog = message.catalog;
         this.missionCatalog = message.missionCatalog;
         this.voyageCatalog = message.voyageCatalog;
+        this.instrumentCatalog = message.instruments;
         setClockAnchor(message.clock);
         // A2.6: any welcome at all means the hello it answered was accepted
         // — a fresh anonymous seat, a resumed one, or a successful sign-in —
@@ -828,6 +834,7 @@ export class App {
         this.socket,
         this.missionCatalog,
         this.voyageCatalog,
+        this.instrumentCatalog,
         this.catalog,
         // Where a focused study's detail goes: the source card anchored at
         // the star it is about, which is why the card is constructed above
