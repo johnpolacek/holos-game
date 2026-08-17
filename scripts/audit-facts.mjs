@@ -190,6 +190,61 @@ for (const record of records(projects, "PROJECTS")) {
 }
 
 // ---------------------------------------------------------------------------
+// projects.ts — the four sheet/annal blocks, and the axis table's two, restate
+// NO field at all
+//
+// IN1 gave every project a HOW IT WORKS, a WHAT IT CHANGES, an IN THE SKY and
+// a landed detail, and every axis an `axisLine` and an inherited description.
+// None of them earns a coupling above, and that is a property of how they are
+// written rather than luck: the brief's §2 rows say a block names no quantity,
+// and where the physics genuinely has a number it is a CONSTANT OF NATURE
+// SPELLED IN WORDS ("five hundred and fifty astronomical units"), which is a
+// fact about the universe and not about a tunable this game can retune.
+//
+// So the check here is the negative one, and it is mechanical: NO DIGIT. A
+// digit in one of these fields means either a tunable has been restated (which
+// needs a real coupling above, in the same commit, per decision 5) or a
+// constant of nature has been written in numerals (which R-24's own precedent
+// says to spell). Either way the audit should say so rather than the player
+// finding out when the field moves underneath the sentence.
+//
+// The spelled forms this cannot see are the residual risk, and they are the
+// same residual risk `orders.ts`'s "twenty light-years" was: a block that
+// starts restating a tunable IN WORDS owes a coupling above, and this grep
+// will not find it. That is this script's stated limit, one field further out.
+// ---------------------------------------------------------------------------
+
+/** Comments are not surfaces, and a JSDoc row naming these fields would
+ *  otherwise be scanned as one. */
+const projectsProse = projects.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+const NO_DIGIT_FIELDS = ["howLine", "changesLine", "skyLine", "landedLine", "axisLine", "description"];
+let proseBlocks = 0;
+for (const field of NO_DIGIT_FIELDS) {
+  const re = new RegExp(`${field}:\\s*\\n?\\s*"((?:[^"\\\\]|\\\\.)*)"`, "g");
+  let m;
+  while ((m = re.exec(projectsProse)) !== null) {
+    proseBlocks += 1;
+    const text = m[1];
+    const digits = text.match(/\d/g);
+    check(
+      `projects.ts ${field}: names no quantity`,
+      text,
+      "",
+      digits === null ? "" : `carries the digit(s) ${[...new Set(digits)].join("")}`,
+    );
+  }
+}
+if (proseBlocks === 0) {
+  failures.push({
+    what: "projects.ts prose blocks",
+    prose: "(not found)",
+    expected: "howLine/changesLine/skyLine/landedLine/axisLine/description literals to read",
+    actual: "the audit found none; has projects.ts been restructured?",
+  });
+}
+
+// ---------------------------------------------------------------------------
 // voyages.ts — a ship class's `line` against the physics it is sold on
 //
 // Every one of these is a spelled fraction: "Half of lightspeed" over
@@ -359,6 +414,7 @@ if (projectCount === 0) {
 }
 
 console.log(`projects read            ${projectCount}`);
+console.log(`prose blocks read        ${proseBlocks}`);
 console.log(`ship classes read        ${voyageCount}`);
 console.log(`restated facts checked   ${checks.length}`);
 

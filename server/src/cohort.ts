@@ -190,6 +190,9 @@ import {
   newProjectState,
   projectById,
   ratePerYearAt,
+  AXES,
+  AXIS_LADDERS,
+  AXIS_ORDER,
   PROJECTS,
   type ProjectState,
   type StartedProject,
@@ -327,6 +330,7 @@ import {
   type CohortServerMessage,
   type DetectedSource,
   type ComputeBudget,
+  type InstrumentCatalog,
   type MissionCatalog,
   type MissionSnapshot,
   type ProjectSnapshot,
@@ -1111,6 +1115,7 @@ export class Cohort extends Server<CohortEnv> {
         menus: hypothesisMenus(),
         missionCatalog: this.missionCatalog(),
         voyageCatalog: this.voyageCatalog(),
+        instruments: this.instrumentCatalog(),
         push: this.pushWire(),
       });
       await this.sendVoice(conn, token, run.civId);
@@ -1137,6 +1142,7 @@ export class Cohort extends Server<CohortEnv> {
       menus: hypothesisMenus(),
       missionCatalog: this.missionCatalog(),
       voyageCatalog: this.voyageCatalog(),
+      instruments: this.instrumentCatalog(),
       push: this.pushWire(),
     });
     const offerYear = await this.getOfferYear(token);
@@ -3513,6 +3519,33 @@ export class Cohort extends Server<CohortEnv> {
       });
       return;
     }
+    // IN1: a rung requires the rung below it. `def.placement.after` IS the
+    // rule, so there is no ladder to walk; the inherited rung 0 is held by
+    // everyone, which is why an axis-opening entry carries `after: null` and
+    // never reaches this branch. Placed BEFORE the cost check on purpose: a
+    // fact about the world outranks a fact about the pool.
+    //
+    // IT GATES NEW STARTS ONLY, by construction: it lives in the start
+    // handler and nothing else reads it, so a run that already holds a rung
+    // whose predecessor it never took keeps it. No migration; ProjectState
+    // stays v3.
+    const after = def.placement.on === "axis" ? def.placement.after : null;
+    if (after !== null) {
+      const required = projectById(after);
+      const startedBefore = projectState.started.find((p) => p.id === after);
+      if (
+        required === undefined ||
+        startedBefore === undefined ||
+        !hasLanded(required, startedBefore, nowYear)
+      ) {
+        this.sendMsg(conn, {
+          type: "error",
+          code: "project-required",
+          message: "needs a project that has not landed",
+        });
+        return;
+      }
+    }
     const free = freeComputeAt(projectState, nowYear);
     if (free < def.costCompute) {
       this.sendMsg(conn, {
@@ -4736,6 +4769,11 @@ export class Cohort extends Server<CohortEnv> {
           status: "available",
           startedYear: null,
           landsYear: null,
+          family: def.family,
+          howLine: def.howLine,
+          changesLine: def.changesLine,
+          skyLine: def.skyLine,
+          landedLine: def.landedLine,
         };
       }
       const landed = hasLanded(def, runningEntry, nowYear);
@@ -4751,6 +4789,11 @@ export class Cohort extends Server<CohortEnv> {
         status: landed ? "standing" : "running",
         startedYear: runningEntry.startedYear,
         landsYear: landedYear(def, runningEntry),
+        family: def.family,
+        howLine: def.howLine,
+        changesLine: def.changesLine,
+        skyLine: def.skyLine,
+        landedLine: def.landedLine,
       };
     });
 
@@ -4900,6 +4943,34 @@ export class Cohort extends Server<CohortEnv> {
       clauses: CHARTER_CLAUSES,
       minClauses: MIN_CHARTER_CLAUSES,
       maxClauses: MAX_CHARTER_CLAUSES,
+    };
+  }
+
+  /**
+   * IN1: the instrument's own shape, sent once on welcome beside the two
+   * catalogs above and on the same terms — a constant of the deployment,
+   * identical for every player, so no axis table ships in the client bundle
+   * and nothing here is about anybody.
+   *
+   * The rung lists are AXIS_LADDERS, which projects.ts derived from the
+   * catalog's `after` pointers at module load. Rung 0 rides as `inherited`
+   * and is deliberately not among the rungs: it has no id in that space.
+   */
+  private instrumentCatalog(): InstrumentCatalog {
+    return {
+      axes: AXIS_ORDER.map((id) => {
+        const axis = AXES[id];
+        return {
+          id: axis.id,
+          label: axis.label,
+          axisLine: axis.axisLine,
+          inherited: {
+            label: axis.inherited.label,
+            description: axis.inherited.description,
+          },
+          rungs: AXIS_LADDERS[id],
+        };
+      }),
     };
   }
 

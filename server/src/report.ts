@@ -130,6 +130,19 @@ export interface StoredReportEntry {
   readonly stampYear: number;
   readonly stamp: string;
   readonly record: string;
+  /**
+   * IN1: the technical body under the record (protocol.ts's
+   * ReportEntry.detail), frozen with everything else here. Null on every
+   * family but `project-landed`, which carries the catalog's `landedLine` as
+   * it stood the year the project came into service.
+   *
+   * MIGRATION-FREE. An entry stored before this slice has no `detail` key at
+   * all, so a read of one is `undefined` rather than `null` however this type
+   * reads. Nothing is rewritten for that: `buildReportPayload` coalesces on
+   * the way out, which is one `??` against a whole-state rewrite of an annal
+   * that is append-only and capped anyway. ReportState stays v1.
+   */
+  readonly detail: string | null;
   readonly pinned: readonly string[];
   readonly route: ReportRoute;
 }
@@ -286,6 +299,7 @@ function questionEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
           stampYear,
           stamp,
           record: render(record),
+          detail: null,
           pinned: pinnedTokens(record),
           route: { kind: "study", starId: study.starId },
         });
@@ -306,6 +320,7 @@ function questionEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
           stampYear,
           stamp,
           record: render(record),
+          detail: null,
           pinned: pinnedTokens(record),
           route: { kind: "study", starId: study.starId },
         });
@@ -327,6 +342,7 @@ function questionEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
         stampYear,
         stamp,
         record: render(record),
+        detail: null,
         pinned: pinnedTokens(record),
         route: { kind: "study", starId: study.starId },
       });
@@ -354,6 +370,7 @@ function missionEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
         stampYear: m.launchedYear,
         stamp: render(epochStamp(m.launchedYear, ascensionYear)),
         record: render(record),
+        detail: null,
         pinned: pinnedTokens(record),
         route: { kind: "mission", missionId: m.id },
       });
@@ -373,6 +390,7 @@ function missionEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
           stampYear,
           stamp,
           record: render(record),
+          detail: null,
           pinned: pinnedTokens(record),
           route: { kind: "mission", missionId: m.id },
         });
@@ -385,6 +403,7 @@ function missionEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
           stampYear,
           stamp,
           record: render(record),
+          detail: null,
           pinned: pinnedTokens(record),
           route: { kind: "mission", missionId: m.id },
         });
@@ -416,6 +435,7 @@ function missionEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
           stampYear: missedWordYear,
           stamp: render(epochStamp(missedWordYear, ascensionYear)),
           record: render(record),
+          detail: null,
           pinned: pinnedTokens(record),
           route: { kind: "mission", missionId: m.id },
         });
@@ -450,6 +470,7 @@ function skyArrivalEntries(input: DeriveReportEntriesInput): StoredReportEntry[]
         stampYear,
         stamp: render(epochStamp(stampYear, ascensionYear)),
         record: render(record),
+        detail: null,
         pinned: pinnedTokens(record),
         route: { kind: "source", starId: study.starId },
       });
@@ -488,6 +509,7 @@ function studyGroundedEntries(input: DeriveReportEntriesInput): StoredReportEntr
       stampYear,
       stamp: render(epochStamp(stampYear, ascensionYear)),
       record: render(record),
+      detail: null,
       pinned: pinnedTokens(record),
       route: { kind: "study", starId: study.starId },
     });
@@ -526,6 +548,7 @@ function studyExitEntries(input: DeriveReportEntriesInput): StoredReportEntry[] 
         stampYear: study.call.calledYear,
         stamp: render(epochStamp(study.call.calledYear, ascensionYear)),
         record: render(record),
+        detail: null,
         pinned: pinnedTokens(record),
         route: { kind: "study", starId: study.starId },
       });
@@ -545,6 +568,7 @@ function studyExitEntries(input: DeriveReportEntriesInput): StoredReportEntry[] 
         stampYear: study.overtaking.atYear,
         stamp: render(epochStamp(study.overtaking.atYear, ascensionYear)),
         record: render(record),
+        detail: null,
         pinned: pinnedTokens(record),
         route: { kind: "study", starId: study.starId },
       });
@@ -568,6 +592,7 @@ function studyExitEntries(input: DeriveReportEntriesInput): StoredReportEntry[] 
         stampYear: t.firedYear,
         stamp: render(epochStamp(t.firedYear, ascensionYear)),
         record: render(record),
+        detail: null,
         pinned: pinnedTokens(record),
         route: { kind: "study", starId: study.starId },
       });
@@ -591,6 +616,13 @@ function projectEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
       stampYear,
       stamp: render(epochStamp(stampYear, ascensionYear)),
       record: render(record),
+      // IN1: the annal's technical body, FROZEN with the entry like `record`
+      // and `stamp` beside it. It is read off the snapshot rather than
+      // resolved from the catalog at serve time, so a later retune of the
+      // catalog cannot rewrite what year 212 said. This module stays
+      // snapshot-pure: `landedLine` rides ProjectSnapshot exactly as
+      // `effectLine` does.
+      detail: p.landedLine,
       pinned: pinnedTokens(record),
       route: { kind: "project", projectId: p.id },
     });
@@ -636,6 +668,7 @@ function voyageEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
         stampYear: v.launchedYear,
         stamp: render(epochStamp(v.launchedYear, ascensionYear)),
         record: render(record),
+        detail: null,
         pinned: pinnedTokens(record),
         route: { kind: "voyage", voyageId: v.id },
       });
@@ -656,6 +689,7 @@ function voyageEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
         stampYear: report.arrivedYear,
         stamp: render(epochStamp(report.arrivedYear, ascensionYear)),
         record: render(record),
+        detail: null,
         pinned: pinnedTokens(record),
         route: { kind: "voyage", voyageId: v.id },
       });
@@ -708,6 +742,7 @@ function orderEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
       stampYear: order.firedYear,
       stamp: render(epochStamp(order.firedYear, ascensionYear)),
       record: render(record),
+      detail: null,
       pinned: pinnedTokens(record),
       // The source it fired on, which is the surface the player would open
       // next. A route to the mission would be better and cannot be built here:
@@ -747,6 +782,7 @@ function lineageEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
         stampYear: row.confirmYear,
         stamp: render(epochStamp(row.confirmYear, ascensionYear)),
         record: render(record),
+        detail: null,
         pinned: pinnedTokens(record),
         route: { kind: "ledger", voyageId: row.voyageId },
       });
@@ -771,6 +807,7 @@ function lineageEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
         stampYear: row.bandSinceYear,
         stamp: render(epochStamp(row.bandSinceYear, ascensionYear)),
         record: render(record),
+        detail: null,
         pinned: pinnedTokens(record),
         route: { kind: "ledger", voyageId: row.voyageId },
       });
@@ -785,6 +822,7 @@ function lineageEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
         stampYear: row.darkSinceYear,
         stamp: render(epochStamp(row.darkSinceYear, ascensionYear)),
         record: render(record),
+        detail: null,
         pinned: pinnedTokens(record),
         route: { kind: "ledger", voyageId: row.voyageId },
       });
@@ -955,6 +993,10 @@ export function buildReportPayload(
     id: e.id,
     stamp: e.stamp,
     record: e.record,
+    // The migration-free read (StoredReportEntry.detail's note): an entry
+    // stored before IN1 carries no such key, and `undefined` on the wire
+    // would be dropped by JSON and then rejected by the client's parse.
+    detail: e.detail ?? null,
     remark:
       promoted !== undefined && e.id === promoted.entry.id
         ? reportRemark(archetype, promoted.family, promoted.entry.id)
