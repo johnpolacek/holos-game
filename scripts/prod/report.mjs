@@ -31,6 +31,11 @@ await withSeat(argv, async (seat) => {
   for (const entry of report.entries) {
     console.log(entry.stamp);
     console.log(`  ${entry.record}`);
+    // IN3's technical body, frozen at landing under the record it explains.
+    // Marked with its own prefix for the same reason the remark is: three
+    // kinds of sentence stack on one entry now, and a read has to be able to
+    // tell which is which without counting lines.
+    if (entry.detail !== null) console.log(`  | ${entry.detail}`);
     // AV4's one remark per served report, attached to the highest-ranked new
     // entry. Marked so a read can tell the frozen record from the archetype's
     // line about it.
