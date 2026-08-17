@@ -4663,7 +4663,7 @@ export class StudyBoard {
       } else if (below !== null && below.status !== "standing") {
         verbBtn.disabled = true;
         verbBtn.textContent = "start the project";
-        hint = "RUNG BELOW NOT LANDED";
+        hint = "THE ONE BELOW HAS NOT LANDED";
       } else if (free >= p.costCompute) {
         verbBtn.textContent = "start the project";
         verbBtn.addEventListener("click", () => {
