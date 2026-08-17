@@ -1,6 +1,38 @@
 // Bought questions — derivation module for A2.2 (observatory-design.md's
 // six inference programs; knowledge.ts §2, systems-a.md §2).
 //
+// WHAT THE INSTRUMENT IS (IN). prose-style.md §7 sync row: this paragraph
+// also stands at the top of projects.ts, and an edit to one is owed to the
+// other.
+//
+// A civilization at this tier does not own a telescope. It owns an
+// INTERFEROMETER: many collectors across the home system, their signals
+// correlated. An interferometer never records a picture, only correlations,
+// so the archive is raw interference data centuries deep, and every image,
+// spectrum and measurement anyone has ever read was COMPUTED out of it, under
+// assumptions, by solving an inverse problem that has no unique answer.
+//
+//  - The STANDING READ reconstructs the cheap version of everything,
+//    continuously, on every source in the sky. That is the board a detected
+//    source already carries, and it costs nothing.
+//  - A BOUGHT QUESTION re-derives the same archive under assumptions the
+//    standing read cannot afford. Nothing new is collected; what is bought is
+//    a deeper reconstruction of light already in hand.
+//  - A PROJECT buys down one term of that inverse problem for good:
+//    collecting area, baseline, element count, band, channel count, phase
+//    reference, archive fidelity, correlator, nulling, shadows, neutrinos, a
+//    borrowed lens. `leansOn` below names which of those terms bound which
+//    question.
+//  - COMPUTE IS FINITE BECAUSE IT IS ENERGY (Landauer), it DOES NOT AMORTIZE
+//    (every source is its own search), and THE ANSWER DECAYS (a masker
+//    improves on a cadence, forever). Hence an allocation with a ceiling
+//    rather than a bank, and hence a recurring spend.
+//  - QUESTIONS HAVE A COST AND NO CLOCK; PROJECTS HAVE BOTH. At swarm power
+//    any search a mind would actually size finishes instantly, and the whole
+//    cost is deciding what fraction of a star to point at one star. Duration
+//    exists exactly where mass or light has to move, and is absent exactly
+//    where nothing does (physics-audit.md P0-1's second leg).
+//
 // PHYSICS FIRST. Photons already at home are a free archive; thinking
 // about them is not (knowledge.ts's F2). A bought question buys no new
 // light — it buys a deeper read of light already in hand. That is why the
@@ -66,6 +98,7 @@ import {
   confidenceLiftAt,
   questionCostKeepFractionAt,
   questionGrantProseNamesAt,
+  type InstrumentAxis,
   type ProjectState,
 } from "./projects";
 import type { HypothesisRole } from "./studies";
@@ -126,6 +159,18 @@ export interface QuestionDef {
   /** Signal classes this question can even be asked of. Physics, not
    *  balance: you cannot time shadows that are not there. */
   readonly appliesTo: readonly SignalClass[];
+  /**
+   * The terms of the reconstruction this question is LIMITED BY, in the order
+   * they bind (projects.ts's InstrumentAxis). It rides `OpenQuestion` so the
+   * drill-in's LEANS ON row and the report read the one list, and the labels
+   * come from the welcome catalog, so there is one label source.
+   *
+   * A PROPERTY OF THE QUESTION AND OF NOTHING ELSE: it is invariant per id,
+   * derived from no source, no study and no truth. `audit:axes` asserts a
+   * project that discounts a question always sits on an axis this list names,
+   * so the chips can never contradict a grant the player already holds.
+   */
+  readonly leansOn: readonly InstrumentAxis[];
 }
 
 /** All six questions are Investment class (economy-design.md). */
@@ -153,6 +198,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
     line: "how heavy it is, and whether the warmth matches the weight",
     costCompute: 180,
     appliesTo: ["infrared-excess", "transit-shadows"],
+    leansOn: ["baseline", "phase-reference", "elements", "archive"],
   },
   {
     id: "temperature-over-time",
@@ -161,6 +207,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
     line: "whether it is cooling the way nature cools, or being held",
     costCompute: 135,
     appliesTo: ["infrared-excess", "transit-shadows", "broadcast-leakage", "directed-beam"],
+    leansOn: ["nulling", "band", "archive"],
   },
   {
     id: "read-its-lines",
@@ -169,6 +216,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
     line: "what it is made of, and what has been done to its air",
     costCompute: 225,
     appliesTo: ["infrared-excess", "transit-shadows", "broadcast-leakage", "biosignature"],
+    leansOn: ["channels", "nulling", "elements", "archive"],
   },
   {
     id: "time-its-shadows",
@@ -177,6 +225,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
     line: "whether the crossings keep a clock, and what kind",
     costCompute: 120,
     appliesTo: ["transit-shadows", "biosignature"],
+    leansOn: ["shadows", "phase-reference", "archive"],
   },
   {
     id: "catch-its-edges",
@@ -185,6 +234,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
     line: "how the light comes off it, since air answers differently than surface",
     costCompute: 270,
     appliesTo: ["infrared-excess", "transit-shadows", "biosignature", "directed-beam"],
+    leansOn: ["baseline", "elements", "collecting-area", "archive"],
   },
   {
     id: "listen-off-axis",
@@ -193,6 +243,7 @@ export const QUESTIONS: readonly QuestionDef[] = [
     line: "what spills around the edge of the signal, and who the middle is for",
     costCompute: 165,
     appliesTo: ["broadcast-leakage", "directed-beam"],
+    leansOn: ["phase-reference", "baseline", "elements", "archive"],
   },
 ];
 
@@ -246,10 +297,21 @@ export interface BoughtQuestion {
 // (projects.ts's aggregation stays a pure, unfloored stack).
 // ---------------------------------------------------------------------------
 
-/** No stack of discount projects can push a question below this fraction of
- *  its catalog base (content.md PART 2's rule). The deepest stack the
- *  catalog can build is WEIGH IT under the long baseline, the pulsar clocks
- *  and the Vault: 0.7 × 0.7 × 0.8 = 0.392, well clear of the floor. */
+/**
+ * No stack of discount projects can push a question below this fraction of
+ * its catalog base (content.md PART 2's rule).
+ *
+ * The deepest stack the catalog can build is TIME ITS SHADOWS under the
+ * occultation net, the pulsar clocks and the Vault: 0.5 × 0.7 × 0.8 = 0.28.
+ * (This comment named WEIGH IT at 0.392 until IN1; that was the deepest stack
+ * of the four A2.1 entries and stopped being true the day the occultation net
+ * shipped at 50%.) IN1's four new entries deepen five of the six stacks and
+ * leave that one alone, deliberately: WEIGH IT 0.333, READ ITS LINES 0.306,
+ * CATCH ITS EDGES 0.309, LISTEN OFF-AXIS 0.408, TAKE ITS TEMPERATURE 0.60,
+ * TIME ITS SHADOWS untouched at 0.28. Every stack the slice touches clears
+ * 0.30 without this floor's help, and `npm run audit:axes` re-runs that
+ * arithmetic in CI so a retune cannot quietly land one on the floor.
+ */
 const EFFECT_KEEP_FLOOR = 0.25;
 
 /** costCompute after every landed discount project, rounded to whole compute. */

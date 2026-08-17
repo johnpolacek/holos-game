@@ -251,6 +251,15 @@ body {
 .study-focus-designation,
 .study-focus-name,
 .study-project-label,
+/* IN2: the Projects page's instrument section — a family's sub-header, an
+   axis's caps title, the name of whatever rung stands on it, and the term a
+   project sheet says it moves. Every one a short label line, never prose;
+   listed for the reason the watch's pair below is, and the axis line under
+   the title is .study-project-line and joins the pretty list instead. */
+.study-subsection-header,
+.study-axis-label,
+.study-axis-rung-name,
+.study-focus-axis,
 .study-hyp-label,
 .study-archive-tag,
 /* A2.3: the overtaken card's from/to class flag — short chrome, never
@@ -2024,6 +2033,93 @@ body {
   opacity: 0.6;
 }
 
+/* IN2 — a family section's quiet sub-header. One tier under
+   .study-section-header, which names the family itself: PROGRAMS stands below
+   twelve axes and must not read as their equal. */
+.study-subsection-header {
+  padding: 0.9rem 0 0.4rem;
+  color: var(--holos-ink-faint);
+}
+
+/* IN2 — one term of the reconstruction, as a row on the Projects page.
+   A container rather than a button: the offer and "what we have" are two
+   different pages, and a control inside a control is not allowed. The
+   container carries the divider the project rows carry themselves. */
+.study-axis-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  /* The row divider the project rows carry, off the gold token rather than
+     the literal they were written with: the two kinds of row stand in the
+     same list and must draw the same line. */
+  border-bottom: 1px solid color-mix(in srgb, var(--holos-gold) 28%, transparent);
+  padding: 0.6rem 0 0.2rem;
+}
+
+/* The offer half: everything down to the price, one tap target. */
+.study-axis-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  min-height: 44px;
+  background: none;
+  border: none;
+  padding: 0.1rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--holos-ink);
+}
+
+/* The axis's own name. Caps, but a row TITLE, so it stands a step above the
+   label voice .holos-caps sets and takes full ink. */
+.study-axis-label {
+  font-size: var(--holos-text-md);
+  color: var(--holos-ink);
+}
+
+/* "STANDING · Fill the plane" — a tag and a name on one line, wrapping to two
+   at a phone's width rather than truncating a name nobody could then read. */
+.study-axis-rung {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.study-axis-rung-tag {
+  flex: 0 0 auto;
+  color: var(--holos-ink-faint);
+}
+
+/* Bought, not inherited — the amber the STANDING flag already means. */
+.study-axis-rung-tag--standing {
+  color: var(--holos-amber);
+}
+
+.study-axis-rung-name {
+  font-size: var(--holos-text-sm);
+  color: var(--holos-ink-dim);
+  min-width: 0;
+}
+
+/* The second door on the row: what the civilization already holds on this
+   term. Quiet, right-aligned so it reads as secondary to the offer above it,
+   and 44px tall because a thumb has to find it. */
+.study-axis-what {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  background: none;
+  border: none;
+  padding: 0 0.2rem;
+  cursor: pointer;
+  color: var(--holos-ink-faint);
+}
+
 /* Muted, but still a door. An OPEN QUESTIONS row you cannot buy right now
    reads exactly as inert as it always did — the dim is what says "not from
    here" while you scan the menu — but the tap it answers is the drill-in,
@@ -2136,6 +2232,14 @@ body {
   font-size: var(--holos-text-3xl);
   line-height: 1.05;
   color: var(--holos-amber);
+}
+
+/* IN2 — which term of the reconstruction a project sits on, under the cost
+   class in the sheet's header. A classifier, not a designation: a tier
+   quieter than the mono kicker above it so the two do not read as a pair of
+   equal claims. */
+.study-focus-axis {
+  color: var(--holos-ink-faint);
 }
 
 /* The plain-language light-delay sentence under the focused header, and the

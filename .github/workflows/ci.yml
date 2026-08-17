@@ -117,6 +117,19 @@ jobs:
       - name: Audit restated facts (R-1)
         run: npm run audit:facts
 
+      # IN, the instrument. projects.ts DERIVES its axis ladders from the
+      # catalog's `after` pointers and throws at module load on a malformed
+      # chain — which inside a Durable Object would be a total outage. Nothing
+      # else in CI imports the compiled catalog (audit:catalog scrapes on
+      # purpose), so this step is what makes the first place a bad chain
+      # speaks a red check instead of production. It also asserts every rung
+      # is on exactly one ladder, that a project never discounts a question
+      # from a term that question's LEANS ON does not name, and that no
+      # discount stack needs EFFECT_KEEP_FLOOR to save it. Imports compiled
+      # output, so it runs after `build`.
+      - name: Audit the instrument (axes, ladders, stacks)
+        run: npm run audit:axes
+
       # Deploy validation, run on every PR and push to main. `--dry-run`
       # bundles the Worker and validates wrangler.jsonc + every binding
       # WITHOUT contacting Cloudflare, so it needs no account secrets. It

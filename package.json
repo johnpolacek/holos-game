@@ -14,6 +14,7 @@
     "art:manifest": "node scripts/build-art-manifest.mjs",
     "icons": "node scripts/build-icons.mjs",
     "og": "node scripts/build-og.mjs",
+    "audit:axes": "node scripts/audit-axes.mjs",
     "audit:names": "node scripts/audit-names.mjs",
     "sync:banned": "node scripts/sync-banned-terms.mjs",
     "audit:banned": "node scripts/sync-banned-terms.mjs --check",

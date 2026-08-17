@@ -103,6 +103,7 @@ npm run audit:catalog # §6 over the catalogs audit:voice does not reach
 npm run audit:client  # §6 + R-24 caps bounds over the client's own strings
 npm run audit:facts   # R-1: catalog prose vs the fields it restates
 npm run audit:parity  # A2.6: human and AI signal parts stay indistinguishable
+npm run audit:axes    # IN: the instrument's ladders, grants and discount stacks
 ```
 
 CI (`.github/workflows/ci.yml`) runs all of them on every PR and they must
@@ -169,6 +170,31 @@ leaves from a player, is itself the tell. So it asserts `PART_PARITY` is total
 in both directions. Like `audit:names` it scrapes source rather than importing
 the module (the subject is a hand-maintained table, and scraping is what
 catches a row edited without being thought about), so it runs before `build`.
+
+`audit:axes` is the instrument's own check, and its first assertion is the
+import. `projects.ts` **derives** the twelve axis ladders rather than
+authoring them: it partitions the catalog by `placement.axis` and chains each
+partition through `after`, and it throws at module load on a chain that is
+malformed (no root, two roots, two rungs sharing a predecessor, an `after`
+naming an unknown project or one on another axis, a cycle). A module-load
+throw inside a Durable Object is a total outage, and nothing else in CI
+imports the compiled catalog — `audit:catalog` scrapes `server/src` on
+purpose, because `cohort.ts` is the only module that may pull the catalog
+chain into a process. So this script exists to make the first place a bad
+chain speaks a red check and never production; it may import `projects.js`
+and only `projects.js`, whose sole import is an erased `import type`. It then
+asserts three things the types cannot: every axis-placed project is in exactly
+one ladder; **no project discounts a question from a term that question's
+`leansOn` does not name** (the drill-in's LEANS ON chips and the grant would
+otherwise tell the player two things that disagree); and no discount stack
+falls under 0.30, which is above `EFFECT_KEEP_FLOOR` on purpose, so a retune
+is caught before a question starts being priced by the clamp instead of by the
+catalog. `TIME ITS SHADOWS` at 0.28 is an explicit one-row allowlist with the
+reason beside it, and a retune that made it *worse* still fails. It also
+prints the derived ladders, because the brief's twelve-row table stops
+existing in code once the order lives as `after` pointers scattered across
+seventeen entries. It imports compiled output, so it runs after `build`;
+`leansOn` is scraped from `questions.ts` for `audit:parity`'s reason.
 
 Those audits are mechanical: they catch a dash, a coinage, a numeral in a
 remark. They cannot catch prose that is merely *flat* — the rule-of-three

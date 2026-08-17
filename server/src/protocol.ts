@@ -70,7 +70,12 @@ export function parseServerMessage(raw: string): ServerMessage | null {
 import type { CivSeed } from "./civseed";
 import type { ObservedCiv, ObservedSignal, SignalClass } from "./knowledge";
 import type { SpectralClass, Star, Vec3Ly } from "./galaxy";
-import type { CostClass } from "./projects";
+// IN1: the project vocabulary. TYPE-ONLY and it has to be — projects.ts
+// carries the whole catalog, and this is the module the CLIENT imports, so a
+// runtime import would ship thirteen entries of prose into the bundle the
+// `archetypeName` precedent exists to keep it out of. `AssertNever` comes
+// along for the family-guard's totality check below.
+import type { AssertNever, CostClass, InstrumentAxis, ProjectFamily } from "./projects";
 import type { QuestionId } from "./questions";
 import type {
   CharterClauseDef,
@@ -142,7 +147,10 @@ export type { Star, SpectralClass, Vec3Ly } from "./galaxy";
 // runtime or data ships, and archetypeName stays the server-resolved wire field.
 export type { LineageId } from "./cradles";
 export type { ArchetypeId } from "./minds";
-export type { CostClass } from "./projects";
+// IN1: `ProjectFamily` groups the Projects page (the client's Record over it
+// is total by construction) and `InstrumentAxis` keys the axis catalog and a
+// question's LEANS ON row. Types only, exactly as CostClass is.
+export type { CostClass, InstrumentAxis, ProjectFamily } from "./projects";
 export type { QuestionId } from "./questions";
 export type {
   CharterClauseDef,
@@ -408,6 +416,17 @@ export interface OpenQuestion {
    * once bought, exactly like the number it explains.
    */
   readonly costProvenance: string | null;
+  /**
+   * IN1: the terms of the reconstruction this question is limited by
+   * (questions.ts's `leansOn`), in the order they bind. The drill-in renders
+   * them as LEANS ON, resolving each id to its caps label through `welcome`'s
+   * instrument catalog, so there is one label source for both.
+   *
+   * INVARIANT PER QUESTION. It is the same list on every source, bought or
+   * offered, and it is composed from no truth, no study and no sky — the same
+   * standing the `line` beside it has.
+   */
+  readonly leansOn: readonly InstrumentAxis[];
   readonly separates: readonly HypothesisId[]; // derived per class at snapshot time
   readonly state: QuestionState;
   /** null iff offered. Once set it is also the year the answer landed. */
@@ -512,6 +531,51 @@ export interface ProjectSnapshot {
   readonly status: "available" | "running" | "standing";
   readonly startedYear: number | null; // null iff available
   readonly landsYear: number | null; // null iff available
+  // ── IN1 ──
+  /** What kind of work this is; the Projects page groups by it. */
+  readonly family: ProjectFamily;
+  /** The sheet's three blocks: HOW IT WORKS, WHAT IT CHANGES, IN THE SKY.
+   *  Authored in projects.ts and shipped exactly as `effectLine` is, so the
+   *  client never needs the catalog to explain a project. */
+  readonly howLine: string;
+  readonly changesLine: string;
+  readonly skyLine: string;
+  /** The annal's technical body for this project's `project-landed` row.
+   *  It rides here rather than being resolved at read time so report.ts can
+   *  FREEZE it at landing (see ReportEntry.detail). */
+  readonly landedLine: string;
+  // AND NO AXIS FIELD. Placement is static, and a copy on every snapshot in
+  // every sky could disagree with the ladder; the client resolves a project's
+  // axis by id through `welcome`'s catalog, so there is one source.
+}
+
+/**
+ * IN1: one axis of the instrument, as the welcome catalog carries it. The
+ * MissionCatalog precedent exactly — a constant of the deployment, identical
+ * for every player and therefore incapable of carrying anything about anyone.
+ *
+ * `rungs` is `ProjectId` widened to `string` the way `ProjectSnapshot.id` is,
+ * in ladder order, and the client joins it against `sky.projects` by id. The
+ * inherited rung is NOT among them: it has no cost, no clock, no verb and no
+ * id in that space, which is the wire-level form of "rung 0 never enters
+ * `started`".
+ */
+export interface AxisWire {
+  readonly id: InstrumentAxis;
+  readonly label: string; // caps chrome, ≤ 6 words (R-24)
+  readonly axisLine: string;
+  readonly inherited: {
+    readonly label: string;
+    readonly description: string;
+  };
+  readonly rungs: readonly string[];
+}
+
+/** Sent once on welcome beside `missionCatalog` and `voyageCatalog`: the
+ *  instrument's own shape, in display order, so no axis table ships in the
+ *  client bundle. */
+export interface InstrumentCatalog {
+  readonly axes: readonly AxisWire[];
 }
 
 /**
@@ -924,6 +988,20 @@ export interface ReportEntry {
   readonly id: string;
   readonly stamp: string;
   readonly record: string;
+  /**
+   * IN1: the technical body under the record, a quieter tier and its own §2
+   * row (60 words, aim 40, observatory deadpan, wit 0, R-33a undated, and it
+   * names no quantity). The record sentence keeps its 18-word wall and its
+   * `PinnedLine` discipline untouched; this is the new room.
+   *
+   * Non-null today only on `project-landed`, where it is the catalog's
+   * `landedLine` FROZEN AT LANDING (report.ts stores it on the entry).
+   * Resolve-at-read would let a later catalog edit rewrite what year 212
+   * said. A question entry carries none: `leansOn` is invariant per question
+   * and is not news at answer time, and the receipt that IS news
+   * (`costProvenance`) already exists on the board.
+   */
+  readonly detail: string | null;
   readonly remark: string | null;
   readonly route: ReportRoute;
 }
@@ -1356,6 +1434,11 @@ export type CohortServerMessage =
       missionCatalog: MissionCatalog;
       // ── A4 ──
       voyageCatalog: VoyageCatalog;
+      // ── IN1 ──
+      /** The instrument's twelve axes, in display order, each with its
+       *  inherited rung and its ordered catalog rungs. A constant of the
+       *  deployment, like the two catalogs above. */
+      instruments: InstrumentCatalog;
       // ── A5 ──
       /**
        * The VAPID application server key this deployment subscribes with, or
@@ -1512,7 +1595,11 @@ export type CohortErrorCode =
   // `bad-charter` is REUSED for the clause table and the dial sheet alike.
   | "unknown-voyage-kind" // no such ship kind
   | "voyage-unavailable" // a live voyage already aims there, or the cap is spent
-  | "project-required" // the ship needs a project that has not landed
+  // What was asked for stands on a project that has not landed. IN1 reuses it
+  // for a rung whose predecessor is not standing yet: same rule, different
+  // subject, and the client renders no copy for it either way (its error
+  // handler releases whatever was in flight and re-reads the next sky).
+  | "project-required"
   // The standing order's own refusal: no such class, already armed, or the
   // condition ALREADY HOLDS at the moment of arming. An order is a statement
   // about what happens NEXT, so one that fired on something already true
@@ -2059,6 +2146,81 @@ function isStringOrNull(v: unknown): v is string | null {
   return v === null || typeof v === "string";
 }
 
+/**
+ * IN1: the family half of the Projects page's exhaustive grouping. The
+ * client's `Record<ProjectFamily, …>` is total by construction, so an unknown
+ * family on the wire would index a bucket that does not exist: the types
+ * prove every key is there, and this proves every value is a key.
+ *
+ * The id list is kept HERE rather than imported from projects.ts, and it has
+ * to be: importing that module at runtime would ship the whole project
+ * catalog into the client bundle. The assertion below is what stops the two
+ * copies drifting — a family added to the union, or a string here that is not
+ * one, fails the typecheck rather than a player's page.
+ */
+const PROJECT_FAMILIES = ["instrument", "dark", "bright", "carrier"] as const;
+
+export type ProjectFamiliesAreTotal = AssertNever<
+  | Exclude<ProjectFamily, (typeof PROJECT_FAMILIES)[number]>
+  | Exclude<(typeof PROJECT_FAMILIES)[number], ProjectFamily>
+>;
+
+export function isProjectFamily(v: unknown): v is ProjectFamily {
+  return typeof v === "string" && (PROJECT_FAMILIES as readonly string[]).includes(v);
+}
+
+/**
+ * IN1: `welcome`'s new payload, parsed field by field rather than riding that
+ * case's wholesale cast, per the switch's own two-tier rule (new payloads get
+ * real parsing, old ones keep their cast). A rung-0 row is TAPPABLE, so a
+ * malformed axis would render as a sheet with nothing behind it rather than a
+ * dropped message.
+ *
+ * Axis ids are checked as strings only. No runtime id set ships to the client
+ * (that would be the catalog again), and the client renders the axes the wire
+ * lists, in wire order, so an unknown id is simply an axis it was handed a
+ * label for. `missionCatalog` and `voyageCatalog` ride the same message
+ * unguarded, which is the asymmetry this comment exists to record.
+ */
+function parseInstrumentCatalog(v: unknown): InstrumentCatalog | null {
+  if (typeof v !== "object" || v === null) return null;
+  const c = v as { axes?: unknown };
+  if (!Array.isArray(c.axes)) return null;
+  const axes: AxisWire[] = [];
+  for (const raw of c.axes as readonly unknown[]) {
+    if (typeof raw !== "object" || raw === null) return null;
+    const a = raw as {
+      id?: unknown;
+      label?: unknown;
+      axisLine?: unknown;
+      inherited?: unknown;
+      rungs?: unknown;
+    };
+    if (typeof a.id !== "string") return null;
+    if (typeof a.label !== "string") return null;
+    if (typeof a.axisLine !== "string") return null;
+    if (typeof a.inherited !== "object" || a.inherited === null) return null;
+    const inherited = a.inherited as { label?: unknown; description?: unknown };
+    if (typeof inherited.label !== "string") return null;
+    if (typeof inherited.description !== "string") return null;
+    if (!Array.isArray(a.rungs)) return null;
+    const rungs: string[] = [];
+    for (const rung of a.rungs as readonly unknown[]) {
+      if (typeof rung !== "string") return null;
+      rungs.push(rung);
+    }
+    axes.push({
+      // The one narrowing this parser does not check, per the note above.
+      id: a.id as InstrumentAxis,
+      label: a.label,
+      axisLine: a.axisLine,
+      inherited: { label: inherited.label, description: inherited.description },
+      rungs,
+    });
+  }
+  return { axes };
+}
+
 /** AV3: the twin of isReportRoute above — discriminant against the closed
  *  ProposalRoute set, each kind's own id field checked by name. */
 function isProposalRoute(v: unknown): v is ProposalRoute {
@@ -2124,15 +2286,27 @@ function parseReportPayload(v: unknown): ReportPayload | null {
       id?: unknown;
       stamp?: unknown;
       record?: unknown;
+      detail?: unknown;
       remark?: unknown;
       route?: unknown;
     };
     if (typeof e.id !== "string") return null;
     if (typeof e.stamp !== "string") return null;
     if (typeof e.record !== "string") return null;
+    // IN1. The server always sends the field (report.ts normalizes an entry
+    // stored before this slice to null on the way out), so a missing one is a
+    // malformed payload and drops the message like every other mismatch here.
+    if (!isStringOrNull(e.detail)) return null;
     if (!isStringOrNull(e.remark)) return null;
     if (!isReportRoute(e.route)) return null;
-    entries.push({ id: e.id, stamp: e.stamp, record: e.record, remark: e.remark, route: e.route });
+    entries.push({
+      id: e.id,
+      stamp: e.stamp,
+      record: e.record,
+      detail: e.detail,
+      remark: e.remark,
+      route: e.route,
+    });
   }
   return { header: p.header, entries };
 }
@@ -2151,7 +2325,17 @@ export function parseCohortServerMessage(raw: string): CohortServerMessage | nul
   if (typeof data !== "object" || data === null) return null;
   const msg = data as { type?: unknown };
   switch (msg.type) {
-    case "welcome":
+    // IN1: `welcome` LEAVES the wholesale-cast group for its new payload
+    // only, the same two-tier discipline `sky` and `report` already follow.
+    // Everything else on the message keeps its A1-era cast.
+    case "welcome": {
+      const instruments = parseInstrumentCatalog((data as { instruments?: unknown }).instruments);
+      if (instruments === null) return null;
+      return {
+        ...(data as Record<string, unknown>),
+        instruments,
+      } as unknown as CohortServerMessage;
+    }
     case "offer":
     case "sourceNamed":
     // A2.6: joins the wholesale-cast group rather than getting a bespoke
@@ -2182,6 +2366,16 @@ export function parseCohortServerMessage(raw: string): CohortServerMessage | nul
       // as a walk over undefined rather than as a dropped message.
       const ambient = (data as { ambient?: unknown }).ambient;
       if (!Array.isArray(ambient)) return null;
+      // IN1: the one field of `projects` that is checked, for the reason
+      // isProjectFamily's own comment gives — the client groups by family
+      // into a total Record, so an unknown one would index a bucket that is
+      // not there. The rest of the snapshot keeps `sky`'s wholesale cast.
+      const projects = (data as { projects?: unknown }).projects;
+      if (!Array.isArray(projects)) return null;
+      for (const p of projects as readonly unknown[]) {
+        if (typeof p !== "object" || p === null) return null;
+        if (!isProjectFamily((p as { family?: unknown }).family)) return null;
+      }
       return {
         ...(data as Record<string, unknown>),
         proposals,
