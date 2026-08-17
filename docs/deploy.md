@@ -43,7 +43,7 @@ Two known wrinkles:
 
 ## Web push (VAPID)
 
-A5's tripwire watch pushes a payload-free notification to a player's
+A5's watch pushes a payload-free notification to a player's
 phone while they are away. The transport needs one ECDSA P-256 keypair
 (the "application server key"), and nothing else: no third-party
 service, no account, no SDK.

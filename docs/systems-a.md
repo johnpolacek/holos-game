@@ -468,18 +468,23 @@ Invariant, mechanically verified: a never-masking target (bright
 archetype or dark non-payer) can plateau but never regress, at any
 window, any tier, any year.
 
-### §2.8 Tripwires and the closing exits (A2.3, as built)
+### §2.8 The watch and the closing exits (A2.3, as built; amended 2026-08-16)
 
-**Tripwires** are standing orders, not oracles: three kinds
-(`regress`, `leakage-stops`, `crosses` at the fixed
-`CROSS_SHARE = 0.7`), at most one arming per kind per study, free to
-arm. One predicate (`tripwireHolds`) serves both halves of the
-contract: the server refuses to arm a condition that already holds,
-and the sky-send fires an armed one as a persisted transition (the
-grounded exit's write-back, generalized to `studyWrites`), once per
-arming. No wake-queue entries: firing is in-app on next open. A closed
-study is never evaluated, which is how *called stays called* survives
-a standing order left on it.
+**The watch runs itself.** The observatory keeps two conditions on
+every source the player can see — the source going quiet, and a
+reading crossing the fixed `CROSS_SHARE = 0.7` — and there is nothing
+to arm. Manual arming was retired on 2026-08-16, and the third kind,
+`regress`, went with it: its event already reaches the annal as
+`question-regressed`. The sky-send fires a condition that has come to
+hold as a persisted transition (the grounded exit's write-back,
+generalized to `studyWrites`), once each. A fire reaches the player as
+a report entry routed to the study board, and as a push where the
+device carries one. No wake-queue entries: firing is in-app on next
+open. A closed study is never evaluated, which is how *called stays
+called* survives a watch standing on it. The wire keeps
+`StudySnapshot.tripwires` as a permanently empty array so a stale tab
+renders nothing, and `armTripwire`/`disarmTripwire` from an old client
+are dropped in silence.
 
 **Called** freezes the leading belief at the call (`StoredCall`: id,
 label, gloss, share, the call year and the light-age it rests on) and
@@ -1401,22 +1406,22 @@ BEHAVIOR_RULES only, and the successor problem (cohort seeding).
 ## §17 Web push (A5, as built)
 
 The second half of the tripwire bullet: in-app shipped with A2.3, and
-now the phone. A player arms a tripwire, closes the tab for a week,
-and their device says when a watch trips. At five real minutes per
+now the phone. A player leaves a study standing, closes the tab for a
+week, and their device says when a watch trips. At five real minutes per
 game year a week away is two thousand years of galaxy, so the push is
 the async spine's basic need answered: absence becomes fiction
 instead of neglect.
 
 **Payload-free, structurally.** The POST body is empty; the service
 worker (client/public/sw.js, no fetch handler, no caching) shows one
-fixed title, "A watch tripped", over one fixed body, "One of the
-conditions you left standing now holds. The board has the rest." The
+fixed title, "A watch tripped", over one fixed body, "The observatory
+caught something it watches for. The report has the rest." The
 server stores no subscriber key material (no p256dh, no auth), so no
 code path could put a fact on a push service's wire even if a later
 change tried. The content waits behind the tap, in the game, through
 the cone, as always.
 
-**The watch.** A tripwire's condition can change only at a dated
+**The watch.** A watched condition can change only at a dated
 arrival: a grown emission epoch reaching the observer, a bought
 question answering, a probe report landing. scheduleWatch computes
 each seat's next change point and puts one singleton, trim-exempt
@@ -1427,18 +1432,17 @@ byte-identical to before the slice. One push per absence; the alarm
 chain stops after a push and the next connect restarts it. A seat
 with no subscription pays nothing on any sky send.
 
-**The catch-up walk.** Two of the three tripwire kinds are not
-monotone; a condition that held and stopped holding across an
-absence was previously never recorded. findFirings walks a study's
-change points oldest-first and finds the first year each armed kind
-held; it has exactly two callers, the watch (which only counts) and
-the sky settle (which records), so the push and the board cannot
-disagree. firedYear now carries the year the condition held rather
+**The catch-up walk.** Neither watched condition is monotone; a
+condition that held and stopped holding across an absence was
+previously never recorded. findFirings walks a study's change points
+oldest-first and finds the first year each watched kind held; it has
+exactly two callers, the watch (which only counts) and the sky settle
+(which records), so the push and the board cannot disagree. firedYear now carries the year the condition held rather
 than the year somebody looked: a behavior change to a shipped A2.3
 surface, and the bullet's own intent.
 
-**Consent and the cliff.** The ask is spent at the first successful
-arming, once per seat, on the account sheet's mould; never on load,
+**Consent and the cliff.** The ask is spent on the first engaged
+study, once per seat, on the account sheet's mould; never on load,
 never where it cannot be granted. The hub row is the settings
 surface and speaks for this device only. On iOS, push needs the app
 on the Home Screen, and the inert row says exactly that. One denial
@@ -1462,7 +1466,7 @@ hardware; docs/playtest.md carries that checklist.
 
 **Deferred, seams named**: pushes for a first hail and for probe
 reports (the change-point machinery generalizes), re-notify on long
-absence, a notification inbox (never), email (no), per-tripwire
+absence, a notification inbox (never), email (no), per-watch
 preferences, offline caching. Standing orders are structurally
 blocked from push: an order has not fired until the settle fires it,
 and no alarm may fire one.

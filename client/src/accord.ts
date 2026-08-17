@@ -4,7 +4,7 @@
 // server-side from the moves that have ARRIVED on this side of the light,
 // plus one read of the counterpart's observed history against the darkness
 // floor. Everything below is CHROME over those wire fields — the
-// TRIPWIRE_LABEL/THREAD_STATE_LABEL precedent — and every number it prints
+// THREAD_STATE_LABEL precedent — and every number it prints
 // is arithmetic on a field the wire already carried.
 //
 // It lives in its own module because TWO surfaces render it: the thread

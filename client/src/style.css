@@ -262,10 +262,9 @@ body {
 .study-focus-axis,
 .study-hyp-label,
 .study-archive-tag,
-/* A2.3: the overtaken card's from/to class flag, and a tripwire row's
-   chrome label ("IF IT REGRESSES" etc.) — both short chrome, never prose. */
+/* A2.3: the overtaken card's from/to class flag — short chrome, never
+   prose. */
 .study-row-overtaken-flag,
-.study-tripwire-label,
 /* Tend: row titles, a report's headline, and the row's class/state badges. */
 .tend-row-label,
 .tend-report-headline,
@@ -1849,30 +1848,21 @@ body {
 /* Explore view — the status marker on a source row. Since AS2 it keys on
  * ENGAGEMENT, not on the existence of a study: every source has one of those.
  * It marks the rows this civilization has put something into. */
-/* AS2's engagement flag, as a BADGE (2026-08 designer call). It was caps
- * text floating at the row's top corner, which read as another line of the
- * row's data competing with the designation beside it. Enclosed, it reads
- * as what it is: a short, repeated classifier a thumb recognises by shape,
- * which is the one thing --holos-text-xxs exists for (the tend-row badges'
- * anatomy, borrowed whole). Mono rather than display: this is a state
- * stamp, not a heading, and the mono face is what the HUD's own readouts
- * use for the same job.
- *
- * The font-family and size sit AFTER .holos-caps in the cascade and both
- * override it; the class stays on the element for its uppercasing. */
-.study-explore-flag {
+/* An engaged study's status, as a badge on its row. It rides .tend-badge for
+   the enclosure and overrides the one thing that has to differ: MONO, not the
+   display serif. The Tend badges live in a column of their own where the
+   serif reads as a set; this one sits at the end of a row of prose, and a
+   monospaced pill is what reads there as a stamp rather than as more words.
+   The amber is the engagement mark it always was, and the shrink-guard is
+   what keeps a long class label off a second line. */
+/* Compound on purpose: .tend-badge sets the display serif and is declared
+   further down this file, so a single-class rule here would lose the
+   font-family on source order alone. */
+.study-explore-flag.tend-badge {
   align-self: flex-start;
-  margin-top: 0.15rem;
+  margin-top: 0.2rem;
   flex-shrink: 0;
   font-family: var(--holos-font-mono);
-  font-size: var(--holos-text-xxs);
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  line-height: 1;
-  white-space: nowrap;
-  border: 1px solid var(--holos-gold-dim);
-  border-radius: 999px;
-  padding: 0.22rem 0.45rem;
   color: var(--holos-amber);
 }
 
@@ -2204,51 +2194,6 @@ body {
   color: var(--holos-ink-faint);
 }
 
-/* A2.3: TRIPWIRES — the study-question-head anatomy (chrome label left,
- * one small state pill right), never a second copy of the hypothesis rows'
- * track/glow: a tripwire is a standing order, not a share. */
-.study-tripwire-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.7rem;
-  width: 100%;
-  min-height: 44px;
-  background: none;
-  border: none;
-  border-bottom: 1px solid rgba(211, 185, 130, 0.28);
-  padding: 0.6rem 0.1rem;
-  text-align: left;
-  cursor: pointer;
-  color: var(--holos-ink);
-}
-
-/* A closed study's rows (or one already mid-round-trip): visible, legible,
- * not tappable — the OPEN QUESTIONS rows' own inert dress just above. */
-.study-tripwire-row--inert {
-  cursor: default;
-  opacity: 0.6;
-}
-
-.study-tripwire-badge {
-  flex-shrink: 0;
-}
-
-.study-tripwire-badge--available {
-  color: var(--holos-ink-faint);
-  border-color: rgba(211, 185, 130, 0.34);
-}
-
-.study-tripwire-badge--armed {
-  color: var(--holos-amber);
-  border-color: rgba(240, 172, 102, 0.5);
-}
-
-.study-tripwire-badge--tripped {
-  color: var(--holos-error);
-  border-color: rgba(240, 131, 106, 0.5);
-}
-
 /* Focused view */
 .study-back {
   align-self: flex-start;
@@ -2460,11 +2405,6 @@ body {
 /* Nothing buyable ships here yet (StudySnapshot.openQuestions is always []);
  * the container carries the state-of-the-watch line until A2.2 fills it. */
 .study-open-questions {
-  padding-top: 0.4rem;
-}
-
-/* A2.3: always exactly three rows (protocol.ts's tripwires comment). */
-.study-tripwires {
   padding-top: 0.4rem;
 }
 
@@ -3588,8 +3528,8 @@ body {
   border-color: rgba(211, 185, 130, 0.34);
 }
 
-/* Armed: something may happen without you, and the sheet says so in the same
-   amber a live tripwire takes. */
+/* Armed: something may happen without you, and the sheet says so in
+   --holos-amber. */
 .ledger-order-badge--armed {
   color: var(--holos-amber);
   border-color: rgba(240, 172, 102, 0.5);

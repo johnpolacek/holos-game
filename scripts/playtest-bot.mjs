@@ -53,7 +53,6 @@ const MAX_SIGNALS_PER_THREAD = 24; // contact.ts
 const SIGNAL_COOLDOWN_YEARS = 0.2; // contact.ts
 const MIN_DELIBERATION_YEARS = 0.32; // contact.ts
 const SIGNAL_TONES = ["plain", "open", "guarded", "urgent", "reluctant"]; // signalparts.ts
-const TRIPWIRE_KINDS = ["regress", "leakage-stops", "crosses"]; // studies.ts
 const CROSS_SHARE = 0.7; // studies.ts — the share a call waits for
 const REAL_MS_PER_GAME_YEAR = 5 * 60 * 1000; // clock.ts
 const MAX_NAME_LEN = 24; // protocol.ts
@@ -233,7 +232,6 @@ class PlaytestBot {
     // instead of a formality the playtester always sees succeed.
     this.quiet = this.rng.chance(0.5);
     this.studyTarget = 2 + this.rng.int(2); // 2 or 3 vigils it means to hold
-    this.tripwireHabit = this.rng.range(0.2, 0.5);
     this.probeHabit = this.rng.range(0.2, 0.45);
   }
 
@@ -442,7 +440,6 @@ class PlaytestBot {
       this.tryCallStudy() ||
       this.tryEngageStudy() ||
       this.tryBuyQuestion() ||
-      this.tryArmTripwire() ||
       this.tryLaunchProbe();
     // A tick that decided nothing still wants a fresh sky: the next decision
     // depends on light that may have landed since (`requestSky` is the same
@@ -705,9 +702,9 @@ class PlaytestBot {
    * on every source; what the Desk lists, and what `sky.studies` carries, is
    * the sources this civilization has put something into. So taking one up
    * means spending: the cheapest question this bot can afford on the nearest
-   * ambient board, or, when it can afford nothing, a standing order on it —
-   * both are acts the server must remember, and either one materializes the
-   * record in the same write. `studyTarget` is unchanged in meaning; it just
+   * ambient board, which is an act the server must remember and which
+   * materializes the record in the same write. A bot that can afford nothing
+   * simply waits for compute. `studyTarget` is unchanged in meaning; it just
    * counts boards acted on rather than boards filed.
    */
   tryEngageStudy() {
@@ -730,15 +727,6 @@ class PlaytestBot {
             `for ${question.costCompute} compute`,
         );
         this.send({ type: "buyQuestion", starId: board.starId, questionId: question.id });
-        return true;
-      }
-      const wire = (board.tripwires ?? []).find((t) => t.state === "available");
-      if (wire !== undefined) {
-        this.log(
-          `took up ${this.designationOf(board.starId)} with a standing ${wire.kind} order, ` +
-            `nothing there being affordable yet`,
-        );
-        this.send({ type: "armTripwire", starId: board.starId, kind: wire.kind });
         return true;
       }
     }
@@ -770,21 +758,6 @@ class PlaytestBot {
       questionId: chosen.question.id,
     });
     return true;
-  }
-
-  /** Leave a standing order now and then. `crosses` is the one that matters to
-   *  a watcher: it fires when the board makes up its mind without them. */
-  tryArmTripwire() {
-    if (!this.rng.chance(this.tripwireHabit)) return false;
-    for (const study of this.openStudies()) {
-      const kind = this.rng.chance(0.7) ? "crosses" : this.rng.pick(TRIPWIRE_KINDS);
-      const row = (study.tripwires ?? []).find((t) => t.kind === kind);
-      if (row === undefined || row.state !== "available") continue;
-      this.log(`armed the ${kind} tripwire on ${this.designationOf(study.starId)}`);
-      this.send({ type: "armTripwire", starId: study.starId, kind });
-      return true;
-    }
-    return false;
   }
 
   /** Done arguing: the lead has crossed and two answers stand behind it. */

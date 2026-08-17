@@ -76,14 +76,19 @@ import {
   recordOrderUnaffordable,
   recordVoyageLandfall,
   recordVoyageLaunched,
-  recordTripwireTripped,
+  recordWatchCaught,
   render,
   reportHeader,
   reportRemark,
   SIGNAL_CLASS_LABEL,
-  TRIPWIRE_PROSE_NAME,
+  WATCH_PROSE_NAME,
   type RemarkFamily,
 } from "./voice";
+// The watch's own shape. TYPE-ONLY, so this module's structural guarantee
+// above is untouched: the import is erased at build and drags no derivation,
+// no galaxy and no cone in behind it (protocol.ts borrows from studies.ts on
+// exactly these terms).
+import type { WatchFire } from "./studies";
 
 // ---------------------------------------------------------------------------
 // The catalog — 9 kinds, 6 families (av2-synthesis.md's table).
@@ -103,7 +108,12 @@ export type ReportKind =
   | "question-regressed"
   | "study-called"
   | "study-overtaken"
+  // Nothing produces this any more; it stays in the union because entries
+  // carrying it are ALREADY STORED in live seats' annals, and a stored entry
+  // is never re-rendered or re-kinded (this file's frozen-prose rule).
   | "tripwire-tripped"
+  // What the standing watch caught, on its own.
+  | "watch-caught"
   // ── A4 ──
   | "voyage-launched"
   | "voyage-landfall"
@@ -191,6 +201,14 @@ export interface DeriveReportEntriesInput {
   readonly voyages?: readonly VoyageSnapshot[];
   /** A4 S2: the Ledger, on the same optional terms and for the same reason. */
   readonly ledger?: LedgerWire;
+  /**
+   * What the standing watch caught inside this send's window, derived by
+   * cohort.ts (which is the only thing that can walk a source's change
+   * points). Optional on the `voyages` precedent, so every caller that
+   * predates the automatic watch keeps compiling and keeps deriving exactly
+   * the entries it derived before.
+   */
+  readonly watchFires?: readonly WatchFire[];
   readonly projects: readonly ProjectSnapshot[];
   /** For distanceLy (every remote entry's light age at its own year — R-33)
    *  and as a designation fallback. A study/source pairing not found here
@@ -518,18 +536,17 @@ function studyGroundedEntries(input: DeriveReportEntriesInput): StoredReportEntr
 }
 
 /**
- * A2.3's other three closings, all keyed off frozen wire fields rather than
- * off the live board — `call`, `overtaking`, and a tripwire's `firedYear`
- * are each stamped once by the server and never move again, so the entry
- * they produce is stable the first time it materializes and forever after.
+ * A2.3's other two closings, both keyed off frozen wire fields rather than
+ * off the live board — `call` and `overtaking` are each stamped once by the
+ * server and never move again, so the entry they produce is stable the first
+ * time it materializes and forever after.
  *
  * FAMILIES. `study-called` is `settled`: the matter closed, which is exactly
- * what that family's remarks are about. The other two are `record`, the mute
- * family — no existing remark set can speak to a study that closed because
- * the thing changed underneath it, or to a standing order coming due, and
- * inventing a family for them is a bigger change than either earns. A mute
- * entry gets its record sentence and nothing else, which is the ordinary
- * case and reads as one.
+ * what that family's remarks are about. `study-overtaken` is `record`, the
+ * mute family — no existing remark set can speak to a study that closed
+ * because the thing changed underneath it, and inventing a family for it is
+ * a bigger change than it earns. A mute entry gets its record sentence and
+ * nothing else, which is the ordinary case and reads as one.
  */
 function studyExitEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
   const { studies, sources, localNames, designations, ascensionYear, nowYear, sinceYear } = input;
@@ -573,30 +590,49 @@ function studyExitEntries(input: DeriveReportEntriesInput): StoredReportEntry[] 
         route: { kind: "study", starId: study.starId },
       });
     }
+  }
+  return out;
+}
 
-    for (const t of study.tripwires) {
-      if (t.firedYear === null) continue;
-      if (!inWindow(t.firedYear, sinceYear, nowYear)) continue;
-      const record = recordTripwireTripped(
-        TRIPWIRE_PROSE_NAME[t.kind],
-        sourceName,
-        source.distanceLy,
-      );
-      out.push({
-        // The fired year is in the id: a tripwire re-armed after firing can
-        // catch the same condition a second time, and that is a second entry
-        // in the annal, not a re-render of the first.
-        id: `s/${study.starId}/tripwire/${t.kind}/${Math.round(t.firedYear)}`,
-        kind: "tripwire-tripped",
-        family: "record",
-        stampYear: t.firedYear,
-        stamp: render(epochStamp(t.firedYear, ascensionYear)),
-        record: render(record),
-        detail: null,
-        pinned: pinnedTokens(record),
-        route: { kind: "study", starId: study.starId },
-      });
-    }
+/**
+ * What the standing watch caught. ONE ENTRY PER (kind, change point), and the
+ * id says so: the anchor is the change point's stable symbolic name, so the
+ * same crossing derived a thousand years later produces the same id, the
+ * merge recognizes it, and nothing is written twice. That is the whole
+ * once-guarantee, and it is the sky-arrival row's, unchanged (`arr/…/epoch-i`
+ * above).
+ *
+ * `record`, the mute family, for `study-overtaken`'s reason: the watch coming
+ * due is not a matter settled, and no remark set can speak to it.
+ *
+ * A fire on a source that has faded below the wire produces nothing, the
+ * accepted limit every other remote entry here already carries: `sources` is
+ * where the distance and the name come from, and neither can be invented.
+ */
+function watchFireEntries(input: DeriveReportEntriesInput): StoredReportEntry[] {
+  const { sources, localNames, designations, ascensionYear, nowYear, sinceYear } = input;
+  const out: StoredReportEntry[] = [];
+  for (const fire of input.watchFires ?? []) {
+    const source = sources.find((s) => s.starId === fire.starId);
+    if (source === undefined) continue;
+    if (!inWindow(fire.atYear, sinceYear, nowYear)) continue;
+    const sourceName = nameFor(fire.starId, localNames, designations);
+    const record = recordWatchCaught(
+      WATCH_PROSE_NAME[fire.kind],
+      sourceName,
+      source.distanceLy,
+    );
+    out.push({
+      id: `s/${fire.starId}/watch/${fire.kind}/${fire.anchorId}`,
+      kind: "watch-caught",
+      family: "record",
+      stampYear: fire.atYear,
+      stamp: render(epochStamp(fire.atYear, ascensionYear)),
+      record: render(record),
+      detail: null,
+      pinned: pinnedTokens(record),
+      route: { kind: "study", starId: fire.starId },
+    });
   }
   return out;
 }
@@ -849,6 +885,7 @@ export function deriveReportEntries(
     ...skyArrivalEntries(input),
     ...studyGroundedEntries(input),
     ...studyExitEntries(input),
+    ...watchFireEntries(input),
     ...projectEntries(input),
   ];
 }

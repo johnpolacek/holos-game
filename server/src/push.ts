@@ -1,4 +1,4 @@
-// Web push — the transport half of A5's tripwire watch, and NOTHING ELSE.
+// Web push — the transport half of A5's standing watch, and NOTHING ELSE.
 //
 // THIS MODULE IMPORTS NOTHING FROM THE GAME, and that is the whole no-leak
 // argument rather than a tidiness preference. It cannot see a star, a

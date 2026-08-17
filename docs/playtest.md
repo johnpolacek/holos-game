@@ -113,9 +113,9 @@ To reset everything instead, stop `wrangler dev`, delete `.wrangler/`
 
 ## Testing push without a push service
 
-A5 sends a payload-free notification when a tripwire you left standing
-comes true while you are away. Almost all of it can be exercised on a
-laptop with no phone and no push service at all.
+A5 sends a payload-free notification when one of the conditions the
+observatory watches comes true while you are away. Almost all of it can
+be exercised on a laptop with no phone and no push service at all.
 
 Put a throwaway keypair (docs/deploy.md § Web push has the generator)
 plus these two lines in `.dev.vars`, and restart `wrangler dev`:
@@ -154,13 +154,13 @@ is open on that seat, so the board is already saying it), `pushed this
 absence` (one push per absence, by design), `absent too long`, `no
 firing`, `already notified`, or `send`.
 
-The loop that proves the feature: arm a tripwire in the browser and
-accept the sheet, `POST /dev/skip` past a change point, close the tab,
-then `POST /dev/watch`. It reports the firing and the year it happened
-in. Reconnect, and the study board shows that tripwire TRIPPED with the
-**same year** on it — not the year you reconnected. The push and the
-record are produced by the same function, and that is the property worth
-checking if anything about this ever looks wrong.
+The loop that proves the feature: engage a study in the browser (buy a
+question on it) and accept the watch sheet, `POST /dev/skip` past a
+change point, close the tab, then `POST /dev/watch`. It reports the
+firing and the year it happened in. Reconnect, and the report carries
+that firing with the **same year** on it — not the year you reconnected.
+The push and the record are produced by the same function, and that is
+the property worth checking if anything about this ever looks wrong.
 
 To check the signature the push services will check, verify a minted JWT
 against the public key:
@@ -191,9 +191,9 @@ design rests on: a bodyless push has to actually reach a device.
 
 1. **iPhone.** Add the site to the Home Screen (iOS 16.4 or newer; Web
    Push does not exist in the Safari tab, which is why the hub row says
-   so instead of shrugging). Open it from the Home Screen, arm a
-   tripwire, accept the sheet, background the app, skip the clock past a
-   change point and confirm the banner arrives.
+   so instead of shrugging). Open it from the Home Screen, engage a study
+   by buying a question, accept the watch sheet, background the app, skip
+   the clock past a change point and confirm the banner arrives.
 2. **Android Chrome and desktop Firefox.** The same run. Between the
    three you have exercised all three push services, and therefore all
    three `aud` values the JWT is minted for.
@@ -210,11 +210,11 @@ off the last `sky`:
 - **The vigil.** Keeps two or three vigils running on the nearest
   sources. A study stands on every source already, so taking one up means
   spending: it buys the cheapest question it can afford on the nearest
-  untouched board, or leaves a standing order there when it can afford
-  nothing. After that it buys the cheapest affordable question on the
-  flattest board it holds — the study whose leading reading is least
-  settled. Arms a tripwire now and then, usually `crosses`. Calls a study
-  once its lead passes seventy percent with two answers behind it.
+  untouched board, and waits for compute when it can afford nothing.
+  After that it buys the cheapest affordable question on the flattest
+  board it holds — the study whose leading reading is least settled.
+  Calls a study once its lead passes seventy percent with two answers
+  behind it.
 - **Probes.** Occasionally launches an assay at the nearest source it is
   already watching, once the compute is there. The charter comes from the
   catalog the welcome sent, two clauses from different groups.
@@ -261,9 +261,8 @@ A script that touches every A2.3 through A2.6 beat. Run it with
    window it is contested over is the stretch you just let pass. If a
    board went backwards, that is A2.3's regress, and the mind has a
    sentence about it.
-4. **0:10 — arm and launch.** Arm the `crosses` tripwire on the flatter
-   study and launch an assay at the sharper one. Skip 20 years and watch
-   the probe's horizon move.
+4. **0:10 — launch.** Launch an assay at the sharper study. Skip 20 years
+   and watch the probe's horizon move.
 5. **0:14 — the choice.** By now a bot has hailed you: a source in your
    sky reads as a directed beam and a thread has appeared with nothing you
    can say into it yet. Answering costs the hail ceremony — commit it, and

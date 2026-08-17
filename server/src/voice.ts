@@ -17,7 +17,7 @@ import { createRng } from "./rng";
 // AV3: typed by protocol.ts's re-export, never by importing knowledge.ts
 // directly — the truth-side module stays off this file's import list, the
 // same discipline proposals.ts's Pin A enforces for itself.
-import type { CeremonyKind, DriftBand, SignalClass, TripwireKind } from "./protocol";
+import type { CeremonyKind, DriftBand, SignalClass, WatchKind } from "./protocol";
 import type { ProposalKind } from "./proposals";
 // A2.6: the two closed sets the composed-signal banks are keyed over. Type
 // only, so this module still imports no truth and no catalog at runtime.
@@ -310,9 +310,15 @@ export function silenceLine(): string {
  * IT MIGHT BE) on the one screen where a first-timer meets all of them.
  * The menu under this line makes the point by existing; the coinage said
  * it worse.
+ *
+ * THE SECOND SENTENCE IS THE AUTOMATIC WATCH'S ONE EXPLANATION ANYWHERE IN
+ * THE GAME, added when arming was retired. There is no longer a control to
+ * discover, so nothing else on any surface can teach that the observatory
+ * reports without being asked; a player who never reads this line still gets
+ * the rows, and would read them as arriving from nowhere.
  */
 const STUDY_LINE: PinnedLine =
-  line`Watching begins at detection and costs nothing; questions cost compute.`;
+  line`Watching begins at detection and costs nothing; questions cost compute. The observatory reports changes on its own.`;
 
 export function studyLine(): string {
   return render(STUDY_LINE);
@@ -601,18 +607,22 @@ export function recordStudyOvertaken(
 }
 
 /**
- * A2.3: a standing order caught the thing it was left to catch. Names the
- * condition in prose (never the client's chrome badge) and NOTHING about
- * what the board now says — the tripwire is a summons, not a finding, and a
- * record sentence that summarized the board here would be answering a
+ * The standing watch caught something. Names the condition in prose and
+ * NOTHING about what the board now says — this is a summons, not a finding,
+ * and a record sentence that summarized the board here would be answering a
  * question the player has not yet gone and looked at.
+ *
+ * IT CLAIMS NO SETTER. The sentence this replaced said the watch "caught
+ * what it was set for", which was true while a player armed one and is a lie
+ * now that the observatory watches every source on its own. Deadpan, one
+ * clause, and the light's age where it always was.
  */
-export function recordTripwireTripped(
-  tripwireProseName: string,
+export function recordWatchCaught(
+  conditionProse: string,
   sourceName: string,
   lightAgeYears: number,
 ): PinnedLine {
-  return line`The watch on ${F.source(sourceName)} caught what it was set for: ${F.label(tripwireProseName)}, on light ${F.years(lightAgeYears)} old.`;
+  return line`The standing watch caught ${F.label(conditionProse)} at ${F.source(sourceName)}, on light ${F.years(lightAgeYears)} old.`;
 }
 
 /**
@@ -1468,14 +1478,19 @@ export const SIGNAL_CLASS_LABEL: Readonly<Record<SignalClass, string>> = {
 };
 
 /**
- * A2.3: each tripwire condition as it reads INSIDE a sentence. The client's
- * badge for the same condition is chrome and is the client's own; this is
- * the prose form the annal needs, exactly as `QuestionDef.proseName` is the
- * prose form beside a chrome `label`. Sentence case, no number: the
+ * Each watched condition as it reads INSIDE a sentence: the OBJECT of
+ * `recordWatchCaught`'s verb, which is why each carries its own determiner
+ * and none of them ends in a full stop. Sentence case, no number: the
  * threshold `crosses` waits on is a server constant and stays one.
+ *
+ * The regress row is gone with the kind (studies.ts's WatchKind says why).
+ * The two survivors are UNCHANGED, and that is the minimal edit rather than
+ * the absent one: `caught` takes a participial object ("caught the noise of
+ * machines going quiet"), which is the shape both were already written in
+ * for the colon frame they used to sit behind. Re-cutting either to a bare
+ * noun or a bare infinitive would have made the new frame ungrammatical.
  */
-export const TRIPWIRE_PROSE_NAME: Readonly<Record<TripwireKind, string>> = {
-  regress: "a look coming back worse than the one before it",
+export const WATCH_PROSE_NAME: Readonly<Record<WatchKind, string>> = {
   "leakage-stops": "the noise of machines going quiet",
   crosses: "one reading pulling clear of the rest",
 };

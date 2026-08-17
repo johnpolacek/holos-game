@@ -67,29 +67,60 @@ import { contestLine } from "./voice";
 // shape owns its migration).
 // ---------------------------------------------------------------------------
 
-/** A2.3: the three conditions a player can leave standing on a study. One
- *  per kind per study; the client's chrome labels for them are the client's
- *  business (chrome, not voice). */
-export type TripwireKind = "regress" | "leakage-stops" | "crosses";
+/**
+ * The two things the observatory watches for on its own. Nothing arms them
+ * and nothing can: watching is what an observatory does, so a kind is a
+ * QUESTION THE SKY IS ASKED CONTINUOUSLY rather than an order a player left
+ * standing.
+ *
+ * "regress" was a third kind and is gone. Under automation it was
+ * structurally vacuous: a regress finding's shape is fixed at PURCHASE time
+ * (questions.ts's resolveContest reads `boughtYear` for every input), so it
+ * can only ever become true in the send that made the purchase, which is a
+ * send the player is present for by definition. The annal already records
+ * that event as `question-regressed`, from the finding itself.
+ */
+export type WatchKind = "leakage-stops" | "crosses";
 
-/** All three, in the order the client shows them. */
-export const TRIPWIRE_KINDS: readonly TripwireKind[] = ["regress", "leakage-stops", "crosses"];
+/** Both, in the order the report reads them. */
+export const WATCH_KINDS: readonly WatchKind[] = ["leakage-stops", "crosses"];
 
 /** The lead share `crosses` waits for. Fixed, and deliberately not a number
  *  on the wire: a share picker would turn a decision into a dial, and a free
- *  number arriving from a client is a number the server has to police. The
- *  client's tripwire chrome spells this constant out ("IF A READING PASSES
- *  70%", studyboard.ts) precisely because the wire will not carry it, so a
- *  retune here retunes that label too. */
+ *  number arriving from a client is a number the server has to police. It
+ *  reaches the player only as prose (voice.ts's WATCH_PROSE_NAME, which
+ *  states the condition without stating the figure), so a retune here needs
+ *  no label anywhere to be retuned with it. */
 export const CROSS_SHARE = 0.7;
 
-/** One armed condition. `firedYear` non-null means it has already fired for
- *  THIS arming, and it never fires twice without being armed again. */
-export interface StoredTripwire {
-  readonly kind: TripwireKind;
-  readonly armedYear: number;
-  readonly firedYear: number | null;
+/**
+ * One thing the watch caught: a KIND and a dated CHANGE POINT, derived and
+ * stored nowhere.
+ *
+ * `anchorId` is the change point's stable symbolic name (`epoch-3`,
+ * `q/occupancy`, `m-2/r/1`), never a year — a float year in an id is an id
+ * that moves when the arithmetic is retuned. Together with the kind and the
+ * star it is what the annal keys on, and the annal's id-keyed add-only merge
+ * (report.ts's mergeReportEntries) is therefore the whole once-guarantee.
+ * There is no fired flag anywhere, because there is nothing to flag: the
+ * same walk over the same sky yields the same fires forever.
+ */
+export interface WatchFire {
+  readonly starId: string;
+  readonly kind: WatchKind;
+  readonly anchorId: string;
+  readonly atYear: number;
 }
+
+/**
+ * How long a source must stay audible again before another quieting counts.
+ * A civilization that flickers across the leakage floor every few centuries
+ * would otherwise put a row in the annal for each flicker, which is the
+ * record reporting weather. Two and a half thousand years is well past any
+ * cadence rule's period floor (behavior.ts's 900) and well inside an era of
+ * real silence.
+ */
+export const QUIET_REFIRE_MIN_YEARS = 2400;
 
 /**
  * A2.3: the belief the player froze when they called the study, exactly as
@@ -180,14 +211,33 @@ export interface StoredStudy {
   readonly called: StoredCall | null;
   /** A2.3: non-null iff `status === "overtaken"`. */
   readonly overtaken: StoredOvertaking | null;
-  /** A2.3: at most one per kind. Survives shelving, closing, and reopening
-   *  — an order left standing is left standing. */
-  readonly tripwires: readonly StoredTripwire[];
 }
 
 export interface StudyState {
-  readonly version: 4;
+  readonly version: 5;
   readonly studies: Record<string, StoredStudy>; // keyed by starId
+  /**
+   * The year the AUTOMATIC WATCH began for this seat, or null for "always".
+   *
+   * WHY IT EXISTS. The watch derives its fires by walking back
+   * WATCH_SCAN_YEARS over every visible source, and everything it would find
+   * back there is true: those sources really did go quiet, those readings
+   * really did pull clear. Without this field the first send after the
+   * automatic watch shipped would back-materialize weeks of true-but-silent
+   * history into a live seat's annal at once, which is the record shouting
+   * about things the player lived through in silence. So a seat that existed
+   * before automation stamps the year automation reached it, and the walk
+   * never looks past it.
+   *
+   * NULL MEANS ALWAYS, and it is what a FRESH state carries. That is
+   * deliberate and load-bearing: `loadStudyState` returns a fresh state
+   * WITHOUT persisting it, so a stamped year here would be a different year
+   * on every read, and a seat that had never touched a study would push its
+   * horizon forward faster than the sky moved and never see a fire at all.
+   * A new seat is bounded instead by the report's own `sinceYear`, which is
+   * stamped once and stored.
+   */
+  readonly autoFrom: number | null;
 }
 
 /** The pre-A2.2 shape. Retained solely for migrateStudyState. */
@@ -223,11 +273,57 @@ interface StudyStateV3 {
   >;
 }
 
-export type StoredStudyState = StudyState | StudyStateV3 | StudyStateV2 | StudyStateV1;
+/**
+ * The A2.3 shape, before the watch became automatic. Retained solely for
+ * migration, and its `tripwires` are typed loosely on purpose: they are read
+ * once, discarded, and never written again.
+ */
+interface StudyStateV4 {
+  readonly version: 4;
+  readonly studies: Record<
+    string,
+    {
+      readonly starId: string;
+      readonly status: StudyStatus;
+      readonly bought: readonly BoughtQuestion[];
+      readonly openedYear: number;
+      readonly openedClass: SignalClass | null;
+      readonly called: StoredCall | null;
+      readonly overtaken: StoredOvertaking | null;
+      readonly tripwires?: readonly {
+        readonly kind: string;
+        readonly armedYear: number;
+        readonly firedYear: number | null;
+      }[];
+    }
+  >;
+}
 
-/** A fresh v4 state: no studies yet. */
+export type StoredStudyState =
+  | StudyState
+  | StudyStateV4
+  | StudyStateV3
+  | StudyStateV2
+  | StudyStateV1;
+
+/** A fresh v5 state: no studies yet, and a watch that has always been on
+ *  (see StudyState.autoFrom for why null rather than `nowYear`). */
 export function newStudyState(): StudyState {
-  return { version: 4, studies: {} };
+  return { version: 5, studies: {}, autoFrom: null };
+}
+
+/**
+ * Replace the study map, carrying everything else about the state forward.
+ * EVERY save site goes through this, so `autoFrom` cannot be dropped by a
+ * handler that only meant to write one study: a handler that spelled the
+ * whole state out by hand would silently re-open this seat's whole history
+ * to the walk.
+ */
+export function withStudies(
+  state: StudyState,
+  studies: Record<string, StoredStudy>,
+): StudyState {
+  return { version: 5, studies, autoFrom: state.autoFrom };
 }
 
 /**
@@ -251,27 +347,50 @@ function withExits(
     openedClass: null,
     called: null,
     overtaken: null,
-    tripwires: [],
   };
 }
 
 /**
  * Bring a persisted state up to the current shape: v1 studies gain an empty
- * purchase list, pre-v3 studies gain `openedYear`, and every pre-v4 study
- * gains the exit fields. Each older arm chains through the one above it —
- * they differ only in which fields they can supply from storage. Callers
- * persist the result so the migration happens once (loadStudyState's exact
- * idiom in cohort.ts, matching loadProjectState).
+ * purchase list, pre-v3 studies gain `openedYear`, every pre-v4 study gains
+ * the exit fields, and v4 drops its armed tripwires. Each older arm chains
+ * through the one above it — they differ only in which fields they can
+ * supply from storage. Callers persist the result so the migration happens
+ * once (loadStudyState's exact idiom in cohort.ts, matching
+ * loadProjectState).
  *
  * `nowYear` is what a migrated study's `openedYear` becomes — as if it were
  * opened at the moment of the migration. That is the conservative reading:
  * a probe that reported BEFORE the upgrade does not reach back and close a
  * study the player has been watching for weeks; only the next word does.
+ *
+ * IT IS ALSO WHAT `autoFrom` BECOMES, for the same shape of reason one level
+ * up: the automatic watch starts for this seat at the moment automation
+ * reaches it, so nothing it would have caught while nobody could arm it is
+ * written into the annal after the fact.
+ *
+ * THE STORED TRIPWIRES ARE READ ONCE AND DISCARDED. Nothing is lost by that:
+ * an arming was a standing intention, and there is no longer anything to
+ * intend — the observatory watches every source. The fires those armings
+ * already produced survive where they were always kept, as frozen entries in
+ * `report:${token}`, which this migration cannot and does not touch.
  */
 export function migrateStudyState(stored: StoredStudyState, nowYear: number): StudyState {
-  if (stored.version === 4) return stored;
+  if (stored.version === 5) return stored;
   const studies: Record<string, StoredStudy> = {};
-  if (stored.version === 3) {
+  if (stored.version === 4) {
+    for (const [starId, s] of Object.entries(stored.studies)) {
+      studies[starId] = {
+        starId: s.starId,
+        status: s.status,
+        bought: s.bought,
+        openedYear: s.openedYear,
+        openedClass: s.openedClass,
+        called: s.called,
+        overtaken: s.overtaken,
+      };
+    }
+  } else if (stored.version === 3) {
     for (const [starId, s] of Object.entries(stored.studies)) {
       studies[starId] = withExits(s.starId, s.status, s.bought, s.openedYear);
     }
@@ -284,14 +403,14 @@ export function migrateStudyState(stored: StoredStudyState, nowYear: number): St
       studies[starId] = withExits(s.starId, s.status, [], nowYear);
     }
   }
-  return { version: 4, studies };
+  return { version: 5, studies, autoFrom: nowYear };
 }
 
 /**
  * The three statuses that end a vigil. `shelved` is not one of them: a
  * shelved study is paused, and every verb that works on an open study works
- * on it. A closed study takes no new purchases, evaluates no tripwires, and
- * reopens only because the player says so (cohort.ts's openStudy).
+ * on it. A closed study takes no new purchases and reopens only because the
+ * player says so (cohort.ts's openStudy).
  */
 export function isClosed(status: StudyStatus): boolean {
   return status === "grounded" || status === "called" || status === "overtaken";
@@ -1185,134 +1304,79 @@ function assembleQuestion(
 }
 
 // ---------------------------------------------------------------------------
-// Tripwires — a standing order, evaluated over the board that has just been
-// assembled rather than over any state of its own.
+// The watch — two questions the observatory asks of every source it can see,
+// answered by DERIVATION over the light and nothing else.
+//
+// THE BOARD IS A STEP FUNCTION and every fire is a (kind, change point) pair.
+// Nothing here is stored, nothing is armed, and nothing carries a fired flag:
+// a fire is the same answer every time it is asked for, so the annal's
+// id-keyed add-only merge is the entire once-guarantee. That is exactly how a
+// sky arrival has always worked (report.ts's `arr/${starId}/epoch-${i}`), and
+// the two now work the same way for the same reason.
 // ---------------------------------------------------------------------------
 
 /**
- * Everything the three conditions read, taken from the board this send has
- * ALREADY computed. No condition re-derives anything: a tripwire can only
- * fire on something the player could have read for themselves had they been
- * looking, which is what makes it an order and not an oracle.
- */
-export interface TripwireBoard {
-  readonly openQuestions: readonly OpenQuestion[];
-  readonly hypotheses: readonly Hypothesis[];
-  readonly signal: ObservedSignal;
-  readonly distanceLy: number;
-}
-
-/**
- * Whether `kind`'s condition holds for an arming made in `armedYear`. ONE
- * predicate, used for both halves of the contract: cohort.ts refuses to arm
- * when it already holds at `nowYear`, and the sky-send fires when it holds
- * for the arming on record. That is why fired-state plus this condition is
- * the whole state machine — there is no third "was it true when you armed
- * it" bit to keep.
+ * Every quieting in a source's arrived light, oldest-first.
  *
- * `regress` and `leakage-stops` are armed-year-relative and so can never
- * already hold at the moment of arming (an answer that has landed answered
- * at or before now; light that has arrived arrived at or before now). Only
- * `crosses` reads a standing fact about the board, and it is the one the
- * arming refusal actually bites on.
+ * A TRANSITION TEST, not a state one. The predicate this replaced asked
+ * whether the NEWEST arrival sat below the floor with an earlier one above
+ * it, which is true for as long as the silence lasts and is therefore an
+ * answer about today rather than an event with a date. This asks where the
+ * light crossed downward: `H[i]` below the floor with `H[i-1]` at or above
+ * it. The date is the crossing's, so the same crossing keeps the same date
+ * and the same anchor whichever year the question is asked in.
+ *
+ * SCANS THE WHOLE CLIPPED HISTORY, oldest-first, and leaves the windowing to
+ * the caller. That is what makes `QUIET_REFIRE_MIN_YEARS` window-independent:
+ * the suppression state is a function of the history alone, so a walk over a
+ * long absence and a walk over a short one agree about which crossings count.
+ *
+ * `lightHistory` is already clipped at the departure year (knowledge.ts's
+ * observeCiv) and clipping is a PREFIX, so index `i` names the same epoch
+ * forever and the arrival year is the departure year plus the distance.
  */
-export function tripwireHolds(
-  kind: TripwireKind,
-  armedYear: number,
-  board: TripwireBoard,
-): boolean {
-  switch (kind) {
-    case "regress":
-      return board.openQuestions.some(
-        (q) =>
-          q.finding !== null &&
-          q.finding.shape === "regress" &&
-          q.boughtYear !== null &&
-          q.boughtYear > armedYear,
-      );
-    case "leakage-stops": {
-      // The newest ARRIVED epoch sits below the leakage floor while an
-      // earlier one stood at or above it: somebody's machines stopped being
-      // audible. `lightHistory` is already clipped at the departure year
-      // (knowledge.ts's observeCiv), so "arrived" is the only kind of epoch
-      // in it, and the arrival year is the departure year plus the distance.
-      const sorted = sortedHistory(board.signal);
-      const newest = sorted[sorted.length - 1];
-      if (newest === undefined || newest.level >= LEAKAGE_FLOOR) return false;
-      const wasAudible = sorted
-        .slice(0, -1)
-        .some((epoch) => epoch.level >= LEAKAGE_FLOOR);
-      if (!wasAudible) return false;
-      return newest.fromYear + board.distanceLy > armedYear;
+export function quietFires(
+  signal: ObservedSignal,
+  distanceLy: number,
+  starId: string,
+): readonly WatchFire[] {
+  const history = sortedHistory(signal);
+  const fires: WatchFire[] = [];
+  let lastFiredFromYear: number | null = null;
+  for (let i = 1; i < history.length; i++) {
+    const epoch = history[i];
+    const before = history[i - 1];
+    if (epoch === undefined || before === undefined) continue;
+    if (epoch.level >= LEAKAGE_FLOOR) continue;
+    if (before.level < LEAKAGE_FLOOR) continue;
+    if (
+      lastFiredFromYear !== null &&
+      epoch.fromYear - lastFiredFromYear < QUIET_REFIRE_MIN_YEARS
+    ) {
+      continue;
     }
-    case "crosses": {
-      const { lead } = topTwo(board.hypotheses);
-      return lead !== undefined && lead.share >= CROSS_SHARE;
-    }
+    lastFiredFromYear = epoch.fromYear;
+    fires.push({
+      starId,
+      kind: "leakage-stops",
+      anchorId: `epoch-${i}`,
+      atYear: epoch.fromYear + distanceLy,
+    });
   }
+  return fires;
 }
 
-/**
- * A5: the catch-up walk's answer for one study — for each kind, the CHANGE
- * POINT at which the condition became true while nobody was looking.
- *
- * A tripwire fires on its condition holding, not on the player being present
- * when it held (a5-push-note.md §3.2). Two of the three conditions are not
- * monotone, so one that came and went across an absence would otherwise never
- * be recorded at all: cohort.ts's `findFirings` walks the dated years at which
- * a study can change and hands the first true one in here.
- */
-export type TripwireFiredAt = ReadonlyMap<TripwireKind, number>;
-
-/**
- * Folds this send's firings into the stored tripwire record. Returns the
- * SAME array by identity when nothing changed, which is how cohort.ts knows
- * whether it owes a write. Fires once per arming (`firedYear` is set and
- * never cleared); a closed study is not evaluated at all, which is how
- * "called stays called" survives a standing order left on it.
- *
- * A5: `firedAt` is folded in BEFORE the now-year evaluation, so a condition
- * the catch-up walk caught is recorded at the year it actually held rather
- * than at the year somebody happened to look. That is both more truthful for
- * the report and the property the push rests on: the phone and the record
- * cannot disagree, because the same `findFirings` produced both.
- */
-function settleTripwires(
-  stored: StoredStudy,
-  board: TripwireBoard,
-  nowYear: number,
-  firedAt: TripwireFiredAt | null,
-): readonly StoredTripwire[] {
-  if (isClosed(stored.status)) return stored.tripwires;
-  let changed = false;
-  const next = stored.tripwires.map((t) => {
-    if (t.firedYear !== null) return t;
-    const caught = firedAt?.get(t.kind);
-    if (caught !== undefined) {
-      changed = true;
-      return { ...t, firedYear: caught };
-    }
-    if (!tripwireHolds(t.kind, t.armedYear, board)) return t;
-    changed = true;
-    return { ...t, firedYear: nowYear };
-  });
-  return changed ? next : stored.tripwires;
+/** How much of the belief the leading reading holds; 0 on an empty board. */
+export function leadShare(hypotheses: readonly Hypothesis[]): number {
+  const { lead } = topTwo(hypotheses);
+  return lead === undefined ? 0 : lead.share;
 }
 
-/** All three kinds, always, with the state the server computed. A kind with
- *  no stored arming is "available"; the client's labels are its own. */
-function toWireTripwires(
-  tripwires: readonly StoredTripwire[],
-): StudySnapshot["tripwires"] {
-  return TRIPWIRE_KINDS.map((kind) => {
-    const armed = tripwires.find((t) => t.kind === kind);
-    if (armed === undefined) return { kind, state: "available" as const, firedYear: null };
-    return {
-      kind,
-      state: armed.firedYear !== null ? ("tripped" as const) : ("armed" as const),
-      firedYear: armed.firedYear,
-    };
-  });
+/** Whether the lead crossed CROSS_SHARE going up between two boards. A board
+ *  already past the line is not a crossing, which is what keeps `crosses`
+ *  an event with a date rather than a standing fact about today. */
+export function crossed(prevLead: number, curLead: number): boolean {
+  return prevLead < CROSS_SHARE && curLead >= CROSS_SHARE;
 }
 
 // ---------------------------------------------------------------------------
@@ -1333,14 +1397,12 @@ export interface OvertakingTrigger {
 }
 
 /**
- * The snapshot, plus the two writes assembling it can produce. Both are
- * cohort.ts's to persist (this module stores nothing): `tripwires` is
- * identical by reference when nothing fired, and `overtaken` is non-null
- * only on the single send that saw the class change.
+ * The snapshot, plus the one write assembling it can produce. It is
+ * cohort.ts's to persist (this module stores nothing): `overtaken` is
+ * non-null only on the single send that saw the class change.
  */
 export interface AssembledStudy {
   readonly snapshot: StudySnapshot;
-  readonly tripwires: readonly StoredTripwire[];
   readonly overtaken: StoredOvertaking | null;
 }
 
@@ -1367,10 +1429,6 @@ export function buildStudySnapshot(
   missionMoves: readonly StudyMove[],
   grounding: StudyGrounding | null,
   overtaking: OvertakingTrigger | null,
-  /** A5: the catch-up walk's firings for THIS study, or null (the default for
-   *  every caller that is evaluating a single year, including `findFirings`'
-   *  own probe builds). */
-  firedAt: TripwireFiredAt | null = null,
 ): AssembledStudy {
   const signal = source.signal;
   const catalog = questionsFor(signal.classification);
@@ -1396,14 +1454,6 @@ export function buildStudySnapshot(
 
   const moves = [...answerMoves, ...missionMoves];
   const hypotheses = distributionFor(signal, moves);
-
-  const board: TripwireBoard = {
-    openQuestions,
-    hypotheses,
-    signal,
-    distanceLy: cone.distanceLy,
-  };
-  const tripwires = settleTripwires(stored, board, nowYear, firedAt);
 
   // Freeze the lead the moment the class changes, or read the one that was
   // frozen the last time it did. An overtaken card must go on saying what
@@ -1450,7 +1500,10 @@ export function buildStudySnapshot(
       // one thing that cannot be read off the instrument. The two claims
       // stay in their two places (the headline is untouched by either).
       contestLine: answerMoves.some((m) => m.regress) ? contestLine() : null,
-      tripwires: toWireTripwires(tripwires),
+      // VESTIGIAL, AND ALWAYS EMPTY. protocol.ts says why the field is still
+      // on the wire; the empty array is written here rather than derived
+      // because there is nothing left to derive it from.
+      tripwires: [],
       call:
         call === null
           ? null
@@ -1473,7 +1526,6 @@ export function buildStudySnapshot(
               lead: overtakenNow.lead,
             },
     },
-    tripwires,
     overtaken,
   };
 }

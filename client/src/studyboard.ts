@@ -63,7 +63,6 @@ import type {
   CharterClauseId,
   WorkState,
   TendRow,
-  TripwireKind,
   ReportPayload,
   ReportEntry,
   ReportRoute,
@@ -81,7 +80,7 @@ import type {
   // ── A2.6: the composed-signal grammar ──
   // Every one of these is a TYPE. `TONE_STAMP` is deliberately not among the
   // protocol module's re-exports: the stamp strings are chrome, and chrome is
-  // the client's (the TRIPWIRE_LABEL precedent), so they are authored below.
+  // the client's (the WORK_STATE_LABEL precedent), so they are authored below.
   AccordMove,
   ArchivePart,
   ArchiveSample,
@@ -195,30 +194,6 @@ const WORK_STATE_LABEL: Record<WorkState, string> = {
   standing: "STANDING",
 };
 
-// A2.3: the chrome (client-side, per protocol.ts's tripwires comment) named
-// beside each of the three always-present kinds, in wire order. The 70% is
-// studies.ts's CROSS_SHARE spelled as chrome: the wire deliberately carries
-// no threshold (no free numbers), so a retune of CROSS_SHARE must retune
-// this label with it.
-// "IF IT GOES QUIET", not "IF THE LEAKAGE STOPS": the condition is generic
-// (studies.ts fires it on emission falling below the floor after having
-// stood above it), but "leakage" is one class's vocabulary — on a DARK NODE
-// board the old label named a thing the board never introduced. "READING",
-// not "BELIEF": one canonical noun for the hypothesis-share concept, the
-// annotation line's own ("the strongest reading"). The 70% spells out
-// studies.ts's CROSS_SHARE, which the wire deliberately does not carry.
-const TRIPWIRE_LABEL: Record<TripwireKind, string> = {
-  regress: "IF IT REGRESSES",
-  "leakage-stops": "IF IT GOES QUIET",
-  crosses: "IF A READING PASSES 70%",
-};
-
-const TRIPWIRE_STATE_LABEL: Record<"available" | "armed" | "tripped", string> = {
-  available: "ARM",
-  armed: "ARMED",
-  tripped: "TRIPPED",
-};
-
 /**
  * AS2: what an ENGAGED study's status is called out on an explore row. The
  * four closed words are the Desk's own dividers, so a study reads the same
@@ -238,7 +213,7 @@ const STUDY_STATUS_FLAG: Record<StudyStatus, string> = {
 
 // ── A4: the launch side, as chrome ───────────────────────────────────────
 //
-// Every string below is the client's own (the TRIPWIRE_LABEL precedent): the
+// Every string below is the client's own (the WORK_STATE_LABEL precedent): the
 // wire carries the state id, the class id and the band word, and never a
 // rendering of any of them. Nothing here is derived from a number the server
 // did not send.
@@ -398,7 +373,7 @@ const ORDER_OUTCOME_LABEL: Record<OrderOutcome, string> = {
 
 /**
  * A2.5: how a thread's state reads, on Sky's row and again in the thread's
- * own header. The chrome is the client's (the TRIPWIRE_LABEL precedent) —
+ * own header. The chrome is the client's (the WORK_STATE_LABEL precedent) —
  * the wire carries the state id and no wording.
  *
  * `unopened` cannot be reached from buildThreads (a pair with nothing either
@@ -643,9 +618,9 @@ function sampleWindow(
 /** A2.3: the three exits `isClosed` covers server-side (studies.ts). Kept as
  *  its own client-side check rather than importing the server helper — the
  *  board never imports studies.ts — so grounded/called/overtaken read
- *  questions and tripwires the same inert way; shelved stays live (buying a
- *  question or arming a tripwire while shelved is exactly what reopens it,
- *  the existing grounded-only gate's precedent generalized). */
+ *  questions the same inert way; shelved stays live (buying a question while
+ *  shelved is exactly what reopens it, the existing grounded-only gate's
+ *  precedent generalized). */
 function isClosedStudyStatus(status: StudyStatus): boolean {
   return status === "grounded" || status === "called" || status === "overtaken";
 }
@@ -1121,9 +1096,9 @@ export class StudyBoard {
    *  survives a close/reopen). ARMING IS THE CONSENT AND THE CHARTER IS ITS
    *  CONTENT, so this is what the arm message carries. */
   private orderCharter = new Set<CharterClauseId>();
-  /** An arm/disarm in flight, by class. Released by any sky at all (the
-   *  tripwire precedent: both writes are instant and a refusal comes back as
-   *  an `error`, which handleServerError has already caught). */
+  /** An arm/disarm in flight, by class. Released by any sky at all: both
+   *  writes are instant, and a refusal comes back as an `error`, which
+   *  handleServerError has already caught. */
   private pendingOrderClass: string | null = null;
 
   // The latest SelfView, handed over by the App just before every update()
@@ -1168,12 +1143,6 @@ export class StudyBoard {
   // Released the moment the study's own status leaves open/shelved (the
   // confirming sky), or by handleServerError on a "study-unavailable".
   private pendingCallStarId: string | null = null;
-
-  // A2.3: tripwires in flight, keyed `${starId}:${kind}` — free to arm and
-  // instant, so this only guards against a double-tap outrunning the round
-  // trip. Cleared wholesale on the next `sky` (any real transition will have
-  // landed by then) and on any server error.
-  private pendingTripwireKeys = new Set<string>();
 
   // A single 1s ticker, live while the panel is open, so the projects panel's
   // allocation line and any running work's countdown stay current without a
@@ -1513,8 +1482,7 @@ export class StudyBoard {
 
     // A2.5: a signal in flight is released by any sky at all — onSendSignal
     // appends and answers with a fresh sky, and a refusal comes back as an
-    // `error`, which handleServerError has already caught by now (the
-    // pendingTripwireKeys precedent, one slice on).
+    // `error`, which handleServerError has already caught by now.
     // A2.6: what it releases is a COMPOSITION. The sky that confirms carries
     // the act, so the assembled parts have done their work and the composer
     // shuts on them: the thread below is the confirmation, and no optimistic
@@ -1588,14 +1556,9 @@ export class StudyBoard {
       }
     }
 
-    // A2.3: tripwires are free and instant, so any real sky is proof enough
-    // that whatever was in flight either landed or was refused (in which
-    // case handleServerError already cleared it) — no per-key bookkeeping.
-    this.pendingTripwireKeys.clear();
-
-    // A5: the sky that carries an arming is the moment to ask about the
-    // phone. Every other precondition is checked inside, and the localStorage
-    // mark makes the whole thing once per device.
+    // A5: the sky that carries a first engagement is the moment to ask about
+    // the phone. Every other precondition is checked inside, and the
+    // localStorage mark makes the whole thing once per device.
     this.maybeAskForWatch();
 
     // A4: an arm/disarm is the same shape of write, and releases the same
@@ -2799,9 +2762,8 @@ export class StudyBoard {
    * per-browser-per-device and several may hang off one seat; inventing a
    * device roster in one row is a feature this slice does not ship, so the
    * row promises exactly what it can deliver. The three inert states use the
-   * existing --inert treatment (the closed study's tripwire row, one panel
-   * over): visible, legible, not tappable, and each one names the actual
-   * remedy rather than shrugging.
+   * existing --inert treatment (study-hub-row--inert): visible, legible, not
+   * tappable, and each one names the actual remedy rather than shrugging.
    */
   private buildWatchRow(): HTMLButtonElement | null {
     if (this.pushPublicKey === null) return null;
@@ -2874,11 +2836,12 @@ export class StudyBoard {
   }
 
   /**
-   * A5: the ask, at the first successful arming and once per seat.
+   * A5: the ask, on the first engaged study and once per seat.
    *
-   * That is the only moment in the product where "and should your phone tell
-   * you?" is a continuation of the player's own sentence rather than an
-   * interruption: they have just told the game to watch something for them.
+   * Engaging is now the only act that says watch-this-for-me, and that is the
+   * only moment in the product where "and should your phone tell you?" is a
+   * continuation of the player's own sentence rather than an interruption:
+   * they have just told the game to watch something for them.
    * Notification permission needs a gesture and ONE DENIAL IS PERMANENT in
    * practice, so the ask is spent carefully and never where it cannot be
    * granted (the capability ladder above rules out three of the five states).
@@ -2890,10 +2853,7 @@ export class StudyBoard {
     if (this.pushSubscribedOnSeat) return;
     if (pushCapability() !== "available") return;
     if (watchAsked()) return;
-    const armed = [...this.studiesByStarId.values()].some((s) =>
-      s.tripwires.some((t) => t.state === "armed"),
-    );
-    if (!armed) return;
+    if (this.studiesByStarId.size === 0) return;
     this.renderWatchSheet();
   }
 
@@ -3538,7 +3498,7 @@ export class StudyBoard {
     const subtitle = document.createElement("div");
     subtitle.className = "study-picker-subtitle";
     subtitle.textContent =
-      "Everything your instruments have found. Each one is already under a study you can read.";
+      "Everything your instruments have found, each already under a study you can read. The percentage is our confidence in the reading.";
     this.body.append(subtitle);
 
     this.body.append(this.hairline());
@@ -3727,8 +3687,13 @@ export class StudyBoard {
 
     const engaged = this.studiesByStarId.get(source.starId);
     if (engaged !== undefined) {
+      // A BADGE, not a line of caps prose (2026-08 playtest). It is the
+      // definition of what --holos-text-xxs is for: short, repeated,
+      // enclosed, recognised by shape rather than read. Enclosing it also
+      // buys the row back the width the old unenclosed caps line was
+      // spending, which is what pushed a long class label onto two lines.
       const flag = document.createElement("span");
-      flag.className = "study-explore-flag holos-caps";
+      flag.className = "tend-badge study-explore-flag";
       flag.textContent = STUDY_STATUS_FLAG[engaged.status];
       btn.append(flag);
     }
@@ -3768,8 +3733,8 @@ export class StudyBoard {
   /**
    * THE DESK: the studies this player keeps. Engaged only, and that is the
    * whole point of the page (AS2) — the sky's other boards are all still
-   * there, standing, and this is the shorter list of the ones a question, a
-   * tripwire or a probe has been spent on.
+   * there, standing, and this is the shorter list of the ones a question or
+   * a probe has been spent on.
    */
   private renderList(): void {
     this.body.innerHTML = "";
@@ -3792,7 +3757,7 @@ export class StudyBoard {
       const empty = document.createElement("div");
       empty.className = "study-board-empty";
       empty.textContent =
-        "Nothing here yet. A source joins this page when you buy a question, arm a tripwire, or send a probe.";
+        "Nothing here yet. A source joins this page when you buy a question or send a probe.";
       this.body.append(empty);
       this.body.append(this.buildSkyHubRow());
       return;
@@ -4173,9 +4138,9 @@ export class StudyBoard {
       this.pendingLaunchPriorMissionIds = new Set();
       releasedLaunch = true;
     }
-    // A2.3: "study-unavailable" (a stale callStudy) and "tripwire-unavailable"
-    // both render exactly like every error code above always has — releasing
-    // whatever was in flight, no toast, no special-cased text.
+    // A2.3: "study-unavailable" (a stale callStudy) renders exactly like every
+    // error code above always has — releasing whatever was in flight, no
+    // toast, no special-cased text.
     // A4: a refused founding releases exactly the way a refused mission does
     // — the charter STAYS WRITTEN, so a refusal costs the hold and nothing
     // else. `voyage-unavailable`, `project-required` and `insufficient-compute`
@@ -4194,14 +4159,9 @@ export class StudyBoard {
       this.pendingCallStarId = null;
       releasedCall = true;
     }
-    let releasedTripwire = false;
-    if (this.pendingTripwireKeys.size > 0) {
-      this.pendingTripwireKeys.clear();
-      releasedTripwire = true;
-    }
     // A4: an arm/disarm refused. `order-unavailable` (no such class, or the
-    // condition ALREADY HOLDS, which is a tripwire's exact contract — an order
-    // is for what happens next) and `bad-charter` both land here and both
+    // condition ALREADY HOLDS — a standing order is for what happens next,
+    // never for what is already true) and `bad-charter` both land here and both
     // render the way every code above always has: release what was in flight,
     // no toast, no special-cased text. THE CHARTER STAYS WRITTEN, so a refusal
     // costs the tap and nothing else.
@@ -4239,7 +4199,7 @@ export class StudyBoard {
     }
 
     if (
-      (releasedQuestion || releasedCall || releasedTripwire) &&
+      (releasedQuestion || releasedCall) &&
       this.view === "focused" &&
       this.focusedStarId !== null
     ) {
@@ -5325,7 +5285,8 @@ export class StudyBoard {
     // One sentence: the engaged-first ordering is visible whenever it
     // exists, and with nothing engaged the second sentence described a
     // distinction the page could not show.
-    caption.textContent = "Where every study stands, as of the light in hand.";
+    caption.textContent =
+      "Where every study stands, as of the light in hand. The percentage is our confidence in the reading.";
     this.body.append(caption);
 
     for (const source of [...engaged, ...rest]) {
@@ -8923,7 +8884,7 @@ export class StudyBoard {
     this.renderOrders();
   }
 
-  // ── A2.3: the CALL IT confirm, and tripwires ─────────────────────────
+  // ── A2.3: the CALL IT confirm ────────────────────────────────────────
 
   /** The first tap arms the confirm; the second (this same starId, already
    *  armed) sends `callStudy` and moves into pendingCallStarId instead —
@@ -8937,54 +8898,6 @@ export class StudyBoard {
       this.callConfirmStarId = starId;
     }
     this.renderFocused(starId);
-  }
-
-  /** Free and instant (design note §5): a tap toggles straight to the
-   *  opposite message, no confirm step. "available" and "tripped" both arm
-   *  — re-arming a tripped kind is a real request (the server refuses it
-   *  only while the condition still holds, "tripwire-unavailable", same
-   *  silent release as every other error code). */
-  private toggleTripwire(starId: string, kind: TripwireKind, state: "available" | "armed" | "tripped"): void {
-    const key = `${starId}:${kind}`;
-    if (this.pendingTripwireKeys.has(key)) return;
-    this.pendingTripwireKeys.add(key);
-    if (state === "armed") {
-      this.socket.send({ type: "disarmTripwire", starId, kind });
-    } else {
-      this.socket.send({ type: "armTripwire", starId, kind });
-    }
-    this.renderFocused(starId);
-  }
-
-  /** One row per tripwire kind, always all three, in wire order. `active`
-   *  is false on a closed study — visible, legible, not tappable, the
-   *  OPEN QUESTIONS precedent just above it in renderFocused. */
-  private buildTripwireRow(
-    starId: string,
-    tw: { readonly kind: TripwireKind; readonly state: "available" | "armed" | "tripped"; readonly firedYear: number | null },
-    active: boolean,
-  ): HTMLElement {
-    const pending = this.pendingTripwireKeys.has(`${starId}:${tw.kind}`);
-    const interactive = active && !pending;
-
-    const row = document.createElement(interactive ? "button" : "div") as HTMLButtonElement | HTMLDivElement;
-    if (row instanceof HTMLButtonElement) row.type = "button";
-    row.className =
-      "study-tripwire-row" + (interactive ? "" : " study-tripwire-row--inert");
-    if (interactive) {
-      row.addEventListener("click", () => this.toggleTripwire(starId, tw.kind, tw.state));
-    }
-
-    const label = document.createElement("div");
-    label.className = "study-tripwire-label holos-caps";
-    label.textContent = TRIPWIRE_LABEL[tw.kind];
-
-    const badge = document.createElement("div");
-    badge.className = `tend-badge study-tripwire-badge study-tripwire-badge--${tw.state}`;
-    badge.textContent = pending ? "…" : TRIPWIRE_STATE_LABEL[tw.state];
-
-    row.append(label, badge);
-    return row;
   }
 
   // ── Render: focused view ─────────────────────────────────────────────
@@ -9001,7 +8914,7 @@ export class StudyBoard {
   //   engaged   the smudge, no caption, and the verbs it has always carried.
   //
   // Everything between those — the readings, the archive, OPEN QUESTIONS with
-  // their prices, the tripwires — is identical, because it is identical. The
+  // their prices — is identical, because it is identical. The
   // questions are the call to action on an un-acted board: buying one is the
   // first act, and the record materializes under it.
 
@@ -9285,22 +9198,6 @@ export class StudyBoard {
       oqSection.append(questionRow);
     }
     host.append(oqSection);
-
-    host.append(this.hairline());
-
-    // TRIPWIRES — always all three kinds (protocol.ts's tripwires comment),
-    // inert on a closed study exactly as OPEN QUESTIONS already is above:
-    // visible so a reopen shows what would resume, never tappable.
-    const twSection = document.createElement("div");
-    twSection.className = "study-tripwires";
-    const twHeader = document.createElement("div");
-    twHeader.className = "study-section-header holos-caps";
-    twHeader.textContent = "TRIPWIRES";
-    twSection.append(twHeader);
-    for (const tw of s.tripwires) {
-      twSection.append(this.buildTripwireRow(starId, tw, !closed));
-    }
-    host.append(twSection);
 
     host.append(this.hairline());
 

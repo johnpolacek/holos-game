@@ -216,8 +216,8 @@ honestly.
 
 **AS is complete (2026-08)** — ambient studies: a full board now stands
 on every visible source with no gate and no verb, and the stored record
-materializes on the player's first act (a question, a tripwire, a call, a
-mission), which is what keeps the exits anchored to attention. The picker
+materializes on the player's first act (a question, a call, a mission),
+which is what keeps the exits anchored to attention. The picker
 and the briefing screen are gone and the Desk lists what has been spent
 on; launch brief and as-built record:
 [build-ambient-studies.md](./build-ambient-studies.md).
