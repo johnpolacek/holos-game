@@ -305,7 +305,7 @@ export const PROJECTS: readonly ProjectDef[] = [
     // axis. The page lists it beside the axes as a program.
     placement: { on: "none" },
     howLine:
-      "The same collectors, pointed on a schedule instead of on interest. Every system inside the chosen radius is characterized to the same depth, in a fixed rotation, whether or not anything has ever been noticed there. Nothing is added to the instrument. What changes is where it looks, and for how long.",
+      "The same collectors, pointed on a schedule instead of on interest. Every system inside the chosen radius is characterized to the same depth, in a fixed rotation, whether or not anything has ever been noticed there. What changes is where it looks, and for how long.",
     changesLine:
       "Completeness. A place you never looked at and a place you looked at and found empty stop being the same entry.",
     skyLine:
@@ -326,7 +326,7 @@ export const PROJECTS: readonly ProjectDef[] = [
     family: "instrument",
     placement: { on: "axis", axis: "band", after: null },
     howLine:
-      "Optics and detectors rebuilt for the wavelengths below the ones the array was made for, and the instrument itself chilled until its own glow stops competing with what it is trying to see. Cold objects radiate down there, and steady heat is the one tell nature does not counterfeit.",
+      "Optics and detectors rebuilt for the wavelengths below the ones the array was made for, and the instrument itself chilled until its own glow stops competing with what it is trying to see. Cold objects radiate down there.",
     changesLine:
       "The band, and with it the class of things that are cold rather than dark. Warmth outside the instrument's old reach becomes a reading.",
     skyLine:
@@ -368,7 +368,7 @@ export const PROJECTS: readonly ProjectDef[] = [
     family: "instrument",
     placement: { on: "axis", axis: "baseline", after: null },
     howLine:
-      "Two collectors held an astronomical unit apart, their light brought together with the path lengths matched to a fraction of a wavelength. Resolution follows the separation, not the mirror: at that spacing a pair splits detail no single aperture anyone could fly would reach.",
+      "Two collectors held an astronomical unit apart, their light brought together with the path lengths matched to a fraction of a wavelength. At that spacing a pair splits detail no single aperture anyone could fly would reach.",
     changesLine:
       "Resolution, on everything. A source that was a point becomes a point with structure, which is what a mass and an edge are measured from.",
     skyLine:
@@ -412,7 +412,7 @@ export const PROJECTS: readonly ProjectDef[] = [
     howLine:
       "The light is divided before it is reconstructed, each narrow slice reduced on its own and measured against a comb of reference frequencies that does not drift. A composition shows as narrow lines; a sum across the whole band is the operation that erased them.",
     changesLine:
-      "Channel count. A composition stops being a color and becomes a list of names, and worked air can be told from ordinary air.",
+      "Channel count. Worked air can be told from ordinary air.",
     skyLine:
       "Nothing. A rebuild inside the housings of an instrument that never emitted anything to begin with.",
     landedLine:
@@ -431,7 +431,7 @@ export const PROJECTS: readonly ProjectDef[] = [
     family: "instrument",
     placement: { on: "axis", axis: "phase-reference", after: null },
     howLine:
-      "A few dozen collapsed stars spin with the steadiness of an atomic clock, and their pulses arrive on a schedule older than anything local. Timing every collector against them puts the whole array, and the whole archive, on one frame that does not wander.",
+      "The pulses of a few dozen collapsed stars arrive on a schedule older than anything local. Timing every collector against them puts the whole array, and the whole archive, on one frame that does not wander.",
     changesLine:
       "The frame. Positions and arrival times taken centuries apart become comparable, so a swing and a schedule can be fitted across the whole record.",
     skyLine:
@@ -460,7 +460,7 @@ export const PROJECTS: readonly ProjectDef[] = [
     family: "instrument",
     placement: { on: "axis", axis: "neutrinos", after: null },
     howLine:
-      "A volume of cold matter sunk deep enough that nothing but a neutrino reaches it, instrumented to catch the rare one that interacts. Neutrinos leave a fusing core directly and pass through everything after: they cannot be shaped, delayed, diluted or counterfeited by anyone.",
+      "A volume of cold matter sunk deep enough that nothing but a neutrino reaches it, instrumented to catch the rare one that interacts. Neutrinos leave a fusing core directly and pass through everything after.",
     changesLine:
       "A second channel, independent of light. Readings that light alone left too faint to trust get a check nothing built can stage.",
     skyLine:
@@ -473,7 +473,7 @@ export const PROJECTS: readonly ProjectDef[] = [
     id: "cold-logic-annex",
     label: "Cool the inference annex",
     proseName: "the inference annex",
-    line: "Thinking costs less the colder it is done, so the annex runs near the floor of what the universe permits: slow thoughts, cheap ones, and a very great many of them at once.",
+    line: "Thinking costs less the colder it is done, so the annex runs near the floor of what the universe permits: slow thoughts, and a very great many of them at once.",
     effectLine: "Raises the compute income by 30 a year, for good.",
     costClass: "endeavor",
     // content.md flags 1600; raised to 2100 per synthesis.md §4's tuning
@@ -613,7 +613,7 @@ export const PROJECTS: readonly ProjectDef[] = [
     changesLine:
       "Contrast. What stands beside a star can be measured on its own terms instead of dug out of the star's own light.",
     skyLine:
-      "Nothing. Cancelling a star's light is something done inside our own instrument; the star is unaffected, and nothing about the array changes from outside.",
+      "Nothing. Cancelling a star's light is done inside our own instrument, and the star is unaffected.",
     landedLine:
       "The combiner cancels a star against itself before anything downstream sees it. What stands beside the star arrives on its own, and a measurement of a companion is no longer a measurement made through glare.",
     effect: {
@@ -635,7 +635,7 @@ export const PROJECTS: readonly ProjectDef[] = [
     family: "instrument",
     placement: { on: "axis", axis: "elements", after: null },
     howLine:
-      "Baselines come in pairs, so the count of pairs rises with the square of the count of collectors: every element added brings as many new baselines as there were elements before it. Each fills a spacing the array was blind to, and every gap filled is one fewer thing the reconstruction has to invent.",
+      "Every pair of collectors is a baseline, so the count of baselines rises with the square of the count of collectors: every element added brings as many new baselines as there were elements before it. Each fills a spacing the array was blind to, and every gap filled is one fewer thing the reconstruction has to invent.",
     changesLine:
       "Sampling, under everything reconstructed as an image. Fewer images fit the same data, so every reconstruction has less to invent and less to search.",
     skyLine:
@@ -660,7 +660,7 @@ export const PROJECTS: readonly ProjectDef[] = [
     family: "instrument",
     placement: { on: "axis", axis: "baseline", after: "long-baseline-optical" },
     howLine:
-      "Two plain collectors light-hours apart, each recording only how the brightness flickers, and the two records multiplied together. Light from one source flickers in step at both ends, and how quickly that agreement falls off with separation gives the source's size. Phase is not recovered and cannot be.",
+      "Two plain collectors light-hours apart, each recording only how the brightness flickers, and the two records multiplied together. Light from one source flickers in step at both ends, and how quickly that agreement falls off with separation gives the source's size.",
     changesLine:
       "Baseline, past where phase can be held. Sizes and shapes at a separation nothing else reaches, and no image at the end of it.",
     skyLine:

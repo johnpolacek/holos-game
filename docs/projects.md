@@ -55,8 +55,20 @@ shape, priced differently, is what keeps the whole game legible.
 Every project, from a survey sweep to the deep Vault, is the same small
 record ([ui-design.md](./ui-design.md): project cards carry the clock):
 
-- **A family.** Bright (energy ladder), dark (integration ladder), or
-  instrument (both) — per act2-design.md, *Projects*.
+- **A family.** A real, required field on the catalog entry
+  (`ProjectDef.family`), one of four values: **bright** (the energy
+  ladder), **dark** (the integration ladder), **instrument** (both, and
+  the observatory's own shelf), **carrier** (the work that moves mass or
+  light out of the system) — per act2-design.md, *Projects*, plus the
+  carrier shelf technology.md §IV already catalogs. Required means a new
+  entry cannot reach the Projects page ungrouped; the page groups by it,
+  and `bright` sits in the type with no entries yet so the first swarm
+  stage is a catalog row and not a type change. **Family and axis
+  placement are orthogonal**: family says what *kind of work* a project
+  is, an axis (below) says *which term of the reconstruction* it moves,
+  and a dark project can sit on an instrument axis. The Vault is dark work
+  on the ARCHIVE axis; the inference annex is dark work on the CORRELATOR.
+  Both facts are true at once, and the types allow both.
 - **A cost profile and class.** The four prices plus residues, and the
   class from Ambient up to Epochal (economy-design.md, *The cost
   classes*).
@@ -67,6 +79,79 @@ record ([ui-design.md](./ui-design.md): project cards carry the clock):
 - **A product.** What exists afterward: a swarm stage glowing on the
   system map, an instrument tier, a mask's ongoing shelter, a survey's
   findings delivered as a beat.
+
+---
+
+## The instrument's axes
+
+**Settled 2026-08 ([build-instruments.md](./build-instruments.md),
+decision 2).** The instrument family is not a shelf of unrelated
+purchases; it is one machine. A civilization at this tier does not own a
+telescope, it owns an **interferometer** — many collectors across the home
+system, their signals correlated — and every image, spectrum and
+measurement it has ever read was *computed* out of those correlations by
+solving an inverse problem with no unique answer. An instrument project
+buys down exactly one term of that problem, for good. Those terms are the
+**axes**, and there are twelve.
+
+Each axis is a short ladder. **Rung 0 is inherited at placement**: it is
+what every civilization already owns on that axis, it costs nothing, it
+has no clock and no effect, and it is not a project — it can never be
+started, never appears in the running set, and has no id in the project
+space. Everything above rung 0 is a catalog entry.
+
+| Axis | Rung 0 (inherited, not purchasable) | Rungs, in order |
+|---|---|---|
+| COLLECTING AREA | the inherited array | the deep array |
+| BASELINE | system-scale | the long baseline → the flicker pair |
+| ELEMENTS | sparse | the filled plane |
+| BAND | visible and near-infrared | the cold-band refit |
+| CHANNELS | broadband | the spectrograph bank |
+| PHASE REFERENCE | local clocks | the pulsar clocks → the second sightline |
+| ARCHIVE | reduced products | the Vault |
+| CORRELATOR | run warm | the inference annex |
+| NULLING | none | the star null |
+| SHADOWS | none | the occultation net |
+| NEUTRINOS | none | the neutrino watch |
+| THE BORROWED LENS | none | the focal-line observatory → the focal-line ring |
+
+**Rungs are named, never numbered.** No rung index exists in the data, so
+no surface can render a level, a maximum, or a fraction of a ladder. The
+last shipped rung on an axis is the last *shipped*, not the last.
+
+**A rung requires the rung below it.** An instrument entry cannot be
+started until its predecessor on the same axis has *landed* — started is
+not enough. The rule gates **new starts only**: a civilization already
+running a rung out of order keeps it, and nothing stored is refused
+retroactively. Rung 0 is every axis's implicit predecessor, so an axis's
+first rung is always available.
+
+Two entries sit on **no axis** at all: the standing survey, which is
+instrument-family but a campaign run *on* the machine rather than a change
+to it, and so is listed beside the axes as a program; and the launch beam,
+which is carrier work and belongs to its own family's section.
+
+The ladder order is *derived* from each entry's stated predecessor rather
+than authored as a list, so a malformed chain (two entries opening one
+axis, two following the same rung, a predecessor on another axis, a cycle)
+is a failure at load rather than a wrong page. `npm run audit:axes` is
+where it speaks.
+
+### What the axes added
+
+Four entries landed with the axis shape, all of them discounts on bought
+questions and none of them a new effect kind:
+
+| Project | Axis | Class | Cost | Years | Effect |
+|---|---|---|---|---|---|
+| Set the second sightline | phase reference (after the pulsar clocks) | Investment | 800 | 70 | LISTEN OFF-AXIS 40% cheaper |
+| Null the star | nulling (opens it) | Endeavor | 1500 | 80 | TAKE ITS TEMPERATURE and READ ITS LINES 25% cheaper |
+| Fill the plane | elements (opens it) | Endeavor | 1400 | 100 | WEIGH IT, READ ITS LINES, CATCH ITS EDGES and LISTEN OFF-AXIS 15% cheaper |
+| Pair the flicker | baseline (after the long baseline) | Endeavor | 1800 | 160 | CATCH ITS EDGES 35% cheaper |
+
+The durations interleave with the shipped ones deliberately (the stagger
+rule under *The plate rack*, read from the catalog side), and no shipped
+number moved.
 
 ---
 
@@ -89,6 +174,13 @@ player learns quickly which projects respond to attention and which
 respond only to patience, and that distinction — fundable work versus
 physics-floored work — is itself a lesson the game is teaching for Act 3,
 where flight and light-lag are all floor.
+
+**Which is why a project has a clock and a bought question does not.** A
+project moves mass, and a launch moves light; duration exists exactly
+where something has to travel, and a question moves nothing — at swarm
+power any search a mind would actually size finishes the year it is
+bought, so its whole price is deciding what fraction of a star to point at
+one star (physics-audit.md P0-1, and build-instruments.md's *Why*).
 
 ---
 

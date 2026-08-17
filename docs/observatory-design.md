@@ -157,6 +157,12 @@ curve into a claim about who lives there. That is why the currency is
 Compute and why the surface never denominates it in telescope hours: it is
 an allocation of thinking, not a rationing of sight. (Earlier drafts of
 this document called it "instrument time"; same mechanic, wrong noun.)
+Since IN3 the row says so before the spend: a question's drill-in states
+**what is already running** (the standing read's free product on this
+question, and the exact point where it stops) and **what the spend buys**
+(the deeper reconstruction, and why that work is what it costs), then
+names the axes the question leans on — the terms of the instrument that
+bound it, and so the projects that would make it cheaper.
 
 **Compute is an allocation, not a slot — and not a bank.** (Enforced
 2026-07 as the attention ceiling: uncommitted compute saturates at about a
@@ -171,6 +177,24 @@ refuses. Scarcity does the design work: with three live studies and income
 for one deep question, *which question, on which study* is a real decision
 every session. There is no cap on how many studies a player takes up — only
 on how fast any of them can move.
+
+**What those projects are buying, and what shape they come in.** The
+instrument family is one machine: not a telescope but an
+**interferometer**, many collectors across the home system with their
+signals correlated. It never records a picture, only correlations, so
+every image, spectrum and measurement the civilization has ever read was
+*computed* out of a centuries-deep archive of raw interference data, by
+solving an inverse problem with no unique answer. That is what the compute
+is for, and it is why the standing read is free while a deeper look is
+not. An instrument project buys down exactly one term of that problem, for
+good, and there are **twelve** of them — collecting area, baseline,
+elements, band, channels, phase reference, archive, correlator, nulling,
+shadows, neutrinos, the borrowed lens. Each is a short ladder whose
+inherited rung the civilization already owns and whose later rungs are the
+catalog entries above; a rung cannot be started until the one below it has
+landed. The axes, their inherited rungs and the predecessor rule live in
+[build-instruments.md](./build-instruments.md); the catalog side is in
+[projects.md](./projects.md).
 
 **Sequencing is the skill.** A cheap question that halves the hypothesis
 space beats an expensive one that polishes the leader. The observatory

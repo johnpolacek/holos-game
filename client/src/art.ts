@@ -1,10 +1,12 @@
 // Content-art resolver — maps a catalog id to its pregenerated plate URL.
 //
 // The library under client/public/art/ ships one plate per possibility on
-// three axes, each in two crops (see docs/content-art-*.md and the manifest):
-//   worlds/{sq,wide}/NN.webp   — cradle id, zero-padded 2 digits (01–40)
-//   species/{sq,wide}/SN.webp  — lineage id verbatim (S1–S20)
-//   tech/{sq,wide}/<id>.webp   — waking-mind archetype id (beacon … phoenix)
+// four axes, each in two crops (see docs/content-art-*.md and the manifest):
+//   worlds/{sq,wide}/NN.webp     — cradle id, zero-padded 2 digits (01–40)
+//   species/{sq,wide}/SN.webp    — lineage id verbatim (S1–S20)
+//   tech/{sq,wide}/<id>.webp     — waking-mind archetype id (beacon … phoenix)
+//   projects/{sq,wide}/<slug>.webp — project id, or inherited-<axisId> for a
+//                                    rung 0 (docs/content-art-projects.md)
 //
 // Resolution is purely structural: id + ratio → path, no lookup table beyond
 // the id (per the content-art docs). The caller picks the crop by layout.
@@ -51,4 +53,27 @@ export function speciesArt(lineageId: LineageId, ratio: ArtRatio): string {
  */
 export function technologyArt(archetypeId: ArchetypeId, ratio: ArtRatio): string {
   return `${BASE}/tech/${ratio}/${archetypeId}.webp`;
+}
+
+/**
+ * Project plate URL for a project id, or for an axis's inherited rung 0 via
+ * `inherited-<axisId>` (build-instruments.md Decision 8). Total by
+ * construction, like {@link speciesArt} and {@link technologyArt} — the
+ * catalog names 29 slugs and the string is built from the id alone, no
+ * lookup table.
+ *
+ * Total is not the same as present: unlike the other three axes, this
+ * library's 29 plates are rendered and land incrementally, one PR at a time
+ * (Decision 8, "no art is generated in the repo"), so a URL this resolves
+ * can 404 for a good while after it ships. The resolver stays honest about
+ * that by returning a plain string rather than `string | null` — there is no
+ * catalog-side "does it exist" check to run — which pushes the null-safety
+ * onto the caller: every `<img>` built from this URL must carry an `onerror`
+ * that removes the image (or its space-reserving wrapper) from the DOM. A
+ * plate that has not landed yet must never leave a broken-image glyph or a
+ * reserved empty box on screen; it must cost nothing, the same as if the
+ * caller had never asked for it. See `buildPlate` in studyboard.ts.
+ */
+export function projectArt(slug: string, ratio: ArtRatio): string {
+  return `${BASE}/projects/${ratio}/${slug}.webp`;
 }

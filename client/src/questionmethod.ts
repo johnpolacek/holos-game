@@ -50,11 +50,11 @@ export const QUESTION_METHOD: Readonly<
   "weigh-it": {
     running:
       "The source's position is logged at every epoch and fitted, cheaply, as one body swinging around one center. That gives a mass with everything unmodelled folded into it, which is a mass you cannot set against a heat.",
-    buys: "Mass is a motion, and the motion is a small fraction of what the array can resolve, spread across epochs that were never registered to each other. The spend puts every epoch in one frame and solves the wander jointly rather than in turn. One fit, many epochs: dearer than a curve, cheaper than a search.",
+    buys: "Mass is a motion, and the motion is a small fraction of what the array can resolve, spread across epochs that were never registered to each other. The spend puts every epoch in one frame and solves the wander jointly rather than in turn. Dearer than a curve, cheaper than a search.",
   },
   "temperature-over-time": {
     running:
-      "Total power in a band, epoch by epoch, with the star suppressed just enough to leave what is beside it. Nothing here needs a phase, so samples of this kind simply add.",
+      "Total power in a band, epoch by epoch, with the star suppressed just enough to leave what is beside it. Nothing here needs a phase, so samples of this kind simply add. Each epoch is averaged on its own, so the run gives a temperature and never what is setting it.",
     buys: "A joint solution in place of a sequence of averages. The spend suppresses the star properly at every epoch, then fits the whole run at once for emissivity, thermal mass, rotation and orbit. Few unknowns and no bank to build, which is why it prices at the shallow end.",
   },
   "read-its-lines": {
