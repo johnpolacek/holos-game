@@ -2255,6 +2255,32 @@ body {
   padding: 0 0 0.3rem;
 }
 
+/* IN4: the project sheet's and the rung-0 page's hero plate, wide crop. The
+   library ships incrementally (art.ts's projectArt header), so the wrapper
+   reserves the crop's aspect ratio and buildPlate's onerror removes the
+   WRAPPER, never just the image, so an unrendered plate leaves no broken
+   glyph and no empty box: the height simply collapses back to zero. */
+.study-plate-wide {
+  /* [hidden] until the image loads (buildPlate): the aspect box is reserved
+     only for a plate that exists, never for one that has not been rendered. */
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 0.7rem;
+  margin: 0.1rem 0 0.6rem;
+}
+
+.study-plate-wide[hidden],
+.report-plate[hidden] {
+  display: none;
+}
+
+.study-plate-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .study-hairline {
   margin: 0.3rem 0;
 }
@@ -3557,6 +3583,19 @@ body {
   font-size: var(--holos-text-sm);
   line-height: 1.4;
   color: var(--holos-ink);
+}
+
+/* IN4: a thumbnail on a project-landed entry, sq crop, self-start so it does
+   not stretch to the row's full width the way .tend-row's column flow would
+   otherwise pull it. Same null-safe wrapper as .study-plate-wide (buildPlate's
+   header): an unrendered plate collapses to nothing rather than a broken
+   glyph or an empty box. */
+.report-plate {
+  align-self: flex-start;
+  width: 3.4rem;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 0.5rem;
 }
 
 /* IN3: the entry's technical body — what the instrument now is, frozen at

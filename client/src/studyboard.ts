@@ -149,7 +149,7 @@ import { MAX_NAME_LEN, validateName } from "@holos/protocol";
 // card you inherit and the card you write are the same furniture, and a second
 // implementation would let the two drift apart.
 import { cradleGradient, renderDialBand } from "./ceremony";
-import { worldArt } from "./art";
+import { worldArt, projectArt } from "./art";
 import type { CohortSocket } from "./net";
 import { startOver } from "./startover";
 import { QUESTION_METHOD } from "./questionmethod";
@@ -2417,6 +2417,41 @@ export class StudyBoard {
     return hr;
   }
 
+  /**
+   * IN4: a plate for a project or an axis's inherited rung 0, null-safe
+   * against a plate that has not landed yet. Unlike worldArt's fallback
+   * gradient, projectArt (art.ts) is total by construction over a library
+   * that ships incrementally (build-instruments.md Decision 8), so the URL
+   * this builds can 404 for a while after the sheet itself ships. The
+   * wrapper carries `wrapperClass` and reserves the crop's aspect ratio in
+   * CSS, so nothing around it jumps once the image resolves; `onerror`
+   * removes the WRAPPER, never just the `<img>`, so a plate that fails to
+   * load leaves no broken-image glyph and no reserved empty box behind it —
+   * costs nothing, same as never having asked. Decorative only: the caption
+   * beside every plate is the content, so alt is always empty.
+   */
+  private buildPlate(url: string, wrapperClass: string): HTMLElement {
+    const wrap = document.createElement("div");
+    wrap.className = wrapperClass;
+    const img = document.createElement("img");
+    img.className = "study-plate-img";
+    img.src = url;
+    img.alt = "";
+    img.loading = "lazy";
+    img.decoding = "async";
+    // Hidden until the bytes are here, and gone if they never come. The
+    // wrapper reserves its aspect only once it has something to hold, so a
+    // sheet whose plate has not been rendered yet shows no empty box and no
+    // collapse: absence costs nothing, and presence lands once, on load.
+    wrap.hidden = true;
+    img.onload = () => {
+      wrap.hidden = false;
+    };
+    img.onerror = () => wrap.remove();
+    wrap.append(img);
+    return wrap;
+  }
+
   // ── Render: the landing pages ─────────────────────────────────────────
   //
   // Five pages, one per rail tab, and the rail is how a player leaves any of
@@ -4549,6 +4584,10 @@ export class StudyBoard {
     header.append(nameEl);
     this.body.append(header);
 
+    // IN4: the hero plate, wide crop, null-safe (buildPlate's header) —
+    // absent until this project's slug lands in the art library.
+    this.body.append(this.buildPlate(projectArt(p.id, "wide"), "study-plate-wide"));
+
     const line = document.createElement("div");
     line.className = "study-focus-lightage";
     line.textContent = p.line;
@@ -4702,6 +4741,12 @@ export class StudyBoard {
     nameEl.textContent = axis.label;
     header.append(kicker, nameEl);
     this.body.append(header);
+
+    // IN4: same hero plate as the project sheet, keyed to the inherited
+    // rung's own slug (art.ts's projectArt, "inherited-<axisId>").
+    this.body.append(
+      this.buildPlate(projectArt(`inherited-${axis.id}`, "wide"), "study-plate-wide"),
+    );
 
     const line = document.createElement("div");
     line.className = "study-focus-lightage";
@@ -5388,6 +5433,13 @@ export class StudyBoard {
     record.className = "report-row-line";
     record.textContent = entry.record;
     el.append(record);
+
+    // IN4: a thumbnail for a project-landed entry, null-safe the same way
+    // as the sheet's hero plate. Small on purpose — this is a record row,
+    // not the sheet itself, which is a tap away through the route below.
+    if (entry.route.kind === "project") {
+      el.append(this.buildPlate(projectArt(entry.route.projectId, "sq"), "report-plate"));
+    }
 
     // IN3: the technical body, frozen at landing beside the record it
     // explains. The record says what happened in one sentence under its
