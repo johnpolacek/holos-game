@@ -171,14 +171,33 @@ every subagent's output, keeps checks green, and commits.
    `focal-line-constellation` running without the observatory keeps it.
    No migration; `ProjectState` v3 is unchanged.
 4. **Four new catalog entries, all `question-discount`, no new effect
-   kind.** v1 targets, priced in the orchestration call above:
+   kind.** Priced by orchestration call 3 (two framings, synthesized; the
+   v1 targets the brief first carried are superseded):
 
    | id | label | family / axis | class | cost | years | effect |
    |---|---|---|---|---|---|---|
-   | `second-sightline` | Set the second sightline | instrument / phase reference | endeavor | 1400 | 80 | LISTEN OFF-AXIS 40% |
-   | `star-null` | Null the star | instrument / nulling | endeavor | 1600 | 90 | TAKE ITS TEMPERATURE and READ ITS LINES 30% |
-   | `fill-the-plane` | Fill the plane | instrument / elements | endeavor | 2000 | 100 | every question 10% |
-   | `flicker-pair` | Pair the flicker | instrument / baseline | endeavor | 2600 | 130 | WEIGH IT and CATCH ITS EDGES 25% |
+   | `second-sightline` | Set the second sightline | instrument / phase reference | investment | 800 | 70 | LISTEN OFF-AXIS 40% |
+   | `star-null` | Null the star | instrument / nulling | endeavor | 1500 | 80 | TAKE ITS TEMPERATURE and READ ITS LINES 25% |
+   | `fill-the-plane` | Fill the plane | instrument / elements | endeavor | 1400 | 100 | WEIGH IT, READ ITS LINES, CATCH ITS EDGES and LISTEN OFF-AXIS 15% |
+   | `flicker-pair` | Pair the flicker | instrument / baseline | endeavor | 1800 | 160 | CATCH ITS EDGES 35% |
+
+   What the calls settled and why. `flicker-pair` discounts CATCH ITS
+   EDGES only: intensity interferometry loses phase, and weighing is
+   phase-referenced astrometry, so a WEIGH IT discount was wrong physics
+   (and it was the stack that grazed the floor). `fill-the-plane` is a
+   targeted four rather than a blanket: TIME ITS SHADOWS already stacks to
+   0.28 in the shipped catalog (occultation 50% × pulsar 30% × Vault 20%),
+   so any blanket puts it on the floor, and photometry (shadows,
+   temperature) does not need frequency-plane coverage anyway; the four it
+   names are the reconstructions that do. `second-sightline` is honestly an
+   Investment (a station, not an era) and at 1400 was a trap purchase on a
+   question two of five classes offer. Durations 70/80/100/160 interleave
+   with the shipped 20/25/25/30/40/45/50/60/90/110/120/140/320 (v1's 90
+   collided with the annex). Nothing exceeds 288 game years (one real day)
+   without a stage track. No shipped number changes. Also owed in IN1:
+   `questions.ts`'s `EFFECT_KEEP_FLOOR` comment names WEIGH IT at 0.392 as
+   the deepest stack; it is TIME ITS SHADOWS at 0.28 today, and the comment
+   is corrected to say so.
 
    The physics of each, for the prose: a station far enough off-axis that
    its sightline crosses different interstellar medium lets the scattering
@@ -191,13 +210,12 @@ every subagent's output, keeps checks green, and commits.
    the plane). Two crude collectors light-hours apart correlating
    *intensity* rather than amplitude, Hanbury Brown–Twiss, buys a baseline
    nothing else reaches at the price of losing phase: sizes and shapes,
-   not images (flicker pair). **Deepest stack check** after these land:
-   WEIGH IT under long baseline × flicker pair × pulsar clocks × Vault ×
-   plane = 0.7 × 0.75 × 0.7 × 0.8 × 0.9 ≈ 0.26, above
-   `EFFECT_KEEP_FLOOR` 0.25 by a hair; READ ITS LINES under spectrograph
-   × null × Vault × plane = 0.6 × 0.7 × 0.8 × 0.9 ≈ 0.30. If the pricing
-   call moves a percentage, re-run this arithmetic and keep every stack
-   off the floor.
+   not images (flicker pair). **Stacks after these land** (keep fraction,
+   floor 0.25): WEIGH IT 0.7 × 0.7 × 0.8 × 0.85 = 0.333; READ ITS LINES
+   0.6 × 0.75 × 0.8 × 0.85 = 0.306; CATCH ITS EDGES 0.7 × 0.65 × 0.8 ×
+   0.85 = 0.309; LISTEN OFF-AXIS 0.6 × 0.8 × 0.85 = 0.408; TAKE ITS
+   TEMPERATURE 0.75 × 0.8 = 0.60; TIME ITS SHADOWS 0.28, untouched. Every
+   stack the slice touches clears 0.30. A later retune re-runs this line.
 5. **The project sheet gains three blocks.** Under the pitch, before the
    grant: `HOW IT WORKS` (the physics, in the observatory's deadpan),
    `WHAT IT CHANGES` (which term of the reconstruction it moves, in
@@ -247,6 +265,79 @@ every subagent's output, keeps checks green, and commits.
    already owns, described. This is the answer to "what is doing all this
    computing" and it is the surface the whole slice exists for.
 
+## Settled by the calls (Opus ×2 per call, synthesized; do not reopen)
+
+**Call 1, the catalog shape.** One authored fact per project, everything
+else derived (framing B's spine, framing A's zero-churn aggregation).
+
+- `ProjectDef` gains two required fields: `family: ProjectFamily` and
+  `placement: AxisPlacement`, a discriminated union
+  `{ on: "axis"; axis: InstrumentAxis; after: ProjectId | null } |
+  { on: "none" }`. Required and discriminated, so omission cannot satisfy
+  it, and a predecessor without an axis is unwritable. Family and
+  placement are orthogonal, which is how `sky-vault` (dark) sits on
+  ARCHIVE. `standing-survey` and `launch-beam` are `{ on: "none" }`.
+- `AXES: Readonly<Record<InstrumentAxis, AxisDef>>` in `projects.ts`
+  carries, per axis, the chrome label, the one-line `axisLine`, and the
+  inherited rung 0 (`label`, `description`, and its own three prose
+  blocks). A mapped type over the twelve literal keys, so an axis with no
+  rung 0 does not compile and lookups are not `| undefined` under
+  `noUncheckedIndexedAccess`. `AXIS_ORDER` is the display order, asserted
+  total against the key set both ways.
+- **Ladders are derived, not authored.** `axisLadders()` partitions
+  `PROJECTS` by `placement.axis` and chains through `after`; a malformed
+  chain (two roots, a cycle, an `after` on a different axis) throws at
+  module load. Because nothing in CI imports compiled `projects.js`
+  today, a six-line `scripts/audit-axes.mjs` (`npm run audit:axes`, after
+  `build`) imports it and fails on that throw, so the first place it
+  speaks is CI and never production. Rung 0 is not a `ProjectId`, so
+  `StartedProject.id` cannot hold one at compile time and every
+  aggregation function in `projects.ts` changes by zero lines.
+- **Wire.** `welcome` gains `instruments: InstrumentCatalog` (twelve
+  `AxisWire` in `AXIS_ORDER`: id, label, axisLine, the inherited rung's
+  label and prose, and the ordered rung ids), with a `parseInstrumentCatalog`
+  guard, leaving the wholesale-cast group per that switch's own rule.
+  `ProjectSnapshot` gains `family`, `howLine`, `changesLine`, `skyLine`,
+  `landedLine`, and **no axis field**: the client derives placement from
+  the welcome catalog by id, so there is one source. `sky` gains an
+  `isProjectFamily` guard so the client's `Record<ProjectFamily, …>` is
+  total in both directions.
+- **Predecessor rule.** `onStartProject` reads `def.placement.after`
+  directly and refuses unless that project is in `started` and has landed;
+  reuses the `project-required` error code (the client copy for it is
+  checked and re-authored if it names a ship).
+- **`leansOn`.** `readonly InstrumentAxis[]` on `QuestionDef` (a type-only
+  import of `InstrumentAxis` from `projects.ts`; the value cycle does not
+  exist), copied into `studies.ts`'s `OpenQuestion` literals, rendered on
+  the client from the welcome catalog's axis labels.
+
+**Call 2, the report's technical body.** Framing B wins on its own terms.
+
+- A **second authored string, `landedLine`**, per project: the annal's
+  past-tense account of what the instrument now is. Reusing `changesLine`
+  under a frame fails on tense, on R-42 (a comparative still pitching a
+  purchase made centuries ago), and on room (24 words against a 60-word
+  field). The pair that could drift is `landedLine`/`howLine`, both about
+  mechanism; the rule is that `howLine` explains and `landedLine` records,
+  and review holds it. No `landedLine ?? changesLine` fallback: null
+  renders as today.
+- `detail: string | null` on `StoredReportEntry` and `ReportEntry`,
+  **frozen at landing** (report.ts is snapshot-pure, so `landedLine` rides
+  `ProjectSnapshot` exactly as `effectLine` does). Resolve-at-read would
+  let a later catalog edit rewrite year 212. `parseReportPayload` must
+  admit the field or it is silently dropped.
+- **No detail on question entries.** `leansOn` is invariant per question
+  and is not news at answer time; the receipt that is news
+  (`costProvenance`) already exists. The lean line lives on the drill-in
+  only.
+- §2 row: report detail 60 · aim 40, observatory deadpan, wit 0, R-33a
+  undated, and **names no quantity**, so no `audit:facts` coupling is
+  ever owed. Covered by `audit:catalog` and `audit:dashes`; `audit:voice`
+  cannot see it and is not asked to.
+- Client row order: stamp, record, plate (IN4), detail, remark. `.report-
+  detail` at `--holos-text-xs` / `--holos-ink-dim`, never xxs.
+  `scripts/prod/report.mjs` prints detail on its own marked line.
+
 ## Stages
 
 Each stage is a small, single-purpose PR, and **every merge is
@@ -255,11 +346,12 @@ shippable** (`main` auto-deploys).
 - **IN1 — server: the catalog knows what it is.** `family` on
   `ProjectDef` and `ProjectSnapshot`; the axis/rung shape per call 1;
   rung-0 descriptors and the axis table on `welcome`; the four new
-  entries with all three prose blocks; `howLine` / `changesLine` /
-  `skyLine` (names per call 1) on every existing entry; `leansOn` on
+  entries with all four prose blocks; `howLine`, `changesLine`,
+  `skyLine`, `landedLine` on every existing entry; `leansOn` on
   `QuestionDef` and `OpenQuestion`; the predecessor rule in
-  `startProject`; `audit:facts` couplings for any block that restates a
-  field. Protocol changes in `protocol.ts` only, with guards.
+  `startProject`; `scripts/audit-axes.mjs` in CI; `audit:facts`
+  couplings for any block that restates a field. Protocol changes in
+  `protocol.ts` only, with guards.
 - **IN2 — client: the Projects page has a shape.** Grouped by family
   (`Record<ProjectFamily, …>`, exhaustive); the instrument section lists
   axes, each with its current rung and its next rung as the offer, plus
