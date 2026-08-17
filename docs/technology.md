@@ -394,6 +394,25 @@ support — classifying one warm mass correctly can reorder every priority
 a civilization has while changing no stat at all. Instruments generate
 information beats; they are how the sky stops being wallpaper.
 
+**The family is one machine, and it has twelve terms.** A civilization at
+this tier does not own a telescope; it owns an *interferometer* — many
+collectors across the home system, their signals correlated. An
+interferometer never records a picture, only correlations, so the archive
+is raw interference data centuries deep and **every image, spectrum and
+measurement anyone has ever read was computed out of it**, under
+assumptions, by solving an inverse problem that has no unique answer. The
+standing read solves the cheap version of that problem continuously, on
+everything, for free; a bought question re-solves it under assumptions the
+standing read cannot afford; and **an instrument project buys down exactly
+one term of it, for good**. The terms are collecting area, baseline,
+element count, band, channel count, phase reference, archive fidelity,
+correlator, nulling, shadows, neutrinos, and the borrowed lens — the
+twelve axes of [build-instruments.md](./build-instruments.md), which is
+where the ladder shape, the inherited rung 0 of each axis, and the
+predecessor rule live. Every entry below sits on one of those terms
+(or, like the survey, is a campaign run on the machine rather than a
+change to it).
+
 ### Deep arrays
 
 - **What it is.** The observatory's foundation: interferometric telescope
@@ -456,6 +475,105 @@ information beats; they are how the sky stops being wallpaper.
   ripple. The vigil is safe. That is what makes ending one a choice.)
 - **Who builds it.** Anyone in a vigil. The Cloister's are the oldest;
   the Shepherd's are the most numerous, one per ward.
+
+### The second sightline
+
+- **What it is.** A single receiving station held far enough off the
+  array's own line that it looks at the same sources through a different
+  column of interstellar medium. The phase-reference axis's second rung,
+  after the pulsar clocks.
+- **The physics.** The medium between here and a source disperses and
+  smears the phase, and one sightline cannot separate that smearing from
+  the source's own motion — which is the term that actually bounds how
+  long a stretch of archive can be stacked coherently. Two widely
+  separated lines of sight disagree only about the medium, so the medium
+  becomes a measured quantity instead of an assumed one, and the trial
+  phase models a coherent stack has to search over stop having to cover
+  it.
+- **In play.** Instrument; Investment, 800 Compute over 70 years. Buys
+  down the phase-reference term: LISTEN OFF-AXIS costs 40% less compute,
+  on every study. Signature-neutral. Honestly a station rather than an
+  era, which is what keeps it an Investment.
+- **In the sky.** Nothing. One more cold receiver holding a position a
+  long way off the line, doing the one thing that costs an observer no
+  visibility at all.
+- **Who builds it.** Anyone who has started listening around beams and
+  found the archive stacking blind. The Cloister first, because its whole
+  practice is reading what was not aimed at it.
+
+### The star null
+
+- **What it is.** A combiner that interferes a star's own light against
+  itself until it cancels, leaving whatever stands beside it untouched.
+  Bracewell nulling, at system scale. It opens the nulling axis, which
+  every civilization inherits at *none*.
+- **The physics.** Light from the star reaches the combiner by two paths
+  cut to arrive exactly out of step, and destructive interference removes
+  it. Anything a little off-axis arrives at a different angle, does not
+  cancel, and survives. Contrast is the hard part of every
+  planet-beside-star measurement — the star outshines its neighbors by a
+  margin no subtraction afterwards recovers — and suppression is cheap in
+  the optics and impossible in the arithmetic.
+- **In play.** Instrument; Endeavor, 1500 Compute over 80 years. Buys down
+  the nulling term: TAKE ITS TEMPERATURE and READ ITS LINES cost 25% less
+  compute, on every study. Signature-neutral. The two questions it touches
+  are the two that are made entirely through glare.
+- **In the sky.** Nothing. Cancelling a star's light happens inside the
+  observer's own instrument; the star is unaffected and nothing about the
+  array reads differently from outside.
+- **Who builds it.** Everyone in a serious vigil, eventually. The Shepherd
+  builds it early, because a ward's temperature is the reading it checks
+  most.
+
+### The filled plane
+
+- **What it is.** More collectors on the existing geometry, sited to fill
+  the spacings the array was blind to. The element-count axis, which
+  begins *sparse*.
+- **The physics.** Baselines come in pairs, so N elements give N(N−1)/2
+  baselines: every element added contributes as many new baselines as
+  there were elements before it. Each baseline samples one spacing in the
+  frequency plane, and every gap left unsampled is a family of images that
+  fit the data equally well — the reconstruction invents the difference.
+  Filling the plane does not make the instrument see farther; it makes
+  every reconstruction less ill-posed, and so cheaper to search.
+- **In play.** Instrument; Endeavor, 1400 Compute over 100 years. Buys
+  down the element-count term: WEIGH IT, READ ITS LINES, CATCH ITS EDGES
+  and LISTEN OFF-AXIS cost 15% less compute, on every study. A targeted
+  four rather than a blanket — photometry (shadows, temperature) does not
+  need frequency-plane coverage, and the shadow question is already the
+  catalog's deepest discount stack.
+- **In the sky.** Nothing standing, and `TRANSIT SHADOWS` while it is
+  built: elements at this count cross the home star often enough that a
+  patient observer elsewhere could count them going up.
+- **Who builds it.** Everyone, because it is the one instrument project
+  that makes every other reading cheaper at once. Integration
+  civilizations build it before anything with a bearing.
+
+### The flicker pair
+
+- **What it is.** Two crude collectors light-hours apart that compare not
+  the light but its flicker. The baseline axis's second rung, after the
+  long baseline, and the end of that ladder as shipped.
+- **The physics.** Hanbury Brown–Twiss intensity interferometry:
+  each end records only how the brightness fluctuates, and the two records
+  are multiplied together. Light from one source flickers in step at both
+  ends, and how fast that agreement falls off with separation gives the
+  source's angular size. The method needs no coherent link and no phase
+  stability, which is why the separation can be enormous — and it **loses
+  phase permanently**. What comes back is sizes and shapes, never an
+  image, and never astrometry: weighing a thing is phase-referenced
+  position, and this instrument cannot do it.
+- **In play.** Instrument; Endeavor, 1800 Compute over 160 years. Buys
+  down the baseline term past where phase can be held: CATCH ITS EDGES
+  costs 35% less compute, on every study. Signature-neutral. The longest
+  clock in the instrument family below the focal-line ring.
+- **In the sky.** Nothing. Two plain collectors a long way apart, each
+  doing nothing an observer could distinguish from a rock at the same
+  temperature.
+- **Who builds it.** The patient. A civilization that has run the long
+  baseline to its limit and wants surfaces resolved rather than positions
+  measured.
 
 ### Sentinel probes
 
@@ -979,6 +1097,10 @@ the Signature direction; **Sky** is the primary observatory read.
 | Deep arrays | instrument | any | Compute | 0 | invisible |
 | The survey | instrument | any | Compute, integration time | 0 | invisible |
 | Grav-lens observatories | instrument | I lean | Compute, years | 0 | invisible |
+| The second sightline | instrument | any; after pulsar clocks | Compute | 0 | invisible |
+| The star null | instrument | any | Compute | 0 | invisible |
+| The filled plane | instrument | any | Compute, Matter | 0 | `TRANSIT SHADOWS` while built |
+| The flicker pair | instrument | any; after the long baseline | Compute, patience | 0 | invisible |
 | Sentinel probes | instrument | H3 | Compute | ~0 | micro-`DIRECTED BEAM` bursts |
 | Tripwires | instrument | any | trivial | 0 | nothing |
 | Receivers | instrument/carrier | trust | Matter | + (build) | `TRANSIT SHADOWS`; the graph |

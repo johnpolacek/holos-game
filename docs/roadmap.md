@@ -92,8 +92,9 @@ the belief in plain words. A2.2 shipped the work engine —
 `questions.ts` (the six bought questions, priced in compute, integrating
 over game-years, answered from deterministic finding tables keyed to
 occupancy, with plateau gates where the instrument honestly cannot say),
-`projects.ts` (thirteen instrument projects in five effect kinds, each
-effect frozen at purchase time), and the causal gate all three knowledge
+`projects.ts` (now seventeen projects in four families and four effect
+kinds, fifteen of them placed on the instrument's twelve axes, each effect
+frozen at purchase time), and the causal gate all three knowledge
 channels now read through: `LightCone` / `peekTruth` / `occupancyAt` in
 `knowledge.ts`, which makes the light-cone ceiling a capability token
 instead of a per-callsite check. No answer can push a hypothesis share
@@ -676,7 +677,10 @@ gets priced risky besides).
       final form, presence/capability/posture/record cards everywhere,
       staleness stamps as a system, and the instrument register's style
       rules written and wired into the audits (stakes-design.md's open
-      question).
+      question). *IN (2026-08) landed the ladder's shape ahead of this:
+      twelve named axes, an inherited rung 0 on each, and the
+      predecessor rule — [build-instruments.md](./build-instruments.md).
+      What S4 still owes is the two registers and the staleness system.*
 
 **Phase S ships when** the playtest that failed in 2026-08 stops
 failing — each stage played before the next opens, the exit owned as

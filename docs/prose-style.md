@@ -127,7 +127,13 @@ actually land — a string at the wall is legal and usually still too long.
 | Proposal reason | `voice.ts` reason builders | Observatory deadpan; present tense | 0 | 16 · aim 11 |
 | Proposal accept verb | `voice.ts` PROPOSAL_VERBS | Observatory deadpan (chrome) | 0 | 6 (R-24) |
 | Proposal block header | `studyboard.ts` chrome | Observatory deadpan | 0 | 6 (R-24) |
-| Question method | `questionmethod.ts` QUESTION_METHOD | Observatory deadpan; what the instrument does, never what it found | 0 | 24 · aim 16 |
+| Question method — ALREADY RUNNING / WHAT THE SPEND BUYS | `questionmethod.ts` QUESTION_METHOD | Observatory deadpan; what the instrument does, never what it found. ALREADY RUNNING names a *kind* of standing product, never a value — that is the no-leak boundary, not a style preference. No digits in either block: the cost printed beside them is effective, so a literal could be made false by a landed project | 0 | 60 · aim 40, **each block** |
+| Project sheet — HOW IT WORKS | `projects.ts` howLine | Observatory deadpan; the physics this buys. The one permitted flourish is a true statement of physics | 0 | 60 · aim 40 |
+| Project sheet — WHAT IT CHANGES | `projects.ts` changesLine | Observatory deadpan; which term of the reconstruction this moves, in words. R-42's block: what building it would *change*, never what the thing is | 0 | 24 · aim 16 |
+| Project sheet — IN THE SKY | `projects.ts` skyLine | Observatory deadpan; what an observer elsewhere reads once this is standing (technology.md's own field) | 0 | 30 · aim 20 |
+| Report detail | `projects.ts` landedLine, frozen on the entry at landing | Observatory deadpan; past tense, an account and not a pitch — `howLine` explains, this records. Undated (R-33a), and it **names no quantity**, so no `audit:facts` coupling is ever owed on it | 0 | 60 · aim 40 |
+| Axis line | `projects.ts` AXES axisLine | Observatory deadpan; what this term of the reconstruction sets, and nothing about what any project does to it | 0 | 24 · aim 16 |
+| Inherited rung | `projects.ts` AXES inherited.description | Observatory deadpan; what the civilization already holds on this axis and exactly where it stops. Rung 0 has no cost, no clock and no verb, so R-42 does not reach it: there is nothing to decide | 0 | 60 · aim 40 |
 | Accord rail | `accord.ts` | Observatory deadpan (chrome); a pinned stem plus an interpolated fact | 0 | 6, stem only (R-24a) |
 | Section caption | `studyboard.ts` `study-picker-subtitle` — the class outlived the picker AS retired and is now the caption mold on every page that has sections (the Desk, Explore, the board, the Report) | Observatory deadpan; what a section is and where it stops | 0 | 20 · aim 12 |
 | Caps sub-line | `studyboard.ts` accord and voyage sub-labels | Observatory deadpan; microcopy in chrome's typography (R-24a) | 0 | 12 |
@@ -581,8 +587,11 @@ walls do not restate.
   is where that judgement is recorded, and the audit forces the recording.
   (`voice.ts`'s caps chrome is `audit:voice`'s to check, and is.)
 - **R-25** Microcopy: ≤ 12 words; sentence case (caps in the R-24a case).
-- **R-39 Question method:** 3 sentences, 45–65 words; observatory deadpan,
-  wit 0; **no numerals**. The costs and clocks printed beside it are
+- **R-39 Question method:** observatory deadpan, wit 0; **no numerals**.
+  (Since IN3 the surface is *two* blocks per question, ALREADY RUNNING and
+  WHAT THE SPEND BUYS, and the §2 row's 60-word wall is per block; the
+  single-paragraph "3 sentences, 45–65 words" this rule carried is
+  superseded by that row, floor included.) The costs and clocks printed beside it are
   *effective* (project discounts and haste apply), so a literal in the prose
   could be made false by a landed project. `questionmethod.ts` already states
   and observes this; the rule writes it down so it survives the next author.
@@ -912,6 +921,7 @@ destination and a *number measured off the code* is the thing being synced.
 | `voice.ts` INTRO_LINES | `build-s0.md` § "The intro's copy" | **Verbatim** — the brief pinned the four beats in design review; a gate rejection is reviewed against the brief, never fixed in place |
 | `voice.ts` COUNSEL_LINES | this guide, §2 counsel-line row and §3 R-36a | Register and ceilings track; the mechanical gates are script-checked by `audit:voice` at stance size; family scope and the double swap test stay a human read. The obligation survives the counsel strip's removal — the bank still ships and is still served, so a doc sync is still owed on every edit to it |
 | `bannedterms.ts` | this guide, §6 (and §8's comms register) | **Generated, doc → code** — `npm run sync:banned` writes it, `npm run audit:banned` fails CI on any drift in either direction. This row RUNS BACKWARDS from the rule above it, and correctly: §6 is not a bank, it is a rule list whose canonical statement is this guide |
+| The instrument's "why" paragraph: the interferometer, the standing read versus the bought reconstruction, a project buying down one term, compute finite / non-amortizing / decaying, and cost without clock | `projects.ts` header, `questions.ts` header, and `build-instruments.md` § *Why* | **Three-way, and it runs sideways** — this is not a bank absorbed by a doc but one claim standing in three places, none canonical over the others, and every player-facing string the instrument family ships is downstream of it. Not verbatim (the two headers state it in code-comment register, the brief in the essayist's), but an edit to any one that changes *what is claimed* is owed to the other two, and to the surfaces the claim is the source of. Human read |
 
 **What R-8's audit does not cover, and why.** `npm run audit:dashes` reads
 strings, not files. The narration in `docs/*.md` — this paragraph included —

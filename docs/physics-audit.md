@@ -185,6 +185,18 @@ survives on cost alone. This is pillar 3 working as designed — the
 authored latency was a second, fake antagonist competing with distance,
 and distance wins the job back.
 
+*The second leg (2026-08, IN).* The archive argument above is only half
+the reason, and the other half is the harder one: even with the light in
+hand, a clock would need the *thinking* to take time, and at swarm power
+it does not. Any search a mind would actually size finishes the year it is
+started; what is scarce is not the running of it but the decision to point
+that fraction of a star at this one star rather than another. So the spend
+is the whole cost, and it is a cost precisely because it is a choice.
+**Duration exists exactly where mass or light has to move** — projects,
+probes, voyages, the light delay, a mask's cadence — and is absent exactly
+where nothing does. The two legs land in the same place, which is why the
+rule survived the abstraction the first one could not cash.
+
 ### P0-2 · The seedship's chemistry sentence
 
 `voyages.ts:170`: "Everything a founding needs, **moving slowly enough
