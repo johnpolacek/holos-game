@@ -29,7 +29,7 @@ const WORLD_MAX = 41;
 
 /**
  * World plate URL for a cradle id, or `null` when no plate exists for it
- * (id 41, or any id outside the rendered 1–40 range). Callers must handle
+ * (any id outside the rendered 1–41 range). Callers must handle
  * null — it is a real case in the shipped catalog, not just defensive.
  */
 export function worldArt(cradleId: number, ratio: ArtRatio): string | null {

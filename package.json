@@ -12,6 +12,7 @@
     "typecheck": "npm run typecheck --workspaces",
     "build": "npm run build --workspaces",
     "art:manifest": "node scripts/build-art-manifest.mjs",
+    "audit:art": "node scripts/audit-art.mjs",
     "icons": "node scripts/build-icons.mjs",
     "og": "node scripts/build-og.mjs",
     "audit:axes": "node scripts/audit-axes.mjs",
