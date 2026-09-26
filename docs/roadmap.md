@@ -223,6 +223,39 @@ and the briefing screen are gone and the Desk lists what has been spent
 on; launch brief and as-built record:
 [build-ambient-studies.md](./build-ambient-studies.md).
 
+**The atlas merge (2026-09).** The sibling holos-map project (a real-data
+3D atlas, Earth to the Local Group) becomes the map and home centerpiece
+of Phase S's rebuilt client. The server systems stay. Six conflicts
+between the two projects' designs were settled on 2026-09-25 and 26;
+the decision record, with reasoning and rejected alternatives, is
+[HOLOS_MERGE.md](../../holos-map/HOLOS_MERGE.md). In short:
+
+- **The real neighborhood.** v1 plays in the real solar neighborhood:
+  centered on the Sun, 100 ly in radius (about 10,000 systems), with
+  civilizations seeded inside 50 ly and the outer shell as frontier.
+  Player homes are invented planets around real catalog stars.
+  `galaxy.ts`'s generated field is replaced; 25 ly tunings get revisited.
+- **Earth is in every cohort,** AI-run by default. A paid tier may later
+  offer the Earth seat, starting equal to everyone.
+- **The detection floor** (S1's amendment) is the rule that keeps the
+  cohort consistent with Earth's null results to 2026. The one stated
+  "what if": many civilizations waking in the same century nearby.
+- **Identical starts.** A player's three candidates share one set of
+  ladders and stocks; the lean lives in dials, counsel, and flavor.
+- **Stakes** stand as stakes-design.md settles them.
+- **The thread travels at light speed** (amends stakes-design.md § The
+  thread you play): a jump is a transmission, arriving after the
+  one-way light time, and the player can do nothing while in transit.
+- **The mind composes signals** (amends vision.md § Decisions): free-text
+  intent, translated by the mind into typed parts, forged parts
+  included, approved before sending; each civilization's readings are
+  rendered fresh in its own voice and frozen at send.
+- **Cross-cohort carryover is out of v1.** Each cohort is self-contained.
+
+The design test for all of it, in the designer's words: "I want this
+game to feel like something that is actually possible." Improbable is
+acceptable; contradicted by observation is not.
+
 **→ Previously next (now shipped in code): AV — the voice.** Decided
 2026-07: the shipped game has the machinery but no narrator — the
 pull-back is wordless, nothing states the frame, and the mind never
@@ -611,6 +644,11 @@ Ledger — survive untouched. The client is the replaceable half.
   record as a knowledge graph — the model for the one big non-map
   surface), Clash of Clans (the return-visit rhythm, feeding AV2's
   report). Anti-model: EVE's spreadsheet presentation.
+- **The Model is the atlas** *(2026-09, the atlas merge)*. The holos-map
+  atlas (one Three.js scene, floating origin, logarithmic depth, real
+  catalogs) replaces the Pixi orbit camera in `client/src/model.ts` as
+  the map at the center of the hybrid home. The DOM surfaces stay. The
+  kept ingredient, a place in a real sky, is now literally real.
 - ui-design.md gets revised to match as part of S0.
 
 ### The stages
@@ -663,11 +701,17 @@ gets priced risky besides).
       at once — "they spoke first" arrives as a discovery you earned,
       not an inbox you were assigned. Until S1 lands, the shipped sky's
       visible seeded sources and threads are a known interim artifact
-      that S1 retires.)*
+      that S1 retires.)* *(Amended 2026-09, the atlas merge: the
+      textbook sky is the real solar neighborhood, Sun-centered and
+      100 ly in radius, from a complete nearby-star census; the dark
+      sky seeds only what surveys cannot yet rule out. Earth is in it.)*
 - [ ] **S2 — Exposure and the thread.** The exposure readout
       (capability × proximity, drawn as reach), the record as a
       ship-log-style dossier surface, the jump/membrane/emigration
-      rules over the shipped Ledger, the family register.
+      rules over the shipped Ledger, the family register. *(Amended
+      2026-09, the atlas merge: the jump is light-speed travel with a
+      lockout, not a camera move; stakes-design.md § The thread you
+      play carries the amendment.)*
 - [ ] **S3 — Consequence.** Weapons investment, the attack menu (strike
       thin first; raid and conquer after), wounding and the attacker's
       blindness, the morning-after, signed shots, death and new-cohort
@@ -730,8 +774,13 @@ Resolve each before the slice that needs it; record the call here.
   render (act3-map.md § Under the hood). Note A0's real cohort field is
   small (~260 stars at 25 ly) — the 50–150k-star *cosmetic* backdrop can
   arrive later; A1 can ship on the real field alone.
+  *(Reopened 2026-09 by the atlas merge: the playable field is now about
+  10,000 real systems within 100 ly, with the HYG catalog as backdrop.
+  The budget is an open integration question.)*
 - **Model renderer (A1):** three.js beside Pixi, or a purpose-built WebGL
   point-sprite pass? Decide at A1 start, before the pull-back is built.
+  **Decided (2026-09, the atlas merge): three.js, as the holos-map
+  atlas.** It replaces the Pixi orbit camera rather than sitting beside it.
 - **Player identity (A1, thin):** how a browser session maps to its civ in
   the cohort (a per-run token in DO storage is enough for v1).
   **Decided (A2, 2026-07): durable identity lives in the platform's
@@ -744,6 +793,9 @@ Resolve each before the slice that needs it; record the call here.
 - **Player placement (A1):** A0's `generateGalaxy` pre-places one player
   civ at seed time; the inheritance flow replaces this — candidates are
   offered on join and the chosen civ is placed then. Reconcile in A1.
+  *(Amended 2026-09, the atlas merge: placement is onto real catalog
+  stars inside 50 ly of the Sun, with invented planets where surveys
+  leave room. Earth's seat is always filled, by AI by default.)*
 - **Inheritance count (A1):** how many candidate civs a joining player
   chooses among (2–3 feels right; 1 removes agency, many becomes a menu —
   anti-pattern per act2's "revealed, not chosen").
@@ -812,7 +864,9 @@ act3-design.md, *Grave worlds*), and anomaly
 events (later-galaxy content);
 richer per-archetype content beyond the anchors. The refusal path — the
 threshold's other branch and its Breakout onboarding seam — is out of v1
-too, landing with Phase B's pivot.
+too, landing with Phase B's pivot. Cross-cohort carryover is out of v1 as
+well *(2026-09, the atlas merge)*: dead cohorts do not fold into later
+ones, and each cohort is self-contained.
 
 ## Risks, named
 

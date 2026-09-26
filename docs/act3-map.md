@@ -218,6 +218,11 @@ to its own world-model rendering).
   solar neighborhood constrains the persistent galaxy's growth topology
   (vision.md, frontier expansion). Generated-with-real-statistics may be
   the honest compromise; the backdrop can be real either way.
+  **Decided (2026-09, the atlas merge): the real neighborhood.** v1
+  plays in the real solar neighborhood, Sun-centered and 100 ly in
+  radius, with Earth present. Growth topology stopped being a
+  constraint when cross-cohort play left v1. Decision record:
+  [HOLOS_MERGE.md](../../holos-map/HOLOS_MERGE.md).
 - **How much 3D on the lowest devices?** The fallback for a phone that
   can't hold the frame rate: the sky-view (camera locked at home) with
   parallax-on-drag — which is Act 2's presentation, gracefully degraded,

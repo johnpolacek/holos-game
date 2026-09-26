@@ -144,7 +144,9 @@ insurance; write a vengeance charter and launch it before the
 follow-through lands. And the escape hatch: a player with a colony may
 pivot the thread to it — instantly, blindly, even into a diverged child
 (see *The thread you play*) — and the wounded existence keeps running on
-its charter.
+its charter. *(Amended 2026-09, the atlas merge: the pivot is no longer
+instant. It travels at light speed like every jump; see* The thread you
+play.*)*
 
 The morning-after screen serves this state. The player wakes (288 game
 years pass in a real day; the strike landed while they slept), reviews
@@ -347,7 +349,9 @@ No authored ancient ruins in v1. Two sources instead, both real:
   that outlived their players, salted gardens — folds into the seeding
   of later cohorts. The Fermi question's answer in any Holos galaxy is
   literally previous players: every ruin was somebody's real run, and
-  no writer invented it.
+  no writer invented it. *(Amended 2026-09, the atlas merge:
+  cross-cohort carryover is out of v1. Each cohort is self-contained;
+  this bullet is kept as later-galaxy design.)*
 
 ### The two-layer sky
 
@@ -367,6 +371,14 @@ exoplanet statistics, extended galaxy-wide.
   statistically-honestly and exist only for whoever surveys them out.
   **Prospecting is the early game**, and a found location is tradeable
   information.
+
+*(Amended 2026-09, the atlas merge.)* v1's textbook sky is the real solar
+neighborhood: centered on the Sun, 100 ly in radius, about 10,000
+systems, drawn from a complete nearby-star census. Civilizations are
+seeded within 50 ly on invented planets around real stars; the outer
+shell is frontier. Earth is present, AI-run by default. The dark sky
+seeds only what current surveys cannot rule out. Beyond 100 ly the sky
+is backdrop, not destination, in v1. Decision record: [HOLOS_MERGE.md](../../holos-map/HOLOS_MERGE.md).
 
 ### Salting is legal, loud, and remembered
 
@@ -435,6 +447,23 @@ lives. Settled in a third review round (2026-08).
   instruments, its forgiveness unreadable.
 - **One place at a time.** There is no steering both; the game's soul is
   that you can't.
+
+*(Amended 2026-09, the atlas merge.)* The jump as written above leaked
+information faster than light. The player is a person who remembers,
+so a thread that lands before light could have carried what they knew
+is a faster-than-light channel: the instant wounded jump carried
+everything at once, and the healthy jump waited a round trip at home,
+then landed carrying what was learned during the wait. The rule now:
+**the thread travels as a transmission.** It departs, arrives after
+the one-way light time, and carries only what the player knew at
+departure; what is left behind continues as an autonomous actor from
+that moment. **While in transit the player can do nothing**, for the
+real-time equivalent of the crossing (20 ly is 100 real minutes), and
+that lockout is the cost of moving. Alignment is no longer asked ahead:
+divergence is discovered on arrival, and arriving at a colony that no
+longer aligns is emigration. The wounded escape uses the same transit,
+visible and interceptable in flight, which also reconciles this
+section with vision.md's fleeing seat. Decision record: [HOLOS_MERGE.md](../../holos-map/HOLOS_MERGE.md).
 
 ### The family register
 
@@ -540,6 +569,14 @@ hard-SF game should put it.
   because it cannot be taken back.
 
 A lie caught is the loudest entry a dossier can hold.
+
+*(Amended 2026-09, the atlas merge.)* Fabrication joins the verbs. The
+mind composes signals from the player's free-text intent into typed
+parts, and forged findings and sightings are among them: identical in
+form to true ones, marked for the sender alone on the approval screen,
+recorded privately in the act log. The three tenses still judge them;
+a forged claim about the past can be checked against the sky's
+receipts.
 
 ### Legibility is a verb set
 
